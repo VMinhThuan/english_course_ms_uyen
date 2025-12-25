@@ -1,0 +1,145 @@
+/* Enroll Course Page Styles */
+
+.enroll-page {
+    padding: 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: #2F327D;
+    margin-bottom: 2rem;
+}
+
+.course-preview {
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    background: #FFFFFF;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.course-preview-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 24px;
+    color: #2F327D;
+    margin-bottom: 0.75rem;
+}
+
+.course-preview-description {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    color: #696984;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.course-preview-info {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: #696984;
+    margin-bottom: 0.5rem;
+}
+
+.message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+}
+
+.message-success {
+    background: #D4EDDA;
+    color: #155724;
+}
+
+.message-error {
+    background: #F8D7DA;
+    color: #721C24;
+}
+
+.btn-enroll {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    background: #49BBBD;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    transition: all 0.3s;
+    width: 100%;
+}
+
+.btn-enroll:hover:not(:disabled) {
+    background: #3AA8AA;
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 12px rgba(73, 187, 189, 0.3);
+}
+
+.btn-enroll:disabled {
+    background: #CCCCCC;
+    cursor: not-allowed;
+}
+
+.api-example {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #F8F9FA;
+    border-radius: 8px;
+}
+
+.api-example-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: #2F327D;
+    margin-bottom: 1rem;
+}
+
+.api-example-code {
+    background: #FFFFFF;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #2F327D;
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .enroll-page {
+        padding: 1.5rem 1rem;
+    }
+    .page-title {
+        font-size: 28px;
+    }
+    .course-preview {
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .enroll-page {
+        padding: 1rem;
+    }
+    .page-title {
+        font-size: 24px;
+    }
+    .api-example-code {
+        font-size: 11px;
+    }
+}

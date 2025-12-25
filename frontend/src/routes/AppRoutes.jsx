@@ -51,10 +51,14 @@ function AppRoutes() {
       {/* Home Page - No Layout (Full Screen) */}
       <Route path="/" element={<HomePage />} />
 
+      {/* Login Page - No Layout (Full Screen) */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Register Page - No Layout (Full Screen) */}
+      <Route path="/register" element={<RegisterPage />} />
+
       {/* Public Routes */}
       <Route path="/" element={<PublicLayout />}>
-        <Route path="login" element={<LoginPage />} />
-        <Route path="register" element={<RegisterPage />} />
         <Route path="courses" element={<CourseListPage />} />
         <Route path="courses/:id" element={<CourseDetailPage />} />
       </Route>

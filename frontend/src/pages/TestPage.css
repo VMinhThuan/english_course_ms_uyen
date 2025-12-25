@@ -1,0 +1,371 @@
+/* Test Page Styles */
+
+.test-page {
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.test-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: #2F327D;
+    margin-bottom: 0.5rem;
+}
+
+.test-type {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    color: #696984;
+    margin-bottom: 2rem;
+}
+
+.question-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+    background: #FFFFFF;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.question-number {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    color: #2F327D;
+    margin-bottom: 0.75rem;
+}
+
+.question-text {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+    color: #2F327D;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.reading-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #F8F9FA;
+    border-radius: 8px;
+}
+
+.reading-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: #2F327D;
+    margin-bottom: 0.75rem;
+}
+
+.text-to-read {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #2F327D;
+    line-height: 1.8;
+}
+
+.audio-controls {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.btn-audio {
+    padding: 0.5rem 1rem;
+    margin-right: 0.5rem;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-audio:hover:not(:disabled) {
+    background: #0056B3;
+    transform: translateY(-1px);
+}
+
+.btn-audio:disabled {
+    background: #CCCCCC;
+    cursor: not-allowed;
+}
+
+.btn-record {
+    background: #28A745;
+}
+
+.btn-record:hover:not(:disabled) {
+    background: #218838;
+}
+
+.btn-stop {
+    background: #DC3545;
+}
+
+.btn-stop:hover {
+    background: #C82333;
+}
+
+.reading-input-label {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    color: #2F327D;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.reading-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    border: 2px solid #E5E5E5;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    color: #2F327D;
+    resize: vertical;
+    min-height: 100px;
+    box-sizing: border-box;
+}
+
+.reading-textarea:focus {
+    outline: none;
+    border-color: #49BBBD;
+}
+
+.option-label {
+    display: block;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #DDD;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    color: #2F327D;
+}
+
+.option-label:hover {
+    background: #F8F9FA;
+    border-color: #49BBBD;
+}
+
+.option-radio {
+    margin-right: 0.5rem;
+}
+
+.fill-blank-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #E5E5E5;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    color: #2F327D;
+    box-sizing: border-box;
+}
+
+.fill-blank-input:focus {
+    outline: none;
+    border-color: #49BBBD;
+}
+
+.btn-submit-test {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    background: #28A745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    transition: all 0.3s;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.btn-submit-test:hover:not(:disabled) {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-submit-test:disabled {
+    background: #CCCCCC;
+    cursor: not-allowed;
+}
+
+
+/* Results Page */
+
+.results-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.results-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: #2F327D;
+    margin-bottom: 1.5rem;
+}
+
+.score-card {
+    padding: 1.5rem;
+    background: #D4EDDA;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.score-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: #155724;
+    margin-bottom: 0.5rem;
+}
+
+.score-text {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+    color: #155724;
+}
+
+.result-item {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #CCC;
+    border-radius: 8px;
+}
+
+.result-item-correct {
+    background: #D4EDDA;
+}
+
+.result-item-incorrect {
+    background: #F8D7DA;
+}
+
+.result-question {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: #2F327D;
+    margin-bottom: 0.5rem;
+}
+
+.result-answer {
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 14px;
+    color: #2F327D;
+    margin-bottom: 0.25rem;
+}
+
+.result-status {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 0.25rem;
+}
+
+.result-similarity {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: #696984;
+    margin-bottom: 0.25rem;
+}
+
+.result-points {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #49BBBD;
+}
+
+.api-example {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #F8F9FA;
+    border-radius: 8px;
+}
+
+.api-example-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: #2F327D;
+    margin-bottom: 1rem;
+}
+
+.api-example-code {
+    background: #FFFFFF;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #2F327D;
+}
+
+.loading-message,
+.not-found-message {
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    color: #696984;
+    padding: 3rem;
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .test-page {
+        padding: 1.5rem 1rem;
+    }
+    .test-title {
+        font-size: 28px;
+    }
+    .question-card {
+        padding: 1.25rem;
+    }
+    .audio-controls {
+        flex-direction: column;
+    }
+    .btn-audio {
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .test-page {
+        padding: 1rem;
+    }
+    .test-title {
+        font-size: 24px;
+    }
+    .question-card {
+        padding: 1rem;
+    }
+    .api-example-code {
+        font-size: 10px;
+    }
+}

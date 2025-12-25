@@ -1,0 +1,142 @@
+/* Course List Page Styles */
+
+.course-list-page {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 36px;
+    color: #2F327D;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.course-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: #49BBBD;
+}
+
+.course-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 22px;
+    color: #2F327D;
+    margin-bottom: 0.75rem;
+}
+
+.course-description {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    color: #696984;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.course-info {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: #696984;
+    margin-bottom: 0.5rem;
+}
+
+.course-teacher {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    color: #49BBBD;
+    margin-bottom: 1rem;
+}
+
+.btn-view-details {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #49BBBD;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-view-details:hover {
+    background: #3AA8AA;
+    transform: translateY(-2px);
+}
+
+.loading-message {
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    color: #696984;
+    padding: 3rem;
+}
+
+
+/* Responsive */
+
+@media (max-width: 1200px) {
+    .courses-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .course-list-page {
+        padding: 1.5rem 1rem;
+    }
+    .page-title {
+        font-size: 28px;
+        margin-bottom: 1.5rem;
+    }
+    .courses-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.25rem;
+    }
+    .course-card {
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .course-list-page {
+        padding: 1rem;
+    }
+    .page-title {
+        font-size: 24px;
+    }
+    .courses-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}

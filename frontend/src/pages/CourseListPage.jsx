@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { courseApi } from '../api/courseApi.js';
+import './CourseListPage.css';
 
 export default function CourseListPage() {
   const [courses, setCourses] = useState([]);
@@ -21,20 +22,20 @@ export default function CourseListPage() {
     fetchCourses();
   }, []);
 
-  if (loading) return <div>Loading courses...</div>;
+  if (loading) return <div className="loading-message">Loading courses...</div>;
 
   return (
-    <div>
-      <h2>All Courses</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+    <div className="course-list-page">
+      <h2 className="page-title">All Courses</h2>
+      <div className="courses-grid">
         {courses.map((course) => (
-          <div key={course._id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px' }}>
-            <h3>{course.title}</h3>
-            <p>{course.description}</p>
-            <p>Level: {course.level}</p>
-            <p>Teacher: {course.teacher?.fullName}</p>
+          <div key={course._id} className="course-card">
+            <h3 className="course-title">{course.title}</h3>
+            <p className="course-description">{course.description}</p>
+            <p className="course-info">Level: {course.level}</p>
+            <p className="course-teacher">Teacher: {course.teacher?.fullName}</p>
             <Link to={`/courses/${course._id}`}>
-              <button>View Details</button>
+              <button className="btn-view-details">View Details</button>
             </Link>
           </div>
         ))}
