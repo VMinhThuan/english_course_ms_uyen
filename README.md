@@ -129,6 +129,3 @@ Frontend chạy tại: `http://localhost:5173`
 - Frontend chỉ biết URL của Backend qua environment variable
 - Không có template engine, chỉ JSON API
 - File uploads được lưu trong `backend/uploads/`
-
-# english_course_online_web_FE-BE git init git add README.md git commit -m implement codebase BE + FE and design new screens for 3 role system: student, teacher, admin git branch -M Thuan git remote add origin https://github.com/VMinhThuan/english_course_online_web_FE-BE.git git push -u origin main
-# english_course_online_web_FE-BE git init git add README.md git commit -m implement codebase BE + FE and design new screens for 3 role system: student, teacher, admin git branch -M Thuan git remote add origin https://github.com/VMinhThuan/english_course_online_web_FE-BE.git git push -u origin Thuan
