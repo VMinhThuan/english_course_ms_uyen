@@ -8,7 +8,7 @@ import { jwtConfig } from '../configs/jwt.js';
 // @access  Public
 export const register = async(req, res, next) => {
     try {
-        const { email, password, fullName, role } = req.body;
+        const { email, password, fullName, phoneNumber, role } = req.body;
 
         // Check if user exists
         const existingUser = await User.findOne({ email });
@@ -19,11 +19,32 @@ export const register = async(req, res, next) => {
             });
         }
 
+        // Generate fullName from email if not provided (use part before @)
+        const userFullName = fullName || email.split('@')[0] || 'User';
+
+        // Normalize phone number - remove spaces, dashes, and ensure consistent format
+        let normalizedPhone = '';
+        if (phoneNumber) {
+            // Remove all non-digit characters except +
+            const cleaned = phoneNumber.replace(/[^\d+]/g, '');
+            // Normalize to format starting with 0 (Vietnamese format)
+            if (cleaned.startsWith('+84')) {
+                normalizedPhone = '0' + cleaned.substring(3);
+            } else if (cleaned.startsWith('84')) {
+                normalizedPhone = '0' + cleaned.substring(2);
+            } else if (cleaned.startsWith('0')) {
+                normalizedPhone = cleaned;
+            } else {
+                normalizedPhone = '0' + cleaned;
+            }
+        }
+
         // Create user
         const user = await User.create({
             email,
             password,
-            fullName,
+            fullName: userFullName,
+            phoneNumber: normalizedPhone,
             role: role || 'student',
         });
 
@@ -64,13 +85,52 @@ export const login = async(req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        // Check if user exists
-        const user = await User.findOne({ email });
+        // Check if user exists by email or phone number
+        // Determine if input is email (contains @) or phone number
+        const input = email.trim();
+        const isEmail = input.includes('@');
+        let user;
+        
+        if (isEmail) {
+            // Search by email
+            user = await User.findOne({ email: input.toLowerCase() });
+        } else {
+            // Search by phone number - normalize to match stored format (starts with 0)
+            // Remove all non-digit characters except +
+            const cleanedPhone = input.replace(/[^\d+]/g, '');
+            
+            // Normalize to format starting with 0 (same as registration)
+            let normalizedPhone = '';
+            if (cleanedPhone.startsWith('+84')) {
+                normalizedPhone = '0' + cleanedPhone.substring(3);
+            } else if (cleanedPhone.startsWith('84')) {
+                normalizedPhone = '0' + cleanedPhone.substring(2);
+            } else if (cleanedPhone.startsWith('0')) {
+                normalizedPhone = cleanedPhone;
+            } else {
+                normalizedPhone = '0' + cleanedPhone;
+            }
+            
+            // Search with normalized phone and also try original input (for backward compatibility)
+            user = await User.findOne({ 
+                $or: [
+                    { phoneNumber: normalizedPhone },
+                    { phoneNumber: input.trim() },
+                    { phoneNumber: cleanedPhone }
+                ]
+            });
+        }
+
         if (!user) {
             return res.status(401).json({
                 status: 'error',
                 message: 'Invalid credentials',
             });
+        }
+
+        // Debug: Log found user (remove in production)
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`User found: ${user.email}, Phone: ${user.phoneNumber || 'N/A'}`);
         }
 
         // Check password

@@ -1,7 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../store/authStore.js';
+import backgroundImage1 from '../images/background.jpg';
+import backgroundImage2 from '../images/background_1.jpg';
+import backgroundImage3 from '../images/bg_2.jpg';
+import backgroundImage4 from '../images/bg_3.jpg';
 import './LoginPage.css';
+
+// Array of background images for slideshow
+const backgroundImages = [
+  backgroundImage1,
+  backgroundImage2,
+  backgroundImage3,
+  backgroundImage4,
+];
+
+// Array of slide content for each slide
+const slideContents = [
+  {
+    title: 'English Course Online',
+    subtitle: 'Hệ thống học tiếng Anh trực tuyến hiện đại và hiệu quả nhất',
+  },
+  {
+    title: 'Khóa Học Đa Dạng',
+    subtitle: 'Từ cơ bản đến nâng cao, phù hợp với mọi trình độ và nhu cầu học tập',
+  },
+  {
+    title: 'Giảng Viên Chuyên Nghiệp',
+    subtitle: 'Đội ngũ giáo viên giàu kinh nghiệm, tận tâm và nhiệt huyết',
+  },
+  {
+    title: 'Học Mọi Lúc Mọi Nơi',
+    subtitle: 'Truy cập dễ dàng trên mọi thiết bị, học tập linh hoạt theo thời gian của bạn',
+  },
+];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,9 +42,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [currentSlide, setCurrentSlide] = useState(0);
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
   const navigate = useNavigate();
+
+  // Auto-slide every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % backgroundImages.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,17 +71,36 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-container">
-        {/* Left Section - Image */}
+        {/* Left Section - Image Slideshow */}
         <div className="login-image-section">
           <div className="login-image-wrapper">
-            <div className="login-image" style={{
-              background: 'linear-gradient(135deg, #49BBBD 0%, #23BDEE 100%)',
-              width: '100%',
-              height: '100%'
-            }}></div>
+            <div className="login-image-slideshow">
+              {backgroundImages.map((image, index) => (
+                <div
+                  key={index}
+                  className={`login-image-slide ${index === currentSlide ? 'active' : ''}`}
+                  style={{
+                    backgroundImage: `url(${image})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                ></div>
+              ))}
+            </div>
             <div className="login-image-overlay">
-              <div className="overlay-title">English Course Online</div>
-              <div className="overlay-subtitle">English Course Online is a platform for learning English online.</div>
+              <div className="overlay-title">{slideContents[currentSlide].title}</div>
+              <div className="overlay-subtitle">{slideContents[currentSlide].subtitle}</div>
+            </div>
+            {/* Slide indicators */}
+            <div className="slide-indicators">
+              {backgroundImages.map((_, index) => (
+                <div
+                  key={index}
+                  className={`indicator ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => setCurrentSlide(index)}
+                ></div>
+              ))}
             </div>
           </div>
         </div>
@@ -72,7 +133,7 @@ export default function LoginPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">User name</label>
+              <label className="form-label">Email or Phone Number</label>
               <div className="form-input-wrapper">
                 <input
                   type="text"
@@ -80,7 +141,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="form-input"
-                  placeholder="Enter your User name"
+                  placeholder="Enter your Email or Phone Number"
                 />
               </div>
             </div>

@@ -1,9 +1,18 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import useAuthStore from '../store/authStore.js';
+import Sidebar from '../components/Sidebar';
+import studentImage from '../images/homepage/2f32d3a9082c2e2832481561feec93a5e5c5e8d6.png';
 import './HomePage.css';
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
+  const fetchUser = useAuthStore((state) => state.fetchUser);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,8 +24,68 @@ export default function HomePage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Fetch user data if token exists but user data is not loaded
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token && !user) {
+      fetchUser();
+    }
+  }, [user, fetchUser]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showUserMenu && !event.target.closest('.user-menu-container')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showUserMenu]);
+
+  const handleLogout = async () => {
+    await logout();
+    setShowUserMenu(false);
+    navigate('/');
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (user?.fullName) {
+      const names = user.fullName.split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+      }
+      return user.fullName.substring(0, 2).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Listen to sidebar toggle events
+  useEffect(() => {
+    const handleSidebarToggle = (event) => {
+      const { collapsed } = event.detail;
+      setSidebarCollapsed(collapsed);
+      if (collapsed) {
+        document.body.setAttribute('data-sidebar-collapsed', 'true');
+      } else {
+        document.body.removeAttribute('data-sidebar-collapsed');
+      }
+    };
+    window.addEventListener('sidebar:toggle', handleSidebarToggle);
+    return () => window.removeEventListener('sidebar:toggle', handleSidebarToggle);
+  }, []);
+
   return (
-    <div className="landing-page">
+    <div className="home-page-wrapper">
       {/* Header Section */}
       <header className={`header ${scrolled ? 'scrolled' : ''}`}>
         <div className="header-content">
@@ -31,21 +100,74 @@ export default function HomePage() {
             <Link to="/blog">Blog</Link>
           </nav>
           <div className="header-actions">
-            <Link to="/login" className="btn-login">Login</Link>
-            <Link to="/register" className="btn-signup">Sign Up</Link>
+            {isAuthenticated && user ? (
+              <div className="user-menu-container">
+                <button 
+                  className="user-avatar-btn"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  aria-label="User menu"
+                >
+                  <div className="user-avatar">
+                    {getUserInitials()}
+                  </div>
+                </button>
+                {showUserMenu && (
+                  <div className="user-dropdown">
+                    <div className="user-dropdown-header">
+                      <div className="user-dropdown-name">{user.fullName || user.email}</div>
+                      <div className="user-dropdown-email">{user.email}</div>
+                    </div>
+                    <div className="user-dropdown-divider"></div>
+                    <Link 
+                      to="/profile" 
+                      className="user-dropdown-item"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <svg className="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                      <span>Xem hồ sơ</span>
+                    </Link>
+                    <div className="user-dropdown-divider"></div>
+                    <button 
+                      className="user-dropdown-item"
+                      onClick={handleLogout}
+                    >
+                      <svg className="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="btn-login">Login</Link>
+                <Link to="/register" className="btn-signup">Sign Up</Link>
+              </>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Sidebar - Below Header - TEMPORARILY HIDDEN */}
+      {/* <Sidebar /> */}
+
+      {/* Main Content Area */}
+      <div className="main-content main-content-no-sidebar">
+        {/* Hero Section - Redesigned based on Figma */}
       <section className="hero">
         <div className="hero-content">
           <div className="hero-text">
             <h1 className="hero-title">
-              Learning English is now much easier
+              <span className="highlight-orange">Studying</span> Online is now much easier
             </h1>
             <p className="hero-description">
-              English Course is an interactive platform that will teach you English in a more engaging and effective way
+              TOTC is an interesting platform that will teach you in more an interactive way
             </p>
             <div className="hero-actions">
               <Link to="/register" className="btn-primary">Join for free</Link>
@@ -55,38 +177,45 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          <div className="hero-image">
-            <div className="stat-card stat-card-1">
-              <div className="stat-icon calendar-icon"></div>
-              <div className="stat-info">
-                <div className="stat-number">15K+</div>
-                <div className="stat-label">Students</div>
+          <div className="hero-image-wrapper">
+            <img 
+              src={studentImage}
+              alt="Student studying" 
+              className="hero-student-image"
+            />
+            {/* Floating Cards - Redesigned based on image */}
+            <div className="floating-card card-top-left">
+              <div className="card-icon calendar-icon-card"></div>
+              <div className="card-text">
+                <div className="card-number">250k</div>
+                <div className="card-label">Assisted Student</div>
               </div>
             </div>
-            <div className="stat-card stat-card-2">
-              <div className="stat-icon email-icon"></div>
-              <div className="stat-info">
-                <div className="stat-number">250k</div>
-                <div className="stat-label">Assisted Student</div>
+            <div className="floating-card card-top-right">
+              <div className="card-icon chart-icon-card"></div>
+            </div>
+            <div className="floating-card card-middle-right">
+              <div className="card-icon envelope-icon-card"></div>
+              <div className="card-content">
+                <div className="card-title">Congratulations</div>
+                <div className="card-subtitle">Your admission completed</div>
               </div>
             </div>
-            <div className="notification-card">
-              <div className="notification-icon"></div>
-              <div className="notification-content">
-                <div className="notification-title">Congratulations</div>
-                <div className="notification-text">Your admission completed</div>
+            <div className="floating-card card-bottom-left">
+              <div className="class-avatar-card">
+                <div className="avatar-image"></div>
+                <div className="avatar-status"></div>
               </div>
-            </div>
-            <div className="class-card">
-              <div className="class-avatar"></div>
-              <div className="class-info">
-                <div className="class-title">English Speaking Class</div>
-                <div className="class-time">Today at 12.00 PM</div>
-                <button className="btn-join">Join Now</button>
+              <div className="class-info-card">
+                <div className="class-title-card">User Experience Class</div>
+                <div className="class-time-card">Today at 12.00 PM</div>
+                <button className="btn-join-card">Join Now</button>
               </div>
             </div>
           </div>
         </div>
+        {/* Decorative Ellipse */}
+        <div className="hero-ellipse"></div>
       </section>
 
       {/* Our Success Section */}
@@ -501,6 +630,8 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+      </div>
+      {/* End Main Content Area */}
     </div>
   );
 }

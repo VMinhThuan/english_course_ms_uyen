@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+// Use proxy in development, or direct URL in production
+// Force use proxy in dev to avoid CORS issues
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

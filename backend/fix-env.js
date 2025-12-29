@@ -1,4 +1,4 @@
-// Script để tự động thêm MONGODB_URI vào file .env nếu thiếu
+// Script để tự động thêm MONGODB_URI và JWT secrets vào file .env nếu thiếu
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -22,6 +22,7 @@ NODE_ENV=development
 # THAY <db_password> BẰNG PASSWORD THỰC TẾ CỦA BẠN
 MONGODB_URI=mongodb+srv://minhthuan20192020:<db_password>@cluster0.cgaadgm.mongodb.net/english_course?retryWrites=true&w=majority&appName=Cluster0
 
+# JWT Configuration
 JWT_SECRET=dev-secret-key-123456789012345678901234567890
 JWT_REFRESH_SECRET=dev-refresh-secret-123456789012345678901234567890
 JWT_EXPIRE=15m
@@ -38,6 +39,7 @@ FRONTEND_URL=http://localhost:5173
 
 // Read existing .env file
 let envContent = readFileSync(envPath, 'utf8');
+let needsUpdate = false;
 
 // Check if MONGODB_URI exists
 if (envContent.includes('MONGODB_URI=')) {
@@ -49,18 +51,16 @@ if (envContent.includes('MONGODB_URI=')) {
     const uriValue = mongoUriMatch[1].trim();
     if (uriValue && !uriValue.includes('<db_password>') && uriValue !== 'undefined') {
       console.log('✅ MONGODB_URI has a value set');
-      console.log('✅ Everything looks good!\n');
-      process.exit(0);
     } else {
       console.log('⚠️  MONGODB_URI exists but may need to be updated');
       console.log('📝 Current value:', uriValue.substring(0, 50) + '...');
-      console.log('📖 Please check MONGODB_SETUP.md for instructions\n');
-      process.exit(1);
+      console.log('📖 Please check MONGODB_SETUP.md for instructions');
     }
   }
 } else {
   console.log('❌ MONGODB_URI not found in .env file');
-  console.log('➕ Adding MONGODB_URI to .env file...\n');
+  console.log('➕ Adding MONGODB_URI to .env file...');
+  needsUpdate = true;
   
   // Add MONGODB_URI after NODE_ENV or at the beginning if not found
   if (envContent.includes('NODE_ENV=')) {
@@ -75,11 +75,70 @@ MONGODB_URI=mongodb+srv://minhthuan20192020:<db_password>@cluster0.cgaadgm.mongo
 
 ${envContent}`;
   }
-  
-  writeFileSync(envPath, envContent, 'utf8');
-  console.log('✅ Added MONGODB_URI to .env file');
-  console.log('⚠️  IMPORTANT: Please update <db_password> with your actual MongoDB password!');
-  console.log('📖 See MONGODB_SETUP.md for instructions\n');
-  console.log('📝 After updating, run: npm run check-env\n');
 }
 
+// Check and add JWT secrets if missing
+let needsJwtSecrets = false;
+if (!envContent.includes('JWT_SECRET=')) {
+  needsJwtSecrets = true;
+  console.log('❌ JWT_SECRET not found in .env file');
+} else {
+  const jwtSecretMatch = envContent.match(/JWT_SECRET=(.+)/);
+  if (jwtSecretMatch && (!jwtSecretMatch[1].trim() || jwtSecretMatch[1].trim() === 'undefined')) {
+    needsJwtSecrets = true;
+    console.log('❌ JWT_SECRET is empty or undefined');
+  }
+}
+
+if (!envContent.includes('JWT_REFRESH_SECRET=')) {
+  needsJwtSecrets = true;
+  console.log('❌ JWT_REFRESH_SECRET not found in .env file');
+} else {
+  const jwtRefreshMatch = envContent.match(/JWT_REFRESH_SECRET=(.+)/);
+  if (jwtRefreshMatch && (!jwtRefreshMatch[1].trim() || jwtRefreshMatch[1].trim() === 'undefined')) {
+    needsJwtSecrets = true;
+    console.log('❌ JWT_REFRESH_SECRET is empty or undefined');
+  }
+}
+
+if (needsJwtSecrets) {
+  console.log('➕ Adding JWT secrets to .env file...');
+  needsUpdate = true;
+  
+  // Add JWT secrets if not present
+  if (!envContent.includes('JWT_SECRET=')) {
+    if (!envContent.includes('# JWT Configuration')) {
+      envContent += '\n# JWT Configuration\n';
+    }
+    envContent += 'JWT_SECRET=dev-secret-key-123456789012345678901234567890\n';
+  } else {
+    // Replace empty JWT_SECRET
+    envContent = envContent.replace(/JWT_SECRET=.*/, 'JWT_SECRET=dev-secret-key-123456789012345678901234567890');
+  }
+  
+  if (!envContent.includes('JWT_REFRESH_SECRET=')) {
+    envContent += 'JWT_REFRESH_SECRET=dev-refresh-secret-123456789012345678901234567890\n';
+  } else {
+    // Replace empty JWT_REFRESH_SECRET
+    envContent = envContent.replace(/JWT_REFRESH_SECRET=.*/, 'JWT_REFRESH_SECRET=dev-refresh-secret-123456789012345678901234567890');
+  }
+  
+  if (!envContent.includes('JWT_EXPIRE=')) {
+    envContent += 'JWT_EXPIRE=15m\n';
+  }
+  
+  if (!envContent.includes('JWT_REFRESH_EXPIRE=')) {
+    envContent += 'JWT_REFRESH_EXPIRE=7d\n';
+  }
+}
+
+if (needsUpdate) {
+  writeFileSync(envPath, envContent, 'utf8');
+  console.log('✅ Updated .env file');
+  if (needsJwtSecrets) {
+    console.log('✅ Added JWT secrets');
+  }
+  console.log('\n');
+} else {
+  console.log('✅ Everything looks good!\n');
+}
