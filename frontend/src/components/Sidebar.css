@@ -16,7 +16,8 @@
 
 .sidebar {
     position: fixed;
-    top: 70px; /* Below header */
+    top: 70px;
+    /* Below header */
     left: 0;
     height: calc(100vh - 70px);
     width: 320px;
@@ -212,9 +213,7 @@
         top: 60px;
         height: calc(100vh - 60px);
     }
-    
     .sidebar-collapsed {
         width: 70px;
     }
 }
-

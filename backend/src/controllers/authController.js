@@ -90,7 +90,7 @@ export const login = async(req, res, next) => {
         const input = email.trim();
         const isEmail = input.includes('@');
         let user;
-        
+
         if (isEmail) {
             // Search by email
             user = await User.findOne({ email: input.toLowerCase() });
@@ -98,7 +98,7 @@ export const login = async(req, res, next) => {
             // Search by phone number - normalize to match stored format (starts with 0)
             // Remove all non-digit characters except +
             const cleanedPhone = input.replace(/[^\d+]/g, '');
-            
+
             // Normalize to format starting with 0 (same as registration)
             let normalizedPhone = '';
             if (cleanedPhone.startsWith('+84')) {
@@ -110,9 +110,9 @@ export const login = async(req, res, next) => {
             } else {
                 normalizedPhone = '0' + cleanedPhone;
             }
-            
+
             // Search with normalized phone and also try original input (for backward compatibility)
-            user = await User.findOne({ 
+            user = await User.findOne({
                 $or: [
                     { phoneNumber: normalizedPhone },
                     { phoneNumber: input.trim() },

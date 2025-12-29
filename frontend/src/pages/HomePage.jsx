@@ -197,7 +197,7 @@ export default function HomePage() {
             <div className="floating-card card-middle-right">
               <div className="card-icon envelope-icon-card"></div>
               <div className="card-content">
-                <div className="card-title">Congratulations</div>
+                <div className="class-title-card">Congratulations</div>
                 <div className="card-subtitle">Your admission completed</div>
               </div>
             </div>
