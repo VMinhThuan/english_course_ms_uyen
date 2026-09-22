@@ -766,10 +766,10 @@ export default function HomePage() {
                     <span className="success-check-icon">✓</span>
                     <span className="success-text">Tài khoản đã sẵn sàng</span>
                   </div>
-                  <p className="success-welcome">Chào mừng bạn đến với Ms Uyen</p>
+                  <p className="success-welcome">Chào mừng bạn đến với Toeic Ms Uyen</p>
                   <div className="success-check-grid">
-                    <span>Bài học ✓</span>
                     <span>Tài liệu ✓</span>
+                    <span>Từ vựng ✓</span>
                     <span>Luyện tập ✓</span>
                     <span>TOEIC ✓</span>
                   </div>
@@ -792,10 +792,10 @@ export default function HomePage() {
             <div className="cta-content-left">
               <span className="cta-eyebrow">✦ BẮT ĐẦU HÀNH TRÌNH</span>
               <h2 className="cta-title">
-                Sẵn sàng học tiếng Anh<br />cùng Ms Uyen?
+                Sẵn sàng học tiếng Anh<br />cùng Toeic Ms Uyen?
               </h2>
               <p className="cta-subtitle">
-                Bài học • Tài liệu • Luyện tập • Thi thử TOEIC được sắp xếp khoa học giúp bạn học hiệu quả mỗi ngày.
+                Tài liệu • Từ vựng • Luyện tập • Thi thử TOEIC được sắp xếp khoa học giúp bạn học hiệu quả mỗi ngày.
               </p>
               <div className="cta-buttons-group">
                 {isAuthenticated ? (
@@ -842,9 +842,9 @@ export default function HomePage() {
             {/* Col 1: Brand */}
             <div className="footer-col brand-col">
               <Link to="/" className="brand-logo footer-logo">
-                <span className="brand-title-text footer-brand-title text-white">Ms Uyen<span className="brand-dot">.</span></span>
+                <span className="brand-title-text footer-brand-title text-white">Toeic Ms Uyen<span className="brand-dot">.</span></span>
               </Link>
-              <div className="footer-tagline text-indigo-light">Học tập • Luyện tập • TOEIC</div>
+              <div className="footer-tagline text-indigo-light">Luyện tập • Từ vựng • TOEIC</div>
               <p className="footer-brand-desc text-slate-light">
                 Không gian học tiếng Anh trực tuyến giúp bạn học tập, luyện tập và theo dõi tiến bộ mỗi ngày.
               </p>
@@ -854,7 +854,6 @@ export default function HomePage() {
             <div className="footer-col">
               <h4 className="footer-col-title text-white">Học tập</h4>
               <ul className="footer-nav-list dark-nav-list">
-                <li><Link to={isAuthenticated ? "/student/my-courses" : "/login"}>Bài học</Link></li>
                 <li><Link to={isAuthenticated ? "/student/my-courses" : "/login"}>Tài liệu</Link></li>
                 <li><Link to={isAuthenticated ? "/student/my-courses" : "/login"}>Từ vựng</Link></li>
                 <li><Link to={isAuthenticated ? "/student/assessments" : "/login"}>Luyện tập</Link></li>
@@ -891,7 +890,7 @@ export default function HomePage() {
           </div>
 
           <div className="footer-bottom-line dark-bottom-line">
-            <div>© {new Date().getFullYear()} Ms Uyen. All rights reserved.</div>
+            <div>© {new Date().getFullYear()} Toeic Ms Uyen. All rights reserved.</div>
             <Link to={isAuthenticated ? getDashboardPath() : "/login"} className="footer-link-action">
               Học hôm nay ➔
             </Link>
