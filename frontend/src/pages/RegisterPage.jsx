@@ -7,7 +7,6 @@ import backgroundImage3 from '../images/bg_2.jpg';
 import backgroundImage4 from '../images/bg_3.jpg';
 import './RegisterPage.css';
 
-// Array of background images for slideshow
 const backgroundImages = [
   backgroundImage1,
   backgroundImage2,
@@ -15,41 +14,42 @@ const backgroundImages = [
   backgroundImage4,
 ];
 
-// Array of slide content for each slide
 const slideContents = [
   {
-    title: 'English Course Online',
-    subtitle: 'Hệ thống học tiếng Anh trực tuyến hiện đại và hiệu quả nhất',
+    title: 'Ms Uyen',
+    subtitle: 'Nền tảng học tiếng Anh & Luyện thi TOEIC hiện đại và hiệu quả',
   },
   {
-    title: 'Khóa Học Đa Dạng',
-    subtitle: 'Từ cơ bản đến nâng cao, phù hợp với mọi trình độ và nhu cầu học tập',
+    title: 'Kho Bài Học & Từ Vựng',
+    subtitle: 'Bài giảng chất lượng, tài liệu chuyên sâu chuẩn hóa cho học viên',
   },
   {
-    title: 'Giảng Viên Chuyên Nghiệp',
-    subtitle: 'Đội ngũ giáo viên giàu kinh nghiệm, tận tâm và nhiệt huyết',
+    title: 'Mô Phỏng Thi TOEIC',
+    subtitle: 'Luyện đề Full 7 Parts chuẩn cấu trúc ETS với đồng hồ đếm ngược',
   },
   {
     title: 'Học Mọi Lúc Mọi Nơi',
-    subtitle: 'Truy cập dễ dàng trên mọi thiết bị, học tập linh hoạt theo thời gian của bạn',
+    subtitle: 'Theo dõi tiến độ học tập và kết quả bài làm dễ dàng',
   },
 ];
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
     phoneNumber: '',
-    role: 'student', // Mặc định là student
   });
   const [fieldErrors, setFieldErrors] = useState({
+    fullName: '',
     email: '',
     phoneNumber: '',
     password: '',
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('register');
@@ -58,44 +58,51 @@ export default function RegisterPage() {
   const isLoading = useAuthStore((state) => state.isLoading);
   const navigate = useNavigate();
 
-  // Validation regex patterns
+  useEffect(() => {
+    document.title = 'Đăng ký | Ms Uyen';
+  }, []);
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^(0|\+84)[1-9][0-9]{8,9}$/;
-  const passwordRegex = /^.{6,}$/; // At least 6 characters
+  const passwordRegex = /^.{6,}$/;
 
-  // Validate individual field
   const validateField = (name, value, currentPassword = null) => {
     let error = '';
 
     switch (name) {
+      case 'fullName':
+        if (!value.trim()) {
+          error = 'Vui lòng nhập Họ và tên';
+        }
+        break;
       case 'email':
         if (!value) {
-          error = 'Email is required';
+          error = 'Vui lòng nhập Địa chỉ Email';
         } else if (!emailRegex.test(value)) {
-          error = 'Please enter a valid email address';
+          error = 'Địa chỉ Email không hợp lệ';
         }
         break;
       case 'phoneNumber':
         if (!value) {
-          error = 'Phone number is required';
+          error = 'Vui lòng nhập Số điện thoại';
         } else if (!phoneRegex.test(value)) {
-          error = 'Please enter a valid phone number (e.g., 0123456789 or +84123456789)';
+          error = 'Số điện thoại không hợp lệ (VD: 0912345678)';
         }
         break;
       case 'password':
         if (!value) {
-          error = 'Password is required';
+          error = 'Vui lòng nhập Mật khẩu';
         } else if (!passwordRegex.test(value)) {
-          error = 'Password must be at least 6 characters';
+          error = 'Mật khẩu phải có tối thiểu 6 ký tự';
         }
         break;
       case 'confirmPassword':
         if (!value) {
-          error = 'Please confirm your password';
+          error = 'Vui lòng xác nhận Mật khẩu';
         } else {
           const passwordToCompare = currentPassword !== null ? currentPassword : formData.password;
           if (value !== passwordToCompare) {
-            error = 'Passwords do not match';
+            error = 'Mật khẩu xác nhận không khớp';
           }
         }
         break;
@@ -111,7 +118,6 @@ export default function RegisterPage() {
     return error === '';
   };
 
-  // Handle input change with validation
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const newFormData = {
@@ -121,7 +127,6 @@ export default function RegisterPage() {
     
     setFormData(newFormData);
 
-    // Clear error when user starts typing
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({
         ...prev,
@@ -129,28 +134,24 @@ export default function RegisterPage() {
       }));
     }
 
-    // If password changes, also re-validate confirmPassword with new password
     if (name === 'password' && newFormData.confirmPassword) {
       validateField('confirmPassword', newFormData.confirmPassword, value);
     }
 
-    // Validate on blur or after typing
     if (value) {
       validateField(name, value);
     }
   };
 
-  // Handle blur event for validation
   const handleBlur = (e) => {
     const { name, value } = e.target;
     validateField(name, value);
   };
 
-  // Auto-slide every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % backgroundImages.length);
-    }, 3000);
+    }, 3500);
 
     return () => clearInterval(interval);
   }, []);
@@ -159,24 +160,24 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    // Validate all fields
+    const isNameValid = validateField('fullName', formData.fullName);
     const isEmailValid = validateField('email', formData.email);
     const isPhoneValid = validateField('phoneNumber', formData.phoneNumber);
     const isPasswordValid = validateField('password', formData.password);
     const isConfirmPasswordValid = validateField('confirmPassword', formData.confirmPassword);
 
-    if (!isEmailValid || !isPhoneValid || !isPasswordValid || !isConfirmPasswordValid) {
+    if (!isNameValid || !isEmailValid || !isPhoneValid || !isPasswordValid || !isConfirmPasswordValid) {
       return;
     }
 
-    // Đảm bảo role luôn là student và loại bỏ confirmPassword trước khi gửi API
-    const { confirmPassword, ...registerData } = formData;
     const result = await register({ 
-      ...registerData, 
-      role: 'student'
+      fullName: formData.fullName,
+      email: formData.email,
+      phoneNumber: formData.phoneNumber,
+      password: formData.password,
     });
     if (result.success) {
-      navigate('/');
+      setShowSuccessModal(true);
     } else {
       setError(result.message);
     }
@@ -206,7 +207,6 @@ export default function RegisterPage() {
               <div className="overlay-title">{slideContents[currentSlide].title}</div>
               <div className="overlay-subtitle">{slideContents[currentSlide].subtitle}</div>
             </div>
-            {/* Slide indicators */}
             <div className="slide-indicators">
               {backgroundImages.map((_, index) => (
                 <div
@@ -223,27 +223,49 @@ export default function RegisterPage() {
         <div className="register-form-section">
           <form onSubmit={handleSubmit} className="register-form-content">
             <div className="welcome-section">
-              <div className="welcome-text">Welcome to English Course Online!</div>
+              <div className="auth-brand-logo">
+                <span className="brand-title-text">Ms Uyen<span className="brand-dot">.</span></span>
+              </div>
+              <div className="welcome-text">Tạo Tài Khoản Học Viên Ms Uyen</div>
               <div className="tab-switcher">
                 <Link
                   to="/login"
                   className={`tab-button ${activeTab === 'login' ? 'active' : ''}`}
                   onClick={() => setActiveTab('login')}
                 >
-                  Login
+                  Đăng Nhập
                 </Link>
                 <button
                   type="button"
                   className={`tab-button ${activeTab === 'register' ? 'active' : ''}`}
                   onClick={() => setActiveTab('register')}
                 >
-                  Register
+                  Đăng Ký
                 </button>
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Email Address</label>
+              <label className="form-label">Họ và Tên</label>
+              <div className="form-input-wrapper">
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  required
+                  className={`form-input ${fieldErrors.fullName ? 'input-error' : ''}`}
+                  placeholder="Nhập Họ và tên đầy đủ"
+                />
+              </div>
+              {fieldErrors.fullName && (
+                <div className="field-error">{fieldErrors.fullName}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Địa chỉ Email</label>
               <div className="form-input-wrapper">
                 <input
                   type="email"
@@ -253,7 +275,7 @@ export default function RegisterPage() {
                   onBlur={handleBlur}
                   required
                   className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
-                  placeholder="Enter your Email Address"
+                  placeholder="Nhập Địa chỉ Email"
                 />
               </div>
               {fieldErrors.email && (
@@ -262,7 +284,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Phone Number</label>
+              <label className="form-label">Số điện thoại</label>
               <div className="form-input-wrapper">
                 <input
                   type="tel"
@@ -272,7 +294,7 @@ export default function RegisterPage() {
                   onBlur={handleBlur}
                   required
                   className={`form-input ${fieldErrors.phoneNumber ? 'input-error' : ''}`}
-                  placeholder="Enter your Phone Number"
+                  placeholder="Nhập Số điện thoại liên hệ"
                 />
               </div>
               {fieldErrors.phoneNumber && (
@@ -281,7 +303,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <label className="form-label">Mật khẩu</label>
               <div className="form-input-wrapper password-input-wrapper">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -291,7 +313,7 @@ export default function RegisterPage() {
                   onBlur={handleBlur}
                   required
                   className={`form-input ${fieldErrors.password ? 'input-error' : ''}`}
-                  placeholder="Enter your Password"
+                  placeholder="Nhập Mật khẩu (tối thiểu 6 ký tự)"
                 />
                 <button
                   type="button"
@@ -317,7 +339,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Re-enter Password</label>
+              <label className="form-label">Nhập lại Mật khẩu</label>
               <div className="form-input-wrapper password-input-wrapper">
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -327,7 +349,7 @@ export default function RegisterPage() {
                   onBlur={handleBlur}
                   required
                   className={`form-input ${fieldErrors.confirmPassword ? 'input-error' : ''}`}
-                  placeholder="Re-enter your Password"
+                  placeholder="Nhập lại Mật khẩu"
                 />
                 <button
                   type="button"
@@ -355,11 +377,35 @@ export default function RegisterPage() {
             {error && <div className="error-message">{error}</div>}
 
             <button type="submit" disabled={isLoading} className="btn-register-submit">
-              {isLoading ? 'Registering...' : 'Register'}
+              {isLoading ? 'Đang đăng ký...' : 'Tạo Tài Khoản'}
             </button>
           </form>
         </div>
       </div>
+
+      {/* Success Pending Approval Modal */}
+      {showSuccessModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ textAlign: 'center', padding: '2rem' }}>
+            <div style={{ width: '64px', height: '64px', background: '#EEF2FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h3 style={{ fontSize: '1.5rem', color: '#0F172A', marginBottom: '0.75rem', fontWeight: '800' }}>Đăng Ký Thành Công!</h3>
+            <p style={{ color: '#475569', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+              Tài khoản Học viên của bạn đã được khởi tạo và đang <strong>chờ Ms Uyen phê duyệt</strong>. Vui lòng quay lại đăng nhập sau khi tài khoản được kích hoạt.
+            </p>
+            <button
+              onClick={() => navigate('/login')}
+              className="btn-register-submit"
+              style={{ width: '100%', margin: '0' }}
+            >
+              Chuyển Đến Đăng Nhập
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

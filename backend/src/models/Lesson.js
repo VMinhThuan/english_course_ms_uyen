@@ -31,6 +31,19 @@ const lessonSchema = new mongoose.Schema(
       ref: 'Course',
       required: true,
     },
+    description: {
+      type: String,
+      default: '',
+    },
+    topic: {
+      type: String,
+      default: 'General',
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'hidden'],
+      default: 'draft',
+    },
     order: {
       type: Number,
       default: 0,

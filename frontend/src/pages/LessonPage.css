@@ -1,139 +1,136 @@
-/* Lesson Page Styles */
+/* Lesson Detail Responsive Reading View */
+.lesson-page-container {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 1rem 0;
+  width: 100%;
+}
 
-.lesson-page {
-    padding: 2rem;
-    max-width: 1000px;
-    margin: 0 auto;
+.lesson-header-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  margin-bottom: 2rem;
 }
 
 .lesson-title {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 36px;
-    color: #2F327D;
-    margin-bottom: 1.5rem;
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: 700;
+  color: #1E293B;
+  line-height: 1.3;
+  margin-bottom: 1rem;
 }
 
-.lesson-content {
-    font-family: 'Nunito Sans', sans-serif;
-    font-weight: 400;
-    font-size: 18px;
-    color: #2F327D;
-    line-height: 1.8;
-    margin-bottom: 2rem;
+.lesson-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #64748B;
+  flex-wrap: wrap;
 }
 
-.lesson-content h1,
-.lesson-content h2,
-.lesson-content h3 {
-    font-family: 'Poppins', sans-serif;
-    color: #2F327D;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
+.lesson-body-content {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid #E2E8F0;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #334155;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
-.lesson-content p {
-    margin-bottom: 1rem;
+.lesson-body-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin: 1.5rem 0;
 }
 
-.lesson-content ul,
-.lesson-content ol {
-    margin-left: 2rem;
-    margin-bottom: 1rem;
+.lesson-media-box {
+  margin-top: 2rem;
+  background: #F8FAFC;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid #E2E8F0;
 }
 
-.lesson-content li {
-    margin-bottom: 0.5rem;
+.lesson-media-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.video-container {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+.lesson-video-player,
+.lesson-audio-player {
+  width: 100%;
+  border-radius: 8px;
+  outline: none;
 }
 
-.lesson-video {
-    width: 100%;
-    max-width: 800px;
-    height: auto;
-    border-radius: 12px;
-    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+.test-action-card {
+  margin-top: 2.5rem;
+  background: linear-gradient(135deg, #EBF8F8 0%, #E0F2FE 100%);
+  border: 1px solid #BAE6FD;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.audio-container {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+.test-action-info h3 {
+  font-size: 1.25rem;
+  color: #0369A1;
+  margin-bottom: 0.25rem;
 }
 
-.lesson-audio {
-    width: 100%;
-    max-width: 600px;
-}
-
-.test-link-container {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background: #F8F9FA;
-    border-radius: 12px;
-    text-align: center;
+.test-action-info p {
+  color: #0C4A6E;
+  font-size: 0.95rem;
 }
 
 .btn-take-test {
-    padding: 0.875rem 2rem;
-    background: #49BBBD;
-    color: #FFFFFF;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-decoration: none;
-    display: inline-block;
+  background: #0284C7;
+  color: #FFFFFF;
+  padding: 0.85rem 1.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  min-height: 44px;
 }
 
 .btn-take-test:hover {
-    background: #3AA8AA;
-    transform: translateY(-2px);
-    box-shadow: 0px 4px 12px rgba(73, 187, 189, 0.3);
+  background: #0369A1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
 }
 
-.loading-message,
-.not-found-message {
-    text-align: center;
-    font-family: 'Poppins', sans-serif;
-    font-size: 18px;
-    color: #696984;
-    padding: 3rem;
-}
-
-
-/* Responsive */
-
-@media (max-width: 768px) {
-    .lesson-page {
-        padding: 1.5rem 1rem;
-    }
-    .lesson-title {
-        font-size: 28px;
-    }
-    .lesson-content {
-        font-size: 16px;
-    }
-    .lesson-video {
-        width: 100%;
-    }
-}
-
-@media (max-width: 480px) {
-    .lesson-page {
-        padding: 1rem;
-    }
-    .lesson-title {
-        font-size: 24px;
-    }
-    .btn-take-test {
-        width: 100%;
-        padding: 0.75rem;
-    }
+@media (max-width: 767px) {
+  .lesson-header-card,
+  .lesson-body-content {
+    padding: 1.25rem;
+  }
+  .test-action-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btn-take-test {
+    justify-content: center;
+    width: 100%;
+  }
 }

@@ -7,7 +7,6 @@ import backgroundImage3 from '../images/bg_2.jpg';
 import backgroundImage4 from '../images/bg_3.jpg';
 import './LoginPage.css';
 
-// Array of background images for slideshow
 const backgroundImages = [
   backgroundImage1,
   backgroundImage2,
@@ -15,23 +14,22 @@ const backgroundImages = [
   backgroundImage4,
 ];
 
-// Array of slide content for each slide
 const slideContents = [
   {
-    title: 'English Course Online',
-    subtitle: 'Hệ thống học tiếng Anh trực tuyến hiện đại và hiệu quả nhất',
+    title: 'Ms Uyen',
+    subtitle: 'Nền tảng học tiếng Anh & Luyện thi TOEIC hiện đại và hiệu quả',
   },
   {
-    title: 'Khóa Học Đa Dạng',
-    subtitle: 'Từ cơ bản đến nâng cao, phù hợp với mọi trình độ và nhu cầu học tập',
+    title: 'Kho Bài Học & Từ Vựng',
+    subtitle: 'Bài giảng chất lượng, tài liệu chuyên sâu chuẩn hóa cho học viên',
   },
   {
-    title: 'Giảng Viên Chuyên Nghiệp',
-    subtitle: 'Đội ngũ giáo viên giàu kinh nghiệm, tận tâm và nhiệt huyết',
+    title: 'Mô Phỏng Thi TOEIC',
+    subtitle: 'Luyện đề Full 7 Parts chuẩn cấu trúc ETS với đồng hồ đếm ngược',
   },
   {
     title: 'Học Mọi Lúc Mọi Nơi',
-    subtitle: 'Truy cập dễ dàng trên mọi thiết bị, học tập linh hoạt theo thời gian của bạn',
+    subtitle: 'Theo dõi tiến độ học tập và kết quả bài làm dễ dàng',
   },
 ];
 
@@ -47,11 +45,14 @@ export default function LoginPage() {
   const isLoading = useAuthStore((state) => state.isLoading);
   const navigate = useNavigate();
 
-  // Auto-slide every 3 seconds
+  useEffect(() => {
+    document.title = 'Đăng nhập | Ms Uyen';
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % backgroundImages.length);
-    }, 3000);
+    }, 3500);
 
     return () => clearInterval(interval);
   }, []);
@@ -109,31 +110,34 @@ export default function LoginPage() {
         <div className="login-form-section">
           <form onSubmit={handleSubmit} className="login-form-content">
             <div className="welcome-section">
-              <div className="welcome-text">Welcome to English Course Online!</div>
+              <div className="auth-brand-logo">
+                <span className="brand-title-text">Ms Uyen<span className="brand-dot">.</span></span>
+              </div>
+              <div className="welcome-text">Chào mừng bạn đến với Ms Uyen!</div>
               <div className="tab-switcher">
                 <button
                   type="button"
                   className={`tab-button ${activeTab === 'login' ? 'active' : ''}`}
                   onClick={() => setActiveTab('login')}
                 >
-                  Login
+                  Đăng Nhập
                 </button>
                 <Link
                   to="/register"
                   className={`tab-button ${activeTab === 'register' ? 'active' : ''}`}
                   onClick={() => setActiveTab('register')}
                 >
-                  Register
+                  Đăng Ký
                 </Link>
               </div>
             </div>
 
             <div className="form-description">
-              English Course Online is a platform for learning English online.
+              Đăng nhập tài khoản học viên để bắt đầu học bài và luyện đề TOEIC.
             </div>
 
             <div className="form-group">
-              <label className="form-label">Email or Phone Number</label>
+              <label className="form-label">Email hoặc Số điện thoại</label>
               <div className="form-input-wrapper">
                 <input
                   type="text"
@@ -141,13 +145,13 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="form-input"
-                  placeholder="Enter your Email or Phone Number"
+                  placeholder="Nhập Email hoặc Số điện thoại"
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <label className="form-label">Mật khẩu</label>
               <div className="form-input-wrapper password-input-wrapper">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -155,7 +159,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="form-input"
-                  placeholder="Enter your Password"
+                  placeholder="Nhập Mật khẩu"
                 />
                 <button
                   type="button"
@@ -188,15 +192,15 @@ export default function LoginPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="remember-checkbox"
                 />
-                <label htmlFor="remember" className="remember-label">Rememebr me</label>
+                <label htmlFor="remember" className="remember-label">Ghi nhớ đăng nhập</label>
               </div>
               <Link to="/forgot-password" className="forgot-password">
-                Forgot Password ?
+                Quên mật khẩu?
               </Link>
             </div>
 
             <button type="submit" disabled={isLoading} className="btn-login-submit">
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? 'Đang xử lý...' : 'Đăng Nhập'}
             </button>
           </form>
         </div>
@@ -204,4 +208,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

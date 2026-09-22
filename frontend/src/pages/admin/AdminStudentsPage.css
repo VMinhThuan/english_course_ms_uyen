@@ -1,0 +1,233 @@
+/* Admin Students Management Styles */
+.admin-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.admin-page-sub {
+  font-size: 0.9rem;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+/* Toolbar Filters */
+.admin-toolbar {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-search-input {
+  flex: 1;
+  min-width: 240px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.admin-search-input:focus {
+  border-color: #0284C7;
+}
+
+.admin-filter-select {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  font-size: 0.95rem;
+  color: #334155;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+/* Desktop Data Table View */
+.admin-table-container {
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.admin-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-data-table th {
+  background: #F8FAFC;
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.admin-data-table td {
+  padding: 16px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.95rem;
+  color: #1E293B;
+  vertical-align: middle;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-badge.pending {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.status-badge.active {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.status-badge.rejected {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.action-btn-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-action-approve {
+  background: #22C55E;
+  color: #FFFFFF;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-height: 36px;
+  transition: background 0.2s ease;
+}
+
+.btn-action-approve:hover {
+  background: #16A34A;
+}
+
+.btn-action-reject {
+  background: #EF4444;
+  color: #FFFFFF;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-height: 36px;
+  transition: background 0.2s ease;
+}
+
+.btn-action-reject:hover {
+  background: #DC2626;
+}
+
+/* Mobile Card View (<768px) */
+.admin-mobile-card-list {
+  display: none;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-student-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  padding: 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.student-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.student-card-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-card-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #0284C7;
+  color: #FFFFFF;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.student-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+/* Media Queries */
+@media (max-width: 767px) {
+  .admin-table-container {
+    display: none;
+  }
+  .admin-mobile-card-list {
+    display: flex;
+  }
+  .admin-search-input {
+    width: 100%;
+    min-width: 100%;
+  }
+  .admin-filter-select {
+    width: 100%;
+  }
+}

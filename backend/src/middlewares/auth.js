@@ -55,6 +55,7 @@ export const checkRole = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         status: 'error',
+        code: 'FORBIDDEN',
         message: 'Access denied. Insufficient permissions.',
       });
     }
@@ -62,4 +63,62 @@ export const checkRole = (...roles) => {
     next();
   };
 };
+
+// Require active student middleware (student role + active status)
+export const requireActiveStudent = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      status: 'error',
+      message: 'Unauthorized',
+    });
+  }
+
+  // Admins are always allowed
+  if (req.user.role === 'admin') {
+    return next();
+  }
+
+  if (req.user.role !== 'student') {
+    return res.status(403).json({
+      status: 'error',
+      code: 'FORBIDDEN',
+      message: 'Access denied. Student role required.',
+    });
+  }
+
+  if (req.user.status === 'pending') {
+    return res.status(403).json({
+      status: 'error',
+      code: 'ACCOUNT_PENDING',
+      message: 'Tài khoản của bạn đang chờ giáo viên/Admin phê duyệt.',
+    });
+  }
+
+  if (req.user.status === 'suspended') {
+    return res.status(403).json({
+      status: 'error',
+      code: 'ACCOUNT_SUSPENDED',
+      message: 'Tài khoản của bạn đã bị tạm khóa.',
+    });
+  }
+
+  if (req.user.status === 'rejected') {
+    return res.status(403).json({
+      status: 'error',
+      code: 'ACCOUNT_REJECTED',
+      message: 'Tài khoản của bạn đã bị từ chối phê duyệt.',
+    });
+  }
+
+  if (req.user.status !== 'active') {
+    return res.status(403).json({
+      status: 'error',
+      code: 'ACCOUNT_NOT_ACTIVE',
+      message: 'Tài khoản chưa được kích hoạt.',
+    });
+  }
+
+  next();
+};
+
 

@@ -128,4 +128,4 @@ Frontend chạy tại: `http://localhost:5173`
 - Backend và Frontend hoàn toàn độc lập, có thể deploy riêng
 - Frontend chỉ biết URL của Backend qua environment variable
 - Không có template engine, chỉ JSON API
-- File uploads được lưu trong `backend/uploads/`
+- File uploads được lưu trong `backend/uploads/`# english_course_ms_uyen

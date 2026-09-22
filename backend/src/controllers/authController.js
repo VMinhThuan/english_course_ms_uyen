@@ -8,10 +8,10 @@ import { jwtConfig } from '../configs/jwt.js';
 // @access  Public
 export const register = async(req, res, next) => {
     try {
-        const { email, password, fullName, phoneNumber, role } = req.body;
+        const { email, password, fullName, phoneNumber } = req.body;
 
         // Check if user exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email: email ? email.toLowerCase() : '' });
         if (existingUser) {
             return res.status(400).json({
                 status: 'error',
@@ -25,9 +25,7 @@ export const register = async(req, res, next) => {
         // Normalize phone number - remove spaces, dashes, and ensure consistent format
         let normalizedPhone = '';
         if (phoneNumber) {
-            // Remove all non-digit characters except +
             const cleaned = phoneNumber.replace(/[^\d+]/g, '');
-            // Normalize to format starting with 0 (Vietnamese format)
             if (cleaned.startsWith('+84')) {
                 normalizedPhone = '0' + cleaned.substring(3);
             } else if (cleaned.startsWith('84')) {
@@ -39,38 +37,28 @@ export const register = async(req, res, next) => {
             }
         }
 
-        // Create user
+        // Create user: Public registration MUST ALWAYS be STUDENT role and PENDING status
         const user = await User.create({
             email,
             password,
             fullName: userFullName,
             phoneNumber: normalizedPhone,
-            role: role || 'student',
-        });
-
-        // Generate tokens
-        const accessToken = generateAccessToken(user._id);
-        const refreshToken = generateRefreshToken(user._id);
-
-        // Set refresh token as httpOnly cookie
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            role: 'student',    // FORCED BY BACKEND
+            status: 'pending',  // FORCED BY BACKEND
+            isActive: true,
         });
 
         res.status(201).json({
             status: 'success',
-            message: 'User registered successfully',
+            message: 'User registered successfully and is awaiting admin approval',
             data: {
                 user: {
                     id: user._id,
                     email: user.email,
                     fullName: user.fullName,
                     role: user.role,
+                    status: user.status,
                 },
-                accessToken,
             },
         });
     } catch (error) {
@@ -85,21 +73,21 @@ export const login = async(req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        // Check if user exists by email or phone number
-        // Determine if input is email (contains @) or phone number
+        if (!email || !password) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Please provide email and password',
+            });
+        }
+
         const input = email.trim();
         const isEmail = input.includes('@');
         let user;
 
         if (isEmail) {
-            // Search by email
             user = await User.findOne({ email: input.toLowerCase() });
         } else {
-            // Search by phone number - normalize to match stored format (starts with 0)
-            // Remove all non-digit characters except +
             const cleanedPhone = input.replace(/[^\d+]/g, '');
-
-            // Normalize to format starting with 0 (same as registration)
             let normalizedPhone = '';
             if (cleanedPhone.startsWith('+84')) {
                 normalizedPhone = '0' + cleanedPhone.substring(3);
@@ -111,7 +99,6 @@ export const login = async(req, res, next) => {
                 normalizedPhone = '0' + cleanedPhone;
             }
 
-            // Search with normalized phone and also try original input (for backward compatibility)
             user = await User.findOne({
                 $or: [
                     { phoneNumber: normalizedPhone },
@@ -128,11 +115,6 @@ export const login = async(req, res, next) => {
             });
         }
 
-        // Debug: Log found user (remove in production)
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`User found: ${user.email}, Phone: ${user.phoneNumber || 'N/A'}`);
-        }
-
         // Check password
         const isPasswordValid = await user.comparePassword(password);
         if (!isPasswordValid) {
@@ -142,7 +124,7 @@ export const login = async(req, res, next) => {
             });
         }
 
-        // Check if user is active
+        // Check overall isActive flag
         if (!user.isActive) {
             return res.status(401).json({
                 status: 'error',
@@ -150,11 +132,45 @@ export const login = async(req, res, next) => {
             });
         }
 
+        // Enforce Account Status checks for Students
+        if (user.role === 'student') {
+            if (user.status === 'pending') {
+                return res.status(403).json({
+                    status: 'error',
+                    code: 'ACCOUNT_PENDING',
+                    message: 'Tài khoản của bạn đang chờ giáo viên/Admin phê duyệt.',
+                });
+            }
+
+            if (user.status === 'rejected') {
+                return res.status(403).json({
+                    status: 'error',
+                    code: 'ACCOUNT_REJECTED',
+                    message: 'Tài khoản của bạn đã bị từ chối phê duyệt.',
+                });
+            }
+
+            if (user.status === 'suspended') {
+                return res.status(403).json({
+                    status: 'error',
+                    code: 'ACCOUNT_SUSPENDED',
+                    message: 'Tài khoản của bạn đã bị tạm khóa.',
+                });
+            }
+
+            if (user.status !== 'active') {
+                return res.status(403).json({
+                    status: 'error',
+                    code: 'ACCOUNT_NOT_ACTIVE',
+                    message: 'Tài khoản chưa được kích hoạt.',
+                });
+            }
+        }
+
         // Generate tokens
         const accessToken = generateAccessToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
 
-        // Set refresh token as httpOnly cookie
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -171,6 +187,7 @@ export const login = async(req, res, next) => {
                     email: user.email,
                     fullName: user.fullName,
                     role: user.role,
+                    status: user.status,
                 },
                 accessToken,
             },
@@ -242,4 +259,117 @@ export const getMe = async(req, res) => {
             user: req.user,
         },
     });
+};
+
+// @desc    Update user profile (safe fields only)
+// @route   PUT /api/v1/auth/profile
+// @access  Private
+export const updateProfile = async (req, res, next) => {
+    try {
+        const { fullName, phoneNumber } = req.body;
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'User not found',
+            });
+        }
+
+        if (fullName !== undefined) {
+            user.fullName = fullName.trim();
+        }
+
+        if (phoneNumber !== undefined) {
+            let normalizedPhone = '';
+            if (phoneNumber) {
+                const cleaned = phoneNumber.replace(/[^\d+]/g, '');
+                if (cleaned.startsWith('+84')) {
+                    normalizedPhone = '0' + cleaned.substring(3);
+                } else if (cleaned.startsWith('84')) {
+                    normalizedPhone = '0' + cleaned.substring(2);
+                } else if (cleaned.startsWith('0')) {
+                    normalizedPhone = cleaned;
+                } else {
+                    normalizedPhone = '0' + cleaned;
+                }
+            }
+            user.phoneNumber = normalizedPhone;
+        }
+
+        await user.save();
+
+        res.json({
+            status: 'success',
+            message: 'Cập nhật thông tin cá nhân thành công',
+            data: {
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    fullName: user.fullName,
+                    phoneNumber: user.phoneNumber,
+                    role: user.role,
+                    status: user.status,
+                },
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Change user password securely
+// @route   PUT /api/v1/auth/change-password
+// @access  Private
+export const changePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Vui lòng điền đầy đủ các trường thông tin mật khẩu',
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Mật khẩu mới và xác nhận mật khẩu không khớp',
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Mật khẩu mới phải có ít nhất 6 ký tự',
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'User not found',
+            });
+        }
+
+        const isMatch = await user.comparePassword(currentPassword);
+        if (!isMatch) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Mật khẩu hiện tại không chính xác',
+            });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.json({
+            status: 'success',
+            message: 'Đổi mật khẩu thành công',
+        });
+    } catch (error) {
+        next(error);
+    }
 };

@@ -1,5 +1,10 @@
 import Lesson from '../models/Lesson.js';
 import Course from '../models/Course.js';
+import Material from '../models/Material.js';
+import Vocabulary from '../models/Vocabulary.js';
+import LearningProgress from '../models/LearningProgress.js';
+import fs from 'fs';
+import path from 'path';
 
 // @desc    Get lessons by course
 // @route   GET /api/v1/lessons/course/:courseId
@@ -8,8 +13,14 @@ export const getLessonsByCourse = async (req, res, next) => {
   try {
     const { courseId } = req.params;
 
-    const lessons = await Lesson.find({ course: courseId })
-      .sort({ order: 1 })
+    const filter = { course: courseId };
+    // Students only see published lessons
+    if (req.user && req.user.role === 'student') {
+      filter.status = 'published';
+    }
+
+    const lessons = await Lesson.find(filter)
+      .sort({ order: 1, createdAt: 1 })
       .select('-__v');
 
     res.json({
@@ -23,27 +34,80 @@ export const getLessonsByCourse = async (req, res, next) => {
   }
 };
 
+// @desc    Get single lesson by ID with attached materials & vocabulary
+// @route   GET /api/v1/lessons/:id
+// @access  Private
+export const getLessonById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const lesson = await Lesson.findById(id).populate('course', 'title');
+
+    if (!lesson) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Lesson not found',
+      });
+    }
+
+    // Security Gate: Students must NOT access draft or hidden lessons
+    if (req.user && req.user.role === 'student' && lesson.status !== 'published') {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Lesson not found',
+      });
+    }
+
+    // Fetch published materials & vocabulary for this lesson
+    const materials = await Material.find({
+      lesson: id,
+      status: 'published',
+    }).select('-__v');
+
+    const vocabulary = await Vocabulary.find({
+      lesson: id,
+      status: 'published',
+    }).select('-__v');
+
+    res.json({
+      status: 'success',
+      data: {
+        lesson,
+        materials,
+        vocabulary,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Create lesson
-// @route   POST /api/v1/lessons
+// @route   POST /api/v1/lessons OR /api/v1/admin/lessons
 // @access  Private (Teacher/Admin)
 export const createLesson = async (req, res, next) => {
   try {
-    const { title, content, videoUrl, audioUrl, courseId, order, duration } =
-      req.body;
+    const { title, content, description, topic, status, courseId, course, order, duration, videoUrl, audioUrl } = req.body;
+    const targetCourseId = courseId || course;
 
-    // Check if course exists and user is teacher/admin
-    const course = await Course.findById(courseId);
-    if (!course) {
+    if (!targetCourseId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Course ID is required',
+      });
+    }
+
+    const courseDoc = await Course.findById(targetCourseId);
+    if (!courseDoc) {
       return res.status(404).json({
         status: 'error',
         message: 'Course not found',
       });
     }
 
-    // Check if user is the teacher or admin
     if (
       req.user.role !== 'admin' &&
-      course.teacher.toString() !== req.user._id.toString()
+      courseDoc.teacher &&
+      courseDoc.teacher.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({
         status: 'error',
@@ -53,16 +117,19 @@ export const createLesson = async (req, res, next) => {
 
     const lesson = await Lesson.create({
       title,
-      content,
-      videoUrl,
-      audioUrl,
-      course: courseId,
+      content: content || '',
+      description: description || '',
+      topic: topic || 'General',
+      status: status || 'draft',
+      videoUrl: videoUrl || '',
+      audioUrl: audioUrl || '',
+      course: targetCourseId,
       order: order || 0,
       duration: duration || 0,
       attachments: req.files
         ? req.files.map((file) => ({
             filename: file.filename,
-            url: file.path,
+            url: `/uploads/${file.filename}`,
             type: file.mimetype,
           }))
         : [],
@@ -81,7 +148,7 @@ export const createLesson = async (req, res, next) => {
 };
 
 // @desc    Update lesson
-// @route   PUT /api/v1/lessons/:id
+// @route   PUT /api/v1/lessons/:id OR /api/v1/admin/lessons/:id
 // @access  Private (Teacher/Admin)
 export const updateLesson = async (req, res, next) => {
   try {
@@ -95,15 +162,29 @@ export const updateLesson = async (req, res, next) => {
       });
     }
 
-    // Check authorization
     if (
       req.user.role !== 'admin' &&
+      lesson.course &&
+      lesson.course.teacher &&
       lesson.course.teacher.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({
         status: 'error',
         message: 'Not authorized to update this lesson',
       });
+    }
+
+    // Validate course if supplied
+    if (req.body.courseId || req.body.course) {
+      const targetCourseId = req.body.courseId || req.body.course;
+      const cDoc = await Course.findById(targetCourseId);
+      if (!cDoc) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Referenced course not found',
+        });
+      }
+      req.body.course = targetCourseId;
     }
 
     const updatedLesson = await Lesson.findByIdAndUpdate(
@@ -113,7 +194,7 @@ export const updateLesson = async (req, res, next) => {
         attachments: req.files
           ? req.files.map((file) => ({
               filename: file.filename,
-              url: file.path,
+              url: `/uploads/${file.filename}`,
               type: file.mimetype,
             }))
           : lesson.attachments,
@@ -133,3 +214,87 @@ export const updateLesson = async (req, res, next) => {
   }
 };
 
+// @desc    Standardized lesson status update
+// @route   PATCH /api/v1/admin/lessons/:id/status
+// @access  Private (Admin/Teacher)
+export const updateLessonStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = ['draft', 'published', 'hidden'];
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: `Invalid status. Allowed values: ${allowedStatuses.join(', ')}`,
+      });
+    }
+
+    const lesson = await Lesson.findById(id);
+    if (!lesson) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Lesson not found',
+      });
+    }
+
+    lesson.status = status;
+    await lesson.save();
+
+    res.json({
+      status: 'success',
+      message: `Lesson status updated to ${status}`,
+      data: {
+        lesson,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete lesson with cascade cleanup
+// @route   DELETE /api/v1/lessons/:id OR /api/v1/admin/lessons/:id
+// @access  Private (Teacher/Admin)
+export const deleteLesson = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const lesson = await Lesson.findById(id);
+
+    if (!lesson) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Lesson not found',
+      });
+    }
+
+    // 1. Cascade cleanup Materials & physical files
+    const materials = await Material.find({ lesson: id });
+    for (const mat of materials) {
+      if (mat.filePath && fs.existsSync(mat.filePath)) {
+        try {
+          fs.unlinkSync(mat.filePath);
+        } catch (err) {
+          console.error(`Failed to delete physical file: ${mat.filePath}`, err);
+        }
+      }
+    }
+    await Material.deleteMany({ lesson: id });
+
+    // 2. Cascade cleanup Vocabulary
+    await Vocabulary.deleteMany({ lesson: id });
+
+    // 3. Cascade cleanup LearningProgress
+    await LearningProgress.deleteMany({ lesson: id });
+
+    // 4. Delete Lesson
+    await Lesson.findByIdAndDelete(id);
+
+    res.json({
+      status: 'success',
+      message: 'Lesson and all associated materials, vocabulary, and progress deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};

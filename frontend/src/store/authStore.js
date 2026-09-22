@@ -30,11 +30,9 @@ const useAuthStore = create((set) => ({
     try {
       const response = await authApi.register(userData);
       set({
-        user: response.data.user,
-        isAuthenticated: true,
         isLoading: false,
       });
-      return { success: true };
+      return { success: true, message: response.message };
     } catch (error) {
       set({ isLoading: false });
       return {

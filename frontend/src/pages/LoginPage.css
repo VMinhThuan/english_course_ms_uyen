@@ -49,7 +49,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    background: #49BBBD;
+    background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
     border-radius: 29px;
     overflow: hidden;
 }
@@ -88,10 +88,11 @@
     flex-direction: column;
     gap: 5px;
     z-index: 20;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    border-radius: 15px;
-    backdrop-filter: blur(5px);
+    background: rgba(15, 23, 42, 0.7);
+    padding: 24px;
+    border-radius: 18px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .overlay-title,
@@ -183,7 +184,7 @@
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
-    color: #000000;
+    color: #1E293B;
     margin-bottom: 24px;
     text-align: center;
 }
@@ -193,25 +194,26 @@
     width: 100%;
     max-width: 329px;
     height: 59px;
-    background: rgba(73, 187, 189, 0.6);
+    background: #EEF2FF;
+    border: 1px solid #C7D2FE;
     border-radius: 33px;
     display: flex;
     align-items: center;
-    padding: 10px;
+    padding: 6px;
     box-sizing: border-box;
 }
 
 .tab-button {
     flex: 1;
-    height: 40px;
+    height: 45px;
     border: none;
-    border-radius: 33px;
+    border-radius: 28px;
     font-family: 'Poppins', sans-serif;
     font-style: normal;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 24px;
-    color: #FFFFFF;
+    color: #475569;
     cursor: pointer;
     transition: all 0.3s;
     background: transparent;
@@ -222,12 +224,14 @@
 }
 
 .tab-button.active {
-    background: #49BBBD;
-    font-weight: 500;
+    background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+    color: #FFFFFF;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .tab-button:not(.active) {
-    font-weight: 400;
+    font-weight: 500;
 }
 
 
@@ -248,10 +252,10 @@
     font-family: 'Poppins', sans-serif;
     font-style: normal;
     font-weight: 400;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 24px;
-    color: #5B5B5B;
-    margin-bottom: 42px;
+    color: #64748B;
+    margin-bottom: 36px;
     text-align: center;
 }
 
@@ -259,7 +263,7 @@
     position: relative;
     width: 100%;
     max-width: 435px;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -270,11 +274,13 @@
     width: 100%;
     font-family: 'Poppins', sans-serif;
     font-style: normal;
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 24px;
-    color: #000000;
-    margin-bottom: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    color: #1E293B;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-input-wrapper {
@@ -289,20 +295,26 @@
     width: 100%;
     height: 54px;
     background: #FFFFFF;
-    border: 1px solid #49BBBD;
+    border: 1.5px solid #CBD5E1;
     border-radius: 40px;
-    padding: 0 31px;
+    padding: 0 24px;
     font-family: 'Poppins', sans-serif;
     font-style: normal;
-    font-weight: 300;
+    font-weight: 400;
     font-size: 15px;
     line-height: 22px;
-    color: #000000;
+    color: #0F172A;
     outline: none;
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 .form-input::placeholder {
-    color: #ACACAC;
+    color: #94A3B8;
 }
 
 .password-input-wrapper {
@@ -328,7 +340,7 @@
 .password-toggle svg {
     width: 18px;
     height: 18px;
-    color: #000000;
+    color: #64748B;
 }
 
 
@@ -341,8 +353,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 24px;
 }
 
 .remember-me {
@@ -353,34 +365,37 @@
 
 .remember-checkbox {
     box-sizing: border-box;
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
     background: #FFFFFF;
-    border: 1px solid #000000;
+    border: 1.5px solid #94A3B8;
+    border-radius: 4px;
     cursor: pointer;
+    accent-color: #2563EB;
 }
 
 .remember-label {
     font-family: 'Poppins', sans-serif;
     font-style: normal;
-    font-weight: 300;
-    font-size: 12px;
+    font-weight: 400;
+    font-size: 13px;
     line-height: 18px;
-    color: #000000;
+    color: #475569;
 }
 
 .forgot-password {
     font-family: 'Poppins', sans-serif;
     font-style: normal;
-    font-weight: 300;
-    font-size: 12px;
+    font-weight: 500;
+    font-size: 13px;
     line-height: 18px;
-    color: #000000;
+    color: #2563EB;
     text-decoration: none;
     cursor: pointer;
 }
 
 .forgot-password:hover {
+    color: #1D4ED8;
     text-decoration: underline;
 }
 
@@ -390,12 +405,12 @@
 .btn-login-submit {
     width: 232px;
     height: 49px;
-    background: #49BBBD;
+    background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
     border-radius: 36px;
     border: none;
     font-family: 'Poppins', sans-serif;
     font-style: normal;
-    font-weight: 400;
+    font-weight: 600;
     font-size: 16px;
     line-height: 24px;
     color: #FFFFFF;
@@ -403,12 +418,13 @@
     transition: all 0.3s;
     display: block;
     margin: 0 auto;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
 }
 
 .btn-login-submit:hover:not(:disabled) {
-    background: #3AA8AA;
+    background: linear-gradient(135deg, #1D4ED8 0%, #4338CA 100%);
     transform: translateY(-2px);
-    box-shadow: 0px 4px 12px rgba(73, 187, 189, 0.3);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
 }
 
 .btn-login-submit:disabled {

@@ -35,5 +35,16 @@ export const authApi = {
     }
     return response.data;
   },
+
+  updateProfile: async (profileData) => {
+    const response = await axiosInstance.put('/auth/profile', profileData);
+    return response.data;
+  },
+
+  changePassword: async (passwordData) => {
+    const response = await axiosInstance.put('/auth/change-password', passwordData);
+    return response.data;
+  },
 };
+
 

@@ -6,6 +6,11 @@ export const lessonApi = {
     return response.data;
   },
 
+  getLessonById: async (lessonId) => {
+    const response = await axiosInstance.get(`/lessons/${lessonId}`);
+    return response.data;
+  },
+
   createLesson: async (lessonData) => {
     const formData = new FormData();
     Object.keys(lessonData).forEach((key) => {
@@ -18,7 +23,7 @@ export const lessonApi = {
       }
     });
 
-    const response = await axiosInstance.post('/lessons', formData, {
+    const response = await axiosInstance.post('/admin/lessons', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -38,12 +43,21 @@ export const lessonApi = {
       }
     });
 
-    const response = await axiosInstance.put(`/lessons/${lessonId}`, formData, {
+    const response = await axiosInstance.put(`/admin/lessons/${lessonId}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
     return response.data;
   },
-};
 
+  updateLessonStatus: async (lessonId, status) => {
+    const response = await axiosInstance.patch(`/admin/lessons/${lessonId}/status`, { status });
+    return response.data;
+  },
+
+  deleteLesson: async (lessonId) => {
+    const response = await axiosInstance.delete(`/admin/lessons/${lessonId}`);
+    return response.data;
+  },
+};

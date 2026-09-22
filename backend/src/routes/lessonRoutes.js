@@ -1,15 +1,17 @@
 import express from 'express';
 import {
   getLessonsByCourse,
+  getLessonById,
   createLesson,
   updateLesson,
+  updateLessonStatus,
+  deleteLesson,
 } from '../controllers/lessonController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
 import multer from 'multer';
 
 const router = express.Router();
 
-// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -23,6 +25,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.get('/course/:courseId', verifyToken, getLessonsByCourse);
+router.get('/:id', verifyToken, getLessonById);
+
 router.post(
   '/',
   verifyToken,
@@ -30,6 +34,7 @@ router.post(
   upload.array('attachments', 10),
   createLesson
 );
+
 router.put(
   '/:id',
   verifyToken,
@@ -38,5 +43,18 @@ router.put(
   updateLesson
 );
 
-export default router;
+router.patch(
+  '/:id/status',
+  verifyToken,
+  checkRole('teacher', 'admin'),
+  updateLessonStatus
+);
 
+router.delete(
+  '/:id',
+  verifyToken,
+  checkRole('teacher', 'admin'),
+  deleteLesson
+);
+
+export default router;

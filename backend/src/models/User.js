@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema({
         enum: ['student', 'teacher', 'admin'],
         default: 'student',
     },
+    status: {
+        type: String,
+        enum: ['pending', 'active', 'rejected', 'suspended'],
+        default: 'pending',
+    },
     avatar: {
         type: String,
         default: '',
@@ -38,6 +43,31 @@ const userSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true,
+    },
+    approvedAt: {
+        type: Date,
+    },
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
+    rejectedAt: {
+        type: Date,
+    },
+    rejectedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
+    rejectionReason: {
+        type: String,
+        default: '',
+    },
+    suspendedAt: {
+        type: Date,
+    },
+    suspendedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
     },
 }, {
     timestamps: true,
