@@ -426,131 +426,172 @@ export default function HomePage() {
             {/* 1. Large Card: Bài học (Top Left) */}
             <div className="bento-card bento-card-large card-tint-blue">
               <div className="bento-card-text">
-                <div className="bento-badge-icon icon-bg-blue">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                  </svg>
+                <div className="bento-card-header-row">
+                  <div className="bento-badge-icon icon-bg-blue">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                  </div>
+                  <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="bento-arrow-link" aria-label="Bài học">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </Link>
                 </div>
-                <h3 className="bento-title">Bài học</h3>
-                <p className="bento-desc">Bài giảng biên soạn dễ hiểu theo lộ trình rõ ràng, kết hợp video và ghi chú bài giảng.</p>
+                <h3 className="bento-title">Bài học bài giảng</h3>
+                <p className="bento-desc">Bài giảng biên soạn dễ hiểu theo lộ trình rõ ràng, kết hợp video HD, phụ đề và ghi chú bài giảng.</p>
               </div>
               {/* Mini Product Visual: Lesson List */}
               <div className="mini-visual-lesson-list">
                 <div className="mini-lesson-item active">
-                  <span className="mini-play-icon">▶</span>
+                  <div className="mini-play-btn-circle">▶</div>
                   <div className="mini-lesson-info">
                     <div className="mini-lesson-name">Unit 1: Pronunciation & Basics</div>
-                    <div className="mini-lesson-sub">Video • 15 phút</div>
+                    <div className="mini-lesson-sub">Video HD • 15 phút</div>
                   </div>
                   <span className="mini-check-done">✓</span>
                 </div>
                 <div className="mini-lesson-item">
-                  <span className="mini-play-icon">▶</span>
+                  <div className="mini-play-btn-circle muted">▶</div>
                   <div className="mini-lesson-info">
                     <div className="mini-lesson-name">Unit 2: Essential Grammar</div>
-                    <div className="mini-lesson-sub">Video • 20 phút</div>
+                    <div className="mini-lesson-sub">Video HD • 20 phút</div>
                   </div>
                 </div>
               </div>
-              <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="bento-arrow-link" aria-label="Bài học">➔</Link>
             </div>
 
             {/* 2. Medium Card: Từ vựng (Top Right) */}
             <div className="bento-card bento-card-medium card-tint-mint">
-              <div className="bento-card-text">
+              <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-mint">
                   <span className="mint-letter">A</span>
                 </div>
-                <h3 className="bento-title">Từ vựng</h3>
-                <p className="bento-desc">Tra cứu từ vựng IPA chuẩn kèm ví dụ thực tế.</p>
+                <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="bento-arrow-link" aria-label="Từ vựng">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </Link>
               </div>
+              <h3 className="bento-title">Sổ tay từ vựng</h3>
+              <p className="bento-desc">Tra cứu từ vựng IPA chuẩn kèm audio phát âm và ví dụ thực tế.</p>
               {/* Mini Product Visual: Word Card */}
               <div className="mini-visual-vocab-card">
                 <div className="mv-vocab-header">
                   <span className="mv-vocab-word">opportunity</span>
-                  <span className="mv-speaker">🔊</span>
+                  <span className="mv-speaker-btn">🔊</span>
                 </div>
-                <div className="mv-vocab-ipa">/ˌɒpəˈtjuːnəti/</div>
-                <div className="mv-vocab-meaning">(n) cơ hội phát triển</div>
+                <div className="mv-vocab-row-sub">
+                  <span className="mv-vocab-ipa">/ˌɒpəˈtjuːnəti/</span>
+                  <span className="mv-vocab-type">noun</span>
+                </div>
+                <div className="mv-vocab-meaning">(n) cơ hội phát triển sự nghiệp</div>
               </div>
-              <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="bento-arrow-link" aria-label="Từ vựng">➔</Link>
             </div>
 
             {/* 3. Small Card: Tài liệu (Bottom Row 1) */}
             <div className="bento-card bento-card-small card-tint-purple">
-              <div className="bento-card-text">
+              <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-purple">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.2">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                   </svg>
                 </div>
-                <h3 className="bento-title">Tài liệu</h3>
-                <p className="bento-desc">Tài liệu PDF & Docx đính kèm bài giảng.</p>
+                <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="bento-arrow-link" aria-label="Tài liệu">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </Link>
               </div>
+              <h3 className="bento-title">Tài liệu học tập</h3>
+              <p className="bento-desc">Tài liệu PDF & Docx đính kèm theo từng bài giảng.</p>
               {/* Mini Product Visual: Document Rows */}
               <div className="mini-visual-docs">
                 <div className="mv-doc-row">
                   <span className="pdf-tag">PDF</span>
-                  <span className="doc-name">Grammar_Summary.pdf</span>
+                  <div className="doc-meta-col">
+                    <span className="doc-name">Grammar_Summary.pdf</span>
+                    <span className="doc-size">1.4 MB</span>
+                  </div>
+                  <span className="doc-download-icon">⬇</span>
                 </div>
                 <div className="mv-doc-row">
                   <span className="docx-tag">DOC</span>
-                  <span className="doc-name">Part5_Vocab_List.docx</span>
+                  <div className="doc-meta-col">
+                    <span className="doc-name">Part5_Vocab_List.docx</span>
+                    <span className="doc-size">850 KB</span>
+                  </div>
+                  <span className="doc-download-icon">⬇</span>
                 </div>
               </div>
-              <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="bento-arrow-link" aria-label="Tài liệu">➔</Link>
             </div>
 
             {/* 4. Small Card: Luyện tập (Bottom Row 2) */}
             <div className="bento-card bento-card-small card-tint-orange">
-              <div className="bento-card-text">
+              <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-orange">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2">
                     <path d="M9 11l3 3L22 4"></path>
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                   </svg>
                 </div>
-                <h3 className="bento-title">Luyện tập</h3>
-                <p className="bento-desc">Bài tập trắc nghiệm tự chấm điểm tức thì.</p>
+                <Link to={isAuthenticated ? "/student/assessments" : "/login"} className="bento-arrow-link" aria-label="Luyện tập">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </Link>
               </div>
+              <h3 className="bento-title">Luyện tập tự chấm</h3>
+              <p className="bento-desc">Bài tập trắc nghiệm tự động chấm điểm và giải thích tức thì.</p>
               {/* Mini Product Visual: Quiz Option */}
               <div className="mini-visual-quiz">
                 <div className="mv-quiz-opt active">
                   <span className="mv-opt-tag">A</span>
-                  <span>expanding</span>
+                  <span className="mv-opt-text">expanding</span>
                   <span className="mv-correct-icon">✓</span>
                 </div>
                 <div className="mv-quiz-opt">
                   <span className="mv-opt-tag">B</span>
-                  <span>expansion</span>
+                  <span className="mv-opt-text">expansion</span>
                 </div>
               </div>
-              <Link to={isAuthenticated ? "/student/assessments" : "/login"} className="bento-arrow-link" aria-label="Luyện tập">➔</Link>
             </div>
 
             {/* 5. Small Card: Thi thử TOEIC (Bottom Row 3) */}
             <div className="bento-card bento-card-small card-tint-rose">
-              <div className="bento-card-text">
+              <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-rose">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E11D48" strokeWidth="2.2">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E11D48" strokeWidth="2.2">
                     <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
                     <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 1 2 2h1a2 2 0 0 0 2-2V8z"></path>
                   </svg>
                 </div>
-                <h3 className="bento-title">Thi thử TOEIC</h3>
-                <p className="bento-desc">Đồng hồ đếm ngược 120 phút & ma trận câu hỏi.</p>
+                <Link to={isAuthenticated ? "/student/toeic" : "/login"} className="bento-arrow-link" aria-label="Thi thử TOEIC">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </Link>
               </div>
+              <h3 className="bento-title">Thi thử TOEIC</h3>
+              <p className="bento-desc">Đồng hồ đếm ngược 120 phút & ma trận đề thi chuẩn ETS.</p>
               {/* Mini Product Visual: TOEIC Timer + Progress */}
               <div className="mini-visual-toeic">
-                <div className="mv-toeic-timer">⏱️ 01:45:12</div>
+                <div className="mv-toeic-header">
+                  <div className="mv-toeic-timer">⏱️ 01:45:12</div>
+                  <span className="mv-toeic-live-tag">LIVE</span>
+                </div>
                 <div className="mv-toeic-bar">
                   <div className="mv-toeic-fill" style={{ width: '85%' }}></div>
                 </div>
-                <div className="mv-toeic-meta">Part 5 • 30/30 câu</div>
+                <div className="mv-toeic-meta">Part 5 • Đã hoàn thành 30/30 câu</div>
               </div>
-              <Link to={isAuthenticated ? "/student/toeic" : "/login"} className="bento-arrow-link" aria-label="Thi thử TOEIC">➔</Link>
             </div>
           </div>
         </div>
