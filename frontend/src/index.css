@@ -5,16 +5,19 @@
 }
 
 :root {
-    /* Brand Color System - Ms Uyen Indigo/Violet Theme */
-    --primary: #4F46E5;
-    --primary-hover: #4338CA;
-    --primary-active: #3730A3;
-    --primary-soft: #EEF2FF;
-    --primary-light: #F5F3FF;
-    
-    --secondary: #3B82F6;
-    --secondary-hover: #2563EB;
-    --secondary-soft: #E0F2FE;
+    /* Brand Color System - Pastel Yellow Primary & Slate Grey Secondary */
+    --primary: #EAB308;
+    --primary-hover: #CA8A04;
+    --primary-active: #A16207;
+    --primary-soft: #FEF9C3;
+    --primary-light: #FFFBEB;
+    --primary-badge: #FEF08A;
+    --primary-text-dark: #1E293B;
+
+    --secondary: #64748B;
+    --secondary-hover: #475569;
+    --secondary-soft: #F1F5F9;
+    --secondary-border: #CBD5E1;
 
     /* Status Colors */
     --success: #10B981;
@@ -25,9 +28,9 @@
     --danger-soft: #FEE2E2;
 
     /* Neutral Surfaces */
-    --background: #FAFAFC;
+    --background: #F8FAFC;
     --surface: #FFFFFF;
-    --surface-secondary: #F8FAFC;
+    --surface-secondary: #F1F5F9;
     
     /* Text Colors */
     --text-primary: #0F172A;

@@ -64,7 +64,7 @@ export default function AdminLayout() {
             </svg>
           </button>
           <Link to="/admin" className="admin-logo-text">
-            <span className="brand-title-text">Ms Uyen<span className="brand-dot">.</span></span>
+            <span className="brand-title-text">Toeic Ms Uyen<span className="brand-dot">.</span></span>
             <span className="admin-badge">QUẢN TRỊ</span>
           </Link>
         </div>

@@ -78,12 +78,11 @@ export default function HomePage() {
       <header className={`parroto-header ${scrolled ? 'scrolled' : ''}`}>
         <div className="header-container">
           <Link to="/" className="brand-logo">
-            <span className="brand-title-text">Ms Uyen<span className="brand-dot">.</span></span>
+            <span className="brand-title-text">Toeic Ms Uyen<span className="brand-dot">.</span></span>
           </Link>
 
           <nav className={`nav-links ${mobileMenuOpen ? 'mobile-show' : ''}`}>
             <Link to="/" className="active" onClick={() => setMobileMenuOpen(false)}>Trang Chủ</Link>
-            <Link to={isAuthenticated ? "/student/my-courses" : "/login"} onClick={() => setMobileMenuOpen(false)}>Bài Học</Link>
             <Link to={isAuthenticated ? "/student/my-courses" : "/login"} onClick={() => setMobileMenuOpen(false)}>Tài Liệu</Link>
             <Link to={isAuthenticated ? "/student/my-courses" : "/login"} onClick={() => setMobileMenuOpen(false)}>Từ Vựng</Link>
             <Link to={isAuthenticated ? "/student/assessments" : "/login"} onClick={() => setMobileMenuOpen(false)}>Luyện Tập</Link>
@@ -187,14 +186,14 @@ export default function HomePage() {
         <div className="hero-container">
           <div className="hero-text-content">
             <div className="badge-pill">
-              Học tập • Luyện tập • TOEIC
+              Luyện tập • Từ vựng • TOEIC
             </div>
             <h1 className="hero-heading">
-              Học tiếng Anh hiệu quả,<br />
-              <span className="gradient-text">tiến bộ mỗi ngày</span>
+              Cùng cô học tập,<br />
+              <span className="gradient-text">cùng em tiến bộ mỗi ngày</span>
             </h1>
             <p className="hero-subtext">
-              Bài học, tài liệu, từ vựng, bài tập và luyện thi TOEIC được tổ chức trên cùng một không gian học tập.
+              Một nơi để bạn học theo cách của mình, tiến bộ theo nhịp của mình và không bỏ quên mục tiêu mình đã chọn.
             </p>
             <div className="hero-cta-group">
               {isAuthenticated ? (
@@ -422,49 +421,9 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="bento-learning-grid">
-            {/* 1. Large Card: Bài học (Top Left) */}
-            <div className="bento-card bento-card-large card-tint-blue">
-              <div className="bento-card-text">
-                <div className="bento-card-header-row">
-                  <div className="bento-badge-icon icon-bg-blue">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2">
-                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    </svg>
-                  </div>
-                  <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="bento-arrow-link" aria-label="Bài học">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                  </Link>
-                </div>
-                <h3 className="bento-title">Bài học bài giảng</h3>
-                <p className="bento-desc">Bài giảng biên soạn dễ hiểu theo lộ trình rõ ràng, kết hợp video HD, phụ đề và ghi chú bài giảng.</p>
-              </div>
-              {/* Mini Product Visual: Lesson List */}
-              <div className="mini-visual-lesson-list">
-                <div className="mini-lesson-item active">
-                  <div className="mini-play-btn-circle">▶</div>
-                  <div className="mini-lesson-info">
-                    <div className="mini-lesson-name">Unit 1: Pronunciation & Basics</div>
-                    <div className="mini-lesson-sub">Video HD • 15 phút</div>
-                  </div>
-                  <span className="mini-check-done">✓</span>
-                </div>
-                <div className="mini-lesson-item">
-                  <div className="mini-play-btn-circle muted">▶</div>
-                  <div className="mini-lesson-info">
-                    <div className="mini-lesson-name">Unit 2: Essential Grammar</div>
-                    <div className="mini-lesson-sub">Video HD • 20 phút</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Medium Card: Từ vựng (Top Right) */}
-            <div className="bento-card bento-card-medium card-tint-mint">
+          <div className="bento-learning-grid bento-4card-grid">
+            {/* 1. Card: Từ vựng */}
+            <div className="bento-card card-tint-mint">
               <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-mint">
                   <span className="mint-letter">A</span>
@@ -492,8 +451,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 3. Small Card: Tài liệu (Bottom Row 1) */}
-            <div className="bento-card bento-card-small card-tint-purple">
+            {/* 2. Card: Tài liệu */}
+            <div className="bento-card card-tint-purple">
               <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-purple">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.2">
@@ -509,7 +468,7 @@ export default function HomePage() {
                 </Link>
               </div>
               <h3 className="bento-title">Tài liệu học tập</h3>
-              <p className="bento-desc">Tài liệu PDF & Docx đính kèm theo từng bài giảng.</p>
+              <p className="bento-desc">Tài liệu PDF & Docx đính kèm theo từng bài học.</p>
               {/* Mini Product Visual: Document Rows */}
               <div className="mini-visual-docs">
                 <div className="mv-doc-row">
@@ -531,8 +490,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 4. Small Card: Luyện tập (Bottom Row 2) */}
-            <div className="bento-card bento-card-small card-tint-orange">
+            {/* 3. Card: Luyện tập */}
+            <div className="bento-card card-tint-orange">
               <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-orange">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2">
@@ -563,8 +522,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 5. Small Card: Thi thử TOEIC (Bottom Row 3) */}
-            <div className="bento-card bento-card-small card-tint-rose">
+            {/* 4. Card: Thi thử TOEIC */}
+            <div className="bento-card card-tint-rose">
               <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-rose">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E11D48" strokeWidth="2.2">

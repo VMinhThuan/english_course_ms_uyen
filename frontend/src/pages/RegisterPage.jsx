@@ -224,7 +224,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="register-form-content">
             <div className="welcome-section">
               <div className="auth-brand-logo">
-                <span className="brand-title-text">Ms Uyen<span className="brand-dot">.</span></span>
+                <span className="brand-title-text">Toeic Ms Uyen<span className="brand-dot">.</span></span>
               </div>
               <div className="welcome-text">Tạo Tài Khoản Học Viên Ms Uyen</div>
               <div className="tab-switcher">

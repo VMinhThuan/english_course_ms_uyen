@@ -111,7 +111,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="login-form-content">
             <div className="welcome-section">
               <div className="auth-brand-logo">
-                <span className="brand-title-text">Ms Uyen<span className="brand-dot">.</span></span>
+                <span className="brand-title-text">Toeic Ms Uyen<span className="brand-dot">.</span></span>
               </div>
               <div className="welcome-text">Chào mừng bạn đến với Ms Uyen!</div>
               <div className="tab-switcher">

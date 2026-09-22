@@ -194,8 +194,8 @@
     width: 100%;
     max-width: 329px;
     height: 59px;
-    background: #EEF2FF;
-    border: 1px solid #C7D2FE;
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
     border-radius: 33px;
     display: flex;
     align-items: center;
@@ -224,10 +224,10 @@
 }
 
 .tab-button.active {
-    background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
-    color: #FFFFFF;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+    color: #0F172A;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.35);
 }
 
 .tab-button:not(.active) {
@@ -309,8 +309,8 @@
 }
 
 .form-input:focus {
-    border-color: #2563EB;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    border-color: #EAB308;
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
 }
 
 .form-input::placeholder {
@@ -371,7 +371,7 @@
     border: 1.5px solid #94A3B8;
     border-radius: 4px;
     cursor: pointer;
-    accent-color: #2563EB;
+    accent-color: #EAB308;
 }
 
 .remember-label {
@@ -389,13 +389,13 @@
     font-weight: 500;
     font-size: 13px;
     line-height: 18px;
-    color: #2563EB;
+    color: #D97706;
     text-decoration: none;
     cursor: pointer;
 }
 
 .forgot-password:hover {
-    color: #1D4ED8;
+    color: #B45309;
     text-decoration: underline;
 }
 
@@ -405,24 +405,19 @@
 .btn-login-submit {
     width: 232px;
     height: 49px;
-    background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+    background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
     border-radius: 36px;
     border: none;
     font-family: 'Poppins', sans-serif;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 16px;
     line-height: 24px;
-    color: #FFFFFF;
+    color: #0F172A;
     cursor: pointer;
     transition: all 0.3s;
     display: block;
     margin: 0 auto;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
-}
-
-.btn-login-submit:hover:not(:disabled) {
-    background: linear-gradient(135deg, #1D4ED8 0%, #4338CA 100%);
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
 }

@@ -73,7 +73,7 @@ export default function StudentLayout() {
             </svg>
           </button>
           <Link to="/" className="brand-logo-text">
-            <span className="brand-title-text">Ms Uyen<span className="brand-dot">.</span></span>
+            <span className="brand-title-text">Toeic Ms Uyen<span className="brand-dot">.</span></span>
           </Link>
         </div>
 
