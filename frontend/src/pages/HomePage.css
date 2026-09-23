@@ -492,10 +492,13 @@
 
 .visual-card-stack {
   position: relative;
-  min-height: 480px;
+  min-height: 520px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
 }
 
 /* Center Main Card */
@@ -620,15 +623,22 @@
   background: #FFFFFF;
   border-radius: 16px;
   padding: 12px 16px;
-  box-shadow: 0 15px 30px -8px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.1), 0 4px 12px rgba(15, 23, 42, 0.03);
   border: 1px solid #E2E8F0;
-  z-index: 3;
+  z-index: 4;
+  backdrop-filter: blur(8px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.floating-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 24px 44px -8px rgba(15, 23, 42, 0.15);
 }
 
 .float-top-left {
-  top: 10px;
-  left: 15px;
-  width: 150px;
+  top: 0px;
+  left: -15px;
+  width: 145px;
 }
 
 .fc-title {
@@ -658,12 +668,12 @@
 }
 
 .float-mid-left {
-  top: 170px;
-  left: 0;
+  top: 175px;
+  left: -40px;
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 160px;
+  width: 155px;
 }
 
 .fc-icon-bg {
@@ -706,11 +716,12 @@
 }
 
 .float-bot-left {
-  bottom: 20px;
-  left: 20px;
+  bottom: 0px;
+  left: -20px;
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 165px;
 }
 
 .pdf-badge-icon {
@@ -729,9 +740,9 @@
 .fc-meta { font-size: 10px; color: #94A3B8; font-weight: 600; }
 
 .float-top-right {
-  top: 20px;
-  right: 20px;
-  width: 170px;
+  top: 5px;
+  right: -15px;
+  width: 160px;
 }
 
 .fc-header-split {
@@ -748,9 +759,9 @@
 .vocab-meaning { font-size: 12px; color: #475569; }
 
 .float-mid-right {
-  top: 190px;
-  right: 25px;
-  width: 140px;
+  top: 195px;
+  right: -30px;
+  width: 145px;
 }
 
 .chart-and-score {
