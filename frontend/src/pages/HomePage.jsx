@@ -271,7 +271,12 @@ export default function HomePage() {
               <div className="floating-card float-top-right">
                 <div className="fc-header-split">
                   <span className="fc-muted">Từ vựng</span>
-                  <span className="speaker-icon">🔊</span>
+                  <span className="speaker-icon" aria-label="Phát âm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                  </span>
                 </div>
                 <div className="vocab-head">opportunity</div>
                 <div className="vocab-ipa">/ˌɒpəˈtjuːnəti/</div>
@@ -327,9 +332,17 @@ export default function HomePage() {
                 </div>
 
                 <div className="main-card-footer">
-                  <button className="mc-arrow-btn">‹</button>
+                  <button className="mc-arrow-btn" aria-label="Câu trước">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                  </button>
                   <span className="mc-counter">4 / 20</span>
-                  <button className="mc-arrow-btn active">›</button>
+                  <button className="mc-arrow-btn active" aria-label="Câu tiếp theo">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -344,7 +357,10 @@ export default function HomePage() {
             <div className="capability-item">
               <div className="cap-number">01</div>
               <div className="cap-icon-box icon-blue">
-                <span style={{ fontWeight: '800', color: '#854D0E', fontSize: '15px' }}>A</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
               </div>
               <div className="cap-content">
                 <h4 className="cap-title">Từ vựng</h4>
@@ -421,7 +437,10 @@ export default function HomePage() {
             <div className="bento-card card-tint-mint">
               <div className="bento-card-header-row">
                 <div className="bento-badge-icon icon-bg-mint">
-                  <span className="mint-letter">A</span>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                  </svg>
                 </div>
                 <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="bento-arrow-link" aria-label="Từ vựng">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -436,7 +455,12 @@ export default function HomePage() {
               <div className="mini-visual-vocab-card">
                 <div className="mv-vocab-header">
                   <span className="mv-vocab-word">opportunity</span>
-                  <span className="mv-speaker-btn">🔊</span>
+                  <span className="mv-speaker-btn" aria-label="Phát âm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                  </span>
                 </div>
                 <div className="mv-vocab-row-sub">
                   <span className="mv-vocab-ipa">/ˌɒpəˈtjuːnəti/</span>
@@ -472,7 +496,13 @@ export default function HomePage() {
                     <span className="doc-name">Grammar_Summary.pdf</span>
                     <span className="doc-size">1.4 MB</span>
                   </div>
-                  <span className="doc-download-icon">⬇</span>
+                  <span className="doc-download-icon" aria-label="Tải về">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                  </span>
                 </div>
                 <div className="mv-doc-row">
                   <span className="docx-tag">DOC</span>
@@ -480,7 +510,13 @@ export default function HomePage() {
                     <span className="doc-name">Part5_Vocab_List.docx</span>
                     <span className="doc-size">850 KB</span>
                   </div>
-                  <span className="doc-download-icon">⬇</span>
+                  <span className="doc-download-icon" aria-label="Tải về">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                  </span>
                 </div>
               </div>
             </div>
@@ -508,7 +544,11 @@ export default function HomePage() {
                 <div className="mv-quiz-opt active">
                   <span className="mv-opt-tag">A</span>
                   <span className="mv-opt-text">expanding</span>
-                  <span className="mv-correct-icon">✓</span>
+                  <span className="mv-correct-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </span>
                 </div>
                 <div className="mv-quiz-opt">
                   <span className="mv-opt-tag">B</span>
@@ -523,7 +563,7 @@ export default function HomePage() {
                 <div className="bento-badge-icon icon-bg-rose">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E11D48" strokeWidth="2.2">
                     <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 1 2 2h1a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2V8z"></path>
                   </svg>
                 </div>
                 <Link to={isAuthenticated ? "/student/toeic" : "/login"} className="bento-arrow-link" aria-label="Thi thử TOEIC">
@@ -538,7 +578,13 @@ export default function HomePage() {
               {/* Mini Product Visual: TOEIC Timer + Progress */}
               <div className="mini-visual-toeic">
                 <div className="mv-toeic-header">
-                  <div className="mv-toeic-timer">⏱️ 01:45:12</div>
+                  <div className="mv-toeic-timer">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>01:45:12</span>
+                  </div>
                   <span className="mv-toeic-live-tag">LIVE</span>
                 </div>
                 <div className="mv-toeic-bar">
@@ -565,19 +611,35 @@ export default function HomePage() {
 
               <div className="toeic-check-list">
                 <div className="check-item">
-                  <span className="check-icon">✓</span>
+                  <span className="check-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </span>
                   <span>Đủ 7 Parts - 200 câu - 120 phút</span>
                 </div>
                 <div className="check-item">
-                  <span className="check-icon">✓</span>
+                  <span className="check-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </span>
                   <span>Giao diện thi giống đề thật</span>
                 </div>
                 <div className="check-item">
-                  <span className="check-icon">✓</span>
+                  <span className="check-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </span>
                   <span>Lưu đáp án, tiếp tục khi quay lại</span>
                 </div>
                 <div className="check-item">
-                  <span className="check-icon">✓</span>
+                  <span className="check-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </span>
                   <span>Kết quả chi tiết theo từng Part</span>
                 </div>
               </div>
@@ -597,7 +659,7 @@ export default function HomePage() {
                 <div className="bw-header">
                   <div className="bw-brand">
                     <span className="bw-title">Ms Uyen</span>
-                    <span className="bw-sub">Thi thử TOEIC &gt; Test 1 - 2026</span>
+                    <span className="bw-sub">Thi thử TOEIC / Test 1 - 2026</span>
                   </div>
                   <div className="bw-right">
                     <div className="bw-timer">
@@ -680,8 +742,20 @@ export default function HomePage() {
                     </div>
 
                     <div className="bw-footer-nav">
-                      <button className="bw-btn-nav">← Câu trước</button>
-                      <button className="bw-btn-nav primary">Câu tiếp theo →</button>
+                      <button className="bw-btn-nav">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="19" y1="12" x2="5" y2="12"></line>
+                          <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Câu trước</span>
+                      </button>
+                      <button className="bw-btn-nav primary">
+                        <span>Câu tiếp theo</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>

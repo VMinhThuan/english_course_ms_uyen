@@ -592,8 +592,10 @@
 }
 
 .mc-arrow-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 50%;
   border: 1px solid #E2E8F0;
   background: #F8FAFC;
@@ -602,13 +604,30 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.mc-arrow-btn:hover {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+  color: #2563EB;
 }
 
 .mc-arrow-btn.active {
   background: #2563EB;
   color: #FFFFFF;
   border-color: #2563EB;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.mc-arrow-btn.active:hover {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
 }
 
 .mc-counter {
