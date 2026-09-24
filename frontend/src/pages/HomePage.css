@@ -166,8 +166,9 @@ body {
   border-radius: var(--radius-pill);
   background: var(--brand-yellow);
   color: var(--brand-text);
-  font-size: 14px;
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
   text-decoration: none !important;
   border: none;
   cursor: pointer;
@@ -189,8 +190,9 @@ body {
   border-radius: var(--radius-pill);
   background: var(--brand-yellow);
   color: var(--brand-text);
-  font-size: 13px;
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
   text-decoration: none !important;
   transition: all 0.2s ease;
   border: none;
@@ -207,7 +209,8 @@ body {
   border: 1px solid var(--brand-border);
   background: var(--brand-white);
   color: var(--brand-text);
-  font-size: 13px;
+  font-family: var(--font-serif);
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none !important;
   transition: all 0.2s ease;
@@ -226,7 +229,8 @@ body {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: var(--brand-white);
-  font-size: 14px;
+  font-family: var(--font-serif);
+  font-size: 15px;
   font-weight: 600;
   text-decoration: none !important;
   backdrop-filter: blur(8px);

@@ -83,20 +83,20 @@ export default function HomePage() {
 
   const faqData = [
     {
-      q: 'Lớp học diễn ra như thế nào?',
-      a: 'Lớp học diễn ra qua hình thức trực tuyến (Zoom/Google Meet) kết hợp cùng hệ thống bài giảng, từ vựng và luyện tập tự chấm trực tiếp trên website Toeic Ms Uyen.',
+      q: '01. Làm thế nào để luyện nghe hiệu quả?',
+      a: 'Không có một cách luyện nghe nào hiệu quả ngay lập tức, chỉ có việc luyện nghe đủ lâu mới thật sự có hiệu quả. Hãy cho bản thân thời gian để tiếp cận, làm quen và tạo thành thói quen. Bắt đầu từ 1–2 phút mỗi ngày với những bài nghe đơn giản, sau đó tăng dần thời gian và độ khó. Khi đã quen hơn, hãy chuyển sang nghe TOEIC, nghe đi nghe lại, ngẫm theo và đọc theo liên tục. Nghe thường xuyên, rồi em sẽ nghe tốt hơn.',
     },
     {
-      q: 'Mình mất gốc thì có theo được không?',
-      a: 'Hoàn toàn được. Lộ trình được thiết kế từ con số 0, củng cố nền tảng ngữ pháp, từ vựng cơ bản đến nâng cao theo từng chủ điểm TOEIC.',
+      q: '02. Làm thế nào để ghi nhớ từ vựng lâu hơn?',
+      a: 'Em cứ học thôi và đừng quá quan tâm bao lâu thì mình sẽ nhớ. Bản chất của bộ não là ghi nhớ những thứ được gặp lại thường xuyên và nhiều lần, nên việc ép bản thân phải nhớ hàng loạt từ vựng chỉ sau 1–2 buổi là không thực tế.\n\nVậy nên, em cứ để bản thân quên. Điều quan trọng là thông cảm và kiên nhẫn với sự quên đó, rồi tiếp tục học và ôn lại. Sự lặp lại và việc tạo ra thật nhiều cơ hội để gặp lại từ vựng chính là cách tốt nhất để ghi nhớ lâu hơn.',
     },
     {
-      q: 'Học phí và hình thức thanh toán?',
-      a: 'Học phí hợp lý và minh bạch. Học viên có thể thanh toán linh hoạt qua chuyển khoản ngân hàng hoặc ví điện tử sau khi giáo viên xác nhận.',
+      q: '03. Cần chuẩn bị gì để chinh phục kỳ thi TOEIC?',
+      a: 'Trước hết cần nắm chắc nền tảng ngữ pháp, từ vựng và cách làm từng Part. Sau đó luyện đề đều đặn, chữa kỹ lỗi sai và biết mình đang yếu ở đâu để cải thiện đúng chỗ. Quan trọng nhất là có một lộ trình phù hợp với trình độ hiện tại.',
     },
     {
-      q: 'Có cam kết đầu ra không?',
-      a: 'Có. Ms Uyen cam kết đồng hành, hỗ trợ và cung cấp tài liệu bài luyện tập đến khi học viên đạt được mục tiêu điểm số đề ra.',
+      q: '04. Làm thế nào để xây dựng lộ trình 700+?',
+      a: 'Đừng vội lao vào luyện đề khi nền tảng chưa vững. Hãy xác định trình độ hiện tại, củng cố những phần còn yếu rồi tăng dần độ khó qua từng giai đoạn. Với mục tiêu 700+, sự đều đặn và một lộ trình rõ ràng sẽ quan trọng hơn việc học thật nhiều trong thời gian ngắn.',
     },
   ];
 
@@ -272,7 +272,7 @@ export default function HomePage() {
                     </svg>
                   </div>
                   <div className="glass-card-text">
-                    <div className="glass-card-value">850+</div>
+                    <div className="glass-card-value">650+ 750+ 850+</div>
                     <div className="glass-card-label">Practice score trung bình</div>
                   </div>
                 </div>
@@ -373,103 +373,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Meet Your Teacher Section (Using img-1.jpg - Image 2 reference) */}
-      <section className="meet-teacher-section">
-        <div className="section-container">
-          <div className="meet-teacher-grid">
-            <div className="meet-teacher-text">
-              <h2 className="section-title-serif uppercase">MEET YOUR TEACHER</h2>
-              <p className="meet-teacher-sub">Same goal, different stories. Let's write yours.</p>
-              <p className="section-desc-text">
-                Cô tin rằng ai cũng có thể tiến bộ, chỉ cần tìm được phương pháp phù hợp và một môi trường đủ an toàn để cố gắng.
-              </p>
-              <Link to="/register" className="btn-read-more-link">
-                READ MORE →
-              </Link>
-            </div>
-            <div className="meet-teacher-visual">
-              <div className="editorial-img-box">
-                <img src={img1} alt="Good Students Brighter Futures" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. About The Course Section (Using img-6.jpg & Stats - Image 3 reference) */}
-      <section className="about-course-section">
-        <div className="section-container">
-          <div className="about-course-grid">
-            <div className="about-course-visual">
-              <div className="editorial-img-box">
-                <img src={img6} alt="A brighter future starts here" />
-              </div>
-            </div>
-            <div className="about-course-text">
-              <span className="section-eyebrow-badge">ABOUT THE COURSE</span>
-              <h2 className="section-title-serif">TOEIC 0 → 650+</h2>
-              <p className="section-desc-text">
-                Lộ trình được thiết kế dành cho những bạn muốn xây nền tảng từ con số 0, cải thiện toàn diện 4 kỹ năng và từng bước chạm đến mục tiêu 650+ (và hơn thế nữa).
-              </p>
-
-              <Link to={isAuthenticated ? "/student/my-courses" : "/register"} className="btn-cta-brown">
-                XEM CHI TIẾT KHÓA HỌC →
-              </Link>
-
-              <div className="course-stats-row">
-                <div className="stat-col">
-                  <span className="stat-num">3+</span>
-                  <span className="stat-lbl">Năm kinh nghiệm dạy online</span>
-                </div>
-                <div className="stat-col">
-                  <span className="stat-num">1000+</span>
-                  <span className="stat-lbl">Học viên đã đồng hành</span>
-                </div>
-                <div className="stat-col">
-                  <span className="stat-num">800+</span>
-                  <span className="stat-lbl">Nhiều học viên đạt 800+ TOEIC</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Inside The Classroom Section (Using img-2.png, img-3.jpg, img-4.jpg - Image 2 reference) */}
-      <section className="classroom-gallery-section">
-        <div className="section-container">
-          <div className="classroom-grid">
-            <div className="classroom-text">
-              <span className="section-eyebrow-badge">ONLINE & INTERACTIVE</span>
-              <h2 className="section-title-serif uppercase">
-                INSIDE THE CLASSROOM
-              </h2>
-              <p className="meet-teacher-sub">
-                Not just lessons, but a place to keep showing up.
-              </p>
-              <Link to="/register" className="btn-read-more-link">
-                SEE HOW IT WORKS →
-              </Link>
-            </div>
-
-            <div className="classroom-gallery-grid">
-              <div className="gallery-top-wide">
-                <img src={img2} alt="Small Progress Big Results - Classroom view" />
-              </div>
-              <div className="gallery-bottom-row">
-                <div className="gallery-item-small">
-                  <img src={img3} alt="You Can Do This notebook" />
-                </div>
-                <div className="gallery-item-small">
-                  <img src={img4} alt="Desk setup and books" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. How It Works Section */}
+      {/* 4. How It Works Section (Replaces Meet Your Teacher as requested) */}
       <section id="workflow" className="how-it-works-section">
         <div className="section-container">
           <div className="how-it-works-header">
@@ -543,6 +447,56 @@ export default function HomePage() {
               <p className="step-desc">
                 Truy cập bài học, tài liệu, luyện tập và thi thử TOEIC.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Course Visual Section (Using img-6.jpg - Preserving layout as requested) */}
+      <section className="about-course-section">
+        <div className="section-container">
+          <div className="about-course-grid">
+            <div className="about-course-visual">
+              <div className="editorial-img-box">
+                <img src={img6} alt="Toeic Ms Uyen" />
+              </div>
+            </div>
+            <div className="about-course-text">
+              {/* Layout structure preserved for future text */}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Classroom Gallery Section (Renamed to CÙNG CÔ HỌC TẬP, CÙNG EM TIẾN BỘ MỖI NGÀY) */}
+      <section className="classroom-gallery-section">
+        <div className="section-container">
+          <div className="classroom-grid">
+            <div className="classroom-text">
+              <span className="section-eyebrow-badge">ONLINE & INTERACTIVE</span>
+              <h2 className="section-title-serif uppercase">
+                CÙNG CÔ HỌC TẬP, CÙNG EM TIẾN BỘ MỖI NGÀY
+              </h2>
+              <p className="meet-teacher-sub">
+                Not just lessons, but a place to keep showing up.
+              </p>
+              <Link to="/register" className="btn-read-more-link">
+                XEM TRẢI NGHIỆM LỚP HỌC →
+              </Link>
+            </div>
+
+            <div className="classroom-gallery-grid">
+              <div className="gallery-top-wide">
+                <img src={img2} alt="Classroom view" />
+              </div>
+              <div className="gallery-bottom-row">
+                <div className="gallery-item-small">
+                  <img src={img3} alt="Notebook study desk" />
+                </div>
+                <div className="gallery-item-small">
+                  <img src={img4} alt="Desk setup and books" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
