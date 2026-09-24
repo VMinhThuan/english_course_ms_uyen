@@ -373,7 +373,151 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. How It Works Section (Replaces Meet Your Teacher as requested) */}
+      {/* 4. Learning Ecosystem Section (CÙNG CÔ HỌC TẬP, CÙNG EM TIẾN BỘ MỖI NGÀY - Moved to Section 4 as requested) */}
+      <section id="ecosystem" className="ecosystem-section">
+        <div className="section-container">
+          <div className="ecosystem-header">
+            <span className="section-eyebrow-badge">HỌC TẬP HIỆU QUẢ</span>
+            <h2 className="section-title-serif uppercase">
+              CÙNG CÔ HỌC TẬP, CÙNG EM TIẾN BỘ MỖI NGÀY
+            </h2>
+            <p className="section-desc-text center">
+              Hệ thống được thiết kế trực quan, hiển thị sản phẩm thật giúp bạn dễ dàng trải nghiệm và theo dõi tiến độ.
+            </p>
+          </div>
+
+          <div className="ecosystem-grid">
+            <div className="eco-card">
+              <div className="eco-card-header">
+                <div className="eco-icon-badge">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B4035" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                </div>
+                <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="eco-arrow-link" aria-label="Xem tài liệu">
+                  →
+                </Link>
+              </div>
+              <h3 className="eco-card-title">Tài liệu học tập</h3>
+              <p className="eco-card-desc">Tài liệu PDF & Docx đính kèm theo từng bài học.</p>
+              
+              <div className="eco-mini-visual docs-visual">
+                <div className="doc-item">
+                  <span className="doc-badge pdf">PDF</span>
+                  <div className="doc-info">
+                    <span className="doc-title">Grammar_Summary.pdf</span>
+                    <span className="doc-meta">1.4 MB</span>
+                  </div>
+                  <span className="doc-dl-icon">📥</span>
+                </div>
+                <div className="doc-item">
+                  <span className="doc-badge docx">DOC</span>
+                  <div className="doc-info">
+                    <span className="doc-title">Part5_Vocab_List.docx</span>
+                    <span className="doc-meta">850 KB</span>
+                  </div>
+                  <span className="doc-dl-icon">📥</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="eco-card">
+              <div className="eco-card-header">
+                <div className="eco-icon-badge">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B4035" strokeWidth="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                  </svg>
+                </div>
+                <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="eco-arrow-link" aria-label="Xem từ vựng">
+                  →
+                </Link>
+              </div>
+              <h3 className="eco-card-title">Sổ tay từ vựng</h3>
+              <p className="eco-card-desc">Tra cứu từ vựng IPA chuẩn kèm audio phát âm và ví dụ thực tế.</p>
+              
+              <div className="eco-mini-visual vocab-visual">
+                <div className="vocab-search-box">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#82796F" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <span>Tìm từ vựng...</span>
+                </div>
+                <div className="vocab-card-preview">
+                  <div className="vocab-head">
+                    <span className="vocab-word">opportunity</span>
+                    <span className="vocab-audio-btn">🔊</span>
+                  </div>
+                  <div className="vocab-phonetic">/ˌɒpəˈtjuːnəti/ • noun</div>
+                  <div className="vocab-meaning">cơ hội phát triển sự nghiệp</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="eco-card">
+              <div className="eco-card-header">
+                <div className="eco-icon-badge">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B4035" strokeWidth="2">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                  </svg>
+                </div>
+                <Link to={isAuthenticated ? "/student/assessments" : "/login"} className="eco-arrow-link" aria-label="Luyện tập">
+                  →
+                </Link>
+              </div>
+              <h3 className="eco-card-title">Luyện tập tự chấm</h3>
+              <p className="eco-card-desc">Bài tập trắc nghiệm tự động chấm điểm và giải thích chi tiết.</p>
+
+              <div className="eco-mini-visual quiz-visual">
+                <div className="quiz-row-header">
+                  <span className="q-label">Câu 12</span>
+                  <span className="q-badge-correct">Đúng</span>
+                </div>
+                <div className="quiz-option-selected">
+                  <span>A. expanding</span>
+                  <span className="check-icon-green">✓</span>
+                </div>
+                <div className="quiz-explanation">
+                  <strong>Giải thích:</strong> Đáp án A...
+                </div>
+              </div>
+            </div>
+
+            <div className="eco-card">
+              <div className="eco-card-header">
+                <div className="eco-icon-badge">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B4035" strokeWidth="2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                  </svg>
+                </div>
+                <Link to={isAuthenticated ? "/student/dashboard" : "/login"} className="eco-arrow-link" aria-label="Xem tiến độ">
+                  →
+                </Link>
+              </div>
+              <h3 className="eco-card-title">Theo dõi tiến độ</h3>
+              <p className="eco-card-desc">Xem thống kê kết quả và theo dõi điểm số theo thời gian.</p>
+
+              <div className="eco-mini-visual progress-visual">
+                <div className="progress-badge-float">
+                  <span className="lbl">Điểm trung bình</span>
+                  <span className="val">750</span>
+                </div>
+                <svg className="progress-chart-svg" viewBox="0 0 280 80" fill="none">
+                  <path d="M10 60 Q 60 40, 110 50 T 210 25 T 270 15" stroke="#4B4035" strokeWidth="2.5" fill="none" />
+                  <circle cx="210" cy="25" r="4" fill="#F3C74F" stroke="#4B4035" strokeWidth="2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. How It Works Section */}
       <section id="workflow" className="how-it-works-section">
         <div className="section-container">
           <div className="how-it-works-header">
@@ -452,7 +596,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Course Visual Section (Using img-6.jpg - Preserving layout as requested) */}
+      {/* 6. Course Visual Section (Using img-6.jpg - Preserving layout as requested) */}
       <section className="about-course-section">
         <div className="section-container">
           <div className="about-course-grid">
@@ -468,14 +612,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. Classroom Gallery Section (Renamed to CÙNG CÔ HỌC TẬP, CÙNG EM TIẾN BỘ MỖI NGÀY) */}
+      {/* 7. Classroom Gallery Section */}
       <section className="classroom-gallery-section">
         <div className="section-container">
           <div className="classroom-grid">
             <div className="classroom-text">
               <span className="section-eyebrow-badge">ONLINE & INTERACTIVE</span>
               <h2 className="section-title-serif uppercase">
-                CÙNG CÔ HỌC TẬP, CÙNG EM TIẾN BỘ MỖI NGÀY
+                INSIDE THE CLASSROOM
               </h2>
               <p className="meet-teacher-sub">
                 Not just lessons, but a place to keep showing up.
@@ -637,148 +781,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 9. Learning Ecosystem Section */}
-      <section id="ecosystem" className="ecosystem-section">
-        <div className="section-container">
-          <div className="ecosystem-header">
-            <h2 className="section-title-serif uppercase">
-              CÙNG CÔ HỌC TẬP, CÙNG EM TIẾN BỘ MỖI NGÀY
-            </h2>
-            <p className="section-desc-text center">
-              Hệ thống được thiết kế trực quan, hiển thị sản phẩm thật giúp bạn dễ dàng trải nghiệm và theo dõi tiến độ.
-            </p>
-          </div>
 
-          <div className="ecosystem-grid">
-            <div className="eco-card">
-              <div className="eco-card-header">
-                <div className="eco-icon-badge">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B4035" strokeWidth="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                  </svg>
-                </div>
-                <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="eco-arrow-link" aria-label="Xem tài liệu">
-                  →
-                </Link>
-              </div>
-              <h3 className="eco-card-title">Tài liệu học tập</h3>
-              <p className="eco-card-desc">Tài liệu PDF & Docx đính kèm theo từng bài học.</p>
-              
-              <div className="eco-mini-visual docs-visual">
-                <div className="doc-item">
-                  <span className="doc-badge pdf">PDF</span>
-                  <div className="doc-info">
-                    <span className="doc-title">Grammar_Summary.pdf</span>
-                    <span className="doc-meta">1.4 MB</span>
-                  </div>
-                  <span className="doc-dl-icon">📥</span>
-                </div>
-                <div className="doc-item">
-                  <span className="doc-badge docx">DOC</span>
-                  <div className="doc-info">
-                    <span className="doc-title">Part5_Vocab_List.docx</span>
-                    <span className="doc-meta">850 KB</span>
-                  </div>
-                  <span className="doc-dl-icon">📥</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="eco-card">
-              <div className="eco-card-header">
-                <div className="eco-icon-badge">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B4035" strokeWidth="2">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                  </svg>
-                </div>
-                <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="eco-arrow-link" aria-label="Xem từ vựng">
-                  →
-                </Link>
-              </div>
-              <h3 className="eco-card-title">Sổ tay từ vựng</h3>
-              <p className="eco-card-desc">Tra cứu từ vựng IPA chuẩn kèm audio phát âm và ví dụ thực tế.</p>
-              
-              <div className="eco-mini-visual vocab-visual">
-                <div className="vocab-search-box">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#82796F" strokeWidth="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                  <span>Tìm từ vựng...</span>
-                </div>
-                <div className="vocab-card-preview">
-                  <div className="vocab-head">
-                    <span className="vocab-word">opportunity</span>
-                    <span className="vocab-audio-btn">🔊</span>
-                  </div>
-                  <div className="vocab-phonetic">/ˌɒpəˈtjuːnəti/ • noun</div>
-                  <div className="vocab-meaning">cơ hội phát triển sự nghiệp</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="eco-card">
-              <div className="eco-card-header">
-                <div className="eco-icon-badge">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B4035" strokeWidth="2">
-                    <path d="M9 11l3 3L22 4"></path>
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                  </svg>
-                </div>
-                <Link to={isAuthenticated ? "/student/assessments" : "/login"} className="eco-arrow-link" aria-label="Luyện tập">
-                  →
-                </Link>
-              </div>
-              <h3 className="eco-card-title">Luyện tập tự chấm</h3>
-              <p className="eco-card-desc">Bài tập trắc nghiệm tự động chấm điểm và giải thích chi tiết.</p>
-
-              <div className="eco-mini-visual quiz-visual">
-                <div className="quiz-row-header">
-                  <span className="q-label">Câu 12</span>
-                  <span className="q-badge-correct">Đúng</span>
-                </div>
-                <div className="quiz-option-selected">
-                  <span>A. expanding</span>
-                  <span className="check-icon-green">✓</span>
-                </div>
-                <div className="quiz-explanation">
-                  <strong>Giải thích:</strong> Đáp án A...
-                </div>
-              </div>
-            </div>
-
-            <div className="eco-card">
-              <div className="eco-card-header">
-                <div className="eco-icon-badge">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B4035" strokeWidth="2">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                  </svg>
-                </div>
-                <Link to={isAuthenticated ? "/student/dashboard" : "/login"} className="eco-arrow-link" aria-label="Xem tiến độ">
-                  →
-                </Link>
-              </div>
-              <h3 className="eco-card-title">Theo dõi tiến độ</h3>
-              <p className="eco-card-desc">Xem thống kê kết quả và theo dõi điểm số theo thời gian.</p>
-
-              <div className="eco-mini-visual progress-visual">
-                <div className="progress-badge-float">
-                  <span className="lbl">Điểm trung bình</span>
-                  <span className="val">750</span>
-                </div>
-                <svg className="progress-chart-svg" viewBox="0 0 280 80" fill="none">
-                  <path d="M10 60 Q 60 40, 110 50 T 210 25 T 270 15" stroke="#4B4035" strokeWidth="2.5" fill="none" />
-                  <circle cx="210" cy="25" r="4" fill="#F3C74F" stroke="#4B4035" strokeWidth="2" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 10. Testimonials ("REAL STUDENTS. REAL PROGRESS." - Image 3 reference) */}
       <section className="testimonials-section">
