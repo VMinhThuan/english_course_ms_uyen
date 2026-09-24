@@ -83,19 +83,19 @@ export default function HomePage() {
 
   const faqData = [
     {
-      q: '01. Làm thế nào để luyện nghe hiệu quả?',
+      q: 'Làm thế nào để luyện nghe hiệu quả?',
       a: 'Không có một cách luyện nghe nào hiệu quả ngay lập tức, chỉ có việc luyện nghe đủ lâu mới thật sự có hiệu quả. Hãy cho bản thân thời gian để tiếp cận, làm quen và tạo thành thói quen. Bắt đầu từ 1–2 phút mỗi ngày với những bài nghe đơn giản, sau đó tăng dần thời gian và độ khó. Khi đã quen hơn, hãy chuyển sang nghe TOEIC, nghe đi nghe lại, ngẫm theo và đọc theo liên tục. Nghe thường xuyên, rồi em sẽ nghe tốt hơn.',
     },
     {
-      q: '02. Làm thế nào để ghi nhớ từ vựng lâu hơn?',
+      q: 'Làm thế nào để ghi nhớ từ vựng lâu hơn?',
       a: 'Em cứ học thôi và đừng quá quan tâm bao lâu thì mình sẽ nhớ. Bản chất của bộ não là ghi nhớ những thứ được gặp lại thường xuyên và nhiều lần, nên việc ép bản thân phải nhớ hàng loạt từ vựng chỉ sau 1–2 buổi là không thực tế.\n\nVậy nên, em cứ để bản thân quên. Điều quan trọng là thông cảm và kiên nhẫn với sự quên đó, rồi tiếp tục học và ôn lại. Sự lặp lại và việc tạo ra thật nhiều cơ hội để gặp lại từ vựng chính là cách tốt nhất để ghi nhớ lâu hơn.',
     },
     {
-      q: '03. Cần chuẩn bị gì để chinh phục kỳ thi TOEIC?',
+      q: 'Cần chuẩn bị gì để chinh phục kỳ thi TOEIC?',
       a: 'Trước hết cần nắm chắc nền tảng ngữ pháp, từ vựng và cách làm từng Part. Sau đó luyện đề đều đặn, chữa kỹ lỗi sai và biết mình đang yếu ở đâu để cải thiện đúng chỗ. Quan trọng nhất là có một lộ trình phù hợp với trình độ hiện tại.',
     },
     {
-      q: '04. Làm thế nào để xây dựng lộ trình 700+?',
+      q: 'Làm thế nào để xây dựng lộ trình 700+?',
       a: 'Đừng vội lao vào luyện đề khi nền tảng chưa vững. Hãy xác định trình độ hiện tại, củng cố những phần còn yếu rồi tăng dần độ khó qua từng giai đoạn. Với mục tiêu 700+, sự đều đặn và một lộ trình rõ ràng sẽ quan trọng hơn việc học thật nhiều trong thời gian ngắn.',
     },
   ];
@@ -401,7 +401,7 @@ export default function HomePage() {
               </div>
               <h3 className="eco-card-title">Tài liệu học tập</h3>
               <p className="eco-card-desc">Tài liệu PDF & Docx đính kèm theo từng bài học.</p>
-              
+
               <div className="eco-mini-visual docs-visual">
                 <div className="doc-item">
                   <span className="doc-badge pdf">PDF</span>
@@ -436,7 +436,7 @@ export default function HomePage() {
               </div>
               <h3 className="eco-card-title">Sổ tay từ vựng</h3>
               <p className="eco-card-desc">Tra cứu từ vựng IPA chuẩn kèm audio phát âm và ví dụ thực tế.</p>
-              
+
               <div className="eco-mini-visual vocab-visual">
                 <div className="vocab-search-box">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#82796F" strokeWidth="2">
