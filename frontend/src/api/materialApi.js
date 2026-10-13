@@ -25,21 +25,17 @@ export const materialApi = {
     return response.data;
   },
 
-  createMaterial: async (formData) => {
-    const response = await axiosInstance.post('/admin/materials', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  createMaterial: async (data) => {
+    const isFormData = data instanceof FormData;
+    const config = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+    const response = await axiosInstance.post('/admin/materials', data, config);
     return response.data;
   },
 
-  updateMaterial: async (id, formData) => {
-    const response = await axiosInstance.put(`/admin/materials/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  updateMaterial: async (id, data) => {
+    const isFormData = data instanceof FormData;
+    const config = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+    const response = await axiosInstance.put(`/admin/materials/${id}`, data, config);
     return response.data;
   },
 

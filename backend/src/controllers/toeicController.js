@@ -1,17 +1,29 @@
+import fs from 'fs';
+import path from 'path';
 import Assessment from '../models/Assessment.js';
 import QuestionGroup from '../models/QuestionGroup.js';
 import Question from '../models/Question.js';
 import Attempt from '../models/Attempt.js';
 import { DEFAULT_TOEIC_PARTS, calculateEstimatedListeningScore, calculateEstimatedReadingScore } from '../utils/toeicHelper.js';
+import { parseToeicPdf } from '../utils/toeicPdfParser.js';
 
 // Helper to sanitize questions for student DTO
 const sanitizeQuestionForStudent = (q) => ({
-  questionId: q.questionId || q._id.toString(),
+  _id: (q.questionId || q._id)?.toString(),
+  questionId: (q.questionId || q._id)?.toString(),
   questionNumber: q.questionNumber,
   toeicPart: q.toeicPart,
   type: q.type || 'single_choice',
   questionText: q.questionText || q.prompt || '',
-  options: q.options ? q.options.map((o) => ({ id: o.id, text: o.text })) : [],
+  prompt: q.questionText || q.prompt || '',
+  text: q.questionText || q.prompt || '',
+  options: q.options
+    ? q.options.map((o) => ({
+        _id: (o.id || o._id)?.toString() || o.text,
+        id: (o.id || o._id)?.toString() || o.text,
+        text: o.text,
+      }))
+    : [],
   score: q.score || 1,
 });
 
@@ -19,7 +31,8 @@ const sanitizeQuestionSnapshotForStudent = sanitizeQuestionForStudent;
 
 // Helper to sanitize QuestionGroup for student DTO
 const sanitizeGroupForStudent = (g) => ({
-  groupId: g._id ? g._id.toString() : g.groupId,
+  _id: (g._id ? g._id.toString() : g.groupId) || '',
+  groupId: (g._id ? g._id.toString() : g.groupId) || '',
   partNumber: g.partNumber,
   type: g.type,
   title: g.title || '',
@@ -27,7 +40,7 @@ const sanitizeGroupForStudent = (g) => ({
   imageUrl: g.imageUrl || '',
   audioUrl: g.audioUrl || '',
   passages: g.passages || [],
-  questionIds: g.questionIds ? g.questionIds.map((id) => (typeof id === 'object' ? id.toString() : id)) : [],
+  questionIds: g.questionIds ? g.questionIds.map((id) => (typeof id === 'object' && id !== null ? (id.questionId || id._id || id).toString() : id.toString())) : [],
   order: g.order || 1,
 });
 
@@ -201,6 +214,9 @@ export const updateToeicTest = async (req, res, next) => {
     if (showCorrectAnswers !== undefined) assessment.showCorrectAnswers = showCorrectAnswers;
     if (toeicConfig !== undefined) assessment.toeicConfig = { ...assessment.toeicConfig, ...toeicConfig };
     if (parts !== undefined && Array.isArray(parts)) assessment.parts = parts;
+    if (req.body.status !== undefined && ['draft', 'published', 'archived'].includes(req.body.status)) {
+      assessment.status = req.body.status;
+    }
 
     await assessment.save();
 
@@ -499,6 +515,134 @@ export const publishToeicTest = async (req, res, next) => {
   }
 };
 
+// @desc    Admin unpublish TOEIC test (revert to DRAFT)
+// @route   POST /api/v1/admin/toeic-tests/:id/unpublish
+// @access  Private (Admin/Teacher)
+export const unpublishToeicTest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const assessment = await Assessment.findById(id);
+    if (!assessment || assessment.examFormat !== 'toeic') {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Không tìm thấy đề thi TOEIC',
+      });
+    }
+    assessment.status = 'draft';
+    await assessment.save();
+    res.json({
+      status: 'success',
+      message: 'Đã chuyển đề thi về trạng thái Bản nháp (DRAFT)',
+      data: { assessment },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Admin delete a QuestionGroup from TOEIC test
+// @route   DELETE /api/v1/admin/toeic-tests/:id/groups/:groupId
+// @access  Private (Admin/Teacher)
+export const deleteQuestionGroupFromTest = async (req, res, next) => {
+  try {
+    const { id, groupId } = req.params;
+    const assessment = await Assessment.findById(id);
+    if (!assessment || assessment.examFormat !== 'toeic') {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Không tìm thấy đề thi TOEIC',
+      });
+    }
+
+    const group = await QuestionGroup.findById(groupId);
+    if (!group || group.assessment.toString() !== id.toString()) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Không tìm thấy nhóm câu hỏi trong đề thi',
+      });
+    }
+
+    const qIds = (group.questionIds || []).map((qId) => qId.toString());
+    if (qIds.length > 0) {
+      await Question.deleteMany({ _id: { $in: group.questionIds } });
+    }
+
+    await QuestionGroup.findByIdAndDelete(groupId);
+
+    // Remove group and its questions from assessment
+    assessment.questionGroups = (assessment.questionGroups || []).filter(
+      (gId) => gId.toString() !== groupId.toString()
+    );
+    assessment.questions = (assessment.questions || []).filter(
+      (item) => !qIds.includes((item.question?._id || item.question).toString())
+    );
+    await assessment.save();
+
+    res.json({
+      status: 'success',
+      message: 'Đã xóa nhóm câu hỏi thành công',
+      data: {
+        assessmentId: id,
+        deletedGroupId: groupId,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Admin delete a Question from TOEIC test
+// @route   DELETE /api/v1/admin/toeic-tests/:id/questions/:questionId
+// @access  Private (Admin/Teacher)
+export const deleteQuestionFromTest = async (req, res, next) => {
+  try {
+    const { id, questionId } = req.params;
+    const assessment = await Assessment.findById(id);
+    if (!assessment || assessment.examFormat !== 'toeic') {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Không tìm thấy đề thi TOEIC',
+      });
+    }
+
+    const question = await Question.findById(questionId);
+    if (!question) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Không tìm thấy câu hỏi',
+      });
+    }
+
+    if (question.questionGroup) {
+      const group = await QuestionGroup.findById(question.questionGroup);
+      if (group) {
+        group.questionIds = (group.questionIds || []).filter(
+          (qId) => qId.toString() !== questionId.toString()
+        );
+        await group.save();
+      }
+    }
+
+    await Question.findByIdAndDelete(questionId);
+
+    assessment.questions = (assessment.questions || []).filter(
+      (item) => (item.question?._id || item.question).toString() !== questionId.toString()
+    );
+    await assessment.save();
+
+    res.json({
+      status: 'success',
+      message: 'Đã xóa câu hỏi thành công',
+      data: {
+        assessmentId: id,
+        deletedQuestionId: questionId,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Admin delete TOEIC test (protected if submitted attempts exist)
 // @route   DELETE /api/v1/admin/toeic-tests/:id
 // @access  Private (Admin)
@@ -734,6 +878,163 @@ export const importToeicCsv = async (req, res, next) => {
   }
 };
 
+// @desc    Admin / Teacher PDF Import for TOEIC Test (creates a DRAFT test)
+// @route   POST /api/v1/admin/toeic-tests/import-pdf OR /api/v1/admin/toeic-tests/:id/import-pdf
+// @access  Private (Admin/Teacher)
+export const importToeicPdf = async (req, res, next) => {
+  let createdAssessment = null;
+  let createdGroups = [];
+  let createdQuestions = [];
+
+  try {
+    if (!req.file && !req.body.pdfBuffer) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Vui lòng đính kèm file PDF đề thi TOEIC (dung lượng dưới 30MB)',
+      });
+    }
+
+    let pdfBuffer;
+    let originalFilename = 'toeic_import.pdf';
+
+    if (req.file) {
+      pdfBuffer = fs.readFileSync(req.file.path);
+      originalFilename = req.file.originalname;
+    } else if (req.body.pdfBuffer) {
+      pdfBuffer = Buffer.from(req.body.pdfBuffer, 'base64');
+    }
+
+    const targetAssessmentId = req.params ? req.params.id : null;
+    const { title, toeicMode = 'full_test', durationMinutes = 120 } = req.body;
+
+    // 1. Parse PDF using TOEIC PDF Parser Engine
+    const { parsedGroups, parsedQuestions, extractedImages, report } = await parseToeicPdf(pdfBuffer, {
+      filename: originalFilename,
+    });
+
+    if (parsedQuestions.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Không tìm thấy câu hỏi nào hợp lệ trong file PDF đề thi TOEIC.',
+        report,
+      });
+    }
+
+    // 2. Find or Create DRAFT Assessment
+    let assessment;
+    if (targetAssessmentId) {
+      assessment = await Assessment.findById(targetAssessmentId);
+      if (!assessment || assessment.examFormat !== 'toeic') {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Không tìm thấy đề thi TOEIC cần import',
+        });
+      }
+    } else {
+      const cleanTitle = title || `Đề thi TOEIC Import từ PDF - ${path.parse(originalFilename).name}`;
+      assessment = new Assessment({
+        title: cleanTitle.trim(),
+        description: `Import tự động từ file PDF: ${originalFilename}`,
+        type: 'exam',
+        examFormat: 'toeic',
+        toeicMode: toeicMode,
+        durationMinutes: parseInt(durationMinutes, 10) || 120,
+        parts: DEFAULT_TOEIC_PARTS,
+        status: 'draft', // MUST REMAIN DRAFT
+        createdBy: req.user._id,
+      });
+      await assessment.save();
+      createdAssessment = assessment;
+    }
+
+    // 3. Save Question Groups & Questions to DB
+    const assessmentQuestions = [...(assessment.questions || [])];
+
+    for (const groupData of parsedGroups) {
+      const groupDoc = new QuestionGroup({
+        assessment: assessment._id,
+        partNumber: groupData.partNumber || 1,
+        type: groupData.type || 'single',
+        title: groupData.title || `Group Part ${groupData.partNumber}`,
+        instructions: groupData.instructions || '',
+        imageUrl: groupData.imageUrl || '',
+        audioUrl: groupData.audioUrl || '',
+        passages: groupData.passages || [],
+        order: groupData.order || 1,
+      });
+
+      const qIds = [];
+
+      for (const qData of groupData.questions || []) {
+        const qDoc = await Question.create({
+          questionText: qData.questionText,
+          type: qData.type || 'single_choice',
+          options: qData.options || [],
+          correctAnswers: qData.correctAnswers || ['opt_1'],
+          explanation: qData.explanation || '',
+          score: qData.score || 1,
+          toeicPart: qData.toeicPart || groupData.partNumber || 1,
+          questionGroup: groupDoc._id,
+          questionNumber: qData.questionNumber,
+          order: qData.order || qData.questionNumber || 1,
+          status: 'published',
+          createdBy: req.user._id,
+        });
+
+        qIds.push(qDoc._id);
+        createdQuestions.push(qDoc._id);
+        assessmentQuestions.push({ question: qDoc._id, score: qDoc.score || 1 });
+      }
+
+      groupDoc.questionIds = qIds;
+      await groupDoc.save();
+      createdGroups.push(groupDoc._id);
+
+      if (!assessment.questionGroups.includes(groupDoc._id)) {
+        assessment.questionGroups.push(groupDoc._id);
+      }
+    }
+
+    assessment.questions = assessmentQuestions;
+    assessment.status = 'draft'; // Re-enforce draft status
+    await assessment.save();
+
+    // Remove uploaded temp PDF file if saved on disk
+    if (req.file && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+
+    res.json({
+      status: 'success',
+      message: `Import PDF đề thi TOEIC thành công! Đã tạo bài thi bản nháp (${assessment.questions.length} câu hỏi). Vui lòng kiểm tra và duyệt trước khi xuất bản.`,
+      data: {
+        testId: assessment._id,
+        title: assessment.title,
+        status: assessment.status, // Always 'draft'
+        detected: report.detected,
+        warnings: report.warnings,
+        missing: report.missing,
+        needsReview: true,
+      },
+    });
+  } catch (error) {
+    // Rollback cleanup on error
+    if (createdQuestions.length > 0) {
+      await Question.deleteMany({ _id: { $in: createdQuestions } }).catch(() => {});
+    }
+    if (createdGroups.length > 0) {
+      await QuestionGroup.deleteMany({ _id: { $in: createdGroups } }).catch(() => {});
+    }
+    if (createdAssessment) {
+      await Assessment.findByIdAndDelete(createdAssessment._id).catch(() => {});
+    }
+    if (req.file && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+    next(error);
+  }
+};
+
 // ==================================================
 // STUDENT SIMULATOR CONTROLLERS
 // ==================================================
@@ -757,7 +1058,7 @@ export const getStudentToeicTests = async (req, res, next) => {
     const testsWithStudentStatus = await Promise.all(
       tests.map(async (t) => {
         const activeAttempt = await Attempt.findOne({ student: studentId, assessment: t._id, status: 'in_progress' });
-        const lastSubmittedAttempt = await Attempt.findOne({ student: studentId, assessment: t._id, status: 'submitted' }).sort({ submittedAt: -1 });
+        const lastSubmittedAttempt = await Attempt.findOne({ student: studentId, assessment: t._id, status: { $in: ['submitted', 'completed'] } }).sort({ submittedAt: -1 });
 
         return {
           _id: t._id,
@@ -809,7 +1110,7 @@ export const getStudentToeicTestOverview = async (req, res, next) => {
     }
 
     const activeAttempt = await Attempt.findOne({ student: studentId, assessment: id, status: 'in_progress' });
-    const submittedCount = await Attempt.countDocuments({ student: studentId, assessment: id, status: 'submitted' });
+    const submittedCount = await Attempt.countDocuments({ student: studentId, assessment: id, status: { $in: ['submitted', 'completed'] } });
 
     res.json({
       status: 'success',
@@ -895,7 +1196,7 @@ export const startToeicAttempt = async (req, res, next) => {
     }
 
     // Check Attempt Limit
-    const submittedCount = await Attempt.countDocuments({ student: studentId, assessment: id, status: 'submitted' });
+    const submittedCount = await Attempt.countDocuments({ student: studentId, assessment: id, status: { $in: ['submitted', 'completed'] } });
     if (assessment.attemptLimit > 0 && submittedCount >= assessment.attemptLimit) {
       return res.status(403).json({
         status: 'error',
@@ -1126,18 +1427,32 @@ export const submitToeicAttempt = async (req, res, next) => {
       });
     }
 
-    if (attempt.status === 'submitted') {
+    if (attempt.status === 'submitted' || attempt.status === 'completed') {
+      const percentage = attempt.maxScore > 0 ? Math.round((attempt.score / attempt.maxScore) * 100) : 0;
       return res.json({
         status: 'success',
         message: 'Bài thi đã được nộp trước đó',
         data: {
-          result: {
-            attemptId: attempt._id,
+          attempt: {
+            _id: attempt._id,
+            status: attempt.status,
             score: attempt.score,
             maxScore: attempt.maxScore,
-            percentage: Math.round((attempt.score / (attempt.maxScore || 1)) * 100),
-            toeicBreakdown: attempt.toeicBreakdown,
+            percentage,
+          },
+          result: {
+            attemptId: attempt._id,
+            status: attempt.status,
+            score: attempt.score,
+            maxScore: attempt.maxScore,
+            percentage,
+            correctCount: attempt.correctCount,
+            incorrectCount: attempt.incorrectCount,
+            unansweredCount: attempt.unansweredCount,
+            duration: attempt.duration,
             submittedAt: attempt.submittedAt,
+            isExpired: attempt.isExpired,
+            toeicBreakdown: attempt.toeicBreakdown,
           },
         },
       });
@@ -1328,6 +1643,7 @@ export const getStudentToeicAttempt = async (req, res, next) => {
     const showCorrect = attempt.assessment?.showCorrectAnswers ?? true;
 
     // Sanitize questionSnapshots
+    // Sanitize questionSnapshots
     const sanitizedQuestions = (attempt.questionSnapshots || []).map((q) => {
       const qObj = typeof q.toObject === 'function' ? q.toObject() : { ...q };
       if (!isCompleted) {
@@ -1336,7 +1652,19 @@ export const getStudentToeicAttempt = async (req, res, next) => {
         delete qObj.isCorrect;
         delete qObj.explanation;
       }
-      return qObj;
+      return {
+        ...qObj,
+        _id: (qObj.questionId || qObj._id)?.toString(),
+        questionId: (qObj.questionId || qObj._id)?.toString(),
+        questionText: qObj.questionText || qObj.prompt || '',
+        prompt: qObj.questionText || qObj.prompt || '',
+        text: qObj.questionText || qObj.prompt || '',
+        options: (qObj.options || []).map((o) => ({
+          _id: (o.id || o._id)?.toString() || o.text,
+          id: (o.id || o._id)?.toString() || o.text,
+          text: o.text,
+        })),
+      };
     });
 
     // Sanitize groupSnapshots
@@ -1344,6 +1672,8 @@ export const getStudentToeicAttempt = async (req, res, next) => {
       const gObj = typeof g.toObject === 'function' ? g.toObject() : { ...g };
       return {
         ...gObj,
+        _id: (gObj.groupId || gObj._id)?.toString(),
+        groupId: (gObj.groupId || gObj._id)?.toString(),
         questionIds: (gObj.questionIds || []).map((q) => {
           if (typeof q === 'object' && q !== null) {
             const qObj = typeof q.toObject === 'function' ? q.toObject() : { ...q };
@@ -1353,9 +1683,21 @@ export const getStudentToeicAttempt = async (req, res, next) => {
               delete qObj.isCorrect;
               delete qObj.explanation;
             }
-            return qObj;
+            return {
+              ...qObj,
+              _id: (qObj.questionId || qObj._id)?.toString(),
+              questionId: (qObj.questionId || qObj._id)?.toString(),
+              questionText: qObj.questionText || qObj.prompt || '',
+              prompt: qObj.questionText || qObj.prompt || '',
+              text: qObj.questionText || qObj.prompt || '',
+              options: (qObj.options || []).map((o) => ({
+                _id: (o.id || o._id)?.toString() || o.text,
+                id: (o.id || o._id)?.toString() || o.text,
+                text: o.text,
+              })),
+            };
           }
-          return q;
+          return q?.toString();
         }),
       };
     });
@@ -1368,21 +1710,55 @@ export const getStudentToeicAttempt = async (req, res, next) => {
 
       const qObj = {
         _id: qSnap.questionId,
+        questionId: qSnap.questionId,
         questionNumber: qSnap.questionNumber,
         questionText: qSnap.questionText,
-        options: qSnap.options,
+        text: qSnap.questionText,
+        prompt: qSnap.questionText,
+        options: (qSnap.options || []).map((o) => ({
+          _id: (o.id || o._id)?.toString() || o.text,
+          id: (o.id || o._id)?.toString() || o.text,
+          text: o.text,
+        })),
         score: qSnap.score || 1,
       };
 
+      let isCorrect = false;
+      if (isCompleted) {
+        if (qSnap.type === 'single_choice') {
+          const chosenTexts = (qSnap.options || [])
+            .filter((o) => selectedOptionIds.includes(o.id) || selectedOptionIds.includes(o._id?.toString()) || selectedOptionIds.includes(o.text))
+            .map((o) => o.text);
+
+          isCorrect = selectedOptionIds.some(
+            (val) =>
+              (qSnap.correctAnswers || []).includes(val) ||
+              (qSnap.correctOptionIds || []).includes(val) ||
+              chosenTexts.some((txt) => (qSnap.correctAnswers || []).includes(txt))
+          );
+        } else if (qSnap.type === 'multiple_choice') {
+          const submittedSet = new Set(selectedOptionIds);
+          const correctSet = new Set(qSnap.correctAnswers || []);
+          if (submittedSet.size === correctSet.size) {
+            isCorrect = [...submittedSet].every((val) => correctSet.has(val));
+          }
+        } else if (qSnap.type === 'fill_blank' || qSnap.type === 'typed_answer') {
+          const normSub = String(rawAns).trim().toLowerCase();
+          isCorrect = (qSnap.correctAnswers || []).some((ans) => String(ans).trim().toLowerCase() === normSub);
+        }
+      }
+
       if (isCompleted && showCorrect) {
         qObj.correctAnswers = qSnap.correctAnswers;
+        qObj.correctOptionIds = qSnap.correctOptionIds;
         qObj.explanation = qSnap.explanation;
       }
 
       return {
         questionId: qObj,
         selectedOptionIds,
-        score: isCompleted ? (qSnap.score || 1) : 0,
+        isCorrect: isCompleted ? isCorrect : undefined,
+        score: isCompleted ? (isCorrect ? (qSnap.score || 1) : 0) : 0,
       };
     });
 
@@ -1415,6 +1791,52 @@ export const getStudentToeicAttempt = async (req, res, next) => {
           maxScore: attempt.maxScore,
         },
         assessment: attempt.assessment,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Student get TOEIC attempts history
+// @route   GET /api/v1/toeic/history
+// @access  Private (Active Student)
+export const getStudentToeicHistory = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+
+    const attempts = await Attempt.find({
+      student: studentId,
+      status: { $in: ['submitted', 'completed'] },
+    })
+      .populate('assessment')
+      .sort({ submittedAt: -1 });
+
+    const toeicAttempts = attempts.filter((att) => att.assessment?.examFormat === 'toeic');
+
+    const history = toeicAttempts.map((att) => ({
+      _id: att._id,
+      attemptId: att._id,
+      assessment: {
+        _id: att.assessment?._id,
+        title: att.assessment?.title || 'TOEIC Test',
+        toeicMode: att.assessment?.toeicMode,
+        durationMinutes: att.assessment?.durationMinutes,
+      },
+      score: att.score,
+      maxScore: att.maxScore,
+      percentage: att.maxScore > 0 ? Math.round((att.score / att.maxScore) * 100) : 0,
+      toeicBreakdown: att.toeicBreakdown || {},
+      status: att.status,
+      duration: att.duration,
+      submittedAt: att.submittedAt,
+    }));
+
+    res.json({
+      status: 'success',
+      data: {
+        attempts: history,
+        history,
       },
     });
   } catch (error) {

@@ -192,8 +192,8 @@ export default function StudentDashboardPage() {
                   </div>
                   <div className="result-score-tag">
                     <span className="score-num">{res.score}</span> / {res.totalScore}
-                    <span className={`pass-badge ${res.score >= (res.assessment?.passScore || 0) ? 'pass' : 'fail'}`}>
-                      {res.score >= (res.assessment?.passScore || 0) ? 'ĐẠT' : 'CHƯA ĐẠT'}
+                    <span className={`pass-badge ${res.passed === true ? 'pass' : 'fail'}`}>
+                      {res.passed === true ? 'ĐẠT' : 'CHƯA ĐẠT'}
                     </span>
                   </div>
                 </div>

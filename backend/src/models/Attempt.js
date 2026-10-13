@@ -79,6 +79,16 @@ const attemptSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    scorePercentage: {
+      type: Number,
+    },
+    // Kept on the attempt so an assessment edit cannot rewrite historical outcomes.
+    passScore: {
+      type: Number,
+    },
+    passed: {
+      type: Boolean,
+    },
     correctCount: {
       type: Number,
       default: 0,
@@ -120,6 +130,11 @@ const attemptSchema = new mongoose.Schema(
 );
 
 attemptSchema.index({ student: 1, assessment: 1, status: 1 });
+// At most one resumable attempt may exist for a student and an assessment.
+attemptSchema.index(
+  { student: 1, assessment: 1 },
+  { unique: true, partialFilterExpression: { status: 'in_progress' } }
+);
 
 const Attempt = mongoose.model('Attempt', attemptSchema);
 

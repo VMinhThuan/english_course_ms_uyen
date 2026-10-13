@@ -4,6 +4,8 @@ import {
   getCourseById,
   createCourse,
   updateCourse,
+  updateCourseStatus,
+  reorderCourseLessons,
   deleteCourse,
 } from '../controllers/courseController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
@@ -14,7 +16,8 @@ router.get('/', getCourses);
 router.get('/:id', getCourseById);
 router.post('/', verifyToken, checkRole('teacher', 'admin'), createCourse);
 router.put('/:id', verifyToken, checkRole('teacher', 'admin'), updateCourse);
-router.delete('/:id', verifyToken, checkRole('admin'), deleteCourse);
+router.patch('/:id/status', verifyToken, checkRole('teacher', 'admin'), updateCourseStatus);
+router.put('/:id/reorder-lessons', verifyToken, checkRole('teacher', 'admin'), reorderCourseLessons);
+router.delete('/:id', verifyToken, checkRole('teacher', 'admin'), deleteCourse);
 
 export default router;
-

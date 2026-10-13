@@ -1,30 +1,197 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { courseApi } from '../../api/courseApi.js';
+import { lessonApi } from '../../api/lessonApi.js';
 import { materialApi } from '../../api/materialApi.js';
 import './AdminStudentsPage.css';
 
+function formatFileSize(bytes) {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
 export default function AdminMaterialsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlCourseId = searchParams.get('courseId');
+  const urlLessonId = searchParams.get('lessonId');
+
+  const [courses, setCourses] = useState([]);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [lessons, setLessons] = useState([]);
+  const [selectedLessonId, setSelectedLessonId] = useState('');
+
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [error, setError] = useState(null);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
+
+  // Modal states
+  const [showModal, setShowModal] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form state
+  const initialFormState = {
+    title: '',
+    description: '',
+    lessonId: '',
+    allowDownload: true,
+    status: 'published',
+    fileUrl: '',
+    file: null,
+  };
+  const [formData, setFormData] = useState(initialFormState);
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCourseId) {
+      fetchLessonsForCourse(selectedCourseId);
+    } else {
+      setLessons([]);
+      setSelectedLessonId('');
+    }
+  }, [selectedCourseId]);
 
   useEffect(() => {
     fetchMaterials();
-  }, []);
+  }, [selectedCourseId, selectedLessonId]);
 
-  const fetchMaterials = async () => {
+  const fetchCourses = async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await materialApi.getAdminMaterials();
+      const res = await courseApi.getAdminCourses();
+      if (res.status === 'success') {
+        const list = res.data.courses || [];
+        setCourses(list);
+        if (list.length > 0) {
+          const match = list.find((c) => c._id === urlCourseId);
+          setSelectedCourseId(match ? match._id : list[0]._id);
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Không thể tải danh sách khóa học');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLessonsForCourse = async (courseId) => {
+    try {
+      const res = await lessonApi.getLessonsByCourse(courseId);
+      if (res.status === 'success') {
+        const lessonList = res.data.lessons || [];
+        setLessons(lessonList);
+        if (urlLessonId && lessonList.some((l) => l._id === urlLessonId)) {
+          setSelectedLessonId(urlLessonId);
+        } else {
+          setSelectedLessonId('');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load lessons for course:', err);
+    }
+  };
+
+  const fetchMaterials = async () => {
+    try {
+      setLoadingMaterials(true);
+      setError(null);
+      const params = {};
+      if (selectedCourseId) params.courseId = selectedCourseId;
+      if (selectedLessonId) params.lessonId = selectedLessonId;
+
+      const res = await materialApi.getAdminMaterials(params);
       if (res.status === 'success') {
         setMaterials(res.data.materials || []);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể tải danh sách tài liệu');
     } finally {
-      setLoading(false);
+      setLoadingMaterials(false);
+    }
+  };
+
+  const handleOpenCreate = () => {
+    setEditingMaterial(null);
+    setFormData({
+      ...initialFormState,
+      lessonId: selectedLessonId || (lessons.length > 0 ? lessons[0]._id : ''),
+    });
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (mat) => {
+    setEditingMaterial(mat);
+    setFormData({
+      title: mat.title || '',
+      description: mat.description || '',
+      lessonId: mat.lesson?._id || mat.lesson || '',
+      allowDownload: Boolean(mat.allowDownload),
+      status: mat.status || 'published',
+      fileUrl: mat.fileUrl || '',
+      file: null,
+    });
+    setShowModal(true);
+  };
+
+  const handleSaveMaterial = async (e) => {
+    e.preventDefault();
+    if (!formData.title.trim()) {
+      setFeedback({ type: 'error', text: 'Vui lòng nhập tên tài liệu' });
+      return;
+    }
+    if (!formData.lessonId) {
+      setFeedback({ type: 'error', text: 'Vui lòng chọn bài học đính kèm tài liệu' });
+      return;
+    }
+    if (!editingMaterial && !formData.file && !formData.fileUrl.trim()) {
+      setFeedback({ type: 'error', text: 'Vui lòng chọn file tải lên hoặc nhập file URL' });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setFeedback({ type: '', text: '' });
+
+      const data = new FormData();
+      data.append('title', formData.title.trim());
+      data.append('description', formData.description.trim());
+      data.append('lessonId', formData.lessonId);
+      data.append('allowDownload', String(formData.allowDownload));
+      data.append('status', formData.status);
+
+      if (formData.file) {
+        data.append('file', formData.file);
+      } else if (formData.fileUrl) {
+        data.append('fileUrl', formData.fileUrl.trim());
+      }
+
+      if (editingMaterial) {
+        await materialApi.updateMaterial(editingMaterial._id, data);
+        setFeedback({ type: 'success', text: 'Cập nhật tài liệu thành công!' });
+      } else {
+        await materialApi.createMaterial(data);
+        setFeedback({ type: 'success', text: 'Thêm tài liệu mới thành công!' });
+      }
+
+      setShowModal(false);
+      fetchMaterials();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        text: err.response?.data?.message || 'Lưu tài liệu thất bại',
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -40,7 +207,7 @@ export default function AdminMaterialsPage() {
       }
     } catch (err) {
       const msg = err.response?.status === 409
-        ? (err.response?.data?.message || 'Tài liệu đang được học viên sử dụng, không thể xóa.')
+        ? (err.response?.data?.message || 'Tài liệu đang được sử dụng, không thể xóa.')
         : (err.response?.data?.message || 'Xóa tài liệu thất bại.');
       setFeedback({ type: 'error', text: msg });
       setDeleteTarget(null);
@@ -51,35 +218,171 @@ export default function AdminMaterialsPage() {
     <div className="admin-page-container">
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">Quản Lý Tài Liệu Hướng Dẫn</h1>
-          <p className="admin-page-sub">Quản lý file đính kèm, PDF, bài giảng đính kèm trong bài học.</p>
+          <h1 className="admin-page-title">Quản Lý Tài Liệu</h1>
+          <p className="admin-page-sub">
+            Quản lý tài liệu đính kèm, slide bài giảng, file nghe và phân quyền tải xuống cho học viên.
+          </p>
         </div>
+        {selectedCourseId && lessons.length > 0 && (
+          <div>
+            <button
+              onClick={handleOpenCreate}
+              style={{
+                padding: '0.65rem 1.25rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#4F46E5',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 2px 4px rgba(79, 70, 229, 0.2)',
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Thêm Tài Liệu Mới
+            </button>
+          </div>
+        )}
       </div>
 
       {feedback.text && (
-        <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem', background: feedback.type === 'success' ? '#DCFCE7' : '#FEF2F2', border: `1px solid ${feedback.type === 'success' ? '#86EFAC' : '#FCA5A5'}`, color: feedback.type === 'success' ? '#166534' : '#991B1B' }}>
-          {feedback.text}
+        <div
+          style={{
+            padding: '0.75rem 1rem',
+            borderRadius: '8px',
+            marginBottom: '1rem',
+            background: feedback.type === 'success' ? '#DCFCE7' : '#FEF2F2',
+            border: `1px solid ${feedback.type === 'success' ? '#86EFAC' : '#FCA5A5'}`,
+            color: feedback.type === 'success' ? '#166534' : '#991B1B',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <span>{feedback.text}</span>
+          <button
+            onClick={() => setFeedback({ type: '', text: '' })}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 700 }}
+          >
+            ×
+          </button>
         </div>
       )}
 
+      {/* Course & Lesson Filters */}
+      <div
+        style={{
+          background: '#FFFFFF',
+          padding: '1.25rem',
+          borderRadius: '12px',
+          border: '1px solid #E2E8F0',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.5rem',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <label style={{ fontWeight: 600, color: '#334155' }}>Khóa học:</label>
+          <select
+            value={selectedCourseId}
+            onChange={(e) => {
+              setSelectedCourseId(e.target.value);
+              setSearchParams({ courseId: e.target.value });
+            }}
+            style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', minWidth: '240px' }}
+          >
+            {courses.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <label style={{ fontWeight: 600, color: '#334155' }}>Bài học:</label>
+          <select
+            value={selectedLessonId}
+            onChange={(e) => {
+              setSelectedLessonId(e.target.value);
+              setSearchParams({ courseId: selectedCourseId, lessonId: e.target.value });
+            }}
+            style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', minWidth: '220px' }}
+          >
+            <option value="">Tất cả bài học</option>
+            {lessons.map((l) => (
+              <option key={l._id} value={l._id}>
+                #{l.order || 1} - {l.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>Đang tải danh sách tài liệu...</div>
+        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
+          Đang tải khóa học...
+        </div>
       ) : error ? (
-        <div style={{ padding: '1rem', background: '#FEF2F2', color: '#991B1B', borderRadius: '8px' }}>{error}</div>
+        <div style={{ padding: '1rem', background: '#FEF2F2', color: '#991B1B', borderRadius: '8px', textAlign: 'center' }}>
+          {error}
+          <div style={{ marginTop: '0.5rem' }}>
+            <button
+              onClick={fetchMaterials}
+              style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid #FCA5A5', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+            >
+              Thử lại
+            </button>
+          </div>
+        </div>
+      ) : loadingMaterials ? (
+        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
+          Đang tải danh sách tài liệu...
+        </div>
       ) : materials.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-          Chưa có tài liệu nào được tạo trong hệ thống.
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📄</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#334155' }}>Chưa có tài liệu nào</div>
+          <p style={{ fontSize: '0.9rem', color: '#64748B', margin: '0.5rem 0 1.25rem' }}>
+            Thêm tài liệu hướng dẫn, file PDF hoặc tài liệu đính kèm cho bài học này.
+          </p>
+          {lessons.length > 0 && (
+            <button
+              onClick={handleOpenCreate}
+              style={{
+                padding: '0.6rem 1.25rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#4F46E5',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              + Thêm Tài Liệu Mới
+            </button>
+          )}
         </div>
       ) : (
         <div className="table-responsive">
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Tên Tài Liệu</th>
+                <th style={{ width: '30%' }}>Tên Tài Liệu</th>
                 <th>Bài Học</th>
                 <th>Loại File</th>
-                <th>Cho Phép Tải</th>
-                <th>Thao Tác</th>
+                <th>Dung Lượng</th>
+                <th>Quyền Tải Xuống</th>
+                <th>Trạng Thái</th>
+                <th style={{ textAlign: 'center' }}>Thao Tác</th>
               </tr>
             </thead>
             <tbody>
@@ -87,22 +390,89 @@ export default function AdminMaterialsPage() {
                 <tr key={mat._id}>
                   <td>
                     <strong>{mat.title}</strong>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{mat.description}</div>
+                    {mat.description && (
+                      <div style={{ fontSize: '0.8rem', color: '#64748B', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {mat.description}
+                      </div>
+                    )}
                   </td>
-                  <td>{mat.lesson?.title || '---'}</td>
-                  <td><code style={{ background: '#F1F5F9', padding: '0.2rem 0.4rem', borderRadius: '4px' }}>{mat.fileType || 'PDF'}</code></td>
                   <td>
-                    <span className={`status-badge ${mat.allowDownload ? 'badge-active' : 'badge-pending'}`}>
-                      {mat.allowDownload ? 'Cho phép' : 'Chỉ xem'}
+                    <span style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      {mat.lesson?.title || '---'}
                     </span>
                   </td>
                   <td>
-                    <button
-                      onClick={() => setDeleteTarget(mat)}
-                      style={{ padding: '0.35rem 0.75rem', borderRadius: '6px', border: 'none', background: '#FEE2E2', color: '#991B1B', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
-                    >
-                      Xóa
-                    </button>
+                    <code style={{ background: '#F1F5F9', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                      {mat.fileType || 'file'}
+                    </code>
+                  </td>
+                  <td>
+                    <span style={{ fontSize: '0.85rem', color: '#64748B' }}>
+                      {formatFileSize(mat.fileSize)}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${mat.allowDownload ? 'badge-active' : 'badge-pending'}`}>
+                      {mat.allowDownload ? 'Cho phép tải' : 'Chỉ xem'}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${mat.status === 'published' ? 'badge-active' : 'badge-pending'}`}>
+                      {mat.status === 'published' ? 'Đã xuất bản' : 'Ẩn'}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                      {mat.fileUrl && (
+                        <a
+                          href={mat.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{
+                            padding: '0.4rem 0.65rem',
+                            borderRadius: '6px',
+                            border: '1px solid #CBD5E1',
+                            background: '#FFFFFF',
+                            color: '#4F46E5',
+                            textDecoration: 'none',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            display: 'inline-block',
+                          }}
+                        >
+                          Mở file
+                        </a>
+                      )}
+                      <button
+                        onClick={() => handleOpenEdit(mat)}
+                        style={{
+                          padding: '0.4rem 0.65rem',
+                          borderRadius: '6px',
+                          border: '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(mat)}
+                        style={{
+                          padding: '0.4rem 0.65rem',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: '#FEE2E2',
+                          color: '#991B1B',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Xóa
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -111,16 +481,227 @@ export default function AdminMaterialsPage() {
         </div>
       )}
 
+      {/* Create / Edit Material Modal */}
+      {showModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              padding: '2rem',
+              maxWidth: '560px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                {editingMaterial ? 'Chỉnh Sửa Tài Liệu' : 'Thêm Tài Liệu Mới'}
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748B' }}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMaterial} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  Tiêu đề tài liệu *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Slide Bài Giảng Part 1 - Picture Description"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  Thuộc bài học *
+                </label>
+                <select
+                  required
+                  value={formData.lessonId}
+                  onChange={(e) => setFormData({ ...formData, lessonId: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                >
+                  <option value="">-- Chọn bài học --</option>
+                  {lessons.map((l) => (
+                    <option key={l._id} value={l._id}>
+                      #{l.order || 1} - {l.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  Mô tả tài liệu
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Ghi chú thêm về nội dung tài liệu..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', resize: 'vertical' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  Tải lên tệp tài liệu (PDF, Word, MP3, ZIP...)
+                </label>
+                <input
+                  type="file"
+                  onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                />
+                {editingMaterial && !formData.file && (
+                  <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.25rem' }}>
+                    Hiện tại: {editingMaterial.fileUrl ? <code>{editingMaterial.fileUrl}</code> : 'Chưa có file'} (chọn file mới nếu muốn thay thế)
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  Hoặc nhập File URL trực tiếp
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://... hoặc /uploads/..."
+                  value={formData.fileUrl}
+                  onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    id="allowDownloadCheck"
+                    checked={formData.allowDownload}
+                    onChange={(e) => setFormData({ ...formData, allowDownload: e.target.checked })}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="allowDownloadCheck" style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1E293B', cursor: 'pointer' }}>
+                    Cho phép học viên tải tài liệu về máy (Bỏ chọn nếu chỉ cho xem online)
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  Trạng thái
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                >
+                  <option value="published">Đã xuất bản (Công khai cho học viên)</option>
+                  <option value="hidden">Ẩn</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid #E2E8F0', paddingTop: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  style={{ padding: '0.65rem 1.25rem', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  style={{
+                    padding: '0.65rem 1.5rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: '#4F46E5',
+                    color: '#FFFFFF',
+                    cursor: submitting ? 'not-allowed' : 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  {submitting ? 'Đang lưu...' : editingMaterial ? 'Lưu Thay Đổi' : 'Thêm Tài Liệu'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '1.75rem', maxWidth: '440px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>Xác Nhận Xóa Tài Liệu</h3>
-            <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1.5rem' }}>
-              Bạn có chắc chắn muốn xóa tài liệu <strong>"{deleteTarget.title}"</strong>?
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              padding: '1.75rem',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+            }}
+          >
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>
+              Xác Nhận Xóa Tài Liệu
+            </h3>
+            <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+              Bạn có chắc chắn muốn xóa tài liệu <strong>"{deleteTarget.title}"</strong>? Tệp vật lý đính kèm cũng sẽ được xóa khỏi hệ thống.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-              <button onClick={() => setDeleteTarget(null)} style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}>Hủy</button>
-              <button onClick={handleDeleteConfirm} style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: '#DC2626', color: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}>Xác Nhận Xóa</button>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: '#DC2626', color: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Xác Nhận Xóa
+              </button>
             </div>
           </div>
         </div>

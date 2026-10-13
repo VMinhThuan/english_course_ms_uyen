@@ -20,10 +20,10 @@ export default function StudentToeicOverviewPage() {
     try {
       setLoading(true);
       setError(null);
-      const res = await toeicApi.getToeicTestDetail(assessmentId);
+      const res = await toeicApi.getStudentToeicTestOverview(assessmentId);
       if (res.status === 'success') {
         setTest(res.data.assessment);
-        setActiveAttempt(res.data.activeAttempt || null);
+        setActiveAttempt(res.data.assessment.hasActiveAttempt ? { _id: res.data.assessment.activeAttemptId } : null);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể tải thông tin đề thi TOEIC');
@@ -33,11 +33,15 @@ export default function StudentToeicOverviewPage() {
   };
 
   const handleStartOrResume = async () => {
+    if (activeAttempt?._id) {
+      navigate(`/student/toeic/attempt/${activeAttempt._id}`);
+      return;
+    }
     try {
       setSubmitting(true);
       const res = await toeicApi.startToeicAttempt(assessmentId);
       if (res.status === 'success') {
-        const attemptId = res.data.attempt._id;
+        const attemptId = res.data?.attemptId || res.data?.attempt?._id;
         navigate(`/student/toeic/attempt/${attemptId}`);
       }
     } catch (err) {
@@ -124,7 +128,7 @@ export default function StudentToeicOverviewPage() {
         {/* Listening Section */}
         <div style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0284C7', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            🎧 LISTENING SECTION ({listeningParts.reduce((acc, p) => acc + (p.questionGroups?.reduce((gAcc, g) => gAcc + (g.questionIds?.length || 0), 0) || 0), 0)} câu)
+            🎧 LISTENING SECTION ({test.toeicMode === 'full_test' ? '100 câu' : test.toeicMode === 'mini_test' ? '25 câu' : 'Part 1–4'})
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.75rem' }}>
             {listeningParts.map((part) => {
@@ -132,7 +136,9 @@ export default function StudentToeicOverviewPage() {
               return (
                 <div key={part.partNumber} style={{ padding: '0.85rem 1rem', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>Part {part.partNumber}: {part.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>{qCount} câu hỏi</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>
+                    {qCount > 0 ? `${qCount} câu hỏi` : part.instructions ? 'Chuẩn hóa TOEIC' : 'Listening'}
+                  </div>
                 </div>
               );
             })}
@@ -142,7 +148,7 @@ export default function StudentToeicOverviewPage() {
         {/* Reading Section */}
         <div>
           <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#166534', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            📖 READING SECTION ({readingParts.reduce((acc, p) => acc + (p.questionGroups?.reduce((gAcc, g) => gAcc + (g.questionIds?.length || 0), 0) || 0), 0)} câu)
+            📖 READING SECTION ({test.toeicMode === 'full_test' ? '100 câu' : test.toeicMode === 'mini_test' ? '25 câu' : 'Part 5–7'})
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.75rem' }}>
             {readingParts.map((part) => {
@@ -150,7 +156,9 @@ export default function StudentToeicOverviewPage() {
               return (
                 <div key={part.partNumber} style={{ padding: '0.85rem 1rem', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>Part {part.partNumber}: {part.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>{qCount} câu hỏi</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>
+                    {qCount > 0 ? `${qCount} câu hỏi` : part.instructions ? 'Chuẩn hóa TOEIC' : 'Reading'}
+                  </div>
                 </div>
               );
             })}

@@ -46,6 +46,13 @@ const assessmentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Percentage required to pass. 0 preserves the previous behaviour for legacy assessments.
+    passScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
     status: {
       type: String,
       enum: ['draft', 'published', 'hidden'],

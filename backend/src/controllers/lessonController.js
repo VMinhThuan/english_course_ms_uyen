@@ -230,11 +230,23 @@ export const updateLessonStatus = async (req, res, next) => {
       });
     }
 
-    const lesson = await Lesson.findById(id);
+    const lesson = await Lesson.findById(id).populate('course');
     if (!lesson) {
       return res.status(404).json({
         status: 'error',
         message: 'Lesson not found',
+      });
+    }
+
+    if (
+      req.user.role !== 'admin' &&
+      lesson.course &&
+      lesson.course.teacher &&
+      lesson.course.teacher.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to update status of this lesson',
       });
     }
 
@@ -259,12 +271,24 @@ export const updateLessonStatus = async (req, res, next) => {
 export const deleteLesson = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const lesson = await Lesson.findById(id);
+    const lesson = await Lesson.findById(id).populate('course');
 
     if (!lesson) {
       return res.status(404).json({
         status: 'error',
         message: 'Lesson not found',
+      });
+    }
+
+    if (
+      req.user.role !== 'admin' &&
+      lesson.course &&
+      lesson.course.teacher &&
+      lesson.course.teacher.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to delete this lesson',
       });
     }
 

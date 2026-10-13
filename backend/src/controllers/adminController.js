@@ -52,6 +52,14 @@ export const getStudents = async (req, res, next) => {
   }
 };
 
+export const getStudent = async (req, res, next) => {
+  try {
+    const student = await User.findOne({ _id: req.params.id, role: 'student' }).select('-password');
+    if (!student) return res.status(404).json({ status: 'error', message: 'Không tìm thấy thông tin học viên' });
+    return res.json({ status: 'success', data: { student } });
+  } catch (error) { return next(error); }
+};
+
 // Helper to check target student account
 const getTargetStudent = async (id, res) => {
   const user = await User.findById(id);
@@ -275,4 +283,3 @@ export const getAdminStats = async (req, res, next) => {
     next(error);
   }
 };
-

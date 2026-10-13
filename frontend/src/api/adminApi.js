@@ -5,6 +5,7 @@ export const adminApi = {
     const response = await axiosInstance.get('/admin/students', { params });
     return response.data;
   },
+  getStudent: async (id) => (await axiosInstance.get(`/admin/students/${id}`)).data,
 
   approveStudent: async (id) => {
     const response = await axiosInstance.patch(`/admin/students/${id}/approve`);
@@ -31,4 +32,3 @@ export const adminApi = {
     return response.data;
   },
 };
-

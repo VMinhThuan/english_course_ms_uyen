@@ -17,7 +17,7 @@ export default function StudentHistoryPage() {
       setError(null);
       const res = await assessmentApi.getStudentHistory();
       if (res.status === 'success') {
-        setAttempts(res.data.attempts || res.data.history || []);
+        setAttempts(res.data.history || []);
       }
 
     } catch (err) {
@@ -66,18 +66,21 @@ export default function StudentHistoryPage() {
                   <th>Ngày Nộp Bài</th>
                   <th>Điểm Số</th>
                   <th>Tỷ Lệ</th>
+                  <th>Kết Quả</th>
                   <th>Thời Gian</th>
                   <th>Thao Tác</th>
                 </tr>
               </thead>
               <tbody>
                 {attempts.map((att) => {
-                  const passScore = att.assessment?.passScore || 0;
-                  const isPass = att.score >= passScore;
+                  const isToeic = att.assessment?.examFormat === 'toeic' || !!att.toeicBreakdown?.estimatedToeicScore;
+                  const isPass = att.passed === true;
+                  const resultUrl = isToeic ? `/student/toeic/results/${att._id}` : `/student/results/${att._id}`;
+
                   return (
                     <tr key={att._id}>
                       <td>
-                        <strong>{att.assessment?.title || 'Bài đánh giá'}</strong>
+                        <strong>{att.assessment?.title || (isToeic ? 'Đề thi TOEIC' : 'Bài đánh giá')}</strong>
                       </td>
                       <td>
                         <span
@@ -86,31 +89,47 @@ export default function StudentHistoryPage() {
                             fontWeight: 700,
                             padding: '0.2rem 0.5rem',
                             borderRadius: '4px',
-                            background: att.assessment?.type === 'exam' ? '#FEE2E2' : '#DCFCE7',
-                            color: att.assessment?.type === 'exam' ? '#991B1B' : '#166534',
+                            background: isToeic ? '#E0F2FE' : att.assessment?.type === 'exam' ? '#FEE2E2' : '#DCFCE7',
+                            color: isToeic ? '#0369A1' : att.assessment?.type === 'exam' ? '#991B1B' : '#166534',
                           }}
                         >
-                          {att.assessment?.type === 'exam' ? 'Bài kiểm tra' : 'Bài tập'}
+                          {isToeic ? 'TOEIC' : att.assessment?.type === 'exam' ? 'Bài kiểm tra' : 'Bài tập'}
                         </span>
                       </td>
                       <td>{att.submittedAt ? new Date(att.submittedAt).toLocaleString('vi-VN') : '---'}</td>
                       <td>
-                        <strong>{att.score}</strong> / {att.totalScore}
+                        {isToeic && att.toeicBreakdown?.estimatedToeicScore !== undefined ? (
+                          <div>
+                            <strong style={{ color: '#0284C7' }}>{att.toeicBreakdown.estimatedToeicScore}</strong> / 990
+                            <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                              L: {att.toeicBreakdown.listeningScore ?? 0} | R: {att.toeicBreakdown.readingScore ?? 0}
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <strong>{att.score}</strong> / {att.totalScore || att.maxScore}
+                          </div>
+                        )}
                       </td>
                       <td>
-                        <strong style={{ color: isPass ? '#166534' : '#991B1B' }}>
-                          {att.percentage}%
+                        <strong style={{ color: isToeic ? '#0284C7' : isPass ? '#166534' : '#991B1B' }}>
+                          {att.scorePercentage ?? att.percentage}%
+                        </strong>
+                      </td>
+                      <td>
+                        <strong style={{ color: isToeic ? '#166534' : isPass ? '#166534' : '#991B1B' }}>
+                          {isToeic ? 'HOÀN THÀNH' : isPass ? 'ĐẠT' : 'CHƯA ĐẠT'}
                         </strong>
                       </td>
                       <td>{att.duration ? `${Math.round(att.duration / 60)} phút` : '---'}</td>
                       <td>
                         <Link
-                          to={`/student/results/${att._id}`}
+                          to={resultUrl}
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             padding: '0.4rem 0.8rem',
-                            background: '#0284C7',
+                            background: isToeic ? '#0F172A' : '#0284C7',
                             color: '#FFFFFF',
                             borderRadius: '6px',
                             textDecoration: 'none',

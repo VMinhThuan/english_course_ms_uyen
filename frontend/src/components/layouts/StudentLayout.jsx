@@ -16,6 +16,7 @@ export default function StudentLayout() {
     let pageTitle = 'Học viên';
     if (path.includes('dashboard')) pageTitle = 'Trang chủ';
     else if (path.includes('my-courses')) pageTitle = 'Bài học';
+    else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
     else if (path.includes('assessments')) pageTitle = 'Luyện tập';
     else if (path.includes('toeic')) pageTitle = 'Thi thử TOEIC';
     else if (path.includes('history')) pageTitle = 'Lịch sử';
@@ -140,6 +141,15 @@ export default function StudentLayout() {
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
             </svg>
             <span>Bài Tập & Đề Thi</span>
+          </NavLink>
+
+          <NavLink
+            to="/student/vocabulary"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+            <span>Từ Vựng</span>
           </NavLink>
 
           <NavLink

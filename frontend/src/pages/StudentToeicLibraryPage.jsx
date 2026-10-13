@@ -78,7 +78,23 @@ export default function StudentToeicLibraryPage() {
           Đang tải kho đề thi TOEIC...
         </div>
       ) : error ? (
-        <div style={{ padding: '1rem', background: '#FEF2F2', color: '#991B1B', borderRadius: '12px' }}>{error}</div>
+        <div style={{ padding: '1.5rem', background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B', borderRadius: '12px', textAlign: 'center' }}>
+          <div style={{ fontWeight: 600, marginBottom: '0.75rem' }}>{error}</div>
+          <button
+            onClick={fetchToeicTests}
+            style={{
+              padding: '0.5rem 1.25rem',
+              background: '#DC2626',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Thử lại
+          </button>
+        </div>
       ) : filteredTests.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
           Chưa có đề thi TOEIC nào thuộc danh mục này.

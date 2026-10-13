@@ -18,7 +18,7 @@ export default function AdminResultsPage() {
       setError(null);
       const res = await assessmentApi.getAdminResults();
       if (res.status === 'success') {
-        setResults(res.data.attempts || res.data.results || []);
+        setResults(res.data.results || []);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể tải danh sách kết quả làm bài');
@@ -81,14 +81,14 @@ export default function AdminResultsPage() {
                 <th>Phân Loại</th>
                 <th>Điểm Số</th>
                 <th>Tỷ Lệ Thành Công</th>
+                <th>Điểm đạt</th>
                 <th>Thời Gian Làm</th>
                 <th>Thời Gian Nộp</th>
               </tr>
             </thead>
             <tbody>
               {filteredResults.map((res) => {
-                const passScore = res.assessment?.passScore || 0;
-                const isPass = res.score >= passScore;
+                const isPass = res.passed === true;
                 return (
                   <tr key={res._id}>
                     <td>
@@ -113,9 +113,10 @@ export default function AdminResultsPage() {
                     <td><strong>{res.score}</strong> / {res.totalScore || 100}</td>
                     <td>
                       <strong style={{ color: isPass ? '#166534' : '#991B1B' }}>
-                        {res.percentage}% ({isPass ? 'ĐẠT' : 'CHƯA ĐẠT'})
+                        {res.scorePercentage ?? res.percentage}% ({isPass ? 'ĐẠT' : 'CHƯA ĐẠT'})
                       </strong>
                     </td>
+                    <td>{res.passScore}%</td>
                     <td>{res.duration ? `${Math.round(res.duration / 60)} phút` : '---'}</td>
                     <td>{res.submittedAt ? new Date(res.submittedAt).toLocaleString('vi-VN') : '---'}</td>
                   </tr>

@@ -6,7 +6,22 @@ import Lesson from '../models/Lesson.js';
 // @access  Private (Admin/Teacher)
 export const createVocabulary = async (req, res, next) => {
   try {
-    const { word, meaning, pronunciation, explanation, example, lessonId, lesson: lessonParam, topic, status } = req.body;
+    const {
+      word,
+      meaning,
+      partOfSpeech,
+      pronunciation,
+      explanation,
+      example,
+      exampleEnglish,
+      exampleVietnamese,
+      audioUrl,
+      lessonId,
+      lesson: lessonParam,
+      topic,
+      order,
+      status,
+    } = req.body;
     const targetLessonId = lessonId || lessonParam;
 
     if (!targetLessonId) {
@@ -32,15 +47,23 @@ export const createVocabulary = async (req, res, next) => {
       });
     }
 
+    const exEng = exampleEnglish || example || '';
+    const exVi = exampleVietnamese || '';
+
     const vocabulary = await Vocabulary.create({
       word,
       meaning,
+      partOfSpeech: partOfSpeech || '',
       pronunciation: pronunciation || '',
       explanation: explanation || '',
-      example: example || '',
+      example: example || exEng,
+      exampleEnglish: exEng,
+      exampleVietnamese: exVi,
+      audioUrl: audioUrl || '',
       lesson: parentLesson._id,
       course: parentLesson.course, // Derived strictly on backend
       topic: topic || parentLesson.topic || 'General',
+      order: order !== undefined ? parseInt(order, 10) : 0,
       status: status || 'published',
     });
 
@@ -74,6 +97,7 @@ export const getAdminVocabulary = async (req, res, next) => {
         { word: { $regex: search, $options: 'i' } },
         { meaning: { $regex: search, $options: 'i' } },
         { explanation: { $regex: search, $options: 'i' } },
+        { exampleEnglish: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -85,7 +109,7 @@ export const getAdminVocabulary = async (req, res, next) => {
     const vocabularyList = await Vocabulary.find(filter)
       .populate('lesson', 'title status')
       .populate('course', 'title')
-      .sort({ createdAt: -1 })
+      .sort({ order: 1, createdAt: 1 })
       .skip(skip)
       .limit(limitNum);
 
@@ -151,6 +175,12 @@ export const updateVocabulary = async (req, res, next) => {
 
     const updates = { ...req.body };
 
+    if (updates.exampleEnglish && !updates.example) {
+      updates.example = updates.exampleEnglish;
+    } else if (updates.example && !updates.exampleEnglish) {
+      updates.exampleEnglish = updates.example;
+    }
+
     if (updates.lesson || updates.lessonId) {
       const targetLessonId = updates.lessonId || updates.lesson;
       const parentLesson = await Lesson.findById(targetLessonId);
@@ -205,32 +235,41 @@ export const deleteVocabulary = async (req, res, next) => {
   }
 };
 
-// @desc    Student get vocabulary list for a lesson
-// @route   GET /api/v1/lessons/:lessonId/vocabulary
+// @desc    Student get vocabulary list for a lesson or topic
+// @route   GET /api/v1/lessons/:lessonId/vocabulary OR /api/v1/vocabulary/lesson/:lessonId
 // @access  Private (Student/Admin)
 export const getStudentVocabularyByLesson = async (req, res, next) => {
   try {
-    const { lessonId } = req.params;
+    const lessonId = req.params.lessonId || req.query.lessonId || req.query.lesson;
+    const { topic } = req.query;
 
-    const lesson = await Lesson.findById(lessonId);
-    if (!lesson) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Lesson not found',
-      });
+    const filter = { status: 'published' };
+
+    if (lessonId) {
+      const lesson = await Lesson.findById(lessonId);
+      if (!lesson) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Lesson not found',
+        });
+      }
+
+      if (req.user && req.user.role === 'student' && lesson.status !== 'published') {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Lesson not found',
+        });
+      }
+      filter.lesson = lessonId;
     }
 
-    if (req.user && req.user.role === 'student' && lesson.status !== 'published') {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Lesson not found',
-      });
+    if (topic) {
+      filter.topic = topic;
     }
 
-    const vocabulary = await Vocabulary.find({
-      lesson: lessonId,
-      status: 'published',
-    }).select('-__v');
+    const vocabulary = await Vocabulary.find(filter)
+      .sort({ order: 1, createdAt: 1 })
+      .select('-__v');
 
     res.json({
       status: 'success',

@@ -1,5 +1,6 @@
 import Material from '../models/Material.js';
 import Lesson from '../models/Lesson.js';
+import Course from '../models/Course.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -18,12 +19,24 @@ export const createMaterial = async (req, res, next) => {
       });
     }
 
-    // Validate lesson relationship
-    const parentLesson = await Lesson.findById(targetLessonId);
+    // Validate lesson relationship & parent course
+    const parentLesson = await Lesson.findById(targetLessonId).populate('course');
     if (!parentLesson) {
       return res.status(404).json({
         status: 'error',
         message: 'Referenced lesson does not exist',
+      });
+    }
+
+    if (
+      req.user.role !== 'admin' &&
+      parentLesson.course &&
+      parentLesson.course.teacher &&
+      parentLesson.course.teacher.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to add materials to this course',
       });
     }
 
@@ -50,7 +63,7 @@ export const createMaterial = async (req, res, next) => {
       title: title || (req.file ? req.file.originalname : 'Material'),
       description: description || '',
       lesson: parentLesson._id,
-      course: parentLesson.course, // Derived strictly from backend
+      course: parentLesson.course?._id || parentLesson.course,
       fileUrl: fileUrl || `/uploads/${path.basename(filePath)}`,
       filePath: filePath,
       fileType: fileType,
@@ -82,8 +95,28 @@ export const getAdminMaterials = async (req, res, next) => {
     const targetLesson = lessonId || lesson;
     const targetCourse = courseId || course;
 
+    // RBAC: If teacher, constrain to teacher's own courses
+    if (req.user.role !== 'admin') {
+      const teacherCourses = await Course.find({ teacher: req.user._id }).select('_id');
+      const teacherCourseIds = teacherCourses.map((c) => c._id);
+      if (targetCourse) {
+        if (!teacherCourseIds.some((id) => id.toString() === targetCourse.toString())) {
+          return res.json({
+            status: 'success',
+            data: {
+              materials: [],
+            },
+          });
+        }
+        filter.course = targetCourse;
+      } else {
+        filter.course = { $in: teacherCourseIds };
+      }
+    } else if (targetCourse) {
+      filter.course = targetCourse;
+    }
+
     if (targetLesson) filter.lesson = targetLesson;
-    if (targetCourse) filter.course = targetCourse;
     if (status) filter.status = status;
     if (search) {
       filter.title = { $regex: search, $options: 'i' };
@@ -91,7 +124,7 @@ export const getAdminMaterials = async (req, res, next) => {
 
     const materials = await Material.find(filter)
       .populate('lesson', 'title status')
-      .populate('course', 'title')
+      .populate('course', 'title teacher')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -113,12 +146,24 @@ export const getAdminMaterialById = async (req, res, next) => {
     const { id } = req.params;
     const material = await Material.findById(id)
       .populate('lesson', 'title status')
-      .populate('course', 'title');
+      .populate('course', 'title teacher');
 
     if (!material) {
       return res.status(404).json({
         status: 'error',
         message: 'Material not found',
+      });
+    }
+
+    if (
+      req.user.role !== 'admin' &&
+      material.course &&
+      material.course.teacher &&
+      material.course.teacher.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to view this material',
       });
     }
 
@@ -139,7 +184,7 @@ export const getAdminMaterialById = async (req, res, next) => {
 export const updateMaterial = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const material = await Material.findById(id);
+    const material = await Material.findById(id).populate('course');
 
     if (!material) {
       return res.status(404).json({
@@ -148,20 +193,43 @@ export const updateMaterial = async (req, res, next) => {
       });
     }
 
+    if (
+      req.user.role !== 'admin' &&
+      material.course &&
+      material.course.teacher &&
+      material.course.teacher.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to update this material',
+      });
+    }
+
     const updates = { ...req.body };
 
     // If lesson is updated, validate it
     if (updates.lesson || updates.lessonId) {
       const targetLessonId = updates.lessonId || updates.lesson;
-      const parentLesson = await Lesson.findById(targetLessonId);
+      const parentLesson = await Lesson.findById(targetLessonId).populate('course');
       if (!parentLesson) {
         return res.status(404).json({
           status: 'error',
           message: 'Referenced lesson does not exist',
         });
       }
+      if (
+        req.user.role !== 'admin' &&
+        parentLesson.course &&
+        parentLesson.course.teacher &&
+        parentLesson.course.teacher.toString() !== req.user._id.toString()
+      ) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'Not authorized to move material to this lesson',
+        });
+      }
       updates.lesson = parentLesson._id;
-      updates.course = parentLesson.course; // Keep course in sync
+      updates.course = parentLesson.course?._id || parentLesson.course;
     }
 
     if (req.file) {
@@ -202,12 +270,24 @@ export const updateMaterial = async (req, res, next) => {
 export const deleteMaterial = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const material = await Material.findById(id);
+    const material = await Material.findById(id).populate('course');
 
     if (!material) {
       return res.status(404).json({
         status: 'error',
         message: 'Material not found',
+      });
+    }
+
+    if (
+      req.user.role !== 'admin' &&
+      material.course &&
+      material.course.teacher &&
+      material.course.teacher.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to delete this material',
       });
     }
 

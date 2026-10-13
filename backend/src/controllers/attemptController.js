@@ -13,6 +13,20 @@ const sanitizeQuestionSnapshotForStudent = (snapshot) => {
   };
 };
 
+const getPassResult = (attempt, assessment) => {
+  const scorePercentage = attempt.maxScore > 0
+    ? Math.round((attempt.score / attempt.maxScore) * 100)
+    : 0;
+  const passScore = Number.isFinite(Number(attempt.passScore))
+    ? Number(attempt.passScore)
+    : Number(assessment?.passScore || 0);
+  return {
+    scorePercentage: attempt.scorePercentage ?? scorePercentage,
+    passScore,
+    passed: typeof attempt.passed === 'boolean' ? attempt.passed : scorePercentage >= passScore,
+  };
+};
+
 // @desc    Student get available published assessments
 // @route   GET /api/v1/assessments/available
 // @access  Private (Active Student)
@@ -70,6 +84,7 @@ export const getStudentAssessmentById = async (req, res, next) => {
           type: assessment.type,
           durationMinutes: assessment.durationMinutes,
           totalScore: assessment.totalScore,
+          passScore: assessment.passScore ?? 0,
           attemptLimit: assessment.attemptLimit,
           questionCount: assessment.questions ? assessment.questions.length : 0,
         },
@@ -189,16 +204,37 @@ export const startAttempt = async (req, res, next) => {
     const startedAt = new Date();
     const deadlineAt = new Date(startedAt.getTime() + assessment.durationMinutes * 60 * 1000);
 
-    const newAttempt = await Attempt.create({
-      student: studentId,
-      assessment: id,
-      assessmentType: assessment.type,
-      startedAt,
-      deadlineAt,
-      status: 'in_progress',
-      questionSnapshots,
-      answers: {},
-    });
+    let newAttempt;
+    try {
+      newAttempt = await Attempt.create({
+        student: studentId,
+        assessment: id,
+        assessmentType: assessment.type,
+        startedAt,
+        deadlineAt,
+        status: 'in_progress',
+        questionSnapshots,
+        answers: {},
+      });
+    } catch (error) {
+      // Concurrent browser starts (for example React development StrictMode) must
+      // resume the winning attempt rather than create a duplicate.
+      if (error?.code !== 11000) throw error;
+      const resumedAttempt = await Attempt.findOne({ student: studentId, assessment: id, status: 'in_progress' });
+      if (!resumedAttempt) throw error;
+      return res.json({
+        status: 'success',
+        message: 'Resumed existing active attempt',
+        data: {
+          attemptId: resumedAttempt._id,
+          startedAt: resumedAttempt.startedAt,
+          deadlineAt: resumedAttempt.deadlineAt,
+          durationMinutes: assessment.durationMinutes,
+          answers: resumedAttempt.answers || {},
+          questions: resumedAttempt.questionSnapshots.map(sanitizeQuestionSnapshotForStudent),
+        },
+      });
+    }
 
     const sanitizedQuestions = questionSnapshots.map(sanitizeQuestionSnapshotForStudent);
 
@@ -244,7 +280,8 @@ export const submitAttempt = async (req, res, next) => {
 
     // REQUIREMENT 13: Idempotent Submission / Prevent Double Submission
     if (attempt.status === 'submitted') {
-      const percentage = attempt.maxScore > 0 ? Math.round((attempt.score / attempt.maxScore) * 100) : 0;
+      const assessment = await Assessment.findById(attempt.assessment).select('passScore');
+      const passResult = getPassResult(attempt, assessment);
       return res.json({
         status: 'success',
         message: 'Attempt already submitted',
@@ -253,7 +290,8 @@ export const submitAttempt = async (req, res, next) => {
             attemptId: attempt._id,
             score: attempt.score,
             maxScore: attempt.maxScore,
-            percentage,
+            percentage: passResult.scorePercentage,
+            ...passResult,
             correctCount: attempt.correctCount,
             incorrectCount: attempt.incorrectCount,
             unansweredCount: attempt.unansweredCount,
@@ -332,6 +370,9 @@ export const submitAttempt = async (req, res, next) => {
       }
     }
 
+    const assessment = await Assessment.findById(attempt.assessment).select('passScore');
+    const scorePercentage = maxPossibleScore > 0 ? Math.round((totalEarnedScore / maxPossibleScore) * 100) : 0;
+    const passScore = Number(assessment?.passScore || 0);
     attempt.answers = rawAnswers;
     attempt.score = totalEarnedScore;
     attempt.maxScore = maxPossibleScore;
@@ -342,10 +383,11 @@ export const submitAttempt = async (req, res, next) => {
     attempt.submittedAt = submittedAt;
     attempt.status = 'submitted';
     attempt.isExpired = isExpired;
+    attempt.scorePercentage = scorePercentage;
+    attempt.passScore = passScore;
+    attempt.passed = scorePercentage >= passScore;
 
     await attempt.save();
-
-    const percentage = maxPossibleScore > 0 ? Math.round((totalEarnedScore / maxPossibleScore) * 100) : 0;
 
     res.json({
       status: 'success',
@@ -355,7 +397,10 @@ export const submitAttempt = async (req, res, next) => {
           attemptId: attempt._id,
           score: totalEarnedScore,
           maxScore: maxPossibleScore,
-          percentage,
+          percentage: scorePercentage,
+          scorePercentage,
+          passScore,
+          passed: attempt.passed,
           correctCount,
           incorrectCount,
           unansweredCount,
@@ -442,7 +487,7 @@ export const getAttemptResult = async (req, res, next) => {
       return item;
     });
 
-    const percentage = attempt.maxScore > 0 ? Math.round((attempt.score / attempt.maxScore) * 100) : 0;
+    const passResult = getPassResult(attempt, assessment);
 
     res.json({
       status: 'success',
@@ -453,7 +498,8 @@ export const getAttemptResult = async (req, res, next) => {
           assessmentType: attempt.assessmentType,
           score: attempt.score,
           maxScore: attempt.maxScore,
-          percentage,
+          percentage: passResult.scorePercentage,
+          ...passResult,
           correctCount: attempt.correctCount,
           incorrectCount: attempt.incorrectCount,
           unansweredCount: attempt.unansweredCount,
@@ -480,17 +526,30 @@ export const getStudentHistory = async (req, res, next) => {
       student: studentId,
       status: { $in: ['submitted', 'completed'] },
     })
-      .populate('assessment', 'title type')
+      .populate('assessment', 'title type passScore totalScore examFormat toeicMode')
       .sort({ submittedAt: -1 });
 
     const history = attempts.map((att) => ({
       _id: att._id,
       attemptId: att._id,
-      assessment: att.assessment ? att.assessment.title : 'Assessment',
+      assessment: att.assessment ? {
+        _id: att.assessment._id,
+        title: att.assessment.title,
+        type: att.assessment.type,
+        examFormat: att.assessment.examFormat,
+        toeicMode: att.assessment.toeicMode,
+        passScore: getPassResult(att, att.assessment).passScore,
+        totalScore: att.assessment.totalScore,
+      } : { title: 'Assessment', type: att.assessmentType, passScore: getPassResult(att).passScore },
+      toeicBreakdown: att.toeicBreakdown,
       type: att.assessmentType,
       score: att.score,
       maxScore: att.maxScore,
-      percentage: att.maxScore > 0 ? Math.round((att.score / att.maxScore) * 100) : 0,
+      totalScore: att.maxScore,
+      percentage: getPassResult(att, att.assessment).scorePercentage,
+      scorePercentage: getPassResult(att, att.assessment).scorePercentage,
+      passScore: getPassResult(att, att.assessment).passScore,
+      passed: getPassResult(att, att.assessment).passed,
       duration: att.duration,
       submittedAt: att.submittedAt,
     }));
@@ -521,7 +580,7 @@ export const getAdminResults = async (req, res, next) => {
 
     const attempts = await Attempt.find(filter)
       .populate('student', 'fullName email')
-      .populate('assessment', 'title type')
+      .populate('assessment', 'title type passScore totalScore examFormat toeicMode')
       .sort({ submittedAt: -1 });
 
     const results = attempts.map((att) => ({
@@ -529,9 +588,16 @@ export const getAdminResults = async (req, res, next) => {
       attemptId: att._id,
       studentName: att.student?.fullName || att.student?.email || 'Student',
       assessmentTitle: att.assessment?.title || 'Assessment',
+      student: att.student,
+      assessment: att.assessment,
       score: att.score,
       maxScore: att.maxScore,
-      percentage: att.maxScore > 0 ? Math.round((att.score / att.maxScore) * 100) : 0,
+      totalScore: att.maxScore,
+      percentage: getPassResult(att, att.assessment).scorePercentage,
+      scorePercentage: getPassResult(att, att.assessment).scorePercentage,
+      passScore: getPassResult(att, att.assessment).passScore,
+      passed: getPassResult(att, att.assessment).passed,
+      duration: att.duration,
       submittedAt: att.submittedAt,
     }));
 

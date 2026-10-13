@@ -22,6 +22,11 @@ export const assessmentApi = {
     return response.data;
   },
 
+  autosaveAttemptAnswers: async (attemptId, answers) => {
+    const response = await axiosInstance.patch(`/attempts/${attemptId}/answers`, { answers });
+    return response.data;
+  },
+
   getAttemptResult: async (attemptId) => {
     const response = await axiosInstance.get(`/attempts/${attemptId}/result`);
     return response.data;
@@ -37,6 +42,7 @@ export const assessmentApi = {
     const response = await axiosInstance.get('/admin/questions', { params });
     return response.data;
   },
+  getAdminQuestionById: async (id) => (await axiosInstance.get(`/admin/questions/${id}`)).data,
 
   createQuestion: async (data) => {
     const response = await axiosInstance.post('/admin/questions', data);
@@ -58,6 +64,7 @@ export const assessmentApi = {
     const response = await axiosInstance.get('/admin/assessments', { params });
     return response.data;
   },
+  getAdminAssessmentById: async (id) => (await axiosInstance.get(`/admin/assessments/${id}`)).data,
 
   createAssessment: async (data) => {
     const response = await axiosInstance.post('/admin/assessments', data);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { assessmentApi } from '../api/assessmentApi.js';
 import { speakText, stopSpeaking } from '../utils/tts.js';
@@ -18,6 +18,7 @@ export default function TestPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [saveState, setSaveState] = useState('');
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
@@ -26,9 +27,13 @@ export default function TestPage() {
   // STT / TTS states
   const [isRecording, setIsRecording] = useState(false);
   const [recognitionRef, setRecognitionRef] = useState(null);
+  const hasStartedAttempt = useRef(false);
+  const autosaveVersion = useRef(0);
 
   // Start or resume assessment attempt
   const initAttempt = useCallback(async () => {
+    if (hasStartedAttempt.current) return;
+    hasStartedAttempt.current = true;
     setLoading(true);
     setErrorMsg('');
     try {
@@ -42,6 +47,7 @@ export default function TestPage() {
         }
       }
     } catch (err) {
+      hasStartedAttempt.current = false;
       console.error('Failed to start/resume attempt:', err);
       setErrorMsg(err.response?.data?.message || 'Không thể mở bài kiểm tra. Vui lòng thử lại.');
     } finally {
@@ -52,6 +58,24 @@ export default function TestPage() {
   useEffect(() => {
     initAttempt();
   }, [initAttempt]);
+
+  // Persist answers with a short debounce. The backend merges the answer map,
+  // so a refresh resumes the same server-owned attempt and deadline.
+  useEffect(() => {
+    if (!attemptId || loading || result) return undefined;
+    const version = ++autosaveVersion.current;
+    setSaveState('saving');
+    const timer = setTimeout(async () => {
+      try {
+        await assessmentApi.autosaveAttemptAnswers(attemptId, answers);
+        // An older response must never mark a newer text edit as saved.
+        if (version === autosaveVersion.current) setSaveState('saved');
+      } catch (error) {
+        if (version === autosaveVersion.current) setSaveState('error');
+      }
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [answers, attemptId, loading, result]);
 
   // Server-based Timer Countdown Display
   useEffect(() => {
@@ -206,6 +230,7 @@ export default function TestPage() {
             <div style={{ background: '#DCFCE7', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid #86EFAC' }}>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: '#15803D' }}>{result.percentage}%</div>
               <p style={{ color: '#166534', fontSize: '0.85rem', margin: 0, fontWeight: 600 }}>Điểm: {result.score} / {result.maxScore}</p>
+              <p style={{ color: result.passed ? '#166534' : '#991B1B', fontSize: '0.85rem', margin: '0.4rem 0 0', fontWeight: 700 }}>Điểm đạt: {result.passScore ?? 0}% · {result.passed ? 'ĐẠT' : 'CHƯA ĐẠT'}</p>
             </div>
             <div style={{ background: '#F0FDF4', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid #BBF7D0' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#16A34A' }}>{result.correctCount}</div>
@@ -275,7 +300,7 @@ export default function TestPage() {
       <div className="test-sticky-header">
         <div className="test-title-box">
           <h2>Bài Kiểm Tra</h2>
-          <p>Đã làm {answeredCount}/{totalQuestions} câu</p>
+          <p>Đã làm {answeredCount}/{totalQuestions} câu {saveState === 'saving' ? '· Đang lưu...' : saveState === 'saved' ? '· Đã lưu' : saveState === 'error' ? '· Chưa thể lưu' : ''}</p>
         </div>
         <div className="test-timer-badge" style={{ background: timeLeftSeconds < 180 ? '#FEE2E2' : '#EFF6FF', color: timeLeftSeconds < 180 ? '#DC2626' : '#1D4ED8' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

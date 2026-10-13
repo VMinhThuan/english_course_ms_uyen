@@ -335,10 +335,20 @@ export const getStudentDashboard = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(5);
 
-    const recentResults = await Attempt.find({ student: studentId, status: 'submitted' })
+    const recentAttemptDocs = await Attempt.find({ student: studentId, status: 'submitted' })
       .populate('assessment', 'title type passScore totalScore')
       .sort({ submittedAt: -1 })
       .limit(5);
+    const recentResults = recentAttemptDocs.map((attempt) => {
+      const scorePercentage = attempt.maxScore > 0 ? Math.round((attempt.score / attempt.maxScore) * 100) : 0;
+      const passScore = Number.isFinite(Number(attempt.passScore)) ? Number(attempt.passScore) : Number(attempt.assessment?.passScore || 0);
+      return {
+        ...attempt.toObject(),
+        scorePercentage: attempt.scorePercentage ?? scorePercentage,
+        passScore,
+        passed: typeof attempt.passed === 'boolean' ? attempt.passed : scorePercentage >= passScore,
+      };
+    });
 
     res.json({
       status: 'success',
@@ -358,4 +368,3 @@ export const getStudentDashboard = async (req, res, next) => {
     next(error);
   }
 };
-

@@ -7,8 +7,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
 
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -22,11 +22,26 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
+    const errors = {
+      email: email.trim() ? '' : 'Vui lòng nhập email hoặc tên đăng nhập.',
+      password: password ? '' : 'Vui lòng nhập mật khẩu.',
+    };
+    setFieldErrors(errors);
+    if (errors.email || errors.password) return;
+
     const result = await login({ email, password });
     if (result.success) {
-      navigate('/');
+      navigate(result.user.role === 'student' ? '/student/dashboard' : '/admin');
+    } else if (['ACCOUNT_PENDING', 'ACCOUNT_NOT_ACTIVE'].includes(result.code)) {
+      navigate('/account-status', { state: { status: 'pending' } });
+    } else if (['ACCOUNT_SUSPENDED', 'ACCOUNT_REJECTED'].includes(result.code)) {
+      navigate('/account-status', {
+        state: { status: result.code === 'ACCOUNT_SUSPENDED' ? 'suspended' : 'rejected' },
+      });
     } else {
-      setError(result.message);
+      setError(result.message === 'Account is deactivated'
+        ? 'Tài khoản của bạn hiện không thể sử dụng. Vui lòng liên hệ giáo viên để được hỗ trợ.'
+        : 'Email/số điện thoại hoặc mật khẩu không chính xác.');
     }
   };
 
@@ -36,30 +51,35 @@ export default function LoginPage() {
       title="Chào mừng bạn quay trở lại."
       subtitle="Đăng nhập để tiếp tục hành trình học TOEIC của bạn."
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         {error && <div className="auth-global-error">{error}</div>}
 
         <div className="auth-form-group">
-          <label className="auth-input-label">Email hoặc Số điện thoại</label>
+          <label className="auth-input-label" htmlFor="login-identifier">Email hoặc tên đăng nhập</label>
           <input
+            id="login-identifier"
             type="text"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="auth-input-field"
-            placeholder="Nhập Email hoặc Số điện thoại"
+            onChange={(e) => { setEmail(e.target.value); setFieldErrors((current) => ({ ...current, email: '' })); }}
+            autoComplete="username"
+            aria-invalid={Boolean(fieldErrors.email)}
+            className={`auth-input-field ${fieldErrors.email ? 'input-error' : ''}`}
+            placeholder="email@example.com hoặc số điện thoại"
           />
+          {fieldErrors.email && <div className="auth-field-error">{fieldErrors.email}</div>}
         </div>
 
         <div className="auth-form-group">
-          <label className="auth-input-label">Mật khẩu</label>
+          <label className="auth-input-label" htmlFor="login-password">Mật khẩu</label>
           <div className="auth-password-wrapper">
             <input
+              id="login-password"
               type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="auth-input-field"
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setFieldErrors((current) => ({ ...current, password: '' })); }}
+              autoComplete="current-password"
+              aria-invalid={Boolean(fieldErrors.password)}
+              className={`auth-input-field ${fieldErrors.password ? 'input-error' : ''}`}
               placeholder="Nhập Mật khẩu"
             />
             <button
@@ -81,25 +101,11 @@ export default function LoginPage() {
               )}
             </button>
           </div>
-        </div>
-
-        <div className="auth-form-options">
-          <label className="auth-checkbox-label">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="auth-checkbox-input"
-            />
-            <span>Ghi nhớ đăng nhập</span>
-          </label>
-          <Link to="/forgot-password" className="auth-forgot-link">
-            Quên mật khẩu?
-          </Link>
+          {fieldErrors.password && <div className="auth-field-error">{fieldErrors.password}</div>}
         </div>
 
         <button type="submit" disabled={isLoading} className="btn-auth-submit">
-          {isLoading ? 'Đang xử lý...' : 'Đăng Nhập →'}
+          {isLoading ? <><span className="auth-button-spinner" />Đang đăng nhập...</> : 'Đăng nhập →'}
         </button>
 
         <div className="auth-switch-text">

@@ -9,17 +9,14 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    phoneNumber: '',
   });
   const [fieldErrors, setFieldErrors] = useState({
     fullName: '',
     email: '',
-    phoneNumber: '',
     password: '',
     confirmPassword: '',
   });
   const [error, setError] = useState('');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -32,7 +29,6 @@ export default function RegisterPage() {
   }, []);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^(0|\+84)[1-9][0-9]{8,9}$/;
   const passwordRegex = /^.{6,}$/;
 
   const validateField = (name, value, currentPassword = null) => {
@@ -49,13 +45,6 @@ export default function RegisterPage() {
           err = 'Vui lòng nhập Địa chỉ Email';
         } else if (!emailRegex.test(value)) {
           err = 'Địa chỉ Email không hợp lệ';
-        }
-        break;
-      case 'phoneNumber':
-        if (!value) {
-          err = 'Vui lòng nhập Số điện thoại';
-        } else if (!phoneRegex.test(value)) {
-          err = 'Số điện thoại không hợp lệ (VD: 0912345678)';
         }
         break;
       case 'password':
@@ -123,23 +112,21 @@ export default function RegisterPage() {
 
     const isNameValid = validateField('fullName', formData.fullName);
     const isEmailValid = validateField('email', formData.email);
-    const isPhoneValid = validateField('phoneNumber', formData.phoneNumber);
     const isPasswordValid = validateField('password', formData.password);
     const isConfirmPasswordValid = validateField('confirmPassword', formData.confirmPassword);
 
-    if (!isNameValid || !isEmailValid || !isPhoneValid || !isPasswordValid || !isConfirmPasswordValid) {
+    if (!isNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
       return;
     }
 
     const result = await register({
       fullName: formData.fullName,
       email: formData.email,
-      phoneNumber: formData.phoneNumber,
       password: formData.password,
     });
 
     if (result.success) {
-      setShowSuccessModal(true);
+      navigate('/account-status', { state: { status: 'pending', registered: true } });
     } else {
       setError(result.message);
     }
@@ -151,19 +138,20 @@ export default function RegisterPage() {
       title="Bắt đầu hành trình cùng Ms Uyen."
       subtitle="Tạo tài khoản học viên để truy cập tài liệu, bài luyện tập và thi thử TOEIC."
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         {error && <div className="auth-global-error">{error}</div>}
 
         {/* Full Name */}
         <div className="auth-form-group">
-          <label className="auth-input-label">Họ và Tên</label>
+          <label className="auth-input-label" htmlFor="register-full-name">Họ và tên</label>
           <input
+            id="register-full-name"
             type="text"
             name="fullName"
             value={formData.fullName}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            required
+            autoComplete="name"
             className={`auth-input-field ${fieldErrors.fullName ? 'input-error' : ''}`}
             placeholder="Nhập Họ và tên đầy đủ"
           />
@@ -174,14 +162,15 @@ export default function RegisterPage() {
 
         {/* Email */}
         <div className="auth-form-group">
-          <label className="auth-input-label">Địa chỉ Email</label>
+          <label className="auth-input-label" htmlFor="register-email">Địa chỉ email</label>
           <input
+            id="register-email"
             type="email"
             name="email"
             value={formData.email}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            required
+            autoComplete="email"
             className={`auth-input-field ${fieldErrors.email ? 'input-error' : ''}`}
             placeholder="Nhập Địa chỉ Email"
           />
@@ -190,35 +179,18 @@ export default function RegisterPage() {
           )}
         </div>
 
-        {/* Phone Number */}
-        <div className="auth-form-group">
-          <label className="auth-input-label">Số điện thoại</label>
-          <input
-            type="tel"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            required
-            className={`auth-input-field ${fieldErrors.phoneNumber ? 'input-error' : ''}`}
-            placeholder="Nhập Số điện thoại liên hệ"
-          />
-          {fieldErrors.phoneNumber && (
-            <div className="auth-field-error">{fieldErrors.phoneNumber}</div>
-          )}
-        </div>
-
         {/* Password */}
         <div className="auth-form-group">
-          <label className="auth-input-label">Mật khẩu</label>
+          <label className="auth-input-label" htmlFor="register-password">Mật khẩu</label>
           <div className="auth-password-wrapper">
             <input
+              id="register-password"
               type={showPassword ? 'text' : 'password'}
               name="password"
               value={formData.password}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              required
+              autoComplete="new-password"
               className={`auth-input-field ${fieldErrors.password ? 'input-error' : ''}`}
               placeholder="Nhập Mật khẩu (tối thiểu 6 ký tự)"
             />
@@ -248,15 +220,16 @@ export default function RegisterPage() {
 
         {/* Confirm Password */}
         <div className="auth-form-group">
-          <label className="auth-input-label">Nhập lại Mật khẩu</label>
+          <label className="auth-input-label" htmlFor="register-confirm-password">Xác nhận mật khẩu</label>
           <div className="auth-password-wrapper">
             <input
+              id="register-confirm-password"
               type={showConfirmPassword ? 'text' : 'password'}
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              required
+              autoComplete="new-password"
               className={`auth-input-field ${fieldErrors.confirmPassword ? 'input-error' : ''}`}
               placeholder="Nhập lại Mật khẩu"
             />
@@ -285,7 +258,7 @@ export default function RegisterPage() {
         </div>
 
         <button type="submit" disabled={isLoading} className="btn-auth-submit">
-          {isLoading ? 'Đang đăng ký...' : 'Đăng Ký Học Viên →'}
+          {isLoading ? <><span className="auth-button-spinner" />Đang đăng ký...</> : 'Đăng ký tài khoản →'}
         </button>
 
         <div className="auth-switch-text">
@@ -294,29 +267,6 @@ export default function RegisterPage() {
         </div>
       </form>
 
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="auth-modal-overlay">
-          <div className="auth-modal-card">
-            <div className="auth-modal-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <h3 className="auth-modal-title">Đăng Ký Thành Công!</h3>
-            <p className="auth-modal-desc">
-              Tài khoản Học viên của bạn đã được khởi tạo và đang <strong>chờ Ms Uyen phê duyệt</strong>. Vui lòng quay lại đăng nhập sau khi tài khoản được kích hoạt.
-            </p>
-            <button
-              onClick={() => navigate('/login')}
-              className="btn-auth-submit"
-              style={{ marginBottom: 0 }}
-            >
-              Chuyển Đến Đăng Nhập →
-            </button>
-          </div>
-        </div>
-      )}
     </AuthLayout>
   );
 }

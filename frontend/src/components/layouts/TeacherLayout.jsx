@@ -22,9 +22,18 @@ export default function TeacherLayout() {
           </Link>
         </div>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link to="/teacher/lessons/create" style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: 600 }}>
-            Tạo Bài Học Mới
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <Link to="/admin/courses" style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: 600 }}>
+            Quản Lý Khóa Học
+          </Link>
+          <Link to="/admin/lessons" style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: 600 }}>
+            Quản Lý Bài Học
+          </Link>
+          <Link to="/admin/materials" style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: 600 }}>
+            Quản Lý Tài Liệu
+          </Link>
+          <Link to="/admin/toeic-tests" style={{ color: '#0284C7', textDecoration: 'none', fontWeight: 600 }}>
+            Quản Lý Đề TOEIC
           </Link>
           <span style={{ color: '#475569', fontSize: '14px', fontWeight: 500 }}>{user?.fullName || user?.email}</span>
           <button className="btn-logout-icon" onClick={handleLogout}>

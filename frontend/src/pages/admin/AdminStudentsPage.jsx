@@ -1,273 +1,96 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { adminApi } from '../../api/adminApi.js';
-import { progressApi } from '../../api/progressApi.js';
 import './AdminStudentsPage.css';
 
-export default function AdminStudentsPage() {
-  // Progress modal state
-  const [selectedStudentForProgress, setSelectedStudentForProgress] = useState(null);
-  const [progressData, setProgressData] = useState(null);
-  const [loadingProgress, setLoadingProgress] = useState(false);
+const statuses = [['all', 'Tất cả'], ['pending', 'Chờ duyệt'], ['active', 'Hoạt động'], ['suspended', 'Tạm khóa'], ['rejected', 'Từ chối']];
+const statusLabel = { pending: 'Chờ duyệt', active: 'Hoạt động', suspended: 'Tạm khóa', rejected: 'Từ chối' };
+const formatDate = (value) => value ? new Intl.DateTimeFormat('vi-VN').format(new Date(value)) : '—';
 
-  const handleViewProgress = async (student) => {
-    setSelectedStudentForProgress(student);
-    setLoadingProgress(true);
-    setProgressData(null);
+const getApiError = (error, fallback) => error.response?.data?.code === 'INVALID_STATE_TRANSITION'
+  ? 'Trạng thái tài khoản vừa thay đổi. Vui lòng tải lại danh sách và thử lại.'
+  : error.response?.data?.message || fallback;
+
+export default function AdminStudentsPage() {
+  const [params, setParams] = useSearchParams();
+  const [students, setStudents] = useState([]);
+  const [paging, setPaging] = useState({ page: 1, pages: 1 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState(params.get('search') || '');
+  const [modal, setModal] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState('');
+  const status = params.get('status') || 'all';
+  const page = Number(params.get('page') || 1);
+  const committedSearch = params.get('search') || '';
+
+  const loadStudents = useCallback(async () => {
+    setLoading(true); setError('');
     try {
-      const res = await progressApi.getStudentProgress(student._id || student.id);
-      setProgressData(res.data);
-    } catch (err) {
-      alert(err.response?.data?.message || 'Không thể tải dữ liệu tiến độ của học viên.');
-    } finally {
-      setLoadingProgress(false);
-    }
+      const response = await adminApi.getStudents({ page, limit: 20, status: status === 'all' ? 'ALL' : status, ...(committedSearch ? { search: committedSearch } : {}) });
+      setStudents(response.data.students || []);
+      setPaging(response.data.pagination || { page: 1, pages: 1 });
+    } catch {
+      setError('Không thể tải danh sách học viên. Vui lòng thử lại.');
+    } finally { setLoading(false); }
+  }, [committedSearch, page, status]);
+
+  useEffect(() => { loadStudents(); }, [loadStudents]);
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timeout = window.setTimeout(() => setToast(''), 3500);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
+
+  const updateParams = (updates) => {
+    const next = new URLSearchParams(params);
+    Object.entries(updates).forEach(([key, value]) => value && value !== 'all' ? next.set(key, value) : next.delete(key));
+    if (!Object.hasOwn(updates, 'page')) next.set('page', '1');
+    setParams(next);
   };
 
-  return (
-    <div className="admin-page-container">
-      {/* Toast Notification Banner */}
-      {toastMsg && (
-        <div style={{ position: 'fixed', top: '80px', right: '24px', background: '#0284C7', color: '#FFF', padding: '12px 20px', borderRadius: '10px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', zIndex: 3000, fontWeight: 600 }}>
-          ✓ {toastMsg}
-        </div>
-      )}
+  const runAction = async () => {
+    const { student, type, reason } = modal;
+    setSubmitting(true);
+    try {
+      const response = type === 'approve' ? await adminApi.approveStudent(student._id)
+        : type === 'reject' ? await adminApi.rejectStudent(student._id, reason.trim())
+          : type === 'suspend' ? await adminApi.suspendStudent(student._id)
+            : await adminApi.activateStudent(student._id);
+      const updated = response.data.student;
+      setStudents((current) => current.map((item) => item._id === updated._id ? updated : item));
+      setModal(null);
+      setToast({ approve: `Đã duyệt tài khoản ${student.fullName || student.email}.`, reject: `Đã từ chối yêu cầu của ${student.fullName || student.email}.`, suspend: 'Đã tạm khóa tài khoản học viên.', activate: 'Đã kích hoạt lại tài khoản học viên.' }[type]);
+    } catch (requestError) {
+      setModal((current) => ({ ...current, error: getApiError(requestError, 'Không thể cập nhật trạng thái tài khoản. Vui lòng thử lại.') }));
+    } finally { setSubmitting(false); }
+  };
 
-      {/* Progress Inspector Modal */}
-      {selectedStudentForProgress && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: '#FFF', borderRadius: '16px', maxWidth: '650px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.75rem' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0F172A' }}>Tiến Độ Học Tập - {selectedStudentForProgress.fullName}</h3>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748B' }}>{selectedStudentForProgress.email}</p>
-              </div>
-              <button onClick={() => setSelectedStudentForProgress(null)} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 700 }}>✕</button>
-            </div>
+  const Actions = ({ student }) => <div className="student-actions">
+    <Link to={`/admin/students/${student._id}`} className="admin-quiet-button">Xem</Link>
+    {student.status === 'pending' && <><button className="admin-primary-button small" onClick={() => setModal({ student, type: 'approve', reason: '', error: '' })}>Duyệt</button><button className="admin-danger-button" onClick={() => setModal({ student, type: 'reject', reason: '', error: '' })}>Từ chối</button></>}
+    {student.status === 'active' && <button className="admin-danger-button" onClick={() => setModal({ student, type: 'suspend', reason: '', error: '' })}>Tạm khóa</button>}
+    {student.status === 'suspended' && <button className="admin-primary-button small" onClick={() => setModal({ student, type: 'activate', reason: '', error: '' })}>Kích hoạt</button>}
+  </div>;
 
-            {loadingProgress ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>Đang tải dữ liệu tiến độ từ cơ sở dữ liệu MongoDB...</div>
-            ) : progressData ? (
-              <div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '1.5rem' }}>
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px', borderRadius: '10px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0284C7' }}>{progressData.completionPercentage}%</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Tỷ lệ hoàn thành</div>
-                  </div>
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px', borderRadius: '10px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#16A34A' }}>{progressData.completedLessons}/{progressData.totalLessons}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Đã hoàn thành</div>
-                  </div>
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px', borderRadius: '10px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#D97706' }}>{progressData.inProgressLessons}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Đang học</div>
-                  </div>
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '12px', borderRadius: '10px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#64748B' }}>{progressData.notStartedLessons}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Chưa học</div>
-                  </div>
-                </div>
+  const emptyMessage = committedSearch ? 'Không tìm thấy học viên phù hợp.' : status === 'pending' ? 'Hiện không có học viên nào đang chờ duyệt.' : 'Chưa có học viên nào trong danh sách này.';
+  const modalCopy = modal && {
+    approve: ['Duyệt tài khoản học viên?', 'Sau khi được duyệt, học viên có thể đăng nhập và truy cập nội dung học tập.', 'Duyệt tài khoản'],
+    reject: ['Từ chối yêu cầu đăng ký?', 'Học viên sẽ không thể đăng nhập bằng tài khoản này.', 'Từ chối yêu cầu'],
+    suspend: ['Tạm khóa tài khoản học viên?', 'Bạn có chắc muốn tạm khóa tài khoản học viên này? Học viên sẽ không thể đăng nhập cho đến khi được kích hoạt lại.', 'Tạm khóa tài khoản'],
+    activate: ['Kích hoạt lại tài khoản?', 'Học viên sẽ có thể đăng nhập và tiếp tục học.', 'Kích hoạt lại'],
+  }[modal.type];
 
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#334155' }}>Chi tiết từng bài học:</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {progressData.lessons?.length === 0 ? (
-                    <div style={{ color: '#94A3B8', fontSize: '0.9rem' }}>Chưa có bài học nào được xuất bản trong hệ thống.</div>
-                  ) : (
-                    progressData.lessons?.map((les) => (
-                      <div key={les._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '10px 14px', borderRadius: '8px', borderLeft: les.status === 'completed' ? '4px solid #16A34A' : les.status === 'in_progress' ? '4px solid #D97706' : '4px solid #CBD5E1' }}>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1E293B' }}>{les.title}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{les.course?.title || 'Khóa học'}</div>
-                        </div>
-                        <div>
-                          {les.status === 'completed' && <span style={{ background: '#DCFCE7', color: '#15803D', padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>✓ Hoàn thành (100%)</span>}
-                          {les.status === 'in_progress' && <span style={{ background: '#FEF3C7', color: '#B45309', padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>⏳ Đang học</span>}
-                          {les.status === 'not_started' && <span style={{ background: '#F1F5F9', color: '#64748B', padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>Chưa mở</span>}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      )}
-
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Quản Lý Phê Duyệt & Tiến Độ Học Viên</h1>
-          <p className="admin-page-sub">
-            Xem danh sách học viên đăng ký, thực hiện phê duyệt tài khoản và theo dõi tiến độ học tập thực tế từ MongoDB.
-          </p>
-        </div>
-      </div>
-
-      {/* Toolbar Filters */}
-      <div className="admin-toolbar">
-        <input
-          type="text"
-          className="admin-search-input"
-          placeholder="Tìm theo Tên, Email hoặc Số điện thoại..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <select
-          className="admin-filter-select"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="ALL">Tất cả trạng thái</option>
-          <option value="PENDING">Chờ phê duyệt (PENDING)</option>
-          <option value="ACTIVE">Đã duyệt (ACTIVE)</option>
-          <option value="REJECTED">Đã từ chối (REJECTED)</option>
-          <option value="SUSPENDED">Tạm khóa (SUSPENDED)</option>
-        </select>
-      </div>
-
-      {errorMsg && (
-        <div style={{ background: '#FEE2E2', color: '#DC2626', padding: '1rem', borderRadius: '10px' }}>
-          ⚠️ {errorMsg}
-        </div>
-      )}
-
-      {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
-          Đang kết nối API lấy danh sách học viên...
-        </div>
-      ) : (
-        <>
-          {/* Desktop Data Table View (Visible >=768px) */}
-          <div className="admin-table-container">
-            <table className="admin-data-table">
-              <thead>
-                <tr>
-                  <th>Họ & Tên Học Viên</th>
-                  <th>Email</th>
-                  <th>Số Điện Thoại</th>
-                  <th>Ngày Đăng Ký</th>
-                  <th>Trạng Thái</th>
-                  <th style={{ textAlign: 'right' }}>Thao Tác Phê Duyệt / Tiến Độ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
-                      Không tìm thấy học viên nào trong cơ sở dữ liệu.
-                    </td>
-                  </tr>
-                ) : (
-                  students.map((student) => (
-                    <tr key={student._id || student.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div className="student-card-avatar">{getInitials(student.fullName)}</div>
-                          <span style={{ fontWeight: 600, color: '#0F172A' }}>{student.fullName || 'Học viên'}</span>
-                        </div>
-                      </td>
-                      <td>{student.email}</td>
-                      <td>{student.phoneNumber || 'N/A'}</td>
-                      <td>{student.createdAt ? new Date(student.createdAt).toLocaleDateString('vi-VN') : 'Mới đăng ký'}</td>
-                      <td>
-                        {student.status === 'pending' && <span className="status-badge pending">Chờ Duyệt (PENDING)</span>}
-                        {student.status === 'active' && <span className="status-badge active">Hoạt Động (ACTIVE)</span>}
-                        {student.status === 'rejected' && <span className="status-badge rejected">Từ Chối (REJECTED)</span>}
-                        {student.status === 'suspended' && <span className="status-badge rejected" style={{ background: '#F3E8FF', color: '#7E22CE' }}>Tạm Khóa (SUSPENDED)</span>}
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <div className="action-btn-group" style={{ justifyContent: 'flex-end' }}>
-                          <button className="btn-action-approve" style={{ background: '#0284C7' }} onClick={() => handleViewProgress(student)}>
-                            📊 Tiến Độ
-                          </button>
-                          {student.status === 'pending' && (
-                            <>
-                              <button className="btn-action-approve" onClick={() => handleApprove(student._id || student.id)}>
-                                ✓ Duyệt
-                              </button>
-                              <button className="btn-action-reject" onClick={() => handleReject(student._id || student.id)}>
-                                ✕ Từ Chối
-                              </button>
-                            </>
-                          )}
-                          {student.status === 'active' && (
-                            <button className="btn-action-reject" style={{ background: '#7E22CE' }} onClick={() => handleSuspend(student._id || student.id)}>
-                              🔒 Tạm Khóa
-                            </button>
-                          )}
-                          {student.status === 'suspended' && (
-                            <button className="btn-action-approve" onClick={() => handleActivate(student._id || student.id)}>
-                              🔓 Kích Hoạt Lại
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Touch Card View (Visible <768px) */}
-          <div className="admin-mobile-card-list">
-            {students.length === 0 ? (
-              <div style={{ background: '#FFF', borderRadius: '12px', padding: '2rem', textAlign: 'center', color: '#64748B' }}>
-                Không tìm thấy học viên nào.
-              </div>
-            ) : (
-              students.map((student) => (
-                <div key={student._id || student.id} className="admin-student-card">
-                  <div className="student-card-header">
-                    <div className="student-card-user">
-                      <div className="student-card-avatar">{getInitials(student.fullName)}</div>
-                      <div>
-                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '1rem' }}>{student.fullName || 'Học viên'}</div>
-                        <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Mã: {student._id?.substring(0, 8)}</div>
-                      </div>
-                    </div>
-                    {student.status === 'pending' && <span className="status-badge pending">Chờ Duyệt</span>}
-                    {student.status === 'active' && <span className="status-badge active">Hoạt Động</span>}
-                    {student.status === 'rejected' && <span className="status-badge rejected">Từ Chối</span>}
-                    {student.status === 'suspended' && <span className="status-badge rejected" style={{ background: '#F3E8FF', color: '#7E22CE' }}>Tạm Khóa</span>}
-                  </div>
-
-                  <div className="student-card-details">
-                    <div><strong>Email:</strong> {student.email}</div>
-                    <div><strong>SĐT:</strong> {student.phoneNumber || 'N/A'}</div>
-                    <div><strong>Đăng ký:</strong> {student.createdAt ? new Date(student.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</div>
-                  </div>
-
-                  <div className="action-btn-group" style={{ marginTop: '0.5rem' }}>
-                    <button className="btn-action-approve" style={{ width: '100%', minHeight: '44px', background: '#0284C7' }} onClick={() => handleViewProgress(student)}>
-                      📊 Xem Tiến Độ Học Tập
-                    </button>
-                    {student.status === 'pending' && (
-                      <>
-                        <button className="btn-action-approve" style={{ flex: 1, minHeight: '44px' }} onClick={() => handleApprove(student._id || student.id)}>
-                          ✓ Duyệt Học Viên
-                        </button>
-                        <button className="btn-action-reject" style={{ flex: 1, minHeight: '44px' }} onClick={() => handleReject(student._id || student.id)}>
-                          ✕ Từ Chối
-                        </button>
-                      </>
-                    )}
-                    {student.status === 'active' && (
-                      <button className="btn-action-reject" style={{ width: '100%', minHeight: '44px', background: '#7E22CE' }} onClick={() => handleSuspend(student._id || student.id)}>
-                        🔒 Tạm Khóa Tài Khoản
-                      </button>
-                    )}
-                    {student.status === 'suspended' && (
-                      <button className="btn-action-approve" style={{ width: '100%', minHeight: '44px' }} onClick={() => handleActivate(student._id || student.id)}>
-                        🔓 Kích Hoạt Lại Tài Khoản
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
+  return <div className="admin-page-container">
+    <header className="admin-page-header"><div><p className="admin-eyebrow">Teacher portal</p><h1 className="admin-page-title">Học viên</h1><p className="admin-page-sub">Tìm kiếm, duyệt và quản lý trạng thái tài khoản học viên.</p></div></header>
+    <div className="admin-filter-tabs" aria-label="Lọc theo trạng thái">{statuses.map(([key, text]) => <button key={key} type="button" className={status === key ? 'active' : ''} onClick={() => updateParams({ status: key, page: '1' })}>{text}</button>)}</div>
+    <form className="admin-search-bar" onSubmit={(event) => { event.preventDefault(); updateParams({ search: search.trim(), page: '1' }); }}><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm theo tên, email hoặc số điện thoại..." aria-label="Tìm học viên" />{search && <button type="button" className="admin-clear-search" onClick={() => { setSearch(''); updateParams({ search: '', page: '1' }); }} aria-label="Xóa tìm kiếm">×</button>}<button className="admin-primary-button" type="submit">Tìm kiếm</button></form>
+    {error && <div className="admin-error" role="alert">{error}</div>}
+    <div className="admin-table-container">{loading ? <div className="admin-table-skeleton"><i /><i /><i /><i /><i /></div> : <table className="admin-data-table"><thead><tr><th>Học viên</th><th>Email</th><th>Số điện thoại</th><th>Ngày đăng ký</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{students.length ? students.map((student) => <tr key={student._id}><td><div className="student-identity"><b>{student.fullName || 'Học viên'}</b><span className="mobile-only">{student.email}</span></div></td><td>{student.email}</td><td>{student.phoneNumber || '—'}</td><td>{formatDate(student.createdAt)}</td><td><span className={`status-badge ${student.status}`}>{statusLabel[student.status] || student.status}</span></td><td><Actions student={student} /></td></tr>) : <tr><td colSpan="6"><div className="admin-empty">{emptyMessage}</div></td></tr>}</tbody></table>}</div>
+    {!loading && students.length > 0 && <div className="admin-mobile-card-list">{students.map((student) => <article className="admin-student-card" key={student._id}><div><b>{student.fullName || 'Học viên'}</b><span>{student.email}</span><span>{student.phoneNumber || 'Chưa có số điện thoại'}</span></div><div className="student-card-meta"><span className={`status-badge ${student.status}`}>{statusLabel[student.status] || student.status}</span><span>Đăng ký: {formatDate(student.createdAt)}</span></div><Actions student={student} /></article>)}</div>}
+    {!loading && paging.pages > 1 && <nav className="admin-pagination" aria-label="Phân trang"><button disabled={page === 1} onClick={() => updateParams({ page: String(page - 1) })}>Trước</button><span>Trang {page} / {paging.pages}</span><button disabled={page === paging.pages} onClick={() => updateParams({ page: String(page + 1) })}>Sau</button></nav>}
+    {modal && <div className="admin-modal-backdrop" role="presentation"><section className="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title"><button className="modal-close" onClick={() => !submitting && setModal(null)} aria-label="Đóng">×</button><h2 id="confirm-title">{modalCopy[0]}</h2><p><strong>{modal.student.fullName || 'Học viên'}</strong><br />{modal.student.email}</p><p>{modalCopy[1]}</p>{modal.type === 'reject' && <label className="admin-modal-label">Lý do từ chối <span>(không bắt buộc)</span><textarea value={modal.reason} onChange={(event) => setModal((current) => ({ ...current, reason: event.target.value }))} rows="3" placeholder="Nhập lý do để lưu vào hồ sơ học viên..." /></label>}{modal.error && <div className="admin-error" role="alert">{modal.error}</div>}<div className="modal-actions"><button className="admin-quiet-button" onClick={() => setModal(null)} disabled={submitting}>Hủy</button><button className={modal.type === 'reject' || modal.type === 'suspend' ? 'admin-danger-button' : 'admin-primary-button'} onClick={runAction} disabled={submitting}>{submitting ? 'Đang xử lý...' : modalCopy[2]}</button></div></section></div>}
+    {toast && <div className="admin-toast" role="status">{toast}</div>}
+  </div>;
 }

@@ -3,8 +3,24 @@ import Course from '../models/Course.js';
 import Review from '../models/Review.js';
 import Rating from '../models/Rating.js';
 import Instructor from '../models/Instructor.js';
+import Lesson from '../models/Lesson.js';
+import Material from '../models/Material.js';
+import Vocabulary from '../models/Vocabulary.js';
+import LearningProgress from '../models/LearningProgress.js';
+import Enrollment from '../models/Enrollment.js';
+import fs from 'fs';
 
-// @desc    Get all courses
+function generateSlug(title) {
+  const base = (title || 'course')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `${base}-${Date.now().toString().slice(-4)}`;
+}
+
+// @desc    Get all courses (Public / Student: Published only)
 // @route   GET /api/v1/courses
 // @access  Public
 export const getCourses = async (req, res, next) => {
@@ -13,11 +29,10 @@ export const getCourses = async (req, res, next) => {
     const query = { isPublished: true };
 
     if (level) {
-      // Convert to capitalized format
       const levelMap = {
-        'beginner': 'Beginner',
-        'intermediate': 'Intermediate',
-        'advanced': 'Advanced',
+        beginner: 'Beginner',
+        intermediate: 'Intermediate',
+        advanced: 'Advanced',
       };
       query.level = levelMap[level.toLowerCase()] || level;
     }
@@ -36,7 +51,7 @@ export const getCourses = async (req, res, next) => {
       .sort({ createdAt: -1 });
 
     // Transform courses to match frontend format
-    courses = courses.map(course => {
+    courses = courses.map((course) => {
       const courseObj = course.toObject();
       return {
         id: courseObj.slug || courseObj._id.toString(),
@@ -46,10 +61,10 @@ export const getCourses = async (req, res, next) => {
         description: courseObj.description,
         level: courseObj.level,
         teacherName: courseObj.teacher?.fullName || 'Unknown',
-        priceLabel: courseObj.discountedPrice 
-          ? `$${courseObj.discountedPrice}` 
-          : courseObj.price === 0 
-            ? 'Free' 
+        priceLabel: courseObj.discountedPrice
+          ? `$${courseObj.discountedPrice}`
+          : courseObj.price === 0
+            ? 'Free'
             : `$${courseObj.price}`,
         price: courseObj.discountedPrice || courseObj.price,
         originalPrice: courseObj.price,
@@ -90,21 +105,19 @@ export const getCourses = async (req, res, next) => {
   }
 };
 
-// @desc    Get course by ID
+// @desc    Get course by ID (Public)
 // @route   GET /api/v1/courses/:id
 // @access  Public
 export const getCourseById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    
-    // Check if id is a valid ObjectId, if not, search by slug
+
     let course;
     if (mongoose.Types.ObjectId.isValid(id)) {
       course = await Course.findById(id)
         .populate('teacher', 'fullName email avatar')
         .select('-students');
     } else {
-      // Search by slug
       course = await Course.findOne({ slug: id })
         .populate('teacher', 'fullName email avatar')
         .select('-students');
@@ -117,15 +130,12 @@ export const getCourseById = async (req, res, next) => {
       });
     }
 
-    // Get reviews for this course
     const reviews = await Review.find({ course: course._id, isApproved: true })
       .sort({ createdAt: -1 })
       .limit(10);
 
-    // Get rating distribution
     const rating = await Rating.findOne({ course: course._id });
 
-    // Get instructors for this course (all instructors for now, can filter by course later)
     const instructors = await Instructor.find({ isActive: true })
       .populate('user', 'fullName email avatar')
       .limit(10);
@@ -150,7 +160,7 @@ export const getCourseById = async (req, res, next) => {
       hoursLeft: courseObj.hoursLeft,
       image: courseObj.image || courseObj.thumbnail,
       teacher: courseObj.teacher,
-      reviews: reviews.map(r => ({
+      reviews: reviews.map((r) => ({
         id: r._id.toString(),
         userName: r.userName,
         userAvatar: r.userAvatar,
@@ -159,7 +169,7 @@ export const getCourseById = async (req, res, next) => {
         text: r.text,
       })),
       ratingDistribution: rating ? rating.ratings : { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-      instructors: instructors.map(i => ({
+      instructors: instructors.map((i) => ({
         id: i._id.toString(),
         name: i.name,
         title: i.title,
@@ -184,14 +194,158 @@ export const getCourseById = async (req, res, next) => {
   }
 };
 
+// @desc    Get courses for Admin/Teacher (all courses or teacher-owned, includes draft)
+// @route   GET /api/v1/admin/courses
+// @access  Private (Teacher/Admin)
+export const getAdminCourses = async (req, res, next) => {
+  try {
+    const { status, search, level, englishType } = req.query;
+    const filter = {};
+
+    // Teacher ownership restriction
+    if (req.user.role !== 'admin') {
+      filter.teacher = req.user._id;
+    }
+
+    // Status filter
+    if (status === 'published') {
+      filter.isPublished = true;
+    } else if (status === 'draft') {
+      filter.isPublished = false;
+    }
+
+    if (level && level !== 'all') {
+      filter.level = level;
+    }
+
+    if (englishType && englishType !== 'all') {
+      filter.englishType = englishType;
+    }
+
+    if (search && search.trim()) {
+      filter.$or = [
+        { title: { $regex: search.trim(), $options: 'i' } },
+        { description: { $regex: search.trim(), $options: 'i' } },
+      ];
+    }
+
+    const courses = await Course.find(filter)
+      .populate('teacher', 'fullName email avatar')
+      .sort({ createdAt: -1 });
+
+    const coursesWithCounts = await Promise.all(
+      courses.map(async (course) => {
+        const lessonCount = await Lesson.countDocuments({ course: course._id });
+        const enrolledCount = await Enrollment.countDocuments({ course: course._id });
+        return {
+          ...course.toObject(),
+          lessonCount,
+          enrolledCount: enrolledCount || course.students?.length || 0,
+        };
+      })
+    );
+
+    res.json({
+      status: 'success',
+      data: {
+        courses: coursesWithCounts,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get single course by ID for Admin/Teacher (includes draft)
+// @route   GET /api/v1/admin/courses/:id
+// @access  Private (Teacher/Admin)
+export const getAdminCourseById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    let course;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      course = await Course.findById(id).populate('teacher', 'fullName email avatar');
+    } else {
+      course = await Course.findOne({ slug: id }).populate('teacher', 'fullName email avatar');
+    }
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found',
+      });
+    }
+
+    if (req.user.role !== 'admin' && course.teacher?._id?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to view this course in admin',
+      });
+    }
+
+    const lessons = await Lesson.find({ course: course._id }).sort({ order: 1, createdAt: 1 });
+    const enrolledCount = await Enrollment.countDocuments({ course: course._id });
+
+    res.json({
+      status: 'success',
+      data: {
+        course: {
+          ...course.toObject(),
+          lessons,
+          enrolledCount: enrolledCount || course.students?.length || 0,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Create course
-// @route   POST /api/v1/courses
+// @route   POST /api/v1/courses OR /api/v1/admin/courses
 // @access  Private (Teacher/Admin)
 export const createCourse = async (req, res, next) => {
   try {
+    const {
+      title,
+      description,
+      thumbnail,
+      image,
+      price,
+      discountedPrice,
+      discount,
+      level,
+      category,
+      englishType,
+      skills,
+      isPublished,
+      slug: reqSlug,
+    } = req.body;
+
+    if (!title || !description || !level || !englishType) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'title, description, level, and englishType are required',
+      });
+    }
+
+    const slug = reqSlug && reqSlug.trim() ? reqSlug.trim() : generateSlug(title);
+
     const course = await Course.create({
-      ...req.body,
+      title,
+      description,
+      slug,
+      thumbnail: thumbnail || image || '',
+      image: image || thumbnail || '',
       teacher: req.user._id,
+      price: price ? Number(price) : 0,
+      discountedPrice: discountedPrice ? Number(discountedPrice) : null,
+      discount: discount ? Number(discount) : 0,
+      level,
+      category: category || 'general',
+      englishType,
+      skills: Array.isArray(skills) ? skills : (skills ? skills.split(',').map((s) => s.trim()) : []),
+      isPublished: Boolean(isPublished),
     });
 
     res.status(201).json({
@@ -207,13 +361,12 @@ export const createCourse = async (req, res, next) => {
 };
 
 // @desc    Update course
-// @route   PUT /api/v1/courses/:id
+// @route   PUT /api/v1/courses/:id OR /api/v1/admin/courses/:id
 // @access  Private (Teacher/Admin)
 export const updateCourse = async (req, res, next) => {
   try {
     const { id } = req.params;
-    
-    // Check if id is a valid ObjectId, if not, search by slug
+
     let course;
     if (mongoose.Types.ObjectId.isValid(id)) {
       course = await Course.findById(id);
@@ -228,7 +381,6 @@ export const updateCourse = async (req, res, next) => {
       });
     }
 
-    // Check authorization
     if (
       req.user.role !== 'admin' &&
       course.teacher.toString() !== req.user._id.toString()
@@ -239,10 +391,14 @@ export const updateCourse = async (req, res, next) => {
       });
     }
 
-    const courseId = course._id;
+    const updates = { ...req.body };
+    if (updates.skills && typeof updates.skills === 'string') {
+      updates.skills = updates.skills.split(',').map((s) => s.trim());
+    }
+
     const updatedCourse = await Course.findByIdAndUpdate(
-      courseId,
-      req.body,
+      course._id,
+      updates,
       { new: true, runValidators: true }
     );
 
@@ -258,14 +414,21 @@ export const updateCourse = async (req, res, next) => {
   }
 };
 
-// @desc    Delete course
-// @route   DELETE /api/v1/courses/:id
-// @access  Private (Admin)
-export const deleteCourse = async (req, res, next) => {
+// @desc    Update course publish status
+// @route   PATCH /api/v1/admin/courses/:id/status
+// @access  Private (Teacher/Admin)
+export const updateCourseStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    
-    // Check if id is a valid ObjectId, if not, search by slug
+    const { isPublished } = req.body;
+
+    if (typeof isPublished !== 'boolean') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'isPublished must be a boolean (true or false)',
+      });
+    }
+
     let course;
     if (mongoose.Types.ObjectId.isValid(id)) {
       course = await Course.findById(id);
@@ -280,14 +443,167 @@ export const deleteCourse = async (req, res, next) => {
       });
     }
 
-    await Course.findByIdAndDelete(course._id);
+    if (req.user.role !== 'admin' && course.teacher.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to update status of this course',
+      });
+    }
+
+    course.isPublished = isPublished;
+    await course.save();
 
     res.json({
       status: 'success',
-      message: 'Course deleted successfully',
+      message: `Đã ${isPublished ? 'xuất bản' : 'chuyển thành bản nháp'} khóa học thành công!`,
+      data: {
+        course,
+      },
     });
   } catch (error) {
     next(error);
   }
 };
 
+// @desc    Reorder course lessons
+// @route   PUT /api/v1/admin/courses/:id/reorder-lessons
+// @access  Private (Teacher/Admin)
+export const reorderCourseLessons = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { lessonIds } = req.body;
+
+    if (!Array.isArray(lessonIds)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'lessonIds must be an array of Lesson IDs',
+      });
+    }
+
+    let course;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      course = await Course.findById(id);
+    } else {
+      course = await Course.findOne({ slug: id });
+    }
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found',
+      });
+    }
+
+    if (req.user.role !== 'admin' && course.teacher.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to reorder lessons for this course',
+      });
+    }
+
+    const updatePromises = lessonIds.map((lessonId, index) =>
+      Lesson.findOneAndUpdate(
+        { _id: lessonId, course: course._id },
+        { order: index + 1 },
+        { new: true }
+      )
+    );
+
+    await Promise.all(updatePromises);
+
+    const updatedLessons = await Lesson.find({ course: course._id }).sort({ order: 1, createdAt: 1 });
+
+    res.json({
+      status: 'success',
+      message: 'Cập nhật thứ tự bài học thành công',
+      data: {
+        lessons: updatedLessons,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete course safely
+// @route   DELETE /api/v1/courses/:id OR /api/v1/admin/courses/:id
+// @access  Private (Teacher/Admin)
+export const deleteCourse = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    let course;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      course = await Course.findById(id);
+    } else {
+      course = await Course.findOne({ slug: id });
+    }
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found',
+      });
+    }
+
+    if (
+      req.user.role !== 'admin' &&
+      course.teacher.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to delete this course',
+      });
+    }
+
+    // Safety check: Cannot delete if students are enrolled
+    const enrolledCount = await Enrollment.countDocuments({ course: course._id });
+    if (enrolledCount > 0 || (course.students && course.students.length > 0)) {
+      return res.status(409).json({
+        status: 'error',
+        message: 'Không thể xóa khóa học đã có học viên đăng ký hoặc có tiến độ học tập.',
+      });
+    }
+
+    // Safe Cascade cleanup
+    const lessons = await Lesson.find({ course: course._id });
+    for (const lesson of lessons) {
+      const materials = await Material.find({ lesson: lesson._id });
+      for (const mat of materials) {
+        if (mat.filePath && fs.existsSync(mat.filePath)) {
+          try {
+            fs.unlinkSync(mat.filePath);
+          } catch (err) {
+            console.error(`Failed to delete file: ${mat.filePath}`, err);
+          }
+        }
+      }
+      await Material.deleteMany({ lesson: lesson._id });
+      await Vocabulary.deleteMany({ lesson: lesson._id });
+      await LearningProgress.deleteMany({ lesson: lesson._id });
+    }
+    await Lesson.deleteMany({ course: course._id });
+
+    // Cleanup materials directly associated with course
+    const courseMaterials = await Material.find({ course: course._id });
+    for (const mat of courseMaterials) {
+      if (mat.filePath && fs.existsSync(mat.filePath)) {
+        try {
+          fs.unlinkSync(mat.filePath);
+        } catch (err) {
+          console.error(`Failed to delete file: ${mat.filePath}`, err);
+        }
+      }
+    }
+    await Material.deleteMany({ course: course._id });
+
+    await Course.findByIdAndDelete(course._id);
+
+    res.json({
+      status: 'success',
+      message: 'Đã xóa khóa học và toàn bộ bài học, tài liệu liên quan thành công!',
+    });
+  } catch (error) {
+    next(error);
+  }
+};

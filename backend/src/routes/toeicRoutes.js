@@ -1,4 +1,6 @@
 import express from 'express';
+import multer from 'multer';
+import fs from 'fs';
 import {
   createToeicTest,
   getAdminToeicTests,
@@ -7,24 +9,55 @@ import {
   upsertQuestionGroup,
   duplicateToeicTest,
   publishToeicTest,
+  unpublishToeicTest,
   deleteToeicTest,
+  deleteQuestionGroupFromTest,
+  deleteQuestionFromTest,
   importToeicCsv,
+  importToeicPdf,
   getStudentToeicTests,
   getStudentToeicTestOverview,
   startToeicAttempt,
   getStudentToeicAttempt,
   autosaveAttemptAnswers,
   submitToeicAttempt,
+  getStudentToeicHistory,
 } from '../controllers/toeicController.js';
 import { verifyToken, checkRole, requireActiveStudent } from '../middlewares/auth.js';
+
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads', { recursive: true });
+}
+
+const pdfStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'pdf-' + uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_'));
+  },
+});
+
+const pdfUpload = multer({
+  storage: pdfStorage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf' || file.originalname.toLowerCase().endsWith('.pdf')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Chỉ chấp nhận file định dạng PDF (.pdf)'), false);
+    }
+  },
+  limits: { fileSize: 30 * 1024 * 1024 }, // 30MB
+});
 
 const router = express.Router();
 
 // ==================================================
-// ADMIN ROUTES (/api/v1/admin/toeic-tests)
+// ADMIN / TEACHER ROUTES (/api/v1/admin/toeic-tests)
 // ==================================================
 const adminRouter = express.Router();
-adminRouter.use(verifyToken, checkRole('admin'));
+adminRouter.use(verifyToken, checkRole('admin', 'teacher'));
 
 adminRouter.get('/toeic-tests', getAdminToeicTests);
 adminRouter.post('/toeic-tests', createToeicTest);
@@ -34,7 +67,12 @@ adminRouter.put('/toeic-tests/:id', updateToeicTest);
 adminRouter.post('/toeic-tests/:id/groups', upsertQuestionGroup);
 adminRouter.post('/toeic-tests/:id/duplicate', duplicateToeicTest);
 adminRouter.post('/toeic-tests/:id/publish', publishToeicTest);
+adminRouter.post('/toeic-tests/:id/unpublish', unpublishToeicTest);
 adminRouter.delete('/toeic-tests/:id', deleteToeicTest);
+adminRouter.delete('/toeic-tests/:id/groups/:groupId', deleteQuestionGroupFromTest);
+adminRouter.delete('/toeic-tests/:id/questions/:questionId', deleteQuestionFromTest);
+adminRouter.post('/toeic-tests/import-pdf', pdfUpload.single('file'), importToeicPdf);
+adminRouter.post('/toeic-tests/:id/import-pdf', pdfUpload.single('file'), importToeicPdf);
 adminRouter.post('/toeic-tests/:id/import-csv', importToeicCsv);
 adminRouter.post('/toeic-tests/:id/import-preview', (req, res, next) => {
   req.body.previewOnly = true;
@@ -51,6 +89,7 @@ studentRouter.get('/available', getStudentToeicTests);
 studentRouter.get('/tests', getStudentToeicTests);
 studentRouter.get('/tests/:id', getStudentToeicTestOverview);
 studentRouter.post('/tests/:id/start', startToeicAttempt);
+studentRouter.get('/history', getStudentToeicHistory);
 studentRouter.get('/attempts/:attemptId', getStudentToeicAttempt);
 studentRouter.patch('/attempts/:attemptId/answers', autosaveAttemptAnswers);
 studentRouter.post('/attempts/:attemptId/submit', submitToeicAttempt);

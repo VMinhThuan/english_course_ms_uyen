@@ -7,6 +7,7 @@ import {
   updateLessonStatus,
   deleteLesson,
 } from '../controllers/lessonController.js';
+import { getStudentMaterialsByLesson } from '../controllers/materialController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
 import multer from 'multer';
 
@@ -26,6 +27,7 @@ const upload = multer({ storage });
 
 router.get('/course/:courseId', verifyToken, getLessonsByCourse);
 router.get('/:id', verifyToken, getLessonById);
+router.get('/:lessonId/materials', verifyToken, getStudentMaterialsByLesson);
 
 router.post(
   '/',

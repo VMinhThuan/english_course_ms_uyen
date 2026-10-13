@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { assessmentApi } from '../api/assessmentApi.js';
 
 export default function StudentResultDetailPage() {
   const { attemptId } = useParams();
+  const navigate = useNavigate();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,6 +21,12 @@ export default function StudentResultDetailPage() {
       setError(null);
       const res = await assessmentApi.getAttemptResult(attemptId);
       if (res.status === 'success') {
+        const attData = res.data?.attempt || res.data?.result || res.data;
+        const assData = res.data?.assessment || {};
+        if (assData.examFormat === 'toeic' || attData.toeicBreakdown) {
+          navigate(`/student/toeic/results/${attemptId}`, { replace: true });
+          return;
+        }
         setResult(res.data);
       }
     } catch (err) {
@@ -54,7 +61,8 @@ export default function StudentResultDetailPage() {
   const assessmentData = result.assessment || { title: attemptData.assessmentTitle, type: attemptData.assessmentType, passScore: attemptData.passScore };
   const showAnswers = result.showCorrectAnswers !== undefined ? result.showCorrectAnswers : attemptData.showCorrectAnswers;
   const questionsList = result.questionDetails || result.result?.questions || result.questions || [];
-  const isPassed = attemptData.score >= (assessmentData.passScore || 0);
+  const passScore = attemptData.passScore ?? assessmentData.passScore ?? 0;
+  const isPassed = attemptData.passed === true;
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -106,7 +114,7 @@ export default function StudentResultDetailPage() {
             {attemptData?.score || 0} <span style={{ fontSize: '1.5rem', color: '#94A3B8' }}>/ {attemptData?.totalScore || attemptData?.maxScore || 100}</span>
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: isPassed ? '#166534' : '#991B1B', marginTop: '0.5rem' }}>
-            {attemptData?.percentage || 0}% — {isPassed ? 'ĐẠT KẾT QUẢ' : 'CHƯA ĐẠT'}
+            {attemptData?.scorePercentage ?? attemptData?.percentage ?? 0}% — {isPassed ? 'ĐẠT' : 'CHƯA ĐẠT'}
           </div>
         </div>
 
@@ -139,6 +147,10 @@ export default function StudentResultDetailPage() {
               {attemptData?.duration ? `${Math.round(attemptData.duration / 60)} phút` : '---'}
             </div>
             <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Thời gian làm</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#475569' }}>{passScore}%</div>
+            <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Điểm đạt</div>
           </div>
         </div>
       </div>
@@ -199,4 +211,3 @@ export default function StudentResultDetailPage() {
     </div>
   );
 }
-

@@ -12,6 +12,11 @@ const vocabularySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    partOfSpeech: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     pronunciation: {
       type: String,
       default: '',
@@ -22,6 +27,21 @@ const vocabularySchema = new mongoose.Schema(
     },
     example: {
       type: String,
+      default: '',
+    },
+    exampleEnglish: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    exampleVietnamese: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    audioUrl: {
+      type: String,
+      trim: true,
       default: '',
     },
     lesson: {
@@ -38,6 +58,10 @@ const vocabularySchema = new mongoose.Schema(
       type: String,
       default: 'General',
     },
+    order: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: ['published', 'hidden'],
@@ -48,6 +72,8 @@ const vocabularySchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+vocabularySchema.index({ lesson: 1, topic: 1, order: 1 });
 
 const Vocabulary = mongoose.model('Vocabulary', vocabularySchema);
 

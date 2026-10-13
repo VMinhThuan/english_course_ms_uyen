@@ -32,9 +32,14 @@ axiosInstance.interceptors.response.use(
     (response) => response,
     async(error) => {
         const originalRequest = error.config;
+        const requestUrl = originalRequest?.url || '';
+        const isAuthRequest = ['/auth/login', '/auth/register', '/auth/refresh'].some(
+            (path) => requestUrl.includes(path)
+        );
 
-        // If 401 and not already retried
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // A failed login/register must be shown to the user, not retried with an
+        // older refresh cookie. Only expired protected requests use the refresh flow.
+        if (error.response?.status === 401 && !isAuthRequest && !originalRequest?._retry) {
             originalRequest._retry = true;
 
             try {

@@ -5,6 +5,7 @@ const useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  hasInitializedAuth: false,
 
   login: async (credentials) => {
     set({ isLoading: true });
@@ -15,12 +16,13 @@ const useAuthStore = create((set) => ({
         isAuthenticated: true,
         isLoading: false,
       });
-      return { success: true };
+      return { success: true, user: response.data.user };
     } catch (error) {
       set({ isLoading: false });
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed',
+        code: error.response?.data?.code,
+        message: error.response?.data?.message || 'Email/tên đăng nhập hoặc mật khẩu không chính xác.',
       };
     }
   },
@@ -51,8 +53,17 @@ const useAuthStore = create((set) => ({
       set({
         user: null,
         isAuthenticated: false,
+        hasInitializedAuth: true,
       });
     }
+  },
+
+  initializeAuth: async () => {
+    if (!localStorage.getItem('accessToken')) {
+      set({ hasInitializedAuth: true });
+      return;
+    }
+    await useAuthStore.getState().fetchUser();
   },
 
   fetchUser: async () => {
@@ -63,16 +74,18 @@ const useAuthStore = create((set) => ({
         user: response.data.user,
         isAuthenticated: true,
         isLoading: false,
+        hasInitializedAuth: true,
       });
     } catch (error) {
+      localStorage.removeItem('accessToken');
       set({
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        hasInitializedAuth: true,
       });
     }
   },
 }));
 
 export default useAuthStore;
-

@@ -7,6 +7,11 @@ export const vocabularyApi = {
     return response.data;
   },
 
+  getStudentVocabulary: async (params = {}) => {
+    const response = await axiosInstance.get('/vocabulary', { params });
+    return response.data;
+  },
+
   // Admin APIs
   getAdminVocabulary: async (params = {}) => {
     const response = await axiosInstance.get('/admin/vocabulary', { params });

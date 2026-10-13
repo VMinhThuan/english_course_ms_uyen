@@ -1,170 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { assessmentApi } from '../../api/assessmentApi.js';
+import { courseApi } from '../../api/courseApi.js';
+import { lessonApi } from '../../api/lessonApi.js';
 import './AdminStudentsPage.css';
+import './AssessmentAdmin.css';
+
+const blank = { title: '', description: '', type: 'exercise', course: '', lesson: '', durationMinutes: 30, passScore: 70, attemptLimit: 0, showCorrectAnswers: true, questions: [] };
+const questionTypes = [['single_choice', 'Một đáp án'], ['multiple_choice', 'Nhiều đáp án'], ['fill_blank', 'Điền chỗ trống'], ['typed_answer', 'Trả lời tự luận']];
 
 export default function AdminAssessmentsPage() {
-  const [assessments, setAssessments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [feedback, setFeedback] = useState({ type: '', text: '' });
-  const [deleteTarget, setDeleteTarget] = useState(null);
-
-  useEffect(() => {
-    fetchAssessments();
-  }, []);
-
-  const fetchAssessments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await assessmentApi.getAdminAssessments();
-      if (res.status === 'success') {
-        setAssessments(res.data.assessments || []);
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Không thể tải danh sách bài tập & đề thi');
-    } finally {
-      setLoading(false);
-    }
+  const [items, setItems] = useState([]); const [bank, setBank] = useState([]); const [courses, setCourses] = useState([]); const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true); const [modal, setModal] = useState(null); const [form, setForm] = useState(blank);
+  const [query, setQuery] = useState(''); const [qSearch, setQSearch] = useState(''); const [qType, setQType] = useState(''); const [saving, setSaving] = useState(false); const [toast, setToast] = useState(''); const [error, setError] = useState('');
+  const load = useCallback(async () => { setLoading(true); setError(''); try { const r = await assessmentApi.getAdminAssessments(query ? { search: query } : {}); setItems(r.data.assessments || []); } catch { setError('Không thể tải bài đánh giá.'); } finally { setLoading(false); } }, [query]);
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => { courseApi.getCourses().then(r => setCourses(r.data.courses || [])).catch(() => {}); assessmentApi.getAdminQuestions({ limit: 100 }).then(r => setBank(r.data.questions || [])).catch(() => setToast('Không thể tải ngân hàng câu hỏi.')); }, []);
+  useEffect(() => { if (form.course) lessonApi.getLessonsByCourse(form.course).then(r => setLessons(r.data.lessons || [])).catch(() => setLessons([])); else setLessons([]); }, [form.course]);
+  useEffect(() => { if (!toast) return undefined; const id = setTimeout(() => setToast(''), 3500); return () => clearTimeout(id); }, [toast]);
+  const open = async (item) => {
+    if (!item) { setForm(blank); setModal({ type: 'create' }); return; }
+    try { const r = await assessmentApi.getAdminAssessmentById(item._id); const a = r.data.assessment; setForm({ ...blank, ...a, course: a.course?._id || a.course || '', lesson: a.lesson?._id || a.lesson || '', questions: (a.questions || []).map(q => ({ question: q.question?._id || q.question, score: q.score })) }); setModal({ type: 'edit', item }); }
+    catch { setToast('Không thể mở bài đánh giá.'); }
   };
-
-  const handleToggleStatus = async (ass) => {
-    const nextStatus = ass.status === 'published' ? 'draft' : 'published';
-    try {
-      setFeedback({ type: '', text: '' });
-      const res = await assessmentApi.updateAssessmentStatus(ass._id, nextStatus);
-      if (res.status === 'success') {
-        setFeedback({ type: 'success', text: `Đã đổi trạng thái thành: ${nextStatus.toUpperCase()}` });
-        fetchAssessments();
-      }
-    } catch (err) {
-      setFeedback({ type: 'error', text: err.response?.data?.message || 'Không thể đổi trạng thái bài đánh giá.' });
-    }
+  const save = async (event) => {
+    event.preventDefault(); if (!form.title.trim() || Number(form.passScore) < 0 || Number(form.passScore) > 100) { setModal(m => ({ ...m, error: 'Nhập tên bài và điểm đạt từ 0 đến 100%.' })); return; }
+    setSaving(true); try { const data = { ...form, durationMinutes: Number(form.durationMinutes), passScore: Number(form.passScore), attemptLimit: Number(form.attemptLimit), questions: form.questions.map(q => ({ question: q.question, score: Number(q.score) })) }; if (!data.course) delete data.course; if (!data.lesson) delete data.lesson;
+      const r = modal.type === 'edit' ? await assessmentApi.updateAssessment(modal.item._id, data) : await assessmentApi.createAssessment(data); const saved = r.data.assessment; setItems(all => modal.type === 'edit' ? all.map(x => x._id === saved._id ? saved : x) : [saved, ...all]); setModal(null); setToast('Đã lưu bài đánh giá.'); load();
+    } catch (e) { setModal(m => ({ ...m, error: e.response?.data?.message || 'Không thể lưu bài đánh giá.' })); } finally { setSaving(false); }
   };
-
-  const handleDeleteConfirm = async () => {
-    if (!deleteTarget) return;
-    try {
-      setFeedback({ type: '', text: '' });
-      const res = await assessmentApi.deleteAssessment(deleteTarget._id);
-      if (res.status === 'success') {
-        setFeedback({ type: 'success', text: 'Đã xóa bài đánh giá thành công!' });
-        setDeleteTarget(null);
-        fetchAssessments();
-      }
-    } catch (err) {
-      const isConflict = err.response?.status === 409;
-      const msg = isConflict
-        ? (err.response?.data?.message || 'Bài tập/đề thi đã có lượt làm bài của học viên, không thể xóa.')
-        : (err.response?.data?.message || 'Xóa bài đánh giá thất bại.');
-      setFeedback({ type: 'error', text: msg });
-      setDeleteTarget(null);
-    }
-  };
-
-  return (
-    <div className="admin-page-container">
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Quản Lý Bài Tập & Đề Thi</h1>
-          <p className="admin-page-sub">Cấu hình bài tập luyện tập, bài kiểm tra định kỳ, điểm đạt và thời gian làm bài.</p>
-        </div>
-      </div>
-
-      {feedback.text && (
-        <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem', background: feedback.type === 'success' ? '#DCFCE7' : '#FEF2F2', border: `1px solid ${feedback.type === 'success' ? '#86EFAC' : '#FCA5A5'}`, color: feedback.type === 'success' ? '#166534' : '#991B1B' }}>
-          {feedback.text}
-        </div>
-      )}
-
-      {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>Đang tải danh sách bài đánh giá...</div>
-      ) : error ? (
-        <div style={{ padding: '1rem', background: '#FEF2F2', color: '#991B1B', borderRadius: '8px' }}>{error}</div>
-      ) : assessments.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-          Chưa có bài tập hoặc bài kiểm tra nào trong hệ thống.
-        </div>
-      ) : (
-        <div className="table-responsive">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Tên Bài Đánh Giá</th>
-                <th>Phân Loại</th>
-                <th>Số Câu Hỏi</th>
-                <th>Thời Gian</th>
-                <th>Điểm Đạt</th>
-                <th>Trạng Thái</th>
-                <th>Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assessments.map((ass) => (
-                <tr key={ass._id}>
-                  <td>
-                    <strong>{ass.title}</strong>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{ass.description}</div>
-                  </td>
-                  <td>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        padding: '0.2rem 0.5rem',
-                        borderRadius: '4px',
-                        background: ass.type === 'exam' ? '#FEE2E2' : '#DCFCE7',
-                        color: ass.type === 'exam' ? '#991B1B' : '#166534',
-                      }}
-                    >
-                      {ass.type === 'exam' ? 'BÀI KIỂM TRA' : 'BÀI TẬP'}
-                    </span>
-                  </td>
-                  <td><strong>{ass.questions?.length || 0}</strong> câu</td>
-                  <td>{ass.duration || ass.minutes || 30} phút</td>
-                  <td>{ass.passScore || 0}/{ass.totalScore || 100}</td>
-                  <td>
-                    <span className={`status-badge ${ass.status === 'published' ? 'badge-active' : 'badge-pending'}`}>
-                      {ass.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        onClick={() => handleToggleStatus(ass)}
-                        style={{ padding: '0.35rem 0.75rem', borderRadius: '6px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
-                      >
-                        {ass.status === 'published' ? 'Ẩn' : 'Xuất bản'}
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(ass)}
-                        style={{ padding: '0.35rem 0.75rem', borderRadius: '6px', border: 'none', background: '#FEE2E2', color: '#991B1B', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {deleteTarget && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '1.75rem', maxWidth: '440px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>Xác Nhận Xóa Bài Đánh Giá</h3>
-            <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1.5rem' }}>
-              Bạn có chắc chắn muốn xóa bài <strong>"{deleteTarget.title}"</strong>?
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-              <button onClick={() => setDeleteTarget(null)} style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}>Hủy</button>
-              <button onClick={handleDeleteConfirm} style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: '#DC2626', color: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}>Xác Nhận Xóa</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  const setStatus = async (item, status) => { try { await assessmentApi.updateAssessmentStatus(item._id, status); setItems(all => all.map(x => x._id === item._id ? { ...x, status } : x)); setToast(status === 'published' ? 'Đã xuất bản bài đánh giá.' : 'Đã chuyển về bản nháp.'); } catch (e) { setToast(e.response?.data?.message || 'Không thể đổi trạng thái.'); } };
+  const remove = async () => { try { await assessmentApi.deleteAssessment(modal.item._id); setItems(all => all.filter(x => x._id !== modal.item._id)); setModal(null); setToast('Đã xóa bài đánh giá.'); } catch (e) { setModal(m => ({ ...m, error: e.response?.data?.message || 'Không thể xóa bài đánh giá.' })); } };
+  const add = question => setForm(f => f.questions.some(x => x.question === question._id) ? f : { ...f, questions: [...f.questions, { question: question._id, score: question.score || 1 }] });
+  const move = (index, direction) => setForm(f => { const questions = [...f.questions]; const target = index + direction; if (target < 0 || target >= questions.length) return f; [questions[index], questions[target]] = [questions[target], questions[index]]; return { ...f, questions }; });
+  const assigned = new Set(form.questions.map(q => q.question));
+  const available = bank.filter(q => !assigned.has(q._id) && (!qSearch || q.questionText.toLowerCase().includes(qSearch.toLowerCase())) && (!qType || q.type === qType));
+  return <div className="admin-page-container"><header><p className="admin-eyebrow">Assessment builder</p><h1 className="admin-page-title">Bài tập & đề thi</h1><p className="admin-page-sub">Tạo bài đánh giá, thêm câu hỏi và xuất bản cho học viên.</p></header>
+    <div className="assessment-toolbar"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Tìm bài đánh giá..." /><button className="admin-primary-button" onClick={() => open()}>Tạo bài đánh giá</button></div>
+    {error && <div className="admin-error">{error} <button onClick={load}>Thử lại</button></div>}
+    <div className="admin-table-container">{loading ? <div className="admin-table-skeleton"><i /><i /><i /></div> : <table className="admin-data-table"><thead><tr><th>Bài đánh giá</th><th>Loại</th><th>Câu hỏi</th><th>Thời gian</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{items.length ? items.map(a => <tr key={a._id}><td><b>{a.title}</b><small className="assessment-table-sub">{a.description}</small></td><td>{a.type === 'exam' ? 'Kiểm tra' : 'Bài tập'}</td><td>{a.questions?.length || 0}</td><td>{a.durationMinutes} phút</td><td><span className={`status-badge ${a.status === 'published' ? 'active' : 'pending'}`}>{a.status}</span></td><td className="student-actions"><button className="admin-quiet-button" onClick={() => open(a)}>Sửa</button><button className="admin-primary-button small" onClick={() => setStatus(a, a.status === 'published' ? 'draft' : 'published')}>{a.status === 'published' ? 'Ẩn' : 'Xuất bản'}</button><button className="admin-danger-button" onClick={() => setModal({ type: 'delete', item: a })}>Xóa</button></td></tr>) : <tr><td colSpan="6"><div className="admin-empty">Chưa có bài đánh giá.</div></td></tr>}</tbody></table>}</div>
+    {modal?.type === 'delete' && <div className="admin-modal-backdrop"><section className="admin-confirm-modal"><h2>Xóa bài đánh giá?</h2><p>Bạn có chắc muốn xóa <strong>“{modal.item.title}”</strong>?</p>{modal.error && <div className="admin-error">{modal.error}</div>}<div className="modal-actions"><button className="admin-quiet-button" onClick={() => setModal(null)}>Hủy</button><button className="admin-danger-button" onClick={remove}>Xóa</button></div></section></div>}
+    {modal && ['create', 'edit'].includes(modal.type) && <div className="admin-modal-backdrop"><form className="admin-confirm-modal assessment-form assessment-builder" onSubmit={save}><button type="button" className="modal-close" onClick={() => setModal(null)}>×</button><h2>{modal.type === 'edit' ? 'Chỉnh sửa bài đánh giá' : 'Tạo bài đánh giá'}</h2><label>Tên bài đánh giá<input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required /></label><label>Mô tả / hướng dẫn<textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></label>
+      <div className="assessment-form-grid"><label>Loại<select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}><option value="exercise">Bài tập</option><option value="exam">Bài kiểm tra</option></select></label><label>Thời gian (phút)<input type="number" min="1" value={form.durationMinutes} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} /></label><label>Điểm đạt (%)<input type="number" min="0" max="100" value={form.passScore} onChange={e => setForm(f => ({ ...f, passScore: e.target.value }))} /><small>Học viên cần đạt tối thiểu mức điểm này để hoàn thành bài kiểm tra.</small></label><label>Số lần làm (0 = không giới hạn)<input type="number" min="0" value={form.attemptLimit} onChange={e => setForm(f => ({ ...f, attemptLimit: e.target.value }))} /></label><label>Khóa học<select value={form.course} onChange={e => setForm(f => ({ ...f, course: e.target.value, lesson: '' }))}><option value="">Không gắn khóa học</option>{courses.map(c => <option key={c._id} value={c._id}>{c.title}</option>)}</select></label><label>Bài học<select value={form.lesson} onChange={e => setForm(f => ({ ...f, lesson: e.target.value }))}><option value="">Không gắn bài học</option>{lessons.map(l => <option key={l._id} value={l._id}>{l.title}</option>)}</select></label><label className="assessment-checkbox"><input type="checkbox" checked={form.showCorrectAnswers} onChange={e => setForm(f => ({ ...f, showCorrectAnswers: e.target.checked }))} />Hiển thị đáp án đúng sau khi nộp</label></div>
+      <section className="question-selector"><div><h3>Câu hỏi đã chọn ({form.questions.length})</h3>{form.questions.map((x, i) => { const q = bank.find(b => b._id === x.question) || {}; return <div className="assigned-question" key={x.question}><span>{i + 1}. {q.questionText || 'Câu hỏi'}</span><input aria-label="Điểm" type="number" min="0.1" step="0.1" value={x.score} onChange={e => setForm(f => ({ ...f, questions: f.questions.map((q, n) => n === i ? { ...q, score: e.target.value } : q) }))} /><button type="button" className="order-button" disabled={!i} onClick={() => move(i, -1)}>↑</button><button type="button" className="order-button" disabled={i === form.questions.length - 1} onClick={() => move(i, 1)}>↓</button><button type="button" aria-label="Xóa câu hỏi" onClick={() => setForm(f => ({ ...f, questions: f.questions.filter((_, n) => n !== i) }))}>×</button></div>; })}</div><div><h3>Thêm từ ngân hàng</h3><input value={qSearch} onChange={e => setQSearch(e.target.value)} placeholder="Tìm câu hỏi..." /><select value={qType} onChange={e => setQType(e.target.value)}><option value="">Tất cả dạng câu hỏi</option>{questionTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{available.slice(0, 20).map(q => <button type="button" className="question-pick" key={q._id} onClick={() => add(q)}><b>{q.questionText}</b><small>{questionTypes.find(x => x[0] === q.type)?.[1]}</small></button>)}</div></section>
+      <div className="assessment-summary">{form.questions.length} câu · {form.durationMinutes || 0} phút · Đạt từ {form.passScore ?? 0}% · {form.attemptLimit || 0} lần · {form.showCorrectAnswers ? 'Hiện đáp án' : 'Ẩn đáp án'}</div>{modal.error && <div className="admin-error">{modal.error}</div>}<div className="modal-actions"><button type="button" className="admin-quiet-button" onClick={() => setModal(null)}>Hủy</button><button className="admin-primary-button" disabled={saving}>{saving ? 'Đang lưu...' : 'Lưu bản nháp'}</button></div></form></div>}
+    {toast && <div className="admin-toast">{toast}</div>}</div>;
 }

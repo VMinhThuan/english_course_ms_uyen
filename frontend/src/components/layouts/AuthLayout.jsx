@@ -13,7 +13,7 @@ const backgroundImages = [
   backgroundImage4,
 ];
 
-export default function AuthLayout({ activeTab, title, subtitle, children }) {
+export default function AuthLayout({ activeTab, title, subtitle, children, showTabs = true }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -99,20 +99,20 @@ export default function AuthLayout({ activeTab, title, subtitle, children }) {
             </div>
 
             {/* Tab Switcher */}
-            <div className="auth-tab-switcher">
+            {showTabs && <div className="auth-tab-switcher">
               <Link
                 to="/login"
                 className={`auth-tab-btn ${activeTab === 'login' ? 'active' : ''}`}
               >
-                Đăng Nhập
+                Đăng nhập
               </Link>
               <Link
                 to="/register"
                 className={`auth-tab-btn ${activeTab === 'register' ? 'active' : ''}`}
               >
-                Đăng Ký
+                Đăng ký
               </Link>
-            </div>
+            </div>}
 
             {/* Form & Children */}
             <div className="auth-form-body">

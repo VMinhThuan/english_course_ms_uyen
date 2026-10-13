@@ -1,12 +1,22 @@
 import express from 'express';
 import {
   getStudents,
+  getStudent,
   approveStudent,
   rejectStudent,
   suspendStudent,
   activateStudent,
   getAdminStats,
 } from '../controllers/adminController.js';
+import {
+  getAdminCourses,
+  getAdminCourseById,
+  createCourse,
+  updateCourse,
+  updateCourseStatus,
+  reorderCourseLessons,
+  deleteCourse,
+} from '../controllers/courseController.js';
 import { updateLessonStatus, createLesson, updateLesson, deleteLesson } from '../controllers/lessonController.js';
 import {
   createMaterial,
@@ -61,14 +71,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Require authenticated Admin token for ALL admin endpoints
-router.use(verifyToken, checkRole('admin'));
+// Require authenticated Admin or Teacher token for admin endpoints
+router.use(verifyToken, checkRole('admin', 'teacher'));
 
 // System stats
 router.get('/stats', getAdminStats);
 
 // Student management
 router.get('/students', getStudents);
+router.get('/students/:id', getStudent);
 router.patch('/students/:id/approve', approveStudent);
 router.patch('/students/:id/reject', rejectStudent);
 router.patch('/students/:id/suspend', suspendStudent);
@@ -76,6 +87,16 @@ router.patch('/students/:id/activate', activateStudent);
 
 // Student progress inspector
 router.get('/students/:studentId/progress', getAdminStudentProgress);
+
+// Course admin endpoints
+router.get('/courses', getAdminCourses);
+router.get('/courses/:id', getAdminCourseById);
+router.post('/courses', createCourse);
+router.put('/courses/:id', updateCourse);
+router.patch('/courses/:id', updateCourse);
+router.patch('/courses/:id/status', updateCourseStatus);
+router.put('/courses/:id/reorder-lessons', reorderCourseLessons);
+router.delete('/courses/:id', deleteCourse);
 
 // Lesson admin endpoints
 router.post('/lessons', upload.array('attachments', 10), createLesson);
@@ -120,4 +141,3 @@ router.delete('/assessments/:id', deleteAssessment);
 router.get('/results', getAdminResults);
 
 export default router;
-

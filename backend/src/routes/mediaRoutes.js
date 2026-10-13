@@ -4,6 +4,6 @@ import { verifyToken, checkRole } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.post('/upload', verifyToken, checkRole('admin'), handleMediaUpload);
+router.post('/upload', verifyToken, checkRole('admin', 'teacher'), handleMediaUpload);
 
 export default router;

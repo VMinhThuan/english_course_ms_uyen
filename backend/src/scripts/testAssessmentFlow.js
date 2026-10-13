@@ -491,6 +491,37 @@ async function runAssessmentTests() {
       logFail('TEST AV', `Status: ${resultRes.status}, Data: ${JSON.stringify(resultData)}`);
     }
 
+    // TEST BP/BQ/BR: percentage-based pass score is decided by the server.
+    const runPassScoreCase = async (name, firstQuestionScore, expectedPassed) => {
+      const assessment = await Assessment.create({
+        title: `Pass score ${name}`,
+        type: 'exercise',
+        questions: [
+          { question: singleChoiceQId, score: firstQuestionScore },
+          { question: multiChoiceQId, score: 10 - firstQuestionScore },
+        ],
+        durationMinutes: 10,
+        passScore: 70,
+        status: 'published',
+      });
+      const start = await fetch(`${API_BASE}/assessments/${assessment._id}/start`, { method: 'POST', headers: { Authorization: `Bearer ${student2Token}` } });
+      const startData = await start.json();
+      const submit = await fetch(`${API_BASE}/attempts/${startData.data.attemptId}/submit`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student2Token}` },
+        body: JSON.stringify({ answers: { [singleChoiceQId]: 'opt_london' } }),
+      });
+      const data = await submit.json();
+      const result = data.data?.result;
+      if (submit.status === 200 && result?.passScore === 70 && result?.percentage === firstQuestionScore * 10 && result?.passed === expectedPassed) {
+        logPass(`TEST ${name}`, `${result.percentage}% correctly returned passed=${expectedPassed}`);
+      } else {
+        logFail(`TEST ${name}`, `Unexpected pass-score result: ${JSON.stringify(data)}`);
+      }
+    };
+    await runPassScoreCase('BP', 8, true); // 80% > 70%
+    await runPassScoreCase('BQ', 6, false); // 60% < 70%
+    await runPassScoreCase('BR', 7, true); // 70% = 70%
+
     // TEST AU: showCorrectAnswers = false Hides Answer Keys in Result
     const startNoShow = await fetch(`${API_BASE}/assessments/${noShowAnswersAssessmentId}/start`, {
       method: 'POST',

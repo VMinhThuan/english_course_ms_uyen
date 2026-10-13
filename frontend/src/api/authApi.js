@@ -3,7 +3,7 @@ import axiosInstance from './axiosConfig.js';
 export const authApi = {
   register: async (userData) => {
     const response = await axiosInstance.post('/auth/register', userData);
-    if (response.data.data.accessToken) {
+    if (response.data.data?.accessToken) {
       localStorage.setItem('accessToken', response.data.data.accessToken);
     }
     return response.data;
@@ -11,7 +11,7 @@ export const authApi = {
 
   login: async (credentials) => {
     const response = await axiosInstance.post('/auth/login', credentials);
-    if (response.data.data.accessToken) {
+    if (response.data.data?.accessToken) {
       localStorage.setItem('accessToken', response.data.data.accessToken);
     }
     return response.data;
@@ -46,5 +46,4 @@ export const authApi = {
     return response.data;
   },
 };
-
 

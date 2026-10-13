@@ -142,7 +142,7 @@ export default function StudentAssessmentsPage() {
                     {ass.type === 'exam' ? 'BÀI KIỂM TRA' : 'BÀI TẬP'}
                   </span>
                   <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>
-                    Điểm đạt: {ass.passScore || 0}/{ass.totalScore || 100}
+                    Điểm đạt: {ass.passScore ?? 0}%
                   </span>
                 </div>
 

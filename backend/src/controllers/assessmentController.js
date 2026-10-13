@@ -50,6 +50,7 @@ export const createAssessment = async (req, res, next) => {
       availableUntil,
       attemptLimit,
       showCorrectAnswers,
+      passScore,
     } = req.body;
 
     if (!title || !type || !['exercise', 'exam'].includes(type)) {
@@ -57,6 +58,9 @@ export const createAssessment = async (req, res, next) => {
         status: 'error',
         message: 'Title and valid type (exercise or exam) are required',
       });
+    }
+    if (passScore !== undefined && (!Number.isFinite(Number(passScore)) || Number(passScore) < 0 || Number(passScore) > 100)) {
+      return res.status(400).json({ status: 'error', message: 'Pass score must be a percentage between 0 and 100' });
     }
 
     let targetCourse = course;
@@ -106,6 +110,7 @@ export const createAssessment = async (req, res, next) => {
       availableFrom: availableFrom ? new Date(availableFrom) : null,
       availableUntil: availableUntil ? new Date(availableUntil) : null,
       attemptLimit: attemptLimit !== undefined ? Number(attemptLimit) : 0,
+      passScore: passScore !== undefined ? Number(passScore) : 0,
       showCorrectAnswers: showCorrectAnswers === undefined ? true : Boolean(showCorrectAnswers),
       createdBy: req.user._id,
     });
@@ -201,6 +206,11 @@ export const updateAssessment = async (req, res, next) => {
     }
 
     const updates = { ...req.body };
+
+    if (updates.passScore !== undefined && (!Number.isFinite(Number(updates.passScore)) || Number(updates.passScore) < 0 || Number(updates.passScore) > 100)) {
+      return res.status(400).json({ status: 'error', message: 'Pass score must be a percentage between 0 and 100' });
+    }
+    if (updates.passScore !== undefined) updates.passScore = Number(updates.passScore);
 
     if (updates.questions && Array.isArray(updates.questions)) {
       try {

@@ -12,6 +12,7 @@ import { verifyToken, checkRole } from '../middlewares/auth.js';
 const router = express.Router();
 
 // Student routes
+router.get('/', verifyToken, getStudentVocabularyByLesson);
 router.get('/lesson/:lessonId', verifyToken, getStudentVocabularyByLesson);
 
 // Admin routes
