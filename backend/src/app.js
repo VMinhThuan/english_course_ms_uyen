@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandler.js';
+import connectDB from './configs/database.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -26,7 +27,7 @@ import mediaRoutes from './routes/mediaRoutes.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load .env if not already loaded (useful for local development)
+// Load .env if present (local dev)
 dotenv.config({ path: join(__dirname, '../.env') });
 
 const app = express();
@@ -40,7 +41,6 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin: function(origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl, server-to-server)
         if (!origin) return callback(null, true);
         if (process.env.NODE_ENV !== 'production') return callback(null, true);
 
@@ -59,8 +59,10 @@ const corsOptions = {
     optionsSuccessStatus: 204,
 };
 
+// 1. CORS first - handles preflight OPTIONS without touching database
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -68,7 +70,7 @@ app.use(cookieParser());
 // Serve uploaded static files
 app.use('/uploads', express.static(join(__dirname, '../uploads')));
 
-// Root route
+// 2. Fast health endpoints - no database required
 app.get('/', (req, res) => {
     res.json({
         status: 'success',
@@ -77,15 +79,34 @@ app.get('/', (req, res) => {
     });
 });
 
-// Health check
 app.get('/health', (req, res) => {
     res.json({
         status: 'success',
         message: 'Server is healthy',
+        env: process.env.NODE_ENV || 'development',
     });
 });
 
-// API Routes
+// 3. Database connection middleware for API routes only
+app.use('/api', async (req, res, next) => {
+    // OPTIONS already handled by cors middleware
+    if (req.method === 'OPTIONS') {
+        return next();
+    }
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error('Database connection error in /api middleware:', err.message);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Database connection failed. Please check MONGODB_URI and ensure 0.0.0.0/0 is whitelisted in MongoDB Atlas Network Access.',
+            error: err.message,
+        });
+    }
+});
+
+// 4. API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/instructors', instructorRoutes);

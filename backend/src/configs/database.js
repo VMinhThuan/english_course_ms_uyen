@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 let cachedConnection = null;
 
 const connectDB = async () => {
-    // If already connected or connecting, reuse the existing connection
-    if (mongoose.connection.readyState >= 1) {
+    // If already connected, reuse existing connection
+    if (mongoose.connection.readyState === 1) {
         return mongoose.connection;
     }
 
@@ -22,7 +22,8 @@ const connectDB = async () => {
 
     try {
         const conn = await mongoose.connect(mongoURI, {
-            serverSelectionTimeoutMS: 8000,
+            serverSelectionTimeoutMS: 5000,
+            connectTimeoutMS: 5000,
             bufferCommands: false,
         });
         cachedConnection = conn;
