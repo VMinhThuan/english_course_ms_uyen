@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toeicApi } from '../../api/toeicApi.js';
+import UiButton from '../../components/ui/UiButton.jsx';
+import StatusBadge from '../../components/ui/StatusBadge.jsx';
+import '../../styles/assessment-screens.css';
 
 export default function AdminToeicPreviewPage() {
   const { id } = useParams();
@@ -73,8 +76,8 @@ export default function AdminToeicPreviewPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '4rem', textAlign: 'center', color: '#64748B' }}>
-        <div style={{ display: 'inline-block', width: '32px', height: '32px', border: '3px solid #E2E8F0', borderTopColor: '#0284C7', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
+      <div className="toeic-preview-screen toeic-preview-screen--state toeic-preview-screen--loading">
+        <div style={{ display: 'inline-block', width: '32px', height: '32px', border: '3px solid var(--brand-border)', borderTopColor: 'var(--brand-yellow)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
         <div>Đang tải xem trước đề thi TOEIC...</div>
       </div>
     );
@@ -82,8 +85,8 @@ export default function AdminToeicPreviewPage() {
 
   if (error || !assessment) {
     return (
-      <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ padding: '1.25rem', background: '#FEF2F2', color: '#991B1B', borderRadius: '12px', border: '1px solid #FCA5A5' }}>
+      <div className="toeic-preview-screen toeic-preview-screen--state toeic-preview-screen--error">
+        <div className="toeic-preview-screen__error-message">
           {error || 'Không tìm thấy đề thi'}
         </div>
       </div>
@@ -91,95 +94,42 @@ export default function AdminToeicPreviewPage() {
   }
 
   return (
-    <div style={{ maxWidth: '1060px', margin: '0 auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="toeic-preview-screen toeic-preview-screen--detail">
       
       {/* Top Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <Link
-          to={`/admin/toeic-tests/${id}/edit`}
-          style={{
-            color: '#0284C7',
-            textDecoration: 'none',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            background: '#FFFFFF',
-            padding: '0.5rem 1rem',
-            borderRadius: '8px',
-            border: '1px solid #CBD5E1',
-          }}
-        >
+        <Link to={`/admin/toeic-tests/${id}/edit`} className="ds-back-link">
           ← Quay lại Chỉnh sửa (Builder)
         </Link>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <span
-            style={{
-              background: assessment.status === 'published' ? '#DCFCE7' : '#FEF3C7',
-              color: assessment.status === 'published' ? '#166534' : '#B45309',
-              fontWeight: 800,
-              padding: '0.4rem 0.85rem',
-              borderRadius: '8px',
-              fontSize: '0.8rem',
-            }}
-          >
-            {assessment.status === 'published' ? '● ĐÃ XUẤT BẢN (PUBLISHED)' : '● BẢN NHÁP (DRAFT)'}
-          </span>
+          <StatusBadge status={assessment.status} label={assessment.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'} />
 
           {assessment.status === 'published' ? (
-            <button
-              onClick={handleUnpublish}
-              disabled={publishing}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '8px',
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#B45309',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-              }}
-            >
+            <UiButton variant="secondary" onClick={handleUnpublish} disabled={publishing}>
               Gỡ Xuất Bản (Về Draft)
-            </button>
+            </UiButton>
           ) : (
-            <button
-              onClick={handlePublish}
-              disabled={publishing}
-              style={{
-                padding: '0.5rem 1.25rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#16A34A',
-                color: '#FFFFFF',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                boxShadow: '0 2px 4px rgba(22, 163, 74, 0.25)',
-              }}
-            >
+            <UiButton onClick={handlePublish} disabled={publishing}>
               {publishing ? 'Đang xuất bản...' : '🚀 Xuất Bản Đề Thi'}
-            </button>
+            </UiButton>
           )}
         </div>
       </div>
 
       {feedback.text && (
-        <div style={{ padding: '0.85rem 1.25rem', borderRadius: '10px', background: feedback.type === 'success' ? '#DCFCE7' : '#FEF2F2', border: `1px solid ${feedback.type === 'success' ? '#86EFAC' : '#FCA5A5'}`, color: feedback.type === 'success' ? '#166534' : '#991B1B' }}>
+        <div style={{ padding: '0.85rem 1.25rem', borderRadius: '10px', background: feedback.type === 'success' ? 'var(--brand-success-bg)' : 'var(--brand-danger-bg)', border: `1px solid ${feedback.type === 'success' ? 'var(--brand-success-border)' : 'var(--brand-danger-border)'}`, color: feedback.type === 'success' ? 'var(--brand-success)' : 'var(--brand-danger)' }}>
           {feedback.text}
         </div>
       )}
 
       {/* Test Hero Overview */}
-      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '2rem', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>{assessment.title}</h1>
-        <p style={{ color: '#64748B', fontSize: '0.95rem', maxWidth: '680px', margin: '0 auto 1.25rem' }}>
+      <div className="ds-card toeic-preview-screen__overview">
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-text)', marginBottom: '0.5rem' }}>{assessment.title}</h1>
+        <p style={{ color: 'var(--brand-muted)', fontSize: '0.95rem', maxWidth: '680px', margin: '0 auto 1.25rem' }}>
           {assessment.description || 'Bộ đề thi TOEIC tiêu chuẩn.'}
         </p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', fontSize: '0.9rem', color: '#334155', flexWrap: 'wrap', borderTop: '1px solid #F1F5F9', paddingTop: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', fontSize: '0.9rem', color: 'var(--brand-text)', flexWrap: 'wrap', borderTop: '1px solid var(--brand-border-light)', paddingTop: '1rem' }}>
           <div>Thời gian: <strong>{assessment.durationMinutes || 120} phút</strong></div>
           <div>Tổng số câu: <strong>{assessment.questions?.length || 0} câu</strong></div>
           <div>Số nhóm câu: <strong>{assessment.questionGroups?.length || 0} nhóm</strong></div>
@@ -188,8 +138,8 @@ export default function AdminToeicPreviewPage() {
       </div>
 
       {/* Part Filter Bar */}
-      <div style={{ display: 'flex', gap: '0.4rem', background: '#FFFFFF', padding: '0.6rem', borderRadius: '12px', border: '1px solid #E2E8F0', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748B', padding: '0 0.5rem' }}>Xem theo Part:</span>
+      <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--brand-surface)', padding: '0.6rem', borderRadius: '12px', border: '1px solid var(--brand-border)', flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-muted)', padding: '0 0.5rem' }}>Xem theo Part:</span>
         <button
           onClick={() => setSelectedPartFilter('ALL')}
           style={{
@@ -199,8 +149,8 @@ export default function AdminToeicPreviewPage() {
             fontWeight: 700,
             fontSize: '0.8rem',
             cursor: 'pointer',
-            background: selectedPartFilter === 'ALL' ? '#0284C7' : '#F8FAFC',
-            color: selectedPartFilter === 'ALL' ? '#FFFFFF' : '#475569',
+            background: selectedPartFilter === 'ALL' ? 'var(--brand-yellow)' : 'var(--brand-bg-sub)',
+            color: selectedPartFilter === 'ALL' ? 'var(--brand-text)' : 'var(--brand-muted)',
           }}
         >
           Tất Cả ({assessment.questionGroups?.length || 0} nhóm)
@@ -218,8 +168,8 @@ export default function AdminToeicPreviewPage() {
                 fontWeight: 700,
                 fontSize: '0.8rem',
                 cursor: 'pointer',
-                background: selectedPartFilter === String(pNum) ? '#0284C7' : '#F8FAFC',
-                color: selectedPartFilter === String(pNum) ? '#FFFFFF' : '#475569',
+                background: selectedPartFilter === String(pNum) ? 'var(--brand-yellow)' : 'var(--brand-bg-sub)',
+                color: selectedPartFilter === String(pNum) ? 'var(--brand-text)' : 'var(--brand-muted)',
               }}
             >
               Part {pNum} ({count})
@@ -231,38 +181,38 @@ export default function AdminToeicPreviewPage() {
       {/* Groups & Questions Preview */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {filteredGroups.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)', background: 'var(--brand-surface)', borderRadius: '12px', border: '1px solid var(--brand-border)' }}>
             Không có nhóm câu hỏi nào thuộc bộ lọc này.
           </div>
         ) : (
           filteredGroups.map((group, gIdx) => (
-            <div key={group._id || gIdx} style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+            <div key={group._id || gIdx} className="ds-card toeic-preview-screen__question-group">
               
               {/* Group Header Badge */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F1F5F9', paddingBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--brand-border-light)', paddingBottom: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <span style={{ background: '#0284C7', color: '#FFFFFF', fontWeight: 800, padding: '0.25rem 0.65rem', borderRadius: '6px', fontSize: '0.8rem' }}>
+                  <span style={{ background: 'var(--brand-yellow)', color: 'var(--brand-text)', fontWeight: 800, padding: '0.25rem 0.65rem', borderRadius: '6px', fontSize: '0.8rem' }}>
                     PART {group.partNumber}
                   </span>
-                  <span style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.95rem' }}>
+                  <span style={{ fontWeight: 700, color: 'var(--brand-text)', fontSize: '0.95rem' }}>
                     {group.title || `Nhóm #${gIdx + 1}`}
                   </span>
                 </div>
-                <span style={{ fontSize: '0.75rem', color: '#64748B', background: '#F1F5F9', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--brand-muted)', background: 'var(--brand-bg-sub)', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 600 }}>
                   Loại: {group.type}
                 </span>
               </div>
 
               {group.instructions && (
-                <div style={{ fontSize: '0.85rem', color: '#475569', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--brand-muted)', fontStyle: 'italic' }}>
                   {group.instructions}
                 </div>
               )}
 
               {/* Audio Stimulus */}
               {group.audioUrl && (
-                <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '10px', border: '1px solid #BAE6FD' }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369A1', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <div style={{ background: 'var(--brand-yellow-soft)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--brand-border)' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-coffee)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     🎧 Audio Stimulus:
                   </div>
                   <audio controls src={group.audioUrl} style={{ width: '100%', maxWidth: '420px' }} />
@@ -272,18 +222,18 @@ export default function AdminToeicPreviewPage() {
               {/* Image Stimulus */}
               {group.imageUrl && (
                 <div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '0.4rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-muted)', marginBottom: '0.4rem' }}>
                     🖼 Hình Ảnh Minh Họa:
                   </div>
-                  <img src={group.imageUrl} alt="Group visual" style={{ maxWidth: '320px', maxHeight: '240px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #CBD5E1' }} />
+                  <img src={group.imageUrl} alt="Group visual" style={{ maxWidth: '320px', maxHeight: '240px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--brand-border)' }} />
                 </div>
               )}
 
               {/* Passages */}
               {(group.passages || []).map((p, pIdx) => (
-                <div key={pIdx} style={{ background: '#F8FAFC', padding: '1.25rem', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                  <strong style={{ fontSize: '0.9rem', color: '#0F172A' }}>{p.title || `Passage ${pIdx + 1}`}</strong>
-                  <p style={{ marginTop: '0.6rem', whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: '#334155', lineHeight: 1.6, margin: '0.6rem 0 0' }}>
+                <div key={pIdx} style={{ background: 'var(--brand-bg-sub)', padding: '1.25rem', borderRadius: '10px', border: '1px solid var(--brand-border)' }}>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--brand-text)' }}>{p.title || `Passage ${pIdx + 1}`}</strong>
+                  <p style={{ marginTop: '0.6rem', whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--brand-text)', lineHeight: 1.6, margin: '0.6rem 0 0' }}>
                     {p.content}
                   </p>
                 </div>
@@ -291,15 +241,15 @@ export default function AdminToeicPreviewPage() {
 
               {/* Group Questions */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--brand-text)', margin: 0 }}>
                   Câu Hỏi Trong Nhóm ({group.questionIds?.length || 0} câu):
                 </h4>
 
                 {(group.questionIds || []).map((q, qIdx) => (
-                  <div key={q._id || qIdx} style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                  <div key={q._id || qIdx} style={{ background: 'var(--brand-bg-sub)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--brand-border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
-                      <strong style={{ color: '#0284C7' }}>Câu #{q.questionNumber || qIdx + 1}:</strong>
-                      <span style={{ fontWeight: 600, color: '#0F172A' }}>{q.questionText || q.prompt || '(Nhìn tranh/nghe câu hỏi)'}</span>
+                      <strong style={{ color: 'var(--brand-coffee)' }}>Câu #{q.questionNumber || qIdx + 1}:</strong>
+                      <span style={{ fontWeight: 600, color: 'var(--brand-text)' }}>{q.questionText || q.prompt || '(Nhìn tranh/nghe câu hỏi)'}</span>
                     </div>
 
                     {/* Options list */}
@@ -312,9 +262,9 @@ export default function AdminToeicPreviewPage() {
                             style={{
                               padding: '0.5rem 0.75rem',
                               borderRadius: '6px',
-                              background: isCorrect ? '#DCFCE7' : '#FFFFFF',
-                              border: isCorrect ? '1.5px solid #16A34A' : '1px solid #E2E8F0',
-                              color: isCorrect ? '#166534' : '#334155',
+                              background: isCorrect ? 'var(--brand-success-bg)' : 'var(--brand-surface)',
+                              border: isCorrect ? '1.5px solid var(--brand-success-border)' : '1px solid var(--brand-border)',
+                              color: isCorrect ? 'var(--brand-success)' : 'var(--brand-text)',
                               fontWeight: isCorrect ? 700 : 500,
                               fontSize: '0.85rem',
                               display: 'flex',
@@ -325,7 +275,7 @@ export default function AdminToeicPreviewPage() {
                             <span>
                               <strong>{String.fromCharCode(65 + optIdx)}:</strong> {opt.text}
                             </span>
-                            {isCorrect && <span style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 800 }}>✓ Đáp án đúng</span>}
+                            {isCorrect && <span style={{ fontSize: '0.75rem', color: 'var(--brand-success)', fontWeight: 800 }}>✓ Đáp án đúng</span>}
                           </div>
                         );
                       })}
@@ -333,7 +283,7 @@ export default function AdminToeicPreviewPage() {
 
                     {/* Explanation */}
                     {q.explanation && (
-                      <div style={{ marginTop: '0.75rem', padding: '0.6rem 0.85rem', borderRadius: '6px', background: '#EFF6FF', border: '1px solid #BFDBFE', fontSize: '0.8rem', color: '#1E40AF' }}>
+                      <div style={{ marginTop: '0.75rem', padding: '0.6rem 0.85rem', borderRadius: '6px', background: 'var(--brand-yellow-soft)', border: '1px solid var(--brand-border)', fontSize: '0.8rem', color: 'var(--brand-coffee)' }}>
                         <strong>Giải thích:</strong> {q.explanation}
                       </div>
                     )}

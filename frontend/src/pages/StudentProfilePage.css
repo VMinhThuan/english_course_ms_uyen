@@ -1,23 +1,12 @@
 .profile-page-container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.profile-page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #0F172A;
-  margin-bottom: 0.25rem;
-}
-
-.profile-page-header p {
-  font-size: 0.95rem;
-  color: #64748B;
-}
 
 .profile-grid {
   display: grid;
@@ -26,25 +15,26 @@
 }
 
 .profile-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 16px;
+  background: var(--brand-surface);
+  border: 1px solid var(--brand-border);
+  border-radius: var(--radius-card);
   padding: 1.75rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-subtle);
 }
 
 .profile-card h2 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--brand-text);
+  font-family: var(--font-serif);
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--brand-border-light);
 }
 
 .account-info-box {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: #FFFCF7;
+  border: 1px solid var(--brand-border-light);
   border-radius: 10px;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -61,16 +51,16 @@
 }
 
 .info-label {
-  color: #64748B;
+  color: var(--brand-muted);
 }
 
 .info-value {
-  color: #0F172A;
+  color: var(--brand-text);
 }
 
 .badge-role {
-  background: #E0F2FE;
-  color: #0369A1;
+  background: var(--brand-yellow-soft);
+  color: var(--brand-coffee);
   font-weight: 700;
   padding: 0.2rem 0.6rem;
   border-radius: 6px;
@@ -108,43 +98,23 @@
 .form-group label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--brand-coffee);
 }
 
 .form-group input {
   padding: 0.75rem 1rem;
-  border: 1px solid #CBD5E1;
-  border-radius: 8px;
+  border: 1px solid var(--brand-border);
+  border-radius: var(--radius-sm);
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s ease;
 }
 
 .form-group input:focus {
-  border-color: #0284C7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+  border-color: var(--brand-brown-sec);
+  box-shadow: 0 0 0 3px rgba(128, 107, 88, 0.12);
 }
 
-.btn-save-profile, .btn-change-password {
-  padding: 0.75rem 1.5rem;
-  background: #0284C7;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.btn-save-profile:hover, .btn-change-password:hover {
-  background: #0369A1;
-}
-
-.btn-save-profile:disabled, .btn-change-password:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
 
 .form-alert {
   padding: 0.75rem 1rem;
@@ -154,13 +124,13 @@
 }
 
 .form-alert.success {
-  background: #DCFCE7;
-  border: 1px solid #86EFAC;
-  color: #166534;
+  background: var(--brand-success-bg);
+  border: 1px solid #B7D7BA;
+  color: var(--brand-success);
 }
 
 .form-alert.error {
-  background: #FEF2F2;
-  border: 1px solid #FCA5A5;
-  color: #991B1B;
+  background: var(--brand-danger-bg);
+  border: 1px solid #F1B4AF;
+  color: var(--brand-danger);
 }

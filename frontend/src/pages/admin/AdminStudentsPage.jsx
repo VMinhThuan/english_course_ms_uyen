@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { adminApi } from '../../api/adminApi.js';
+import PageHeader from '../../components/ui/PageHeader.jsx';
+import StatusBadge from '../../components/ui/StatusBadge.jsx';
+import UiButton from '../../components/ui/UiButton.jsx';
 import './AdminStudentsPage.css';
 
 const statuses = [['all', 'Tất cả'], ['pending', 'Chờ duyệt'], ['active', 'Hoạt động'], ['suspended', 'Tạm khóa'], ['rejected', 'Từ chối']];
-const statusLabel = { pending: 'Chờ duyệt', active: 'Hoạt động', suspended: 'Tạm khóa', rejected: 'Từ chối' };
 const formatDate = (value) => value ? new Intl.DateTimeFormat('vi-VN').format(new Date(value)) : '—';
 
 const getApiError = (error, fallback) => error.response?.data?.code === 'INVALID_STATE_TRANSITION'
@@ -69,9 +71,9 @@ export default function AdminStudentsPage() {
 
   const Actions = ({ student }) => <div className="student-actions">
     <Link to={`/admin/students/${student._id}`} className="admin-quiet-button">Xem</Link>
-    {student.status === 'pending' && <><button className="admin-primary-button small" onClick={() => setModal({ student, type: 'approve', reason: '', error: '' })}>Duyệt</button><button className="admin-danger-button" onClick={() => setModal({ student, type: 'reject', reason: '', error: '' })}>Từ chối</button></>}
-    {student.status === 'active' && <button className="admin-danger-button" onClick={() => setModal({ student, type: 'suspend', reason: '', error: '' })}>Tạm khóa</button>}
-    {student.status === 'suspended' && <button className="admin-primary-button small" onClick={() => setModal({ student, type: 'activate', reason: '', error: '' })}>Kích hoạt</button>}
+    {student.status === 'pending' && <><UiButton size="small" onClick={() => setModal({ student, type: 'approve', reason: '', error: '' })}>Duyệt</UiButton><UiButton variant="danger" onClick={() => setModal({ student, type: 'reject', reason: '', error: '' })}>Từ chối</UiButton></>}
+    {student.status === 'active' && <UiButton variant="danger" onClick={() => setModal({ student, type: 'suspend', reason: '', error: '' })}>Tạm khóa</UiButton>}
+    {student.status === 'suspended' && <UiButton size="small" onClick={() => setModal({ student, type: 'activate', reason: '', error: '' })}>Kích hoạt</UiButton>}
   </div>;
 
   const emptyMessage = committedSearch ? 'Không tìm thấy học viên phù hợp.' : status === 'pending' ? 'Hiện không có học viên nào đang chờ duyệt.' : 'Chưa có học viên nào trong danh sách này.';
@@ -83,12 +85,12 @@ export default function AdminStudentsPage() {
   }[modal.type];
 
   return <div className="admin-page-container">
-    <header className="admin-page-header"><div><p className="admin-eyebrow">Teacher portal</p><h1 className="admin-page-title">Học viên</h1><p className="admin-page-sub">Tìm kiếm, duyệt và quản lý trạng thái tài khoản học viên.</p></div></header>
+    <PageHeader eyebrow="Teacher portal" title="Học viên" description="Tìm kiếm, duyệt và quản lý trạng thái tài khoản học viên." />
     <div className="admin-filter-tabs" aria-label="Lọc theo trạng thái">{statuses.map(([key, text]) => <button key={key} type="button" className={status === key ? 'active' : ''} onClick={() => updateParams({ status: key, page: '1' })}>{text}</button>)}</div>
-    <form className="admin-search-bar" onSubmit={(event) => { event.preventDefault(); updateParams({ search: search.trim(), page: '1' }); }}><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm theo tên, email hoặc số điện thoại..." aria-label="Tìm học viên" />{search && <button type="button" className="admin-clear-search" onClick={() => { setSearch(''); updateParams({ search: '', page: '1' }); }} aria-label="Xóa tìm kiếm">×</button>}<button className="admin-primary-button" type="submit">Tìm kiếm</button></form>
+    <form className="admin-search-bar" onSubmit={(event) => { event.preventDefault(); updateParams({ search: search.trim(), page: '1' }); }}><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm theo tên, email hoặc số điện thoại..." aria-label="Tìm học viên" />{search && <button type="button" className="admin-clear-search" onClick={() => { setSearch(''); updateParams({ search: '', page: '1' }); }} aria-label="Xóa tìm kiếm">×</button>}<UiButton type="submit">Tìm kiếm</UiButton></form>
     {error && <div className="admin-error" role="alert">{error}</div>}
-    <div className="admin-table-container">{loading ? <div className="admin-table-skeleton"><i /><i /><i /><i /><i /></div> : <table className="admin-data-table"><thead><tr><th>Học viên</th><th>Email</th><th>Số điện thoại</th><th>Ngày đăng ký</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{students.length ? students.map((student) => <tr key={student._id}><td><div className="student-identity"><b>{student.fullName || 'Học viên'}</b><span className="mobile-only">{student.email}</span></div></td><td>{student.email}</td><td>{student.phoneNumber || '—'}</td><td>{formatDate(student.createdAt)}</td><td><span className={`status-badge ${student.status}`}>{statusLabel[student.status] || student.status}</span></td><td><Actions student={student} /></td></tr>) : <tr><td colSpan="6"><div className="admin-empty">{emptyMessage}</div></td></tr>}</tbody></table>}</div>
-    {!loading && students.length > 0 && <div className="admin-mobile-card-list">{students.map((student) => <article className="admin-student-card" key={student._id}><div><b>{student.fullName || 'Học viên'}</b><span>{student.email}</span><span>{student.phoneNumber || 'Chưa có số điện thoại'}</span></div><div className="student-card-meta"><span className={`status-badge ${student.status}`}>{statusLabel[student.status] || student.status}</span><span>Đăng ký: {formatDate(student.createdAt)}</span></div><Actions student={student} /></article>)}</div>}
+    <div className="admin-table-container">{loading ? <div className="admin-table-skeleton"><i /><i /><i /><i /><i /></div> : <table className="admin-data-table"><thead><tr><th>Học viên</th><th>Email</th><th>Số điện thoại</th><th>Ngày đăng ký</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{students.length ? students.map((student) => <tr key={student._id}><td><div className="student-identity"><b>{student.fullName || 'Học viên'}</b></div></td><td>{student.email}</td><td>{student.phoneNumber || '—'}</td><td>{formatDate(student.createdAt)}</td><td><StatusBadge status={student.status} /></td><td><Actions student={student} /></td></tr>) : <tr><td colSpan="6"><div className="admin-empty">{emptyMessage}</div></td></tr>}</tbody></table>}</div>
+
     {!loading && paging.pages > 1 && <nav className="admin-pagination" aria-label="Phân trang"><button disabled={page === 1} onClick={() => updateParams({ page: String(page - 1) })}>Trước</button><span>Trang {page} / {paging.pages}</span><button disabled={page === paging.pages} onClick={() => updateParams({ page: String(page + 1) })}>Sau</button></nav>}
     {modal && <div className="admin-modal-backdrop" role="presentation"><section className="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title"><button className="modal-close" onClick={() => !submitting && setModal(null)} aria-label="Đóng">×</button><h2 id="confirm-title">{modalCopy[0]}</h2><p><strong>{modal.student.fullName || 'Học viên'}</strong><br />{modal.student.email}</p><p>{modalCopy[1]}</p>{modal.type === 'reject' && <label className="admin-modal-label">Lý do từ chối <span>(không bắt buộc)</span><textarea value={modal.reason} onChange={(event) => setModal((current) => ({ ...current, reason: event.target.value }))} rows="3" placeholder="Nhập lý do để lưu vào hồ sơ học viên..." /></label>}{modal.error && <div className="admin-error" role="alert">{modal.error}</div>}<div className="modal-actions"><button className="admin-quiet-button" onClick={() => setModal(null)} disabled={submitting}>Hủy</button><button className={modal.type === 'reject' || modal.type === 'suspend' ? 'admin-danger-button' : 'admin-primary-button'} onClick={runAction} disabled={submitting}>{submitting ? 'Đang xử lý...' : modalCopy[2]}</button></div></section></div>}
     {toast && <div className="admin-toast" role="status">{toast}</div>}

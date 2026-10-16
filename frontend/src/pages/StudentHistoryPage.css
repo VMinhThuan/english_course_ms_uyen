@@ -1,0 +1,2 @@
+.student-history-page { display: flex; max-width: 1280px; flex-direction: column; gap: 24px; margin: 0 auto; }
+.history-empty { gap: 14px; }.history-table strong { color: var(--brand-text); }.history-score { color: var(--brand-coffee); font-family: var(--font-serif); font-size: 18px; }.history-score--pass { color: var(--brand-success); }.history-score--fail { color: var(--brand-danger); }.history-subscore { margin-top: 3px; color: var(--brand-muted); font-size: 11px; }

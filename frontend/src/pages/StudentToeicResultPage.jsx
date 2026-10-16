@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
+import StatusBadge from '../components/ui/StatusBadge.jsx';
+import AssessmentQuestionReviewCard from '../components/assessment/AssessmentQuestionReviewCard.jsx';
+import '../styles/assessment-screens.css';
 
 export default function StudentToeicResultPage() {
   const { attemptId } = useParams();
@@ -31,9 +34,9 @@ export default function StudentToeicResultPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '5rem 1rem', textAlign: 'center', color: '#64748B' }}>
+      <div className="toeic-result-screen toeic-result-screen--state toeic-result-screen--loading">
         <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📊</div>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A' }}>Đang tổng hợp kết quả bài thi TOEIC...</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--brand-text)' }}>Đang tổng hợp kết quả bài thi TOEIC...</h2>
         <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>Vui lòng đợi trong giây lát</p>
       </div>
     );
@@ -41,9 +44,9 @@ export default function StudentToeicResultPage() {
 
   if (error || !attempt) {
     return (
-      <div style={{ maxWidth: '600px', margin: '4rem auto', padding: '1.5rem', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', borderRadius: '12px', textAlign: 'center' }}>
+      <div className="toeic-result-screen toeic-result-screen--state toeic-result-screen--error">
         <p style={{ marginBottom: '1rem' }}>{error || 'Không tìm thấy kết quả lượt làm bài.'}</p>
-        <Link to="/student/toeic" style={{ color: '#0284C7', fontWeight: 700, textDecoration: 'none' }}>
+        <Link to="/student/toeic">
           ← Quay lại Kho Đề TOEIC
         </Link>
       </div>
@@ -64,38 +67,16 @@ export default function StudentToeicResultPage() {
     : Array.isArray(attempt.answers) ? attempt.answers : [];
 
   return (
-    <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="toeic-result-screen toeic-result-screen--report">
       {/* Header Banner */}
-      <div
-        style={{
-          background: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #E2E8F0',
-          padding: '2rem',
-          textAlign: 'center',
-          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)',
-        }}
-      >
-        <span
-          style={{
-            fontSize: '0.8rem',
-            fontWeight: 800,
-            padding: '0.25rem 0.85rem',
-            borderRadius: '20px',
-            background: '#DCFCE7',
-            color: '#166534',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}
-        >
-          ✓ ĐÃ HOÀN THÀNH BÀI THI
-        </span>
+      <div className="ds-card toeic-result-screen__overview">
+        <StatusBadge status="completed" label="✓ ĐÃ HOÀN THÀNH BÀI THI" />
 
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', marginTop: '0.75rem', marginBottom: '0.5rem' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-text)', marginTop: '0.75rem', marginBottom: '0.5rem' }}>
           {assessment?.title || 'TOEIC Test Result'}
         </h1>
 
-        <p style={{ fontSize: '0.9rem', color: '#64748B', marginBottom: '1.5rem' }}>
+        <p style={{ fontSize: '0.9rem', color: 'var(--brand-muted)', marginBottom: '1.5rem' }}>
           Thời gian nộp: {new Date(attempt.submittedAt || attempt.updatedAt).toLocaleString('vi-VN')} • Làm bài: {attempt.duration ? `${Math.round(attempt.duration / 60)} phút` : '---'}
         </p>
 
@@ -103,46 +84,46 @@ export default function StudentToeicResultPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem', marginTop: '1.25rem' }}>
           {/* Estimated TOEIC Score if available */}
           {estimatedToeicScore !== undefined && (
-            <div style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFFFFF', padding: '1.25rem', borderRadius: '14px', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)' }}>
-              <div style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 700 }}>ĐIỂM TOEIC ƯỚC TÍNH</div>
-              <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#38BDF8', marginTop: '0.25rem' }}>
-                {estimatedToeicScore} <span style={{ fontSize: '1.1rem', color: '#94A3B8' }}>/ 990</span>
+            <div className="toeic-result-screen__score-highlight" style={{ padding: '1.25rem', borderRadius: '14px' }}>
+              <div className="toeic-result-screen__score-highlight-label" style={{ fontSize: '0.85rem', fontWeight: 700 }}>ĐIỂM TOEIC ƯỚC TÍNH</div>
+              <div className="toeic-result-screen__score-highlight-value" style={{ fontSize: '2.2rem', fontWeight: 800, marginTop: '0.25rem' }}>
+                {estimatedToeicScore} <span style={{ fontSize: '1.1rem' }}>/ 990</span>
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#CBD5E1', marginTop: '0.25rem' }}>
+              <div className="toeic-result-screen__score-highlight-note" style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
                 * Quy đổi theo thang điểm TOEIC
               </div>
             </div>
           )}
 
           {/* Listening Score & Correct */}
-          <div style={{ background: '#F0F9FF', padding: '1.25rem', borderRadius: '14px', border: '1px solid #BAE6FD' }}>
-            <div style={{ fontSize: '0.85rem', color: '#0369A1', fontWeight: 700 }}>🎧 LISTENING</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#0284C7', marginTop: '0.25rem' }}>
+          <div style={{ background: 'var(--brand-yellow-soft)', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--brand-border)' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--brand-coffee)', fontWeight: 700 }}>🎧 LISTENING</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-coffee)', marginTop: '0.25rem' }}>
               {listeningScore !== undefined ? `${listeningScore} đ` : `${breakdown.listeningCorrect || 0} câu`}
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#0369A1', marginTop: '0.25rem', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--brand-coffee)', marginTop: '0.25rem', fontWeight: 600 }}>
               Đúng: {breakdown.listeningCorrect ?? 0} / {breakdown.listeningTotal ?? 100} câu
             </div>
           </div>
 
           {/* Reading Score & Correct */}
-          <div style={{ background: '#F0FDF4', padding: '1.25rem', borderRadius: '14px', border: '1px solid #BBF7D0' }}>
-            <div style={{ fontSize: '0.85rem', color: '#15803D', fontWeight: 700 }}>📖 READING</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#166534', marginTop: '0.25rem' }}>
+          <div style={{ background: 'var(--brand-success-bg)', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--brand-success-border)' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--brand-success)', fontWeight: 700 }}>📖 READING</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-success)', marginTop: '0.25rem' }}>
               {readingScore !== undefined ? `${readingScore} đ` : `${breakdown.readingCorrect || 0} câu`}
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#15803D', marginTop: '0.25rem', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--brand-success)', marginTop: '0.25rem', fontWeight: 600 }}>
               Đúng: {breakdown.readingCorrect ?? 0} / {breakdown.readingTotal ?? 100} câu
             </div>
           </div>
 
           {/* Total Raw Correct & Questions */}
-          <div style={{ background: '#F8FAFC', padding: '1.25rem', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 700 }}>TỔNG CÂU ĐÚNG</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#334155', marginTop: '0.25rem' }}>
-              {totalCorrect} <span style={{ fontSize: '1.1rem', color: '#64748B' }}>/ {totalQuestions}</span>
+          <div style={{ background: 'var(--brand-bg-sub)', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--brand-border)' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--brand-muted)', fontWeight: 700 }}>TỔNG CÂU ĐÚNG</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-text)', marginTop: '0.25rem' }}>
+              {totalCorrect} <span style={{ fontSize: '1.1rem', color: 'var(--brand-muted)' }}>/ {totalQuestions}</span>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', fontSize: '0.75rem', marginTop: '0.35rem', color: '#64748B' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', fontSize: '0.75rem', marginTop: '0.35rem', color: 'var(--brand-muted)' }}>
               <span>Sai: {attempt.incorrectCount ?? 0}</span>
               <span>•</span>
               <span>Bỏ trống: {attempt.unansweredCount ?? 0}</span>
@@ -152,8 +133,8 @@ export default function StudentToeicResultPage() {
       </div>
 
       {/* Part Breakdown Cards */}
-      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', marginBottom: '1rem' }}>
+      <div className="ds-card toeic-result-screen__section">
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--brand-text)', marginBottom: '1rem' }}>
           Kết Quả Từng Part (1–7)
         </h2>
 
@@ -164,25 +145,25 @@ export default function StudentToeicResultPage() {
             const isListening = partNum <= 4;
 
             return (
-              <div key={partNum} style={{ padding: '1rem', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+              <div key={partNum} style={{ padding: '1rem', background: 'var(--brand-bg-sub)', borderRadius: '12px', border: '1px solid var(--brand-border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.15rem 0.4rem', borderRadius: '4px', background: isListening ? '#E0F2FE' : '#DCFCE7', color: isListening ? '#0369A1' : '#166534' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.15rem 0.4rem', borderRadius: '4px', background: isListening ? 'var(--brand-yellow-soft)' : 'var(--brand-success-bg)', color: isListening ? 'var(--brand-coffee)' : 'var(--brand-success)' }}>
                       {isListening ? 'L' : 'R'}
                     </span>
-                    <strong style={{ fontSize: '0.9rem', color: '#0F172A' }}>Part {partNum}</strong>
+                    <strong style={{ fontSize: '0.9rem', color: 'var(--brand-text)' }}>Part {partNum}</strong>
                   </div>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0284C7' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-coffee)' }}>
                     {partStat.correct} / {partStat.total} ({pct}%)
                   </span>
                 </div>
 
-                <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ width: '100%', height: '8px', background: 'var(--brand-bg-sub)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div
                     style={{
                       width: `${pct}%`,
                       height: '100%',
-                      background: pct >= 70 ? '#22C55E' : pct >= 50 ? '#EAB308' : '#EF4444',
+                      background: pct >= 70 ? 'var(--brand-success)' : pct >= 50 ? 'var(--brand-yellow-hover)' : 'var(--brand-danger)',
                       borderRadius: '4px',
                       transition: 'width 0.3s ease',
                     }}
@@ -196,111 +177,39 @@ export default function StudentToeicResultPage() {
 
       {/* Detailed Review Section if Allowed by Assessment Policy */}
       {showAnswers && reviewList.length > 0 && (
-        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', marginBottom: '1rem' }}>
+        <div className="ds-card toeic-result-screen__section">
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--brand-text)', marginBottom: '1rem' }}>
             Xem Lại Chi Tiết Đáp Án
           </h2>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="assessment-review-list">
             {reviewList.map((item, idx) => {
               const q = typeof item.questionId === 'object' ? item.questionId : item;
               const qNum = q.questionNumber || idx + 1;
-              const qText = q.questionText || q.prompt || q.text || '';
               const selectedOpts = item.selectedOptionIds || item.answers || [];
               const isCorrect = item.isCorrect !== undefined ? item.isCorrect : (item.score > 0);
+              const correctAnswers = [
+                ...(Array.isArray(q.correctAnswers) ? q.correctAnswers : []),
+                ...(Array.isArray(q.correctOptionIds) ? q.correctOptionIds : []),
+              ];
+              const reviewQuestion = {
+                ...q,
+                correctAnswers,
+                studentAnswer: selectedOpts,
+                isCorrect,
+              };
+              const questionKey = q._id
+                || (typeof item.questionId === 'string' ? item.questionId : item.questionId?._id)
+                || idx;
 
               return (
-                <div
-                  key={idx}
-                  style={{
-                    padding: '1.25rem',
-                    borderRadius: '12px',
-                    border: isCorrect ? '1px solid #BBF7D0' : '1px solid #FECACA',
-                    background: isCorrect ? '#F0FDF4' : '#FEF2F2',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                      <span
-                        style={{
-                          background: isCorrect ? '#166534' : '#991B1B',
-                          color: '#FFFFFF',
-                          fontSize: '0.8rem',
-                          fontWeight: 800,
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: '6px',
-                          flexShrink: 0,
-                        }}
-                      >
-                        Câu {qNum}
-                      </span>
-                      {qText && (
-                        <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F172A', lineHeight: 1.4 }}>
-                          {qText}
-                        </span>
-                      )}
-                    </div>
-
-                    <span style={{ fontWeight: 800, fontSize: '0.85rem', color: isCorrect ? '#166534' : '#991B1B', whiteSpace: 'nowrap' }}>
-                      {isCorrect ? '✓ Đúng' : '✗ Sai'}
-                    </span>
-                  </div>
-
-                  {/* Options List */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
-                    {(q.options || []).map((opt) => {
-                      const optId = opt.id || opt._id;
-                      const isChosen = selectedOpts.includes(optId);
-                      const isRight = (q.correctAnswers || []).includes(opt.text) || (q.correctAnswers || []).includes(optId) || (q.correctOptionIds || []).includes(optId);
-
-                      let optionBg = 'transparent';
-                      let optionBorder = 'transparent';
-                      let optionColor = '#475569';
-
-                      if (isRight) {
-                        optionBg = '#DCFCE7';
-                        optionBorder = '#86EFAC';
-                        optionColor = '#166534';
-                      } else if (isChosen && !isRight) {
-                        optionBg = '#FEE2E2';
-                        optionBorder = '#FCA5A5';
-                        optionColor = '#991B1B';
-                      }
-
-                      return (
-                        <div
-                          key={optId}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '8px',
-                            background: optionBg,
-                            border: `1px solid ${optionBorder}`,
-                            color: optionColor,
-                            fontSize: '0.9rem',
-                            fontWeight: isRight || isChosen ? 700 : 400,
-                          }}
-                        >
-                          <span style={{ width: '20px', textAlign: 'center' }}>
-                            {isChosen ? (isRight ? '✓' : '✗') : isRight ? '★' : '○'}
-                          </span>
-                          <span>{opt.text}</span>
-                          {isChosen && <span style={{ fontSize: '0.75rem', marginLeft: 'auto' }}>(Đã chọn)</span>}
-                          {isRight && <span style={{ fontSize: '0.75rem', marginLeft: 'auto' }}>(Đáp án đúng)</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Explanation */}
-                  {q.explanation && (
-                    <div style={{ marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px dashed #CBD5E1', fontSize: '0.85rem', color: '#475569', lineHeight: 1.5 }}>
-                      <strong>💡 Giải thích:</strong> {q.explanation}
-                    </div>
-                  )}
-                </div>
+                <AssessmentQuestionReviewCard
+                  key={questionKey}
+                  question={reviewQuestion}
+                  questionNumber={qNum}
+                  showCorrectAnswer={showAnswers}
+                  variant="options"
+                />
               );
             })}
           </div>
@@ -313,13 +222,13 @@ export default function StudentToeicResultPage() {
           to="/student/toeic"
           style={{
             padding: '0.75rem 1.75rem',
-            background: '#0284C7',
-            color: '#FFFFFF',
+            background: 'var(--brand-yellow)',
+            color: 'var(--brand-text)',
             borderRadius: '10px',
             textDecoration: 'none',
             fontWeight: 800,
             fontSize: '0.95rem',
-            boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)',
+            boxShadow: 'var(--shadow-hover)',
           }}
         >
           ← Trở Về Kho Đề TOEIC
@@ -328,8 +237,8 @@ export default function StudentToeicResultPage() {
           to="/student/history"
           style={{
             padding: '0.75rem 1.75rem',
-            background: '#F1F5F9',
-            color: '#475569',
+            background: 'var(--brand-bg-sub)',
+            color: 'var(--brand-muted)',
             borderRadius: '10px',
             textDecoration: 'none',
             fontWeight: 700,

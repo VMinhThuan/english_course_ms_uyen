@@ -25,7 +25,7 @@ export default function AuthLayout({ activeTab, title, subtitle, children, showT
   }, []);
 
   return (
-    <div className="auth-page-wrapper">
+    <div className="auth-page-wrapper ds-auth-screen">
       <div className="auth-split-container">
         {/* Left Visual Section (52%) */}
         <div className="auth-visual-section">
@@ -35,7 +35,7 @@ export default function AuthLayout({ activeTab, title, subtitle, children, showT
                 <div
                   key={index}
                   className={`auth-slide ${index === currentSlide ? 'active' : ''}`}
-                  style={{ backgroundImage: `url(${image})` }}
+                  style={{ '--auth-slide-background': `url(${image})` }}
                 />
               ))}
             </div>

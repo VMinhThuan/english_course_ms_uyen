@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { assessmentApi } from '../api/assessmentApi.js';
+import StatusBadge from '../components/ui/StatusBadge.jsx';
+import AssessmentQuestionReviewCard from '../components/assessment/AssessmentQuestionReviewCard.jsx';
+import '../styles/assessment-screens.css';
 
 export default function StudentResultDetailPage() {
   const { attemptId } = useParams();
@@ -38,7 +41,7 @@ export default function StudentResultDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem 1.5rem', textAlign: 'center', color: '#64748B' }}>
+      <div className="student-result-screen student-result-screen--state student-result-screen--detail student-result-screen--loading">
         Đang tải kết quả bài làm...
       </div>
     );
@@ -46,11 +49,11 @@ export default function StudentResultDetailPage() {
 
   if (error || !result) {
     return (
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem' }}>
-        <div style={{ padding: '1.25rem', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', borderRadius: '12px', marginBottom: '1rem' }}>
+      <div className="student-result-screen student-result-screen--state student-result-screen--detail student-result-screen--error">
+        <div className="student-result-screen__error-message">
           {error || 'Không tìm thấy kết quả làm bài'}
         </div>
-        <Link to="/student/history" style={{ color: '#0284C7', fontWeight: 600, textDecoration: 'none' }}>
+        <Link to="/student/history" style={{ color: 'var(--brand-coffee)', fontWeight: 600, textDecoration: 'none' }}>
           ← Quay lại Lịch sử làm bài
         </Link>
       </div>
@@ -65,40 +68,20 @@ export default function StudentResultDetailPage() {
   const isPassed = attemptData.passed === true;
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="student-result-screen student-result-screen--detail">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link to="/student/history" style={{ color: '#0284C7', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
+        <Link to="/student/history" className="ds-back-link">
           ← Quay lại Lịch sử làm bài
         </Link>
-        <span
-          style={{
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            padding: '0.25rem 0.6rem',
-            borderRadius: '6px',
-            background: assessmentData?.type === 'exam' ? '#FEE2E2' : '#DCFCE7',
-            color: assessmentData?.type === 'exam' ? '#991B1B' : '#166534',
-          }}
-        >
-          {assessmentData?.type === 'exam' ? 'BÀI KIỂM TRA' : 'BÀI TẬP'}
-        </span>
+        <StatusBadge status={assessmentData?.type} label={assessmentData?.type === 'exam' ? 'BÀI KIỂM TRA' : 'BÀI TẬP'} />
       </div>
 
       {/* Result Overview Header Card */}
-      <div
-        style={{
-          background: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #E2E8F0',
-          padding: '2rem',
-          textAlign: 'center',
-          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)',
-        }}
-      >
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>
+      <div className="ds-card student-result-screen__overview">
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-text)', marginBottom: '0.5rem' }}>
           {assessmentData?.title || attemptData?.assessmentTitle || 'Bài đánh giá'}
         </h1>
-        <p style={{ fontSize: '0.9rem', color: '#64748B', marginBottom: '1.5rem' }}>
+        <p style={{ fontSize: '0.9rem', color: 'var(--brand-muted)', marginBottom: '1.5rem' }}>
           Thời gian nộp: {attemptData?.submittedAt ? new Date(attemptData.submittedAt).toLocaleString('vi-VN') : '---'}
         </p>
 
@@ -107,15 +90,13 @@ export default function StudentResultDetailPage() {
             style={{
               fontSize: '3rem',
               fontWeight: 900,
-              color: isPassed ? '#166534' : '#991B1B',
+              color: isPassed ? 'var(--brand-success)' : 'var(--brand-danger)',
               lineHeight: 1,
             }}
           >
-            {attemptData?.score || 0} <span style={{ fontSize: '1.5rem', color: '#94A3B8' }}>/ {attemptData?.totalScore || attemptData?.maxScore || 100}</span>
+            {attemptData?.score || 0} <span style={{ fontSize: '1.5rem', color: 'var(--brand-muted)' }}>/ {attemptData?.totalScore || attemptData?.maxScore || 100}</span>
           </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: isPassed ? '#166534' : '#991B1B', marginTop: '0.5rem' }}>
-            {attemptData?.scorePercentage ?? attemptData?.percentage ?? 0}% — {isPassed ? 'ĐẠT' : 'CHƯA ĐẠT'}
-          </div>
+          <StatusBadge status={isPassed ? 'passed' : 'failed'} label={`${attemptData?.scorePercentage ?? attemptData?.percentage ?? 0}% — ${isPassed ? 'ĐẠT' : 'CHƯA ĐẠT'}`} />
         </div>
 
         {/* Detailed Stats Row */}
@@ -124,87 +105,52 @@ export default function StudentResultDetailPage() {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
             gap: '1rem',
-            background: '#F8FAFC',
+            background: 'var(--brand-bg-sub)',
             padding: '1.25rem',
             borderRadius: '12px',
-            border: '1px solid #E2E8F0',
+            border: '1px solid var(--brand-border)',
           }}
         >
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#166534' }}>{attemptData?.correctCount || 0}</div>
-            <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Câu đúng</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-success)' }}>{attemptData?.correctCount || 0}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)' }}>Câu đúng</div>
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#991B1B' }}>{attemptData?.incorrectCount || 0}</div>
-            <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Câu sai</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-danger)' }}>{attemptData?.incorrectCount || 0}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)' }}>Câu sai</div>
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#D97706' }}>{attemptData?.unansweredCount || 0}</div>
-            <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Chưa trả lời</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-warning)' }}>{attemptData?.unansweredCount || 0}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)' }}>Chưa trả lời</div>
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0369A1' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-coffee)' }}>
               {attemptData?.duration ? `${Math.round(attemptData.duration / 60)} phút` : '---'}
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Thời gian làm</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)' }}>Thời gian làm</div>
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#475569' }}>{passScore}%</div>
-            <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Điểm đạt</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-muted)' }}>{passScore}%</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)' }}>Điểm đạt</div>
           </div>
         </div>
       </div>
 
       {/* Question Review Section */}
       {showAnswers ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A' }}>Xem Lại Chi Tiết Câu Hỏi</h2>
-          {questionsList.map((q, idx) => (
-            <div
-              key={q._id || idx}
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '12px',
-                border: `1px solid ${q.isCorrect ? '#86EFAC' : q.studentAnswer ? '#FCA5A5' : '#E2E8F0'}`,
-                padding: '1.25rem',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <span style={{ fontWeight: 700, color: '#0F172A' }}>Câu {idx + 1}: {q.prompt || q.questionText}</span>
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    padding: '0.2rem 0.5rem',
-                    borderRadius: '4px',
-                    background: q.isCorrect ? '#DCFCE7' : q.studentAnswer ? '#FEE2E2' : '#F1F5F9',
-                    color: q.isCorrect ? '#166534' : q.studentAnswer ? '#991B1B' : '#64748B',
-                  }}
-                >
-                  {q.isCorrect ? 'ĐÚNG' : q.studentAnswer ? 'SAI' : 'BỎ QUA'}
-                </span>
-              </div>
-
-              <div style={{ fontSize: '0.9rem', color: '#334155', marginBottom: '0.5rem' }}>
-                <strong>Câu trả lời của bạn:</strong> {Array.isArray(q.studentAnswer) ? q.studentAnswer.join(', ') : q.studentAnswer || '(Chưa trả lời)'}
-              </div>
-
-              {(q.correctAnswer || q.correctAnswers) && (
-                <div style={{ fontSize: '0.9rem', color: '#166534', fontWeight: 600 }}>
-                  <strong>Đáp án đúng:</strong> {Array.isArray(q.correctAnswer || q.correctAnswers) ? (q.correctAnswer || q.correctAnswers).join(', ') : (q.correctAnswer || q.correctAnswers)}
-                </div>
-              )}
-
-              {q.explanation && (
-                <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#475569', fontStyle: 'italic', background: '#F8FAFC', padding: '0.5rem', borderRadius: '6px' }}>
-                  Giải thích: {q.explanation}
-                </div>
-              )}
-            </div>
+        <div className="assessment-review-list">
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--brand-text)' }}>Xem Lại Chi Tiết Câu Hỏi</h2>
+          {questionsList.map((question, idx) => (
+            <AssessmentQuestionReviewCard
+              key={question._id || question.questionId || idx}
+              question={question}
+              questionNumber={idx + 1}
+              showCorrectAnswer={showAnswers}
+            />
           ))}
         </div>
       ) : (
-        <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', color: '#92400E', padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+        <div style={{ background: 'var(--brand-warning-bg)', border: '1px solid var(--brand-warning-border)', color: 'var(--brand-warning)', padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
           Bài kiểm tra này không bật chế độ hiển thị đáp án chi tiết sau khi làm.
         </div>
       )}

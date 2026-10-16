@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { assessmentApi } from '../api/assessmentApi.js';
+import StatusBadge from '../components/ui/StatusBadge.jsx';
+import UiButton from '../components/ui/UiButton.jsx';
+import AssessmentQuestionReviewCard from '../components/assessment/AssessmentQuestionReviewCard.jsx';
 import { speakText, stopSpeaking } from '../utils/tts.js';
 import { startSpeechRecognition, stopSpeechRecognition, isSpeechRecognitionSupported } from '../utils/speechRecognition.js';
 import './TestPage.css';
+import '../styles/assessment-screens.css';
 
 export default function TestPage() {
   const { testId } = useParams();
@@ -23,6 +27,8 @@ export default function TestPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const desktopNavigatorRef = useRef(null);
+  const mobileNavigatorRef = useRef(null);
 
   // STT / TTS states
   const [isRecording, setIsRecording] = useState(false);
@@ -105,6 +111,45 @@ export default function TestPage() {
       document.body.style.overflow = '';
     };
   }, [showMobileSheet, showConfirmModal]);
+
+  // Keep the navigator in sync when the learner scrolls through the question list.
+  useEffect(() => {
+    if (!questions.length || result || typeof IntersectionObserver === 'undefined') return undefined;
+
+    const questionCards = document.querySelectorAll('.test-screen--active .question-card[data-question-index]');
+    if (!questionCards.length) return undefined;
+
+    const observer = new IntersectionObserver((entries) => {
+      const visibleQuestions = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => Math.abs(a.boundingClientRect.top - window.innerHeight * 0.3)
+          - Math.abs(b.boundingClientRect.top - window.innerHeight * 0.3));
+
+      const visibleIndex = visibleQuestions[0]?.target?.dataset?.questionIndex;
+      if (visibleIndex !== undefined) setCurrentQuestionIndex(Number(visibleIndex));
+    }, { rootMargin: '-18% 0px -60% 0px', threshold: 0 });
+
+    questionCards.forEach((card) => observer.observe(card));
+    return () => observer.disconnect();
+  }, [questions.length, result]);
+
+  // Scroll only the question-number panel so the active number stays visible.
+  useEffect(() => {
+    [desktopNavigatorRef.current, showMobileSheet ? mobileNavigatorRef.current : null]
+      .filter(Boolean)
+      .forEach((grid) => {
+        const tile = grid.querySelector(`[data-question-index="${currentQuestionIndex}"]`);
+        if (!tile) return;
+
+        const gridRect = grid.getBoundingClientRect();
+        const tileRect = tile.getBoundingClientRect();
+        if (tileRect.top < gridRect.top) {
+          grid.scrollTop -= gridRect.top - tileRect.top + 8;
+        } else if (tileRect.bottom > gridRect.bottom) {
+          grid.scrollTop += tileRect.bottom - gridRect.bottom + 8;
+        }
+      });
+  }, [currentQuestionIndex, showMobileSheet]);
 
   // TTS
   const handlePlayText = (text) => {
@@ -198,7 +243,7 @@ export default function TestPage() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '4rem', color: '#64748B' }}>
+      <div className="test-screen test-screen--state test-screen--loading">
         <p>Đang chuẩn bị bài kiểm tra từ máy chủ...</p>
       </div>
     );
@@ -206,11 +251,11 @@ export default function TestPage() {
 
   if (errorMsg || questions.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '4rem' }}>
-        <h3 style={{ color: '#DC2626' }}>{errorMsg || 'Không tìm thấy bài kiểm tra'}</h3>
+      <div className="test-screen test-screen--state test-screen--error">
+        <h3>{errorMsg || 'Không tìm thấy bài kiểm tra'}</h3>
         <button
           onClick={() => navigate(-1)}
-          style={{ marginTop: '1rem', padding: '10px 20px', background: '#0284C7', color: '#FFF', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+          className="ds-button ds-button--primary test-screen__retry-button"
         >
           Quay Lại
         </button>
@@ -221,69 +266,50 @@ export default function TestPage() {
   // Result View
   if (result) {
     return (
-      <div className="test-taking-container" style={{ maxWidth: '850px' }}>
-        <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '2rem', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
-          <h2 style={{ fontSize: '1.75rem', color: '#1E293B', marginBottom: '0.5rem', textAlign: 'center' }}>Kết Quả Bài Kiểm Tra</h2>
-          <p style={{ textAlign: 'center', color: '#64748B', marginBottom: '1.5rem' }}>{result.assessmentTitle}</p>
+      <div className="test-screen test-screen--result">
+      <div className="test-taking-container">
+        <div className="test-screen__result-card ds-panel">
+          <h2 style={{ fontSize: '1.75rem', color: 'var(--brand-text)', marginBottom: '0.5rem', textAlign: 'center' }}>Kết Quả Bài Kiểm Tra</h2>
+          <p style={{ textAlign: 'center', color: 'var(--brand-muted)', marginBottom: '1.5rem' }}>{result.assessmentTitle}</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '2rem' }}>
-            <div style={{ background: '#DCFCE7', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid #86EFAC' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#15803D' }}>{result.percentage}%</div>
-              <p style={{ color: '#166534', fontSize: '0.85rem', margin: 0, fontWeight: 600 }}>Điểm: {result.score} / {result.maxScore}</p>
-              <p style={{ color: result.passed ? '#166534' : '#991B1B', fontSize: '0.85rem', margin: '0.4rem 0 0', fontWeight: 700 }}>Điểm đạt: {result.passScore ?? 0}% · {result.passed ? 'ĐẠT' : 'CHƯA ĐẠT'}</p>
+            <div style={{ background: 'var(--brand-success-bg)', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid var(--brand-success-border)' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-success)' }}>{result.percentage}%</div>
+              <p style={{ color: 'var(--brand-success)', fontSize: '0.85rem', margin: 0, fontWeight: 600 }}>Điểm: {result.score} / {result.maxScore}</p>
+              <StatusBadge status={result.passed ? 'passed' : 'failed'} label={`Điểm đạt: ${result.passScore ?? 0}% · ${result.passed ? 'ĐẠT' : 'CHƯA ĐẠT'}`} />
             </div>
-            <div style={{ background: '#F0FDF4', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid #BBF7D0' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#16A34A' }}>{result.correctCount}</div>
-              <p style={{ color: '#15803D', fontSize: '0.85rem', margin: 0 }}>Câu Đúng</p>
+            <div style={{ background: 'var(--brand-success-bg)', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid var(--brand-success-border)' }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--brand-success)' }}>{result.correctCount}</div>
+              <p style={{ color: 'var(--brand-success)', fontSize: '0.85rem', margin: 0 }}>Câu Đúng</p>
             </div>
-            <div style={{ background: '#FEF2F2', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid #FCA5A5' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#DC2626' }}>{result.incorrectCount}</div>
-              <p style={{ color: '#991B1B', fontSize: '0.85rem', margin: 0 }}>Câu Sai</p>
+            <div style={{ background: 'var(--brand-danger-bg)', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid var(--brand-danger-border)' }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--brand-danger)' }}>{result.incorrectCount}</div>
+              <p style={{ color: 'var(--brand-danger)', fontSize: '0.85rem', margin: 0 }}>Câu Sai</p>
             </div>
-            <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid #E2E8F0' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#64748B' }}>{result.unansweredCount}</div>
-              <p style={{ color: '#475569', fontSize: '0.85rem', margin: 0 }}>Bỏ Trống</p>
+            <div style={{ background: 'var(--brand-bg-sub)', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid var(--brand-border)' }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--brand-muted)' }}>{result.unansweredCount}</div>
+              <p style={{ color: 'var(--brand-muted)', fontSize: '0.85rem', margin: 0 }}>Bỏ Trống</p>
             </div>
           </div>
 
-          <h3 style={{ fontSize: '1.2rem', color: '#1E293B', marginBottom: '1rem' }}>Chi Tiết Từng Câu Hỏi:</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {result.questions?.map((q, idx) => (
-              <div
-                key={q.questionId || idx}
-                style={{
-                  padding: '1.25rem',
-                  borderRadius: '12px',
-                  border: `1px solid ${q.isCorrect ? '#86EFAC' : '#FCA5A5'}`,
-                  background: q.isCorrect ? '#F0FDF4' : '#FEF2F2',
-                }}
-              >
-                <div style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.5rem' }}>
-                  Câu {idx + 1}: {q.questionText}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '0.25rem' }}>
-                  <strong>Trả lời của bạn:</strong> {Array.isArray(q.studentAnswer) ? q.studentAnswer.join(', ') : (q.studentAnswer || '(Bỏ trống)')}
-                </div>
-                {result.showCorrectAnswers && q.correctAnswers && (
-                  <div style={{ fontSize: '0.9rem', color: '#166534', marginBottom: '0.25rem' }}>
-                    <strong>Đáp án đúng:</strong> {q.correctAnswers.join(', ')}
-                  </div>
-                )}
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: q.isCorrect ? '#16A34A' : '#DC2626' }}>
-                  {q.isCorrect ? '✓ Đúng' : '✕ Sai'} (+{q.isCorrect ? q.score : 0} điểm)
-                </div>
-              </div>
+          <h3 style={{ fontSize: '1.2rem', color: 'var(--brand-text)', marginBottom: '1rem' }}>Chi Tiết Từng Câu Hỏi:</h3>
+          <div className="assessment-review-list">
+            {result.questions?.map((question, idx) => (
+              <AssessmentQuestionReviewCard
+                key={question.questionId || idx}
+                question={question}
+                questionNumber={idx + 1}
+                showCorrectAnswer={result.showCorrectAnswers}
+                variant="options"
+              />
             ))}
           </div>
 
-          <button
-            onClick={() => navigate('/student/dashboard')}
-            className="btn-submit-exam"
-            style={{ marginTop: '2rem' }}
-          >
+          <UiButton onClick={() => navigate('/student/dashboard')} className="btn-submit-exam" style={{ marginTop: '2rem' }}>
             Quay Về Trang Học Viên
-          </button>
+          </UiButton>
         </div>
+      </div>
       </div>
     );
   }
@@ -295,6 +321,7 @@ export default function TestPage() {
   }).length;
 
   return (
+    <div className="test-screen test-screen--active">
     <div className="test-taking-container">
       {/* Sticky Header with Server-based Timer & Progress */}
       <div className="test-sticky-header">
@@ -302,7 +329,7 @@ export default function TestPage() {
           <h2>Bài Kiểm Tra</h2>
           <p>Đã làm {answeredCount}/{totalQuestions} câu {saveState === 'saving' ? '· Đang lưu...' : saveState === 'saved' ? '· Đã lưu' : saveState === 'error' ? '· Chưa thể lưu' : ''}</p>
         </div>
-        <div className="test-timer-badge" style={{ background: timeLeftSeconds < 180 ? '#FEE2E2' : '#EFF6FF', color: timeLeftSeconds < 180 ? '#DC2626' : '#1D4ED8' }}>
+        <div className="test-timer-badge" style={{ background: timeLeftSeconds < 180 ? 'var(--brand-danger-bg)' : 'var(--brand-yellow-soft)', color: timeLeftSeconds < 180 ? 'var(--brand-danger)' : 'var(--brand-coffee)' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
@@ -320,7 +347,7 @@ export default function TestPage() {
             const currentAnswer = answers[qId];
 
             return (
-              <div key={qId || index} id={`question-${index}`} className="question-card">
+              <div key={qId || index} id={`question-${index}`} data-question-index={index} className="question-card">
                 <span className="question-number-tag">Câu {index + 1} / {totalQuestions}</span>
                 <div className="question-text">{question.questionText}</div>
 
@@ -354,7 +381,7 @@ export default function TestPage() {
                       <button
                         type="button"
                         onClick={() => handlePlayText(question.questionText)}
-                        style={{ padding: '6px 12px', background: '#0284C7', color: '#FFF', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}
+                        style={{ padding: '6px 12px', background: 'var(--brand-yellow)', color: 'var(--brand-text)', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}
                       >
                         🔊 Phát Âm (TTS)
                       </button>
@@ -362,7 +389,7 @@ export default function TestPage() {
                         type="button"
                         onClick={() => handleStartRecording(qId)}
                         disabled={isRecording}
-                        style={{ padding: '6px 12px', background: isRecording ? '#94A3B8' : '#22C55E', color: '#FFF', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}
+                        style={{ padding: '6px 12px', background: isRecording ? 'var(--brand-bg-sub)' : 'var(--brand-success)', color: 'var(--brand-surface)', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}
                       >
                         {isRecording ? '⏹ Đang Ghi Âm...' : '🎤 Nói Để Nhập (STT)'}
                       </button>
@@ -370,7 +397,7 @@ export default function TestPage() {
                         <button
                           type="button"
                           onClick={handleStopRecording}
-                          style={{ padding: '6px 12px', background: '#EF4444', color: '#FFF', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}
+                          style={{ padding: '6px 12px', background: 'var(--brand-danger)', color: 'var(--brand-surface)', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}
                         >
                           Dừng Ghi Âm
                         </button>
@@ -381,7 +408,7 @@ export default function TestPage() {
                       value={currentAnswer || ''}
                       onChange={(e) => setAnswers((prev) => ({ ...prev, [qId]: e.target.value }))}
                       placeholder="Nhập câu trả lời của bạn..."
-                      style={{ width: '100%', height: '48px', padding: '0 16px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '1rem' }}
+                      style={{ width: '100%', height: '48px', padding: '0 16px', borderRadius: '10px', border: '1px solid var(--brand-border)', fontSize: '1rem' }}
                     />
                   </div>
                 )}
@@ -393,7 +420,7 @@ export default function TestPage() {
         {/* Right Column - Desktop Sticky Question Navigator */}
         <div className="test-navigator-column">
           <div className="nav-grid-title">Danh Sách Câu Hỏi</div>
-          <div className="nav-grid-matrix">
+          <div className="nav-grid-matrix" ref={desktopNavigatorRef}>
             {questions.map((q, idx) => {
               const val = answers[q.questionId];
               const isAnswered = val !== undefined && val !== null && val !== '' && !(Array.isArray(val) && val.length === 0);
@@ -401,6 +428,7 @@ export default function TestPage() {
               return (
                 <button
                   key={q.questionId || idx}
+                  data-question-index={idx}
                   className={`nav-tile ${isAnswered ? 'answered' : 'unanswered'} ${isCurrent ? 'current' : ''}`}
                   onClick={() => {
                     setCurrentQuestionIndex(idx);
@@ -465,16 +493,16 @@ export default function TestPage() {
           <div className="bottom-sheet-content" onClick={(e) => e.stopPropagation()}>
             <div className="bottom-sheet-handle" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.15rem', color: '#1E293B', margin: 0 }}>Danh Sách Câu Hỏi</h3>
+              <h3 style={{ fontSize: '1.15rem', color: 'var(--brand-text)', margin: 0 }}>Danh Sách Câu Hỏi</h3>
               <button
                 onClick={() => setShowMobileSheet(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.5rem', color: '#64748B', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', color: 'var(--brand-muted)', cursor: 'pointer' }}
               >
                 ×
               </button>
             </div>
 
-            <div className="nav-grid-matrix" style={{ gridTemplateColumns: 'repeat(5, 1fr)', maxHeight: '50vh', overflowY: 'auto' }}>
+            <div className="nav-grid-matrix" ref={mobileNavigatorRef} style={{ gridTemplateColumns: 'repeat(5, 1fr)', maxHeight: '50vh', overflowY: 'auto' }}>
               {questions.map((q, idx) => {
                 const val = answers[q.questionId];
                 const isAnswered = val !== undefined && val !== null && val !== '' && !(Array.isArray(val) && val.length === 0);
@@ -482,6 +510,7 @@ export default function TestPage() {
                 return (
                   <button
                     key={q.questionId || idx}
+                    data-question-index={idx}
                     className={`nav-tile ${isAnswered ? 'answered' : 'unanswered'} ${isCurrent ? 'current' : ''}`}
                     onClick={() => {
                       setCurrentQuestionIndex(idx);
@@ -515,14 +544,14 @@ export default function TestPage() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3 style={{ fontSize: '1.25rem', color: '#1E293B', margin: 0 }}>Xác Nhận Nộp Bài</h3>
-              <button onClick={() => setShowConfirmModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', color: '#64748B', cursor: 'pointer' }}>×</button>
+              <h3 style={{ fontSize: '1.25rem', color: 'var(--brand-text)', margin: 0 }}>Xác Nhận Nộp Bài</h3>
+              <button onClick={() => setShowConfirmModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', color: 'var(--brand-muted)', cursor: 'pointer' }}>×</button>
             </div>
             <div className="modal-body">
-              <p style={{ color: '#475569', fontSize: '1rem', lineHeight: '1.6' }}>
+              <p style={{ color: 'var(--brand-muted)', fontSize: '1rem', lineHeight: '1.6' }}>
                 Bạn đã trả lời <strong>{answeredCount} / {totalQuestions}</strong> câu hỏi.
                 {answeredCount < totalQuestions && (
-                  <span style={{ color: '#DC2626', display: 'block', marginTop: '0.5rem' }}>
+                  <span style={{ color: 'var(--brand-danger)', display: 'block', marginTop: '0.5rem' }}>
                     ⚠️ Vẫn còn {totalQuestions - answeredCount} câu chưa trả lời!
                   </span>
                 )}
@@ -534,7 +563,7 @@ export default function TestPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
-                style={{ padding: '10px 18px', background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1', borderRadius: '10px', fontWeight: 600 }}
+                style={{ padding: '10px 18px', background: 'var(--brand-bg-sub)', color: 'var(--brand-muted)', border: '1px solid var(--brand-border)', borderRadius: '10px', fontWeight: 600 }}
               >
                 Làm Tiếp
               </button>
@@ -550,6 +579,7 @@ export default function TestPage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

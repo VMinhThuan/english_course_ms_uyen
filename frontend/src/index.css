@@ -5,57 +5,38 @@
 }
 
 :root {
-    /* Brand Color System - Pastel Yellow Primary & Slate Grey Secondary */
-    --primary: #EAB308;
-    --primary-hover: #CA8A04;
-    --primary-active: #A16207;
-    --primary-soft: #FEF9C3;
-    --primary-light: #FFFBEB;
-    --primary-badge: #FEF08A;
-    --primary-text-dark: #1E293B;
-
-    --secondary: #64748B;
-    --secondary-hover: #475569;
-    --secondary-soft: #F1F5F9;
-    --secondary-border: #CBD5E1;
-
-    /* Status Colors */
-    --success: #10B981;
-    --success-soft: #D1FAE5;
-    --warning: #F59E0B;
-    --warning-soft: #FEF3C7;
-    --danger: #EF4444;
-    --danger-soft: #FEE2E2;
-
-    /* Neutral Surfaces */
-    --background: #F8FAFC;
-    --surface: #FFFFFF;
-    --surface-secondary: #F1F5F9;
-    
-    /* Text Colors */
-    --text-primary: #0F172A;
-    --text-secondary: #475569;
-    --text-muted: #94A3B8;
-
-    /* Borders */
-    --border: #E2E8F0;
-    --border-strong: #CBD5E1;
-
-    /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
-    --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.06);
-    --shadow-lg: 0 15px 30px -5px rgba(15, 23, 42, 0.08);
-
-    /* Radii */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-    --radius-pill: 9999px;
-
-    /* Touch Sizing & Typography */
+    --primary: var(--brand-yellow);
+    --primary-hover: var(--brand-yellow-hover);
+    --primary-active: #D8A321;
+    --primary-soft: var(--brand-yellow-soft);
+    --primary-light: #FFFCF4;
+    --primary-badge: #F8DB83;
+    --primary-text-dark: var(--brand-text);
+    --secondary: var(--brand-brown-sec);
+    --secondary-hover: var(--brand-coffee);
+    --secondary-soft: var(--brand-bg-sub);
+    --secondary-border: var(--brand-border);
+    --success: var(--brand-success);
+    --success-soft: var(--brand-success-bg);
+    --warning: var(--brand-warning);
+    --warning-soft: var(--brand-warning-bg);
+    --danger: var(--brand-danger);
+    --danger-soft: var(--brand-danger-bg);
+    --background: var(--brand-bg);
+    --surface: var(--brand-surface);
+    --surface-secondary: var(--brand-bg-sub);
+    --text-primary: var(--brand-text);
+    --text-secondary: var(--brand-brown-sec);
+    --text-muted: var(--brand-muted);
+    --border: var(--brand-border);
+    --border-strong: #D7CABC;
+    --shadow-sm: var(--shadow-subtle);
+    --shadow-md: var(--shadow-hover);
+    --shadow-lg: 0 20px 44px rgba(75,64,53,.16);
+    --radius-lg: var(--radius-card);
+    --radius-xl: var(--radius-section);
     --touch-min-height: 44px;
-    --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-main: var(--font-sans);
 }
 
 body {

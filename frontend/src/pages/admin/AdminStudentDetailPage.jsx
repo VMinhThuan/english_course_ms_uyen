@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { adminApi } from '../../api/adminApi.js';
+import PageHeader from '../../components/ui/PageHeader.jsx';
+import StatusBadge from '../../components/ui/StatusBadge.jsx';
 import './AdminStudentsPage.css';
 const date = (value) => value ? new Intl.DateTimeFormat('vi-VN').format(new Date(value)) : '—';
 export default function AdminStudentDetailPage() {
@@ -9,5 +11,5 @@ export default function AdminStudentDetailPage() {
   if (error) return <div className="admin-page-container"><div className="admin-error">{error}</div></div>;
   if (!student) return <div className="admin-page-container"><div className="admin-table-skeleton"><i /><i /><i /></div></div>;
   const fields = [['Họ và tên', student.fullName], ['Email', student.email], ['Ngày đăng ký', date(student.createdAt)], ['Trạng thái', student.status], ['Ngày được duyệt', date(student.approvedAt)], ['Lần đăng nhập gần nhất', date(student.lastLoginAt)]];
-  return <div className="admin-page-container"><div><Link to="/admin/students" className="admin-text-link">← Học viên</Link><p className="admin-eyebrow" style={{ marginTop: 20 }}>Hồ sơ học viên</p><h1 className="admin-page-title">{student.fullName || 'Học viên'}</h1><p className="admin-page-sub">{student.email}</p></div><section className="admin-panel"><h2>Thông tin tài khoản</h2><div className="student-detail-grid">{fields.map(([name, value]) => <div key={name}><span>{name}</span><strong>{value || '—'}</strong></div>)}</div></section><section className="admin-panel"><h2>Tiến độ học tập</h2><div className="admin-empty">Chưa có dữ liệu tổng hợp.</div></section></div>;
+  return <div className="admin-page-container"><PageHeader backTo="/admin/students" backLabel="Học viên" eyebrow="Hồ sơ học viên" title={student.fullName || 'Học viên'} description={student.email} /><section className="admin-panel"><h2>Thông tin tài khoản</h2><div className="student-detail-grid">{fields.map(([name, value]) => <div key={name}><span>{name}</span>{name === 'Trạng thái' ? <StatusBadge status={value} /> : <strong>{value || '—'}</strong>}</div>)}</div></section><section className="admin-panel"><h2>Tiến độ học tập</h2><div className="admin-empty">Chưa có dữ liệu tổng hợp.</div></section></div>;
 }

@@ -23,16 +23,16 @@ export default function PublicLayout() {
           </Link>
         </div>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <nav className="public-header-nav">
           {isAuthenticated ? (
             <>
               {user?.role === 'student' && (
-                <Link to="/student/my-courses" style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: 600 }}>
+                <Link to="/student/my-courses" className="public-header-link">
                   Bài Học Của Tôi
                 </Link>
               )}
               {user?.role === 'admin' && (
-                <Link to="/admin" style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: 600 }}>
+                <Link to="/admin" className="public-header-link">
                   Trang Quản Trị
                 </Link>
               )}
@@ -41,11 +41,11 @@ export default function PublicLayout() {
               </button>
             </>
           ) : (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Link to="/login" style={{ textDecoration: 'none', padding: '8px 18px', background: '#F1F5F9', color: '#334155', borderRadius: '9999px', fontWeight: 600, fontSize: '14px' }}>
+            <div className="public-auth-actions">
+              <Link to="/login" className="public-auth-link public-auth-link--quiet">
                 Đăng Nhập
               </Link>
-              <Link to="/register" style={{ textDecoration: 'none', padding: '8px 18px', background: '#4F46E5', color: '#FFFFFF', borderRadius: '9999px', fontWeight: 600, fontSize: '14px' }}>
+              <Link to="/register" className="public-auth-link public-auth-link--primary">
                 Đăng Ký
               </Link>
             </div>

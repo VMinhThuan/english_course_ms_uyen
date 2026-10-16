@@ -165,8 +165,7 @@ const Sidebar = () => {
                 <button
                     onClick={toggleCollapse}
                     title={collapsed ? 'Mở rộng' : 'Thu gọn'}
-                    className="sidebar-toggle-btn"
-                    style={{ left: collapsed ? '3.5rem' : '19rem' }}
+                    className={`sidebar-toggle-btn ${collapsed ? 'sidebar-toggle-btn--collapsed' : ''}`}
                     aria-label={collapsed ? 'Mở rộng' : 'Thu gọn'}
                 >
                     <svg

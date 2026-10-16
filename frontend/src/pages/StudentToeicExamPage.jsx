@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
+import '../styles/assessment-screens.css';
 
 export default function StudentToeicExamPage() {
   const { attemptId } = useParams();
@@ -312,22 +313,22 @@ export default function StudentToeicExamPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '5rem 1rem', textAlign: 'center', color: '#64748B', background: '#FFFFFF', minHeight: '100vh' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⏱️</div>
-        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A' }}>Đang tải bài thi TOEIC...</h2>
-        <p style={{ marginTop: '0.5rem', fontSize: '0.95rem' }}>Khôi phục trạng thái làm bài và đồng bộ đồng hồ máy chủ</p>
+      <div className="toeic-exam-screen toeic-exam-screen--state toeic-exam-screen--loading">
+        <div className="toeic-exam-screen__state-icon">⏱️</div>
+        <h2 className="toeic-exam-screen__state-title">Đang tải bài thi TOEIC...</h2>
+        <p className="toeic-exam-screen__state-copy">Khôi phục trạng thái làm bài và đồng bộ đồng hồ máy chủ</p>
       </div>
     );
   }
 
   if (error || !attempt) {
     return (
-      <div style={{ maxWidth: '600px', margin: '4rem auto', padding: '2rem', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', borderRadius: '16px', textAlign: 'center' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Không thể mở bài thi</h3>
-        <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>{error || 'Lượt làm bài không hợp lệ hoặc đã kết thúc.'}</p>
+      <div className="toeic-exam-screen toeic-exam-screen--state toeic-exam-screen--error">
+        <h3>Không thể mở bài thi</h3>
+        <p>{error || 'Lượt làm bài không hợp lệ hoặc đã kết thúc.'}</p>
         <button
           onClick={() => navigate('/student/toeic')}
-          style={{ padding: '0.75rem 1.5rem', background: '#DC2626', color: '#FFFFFF', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
+          className="toeic-exam-screen__back-button"
         >
           Quay lại Kho Đề TOEIC
         </button>
@@ -336,78 +337,31 @@ export default function StudentToeicExamPage() {
   }
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="toeic-exam-screen">
+      <div className="toeic-exam-screen__sticky-shell">
       {/* Sticky Exam Room Header */}
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          background: '#0F172A',
-          color: '#FFFFFF',
-          padding: '0.75rem 1.5rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        }}
-      >
+      <header className="toeic-exam-screen__header">
         {/* Left: Test Title & Save Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h1 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, whiteSpace: 'nowrap', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div className="toeic-exam-screen__header-main">
+          <h1 className="toeic-exam-screen__header-title">
             {assessment?.title || 'TOEIC Test'}
           </h1>
-          <span
-            style={{
-              padding: '0.25rem 0.65rem',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              background: saveStatus === 'saved' ? '#166534' : saveStatus === 'saving' ? '#D97706' : '#991B1B',
-              color: '#FFFFFF',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
+          <span className={`toeic-exam-screen__header-status toeic-exam-screen__header-status--${saveStatus === 'saved' ? 'saved' : saveStatus === 'saving' ? 'saving' : 'error'}`}>
             {saveStatus === 'saved' ? '✓ Đã lưu' : saveStatus === 'saving' ? '⏳ Đang lưu...' : '⚠️ Không thể lưu'}
           </span>
         </div>
 
         {/* Center: Server-Authoritative Timer */}
-        <div
-          style={{
-            background: isExpired ? '#991B1B' : '#1E293B',
-            border: `1px solid ${remainingSeconds < 300 ? '#EF4444' : '#334155'}`,
-            padding: '0.4rem 1.25rem',
-            borderRadius: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '1.15rem',
-            fontWeight: 800,
-            color: remainingSeconds < 300 ? '#EF4444' : '#38BDF8',
-          }}
-        >
+        <div className={`toeic-exam-screen__timer${isExpired ? ' toeic-exam-screen__timer--expired' : remainingSeconds < 300 ? ' toeic-exam-screen__timer--urgent' : ''}`}>
           <span>⏱️</span>
           <span>{formatTime(remainingSeconds)}</span>
         </div>
 
         {/* Right: Navigator toggle (mobile) & Submit button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="toeic-exam-screen__header-actions">
           <button
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="toeic-mobile-nav-btn"
-            style={{
-              padding: '0.45rem 0.85rem',
-              background: '#334155',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-            }}
+            className="toeic-mobile-nav-btn toeic-exam-screen__nav-button"
           >
             📋 Câu hỏi ({answeredCount}/{totalQuestions})
           </button>
@@ -415,18 +369,7 @@ export default function StudentToeicExamPage() {
           <button
             onClick={() => setShowSubmitModal(true)}
             disabled={submitting}
-            style={{
-              padding: '0.55rem 1.5rem',
-              background: '#0284C7',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 800,
-              fontSize: '0.95rem',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              boxShadow: '0 2px 8px rgba(2, 132, 199, 0.4)',
-              transition: 'background 0.15s ease',
-            }}
+            className="toeic-exam-screen__submit-button"
           >
             {submitting ? 'ĐANG NỘP...' : 'NỘP BÀI'}
           </button>
@@ -434,52 +377,30 @@ export default function StudentToeicExamPage() {
       </header>
 
       {/* Part Navigation Bar */}
-      <nav
-        style={{
-          background: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
-          padding: '0.5rem 1.5rem',
-          display: 'flex',
-          gap: '0.5rem',
-          overflowX: 'auto',
-          position: 'sticky',
-          top: '56px',
-          zIndex: 90,
-        }}
-      >
+      <nav className="toeic-exam-screen__part-nav" aria-label="Chọn phần thi TOEIC">
         {parts.map((p) => {
           const isActive = activePartNumber === p.partNumber;
           return (
             <button
               key={p.partNumber}
               onClick={() => setActivePartNumber(p.partNumber)}
-              style={{
-                padding: '0.45rem 1rem',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                background: isActive ? '#0284C7' : '#F1F5F9',
-                color: isActive ? '#FFFFFF' : '#475569',
-                transition: 'all 0.15s ease',
-              }}
+              className={`toeic-exam-screen__part-button${isActive ? ' toeic-exam-screen__part-button--active' : ''}`}
             >
               Part {p.partNumber}
             </button>
           );
         })}
       </nav>
+      </div>
 
       {/* Main Exam Room Container */}
       <div className="toeic-exam-container">
         {/* Left/Main Exam Content */}
         <main className="toeic-exam-main">
           {activePart ? (
-            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '1.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+            <div style={{ background: 'var(--brand-surface)', borderRadius: '16px', border: '1px solid var(--brand-border)', padding: '1.5rem', boxShadow: 'var(--shadow-subtle)' }}>
               {/* Part Header */}
-              <div style={{ borderBottom: '1px solid #E2E8F0', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ borderBottom: '1px solid var(--brand-border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
                   <span
                     style={{
@@ -487,19 +408,19 @@ export default function StudentToeicExamPage() {
                       fontWeight: 800,
                       padding: '0.2rem 0.5rem',
                       borderRadius: '4px',
-                      background: activePart.section === 'listening' ? '#E0F2FE' : '#DCFCE7',
-                      color: activePart.section === 'listening' ? '#0369A1' : '#166534',
+                      background: activePart.section === 'listening' ? 'var(--brand-yellow-soft)' : 'var(--brand-success-bg)',
+                      color: activePart.section === 'listening' ? 'var(--brand-coffee)' : 'var(--brand-success)',
                       textTransform: 'uppercase',
                     }}
                   >
                     {activePart.section === 'listening' ? '🎧 LISTENING' : '📖 READING'}
                   </span>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-text)', margin: 0 }}>
                     PART {activePart.partNumber}: {activePart.name}
                   </h2>
                 </div>
                 {activePart.instructions && (
-                  <p style={{ fontSize: '0.9rem', color: '#64748B', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--brand-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
                     {activePart.instructions}
                   </p>
                 )}
@@ -515,14 +436,14 @@ export default function StudentToeicExamPage() {
                     style={{
                       marginBottom: '2rem',
                       padding: '1.25rem',
-                      background: '#F8FAFC',
+                      background: 'var(--brand-bg-sub)',
                       borderRadius: '14px',
-                      border: '1px solid #E2E8F0',
+                      border: '1px solid var(--brand-border)',
                     }}
                   >
                     {/* Part Title / Instructions if given */}
                     {group.title && (
-                      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-text)', marginBottom: '0.75rem' }}>
                         {group.title}
                       </h3>
                     )}
@@ -532,7 +453,7 @@ export default function StudentToeicExamPage() {
                       <div className="toeic-split-layout">
                         {/* Left Column: Shared Passages / Documents */}
                         <div className="toeic-passage-panel">
-                          <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0284C7', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
+                          <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--brand-coffee)', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
                             {group.passages.length > 1 ? `Đoạn văn đọc hiểu (${group.passages.length} tài liệu)` : 'Đoạn văn đọc hiểu'}
                           </div>
 
@@ -542,16 +463,16 @@ export default function StudentToeicExamPage() {
                                 key={pIdx}
                                 style={{
                                   padding: '1.25rem',
-                                  background: '#F8FAFC',
+                                  background: 'var(--brand-bg-sub)',
                                   borderRadius: '8px',
-                                  border: '1px solid #E2E8F0',
+                                  border: '1px solid var(--brand-border)',
                                   fontSize: '0.95rem',
                                   lineHeight: 1.7,
-                                  color: '#1E293B',
+                                  color: 'var(--brand-text)',
                                 }}
                               >
                                 {pas.title && (
-                                  <h4 style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A', marginBottom: '0.5rem' }}>
+                                  <h4 style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--brand-text)', marginBottom: '0.5rem' }}>
                                     {pas.title}
                                   </h4>
                                 )}
@@ -576,7 +497,7 @@ export default function StudentToeicExamPage() {
                       <div>
                         {/* Audio Stimulus */}
                         {group.audioUrl && (
-                          <div style={{ marginBottom: '1.25rem', background: '#FFFFFF', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div style={{ marginBottom: '1.25rem', background: 'var(--brand-surface)', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid var(--brand-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <span style={{ fontSize: '1.2rem' }}>🎧</span>
                             <audio
                               controls
@@ -609,7 +530,7 @@ export default function StudentToeicExamPage() {
               })}
             </div>
           ) : (
-            <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
+            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)' }}>
               Không có câu hỏi nào thuộc phần này.
             </div>
           )}
@@ -619,16 +540,16 @@ export default function StudentToeicExamPage() {
         <aside className="toeic-navigator-aside">
           <div
             style={{
-              background: '#FFFFFF',
+              background: 'var(--brand-surface)',
               borderRadius: '16px',
-              border: '1px solid #E2E8F0',
+              border: '1px solid var(--brand-border)',
               padding: '1.25rem',
               position: 'sticky',
               top: '120px',
               display: 'flex',
               flexDirection: 'column',
               gap: '1rem',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+              boxShadow: 'var(--shadow-subtle)',
             }}
           >
             {renderNavigatorContent()}
@@ -642,7 +563,7 @@ export default function StudentToeicExamPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
+            background: 'var(--overlay-scrim)',
             backdropFilter: 'blur(2px)',
             zIndex: 1000,
             display: 'flex',
@@ -655,21 +576,21 @@ export default function StudentToeicExamPage() {
               width: '85%',
               maxWidth: '360px',
               height: '100%',
-              background: '#FFFFFF',
+              background: 'var(--brand-surface)',
               padding: '1.5rem',
               display: 'flex',
               flexDirection: 'column',
               gap: '1rem',
-              boxShadow: '-4px 0 20px rgba(0,0,0,0.15)',
+              boxShadow: 'var(--shadow-raised)',
               overflowY: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Bảng Câu Hỏi</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--brand-text)', margin: 0 }}>Bảng Câu Hỏi</h3>
               <button
                 onClick={() => setMobileDrawerOpen(false)}
-                style={{ background: 'transparent', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748B' }}
+                style={{ background: 'transparent', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'var(--brand-muted)' }}
               >
                 ✕
               </button>
@@ -685,7 +606,7 @@ export default function StudentToeicExamPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
+            background: 'var(--overlay-scrim)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
@@ -696,24 +617,24 @@ export default function StudentToeicExamPage() {
         >
           <div
             style={{
-              background: '#FFFFFF',
+              background: 'var(--brand-surface)',
               borderRadius: '16px',
               padding: '2rem',
               maxWidth: '480px',
               width: '100%',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              boxShadow: 'var(--shadow-subtle)',
             }}
           >
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-text)', marginBottom: '0.75rem' }}>
               Xác Nhận Nộp Bài Thi
             </h3>
 
             {unansweredCount > 0 ? (
               <div
                 style={{
-                  background: '#FEF2F2',
-                  border: '1px solid #FCA5A5',
-                  color: '#991B1B',
+                  background: 'var(--brand-danger-bg)',
+                  border: '1px solid var(--brand-danger-border)',
+                  color: 'var(--brand-danger)',
                   padding: '1rem',
                   borderRadius: '10px',
                   fontSize: '0.95rem',
@@ -729,9 +650,9 @@ export default function StudentToeicExamPage() {
             ) : (
               <div
                 style={{
-                  background: '#F0FDF4',
-                  border: '1px solid #BBF7D0',
-                  color: '#166534',
+                  background: 'var(--brand-success-bg)',
+                  border: '1px solid var(--brand-success-border)',
+                  color: 'var(--brand-success)',
                   padding: '1rem',
                   borderRadius: '10px',
                   fontSize: '0.95rem',
@@ -752,8 +673,8 @@ export default function StudentToeicExamPage() {
                 disabled={submitting}
                 style={{
                   padding: '0.65rem 1.25rem',
-                  background: '#F1F5F9',
-                  color: '#475569',
+                  background: 'var(--brand-bg-sub)',
+                  color: 'var(--brand-muted)',
                   border: 'none',
                   borderRadius: '8px',
                   fontWeight: 600,
@@ -768,8 +689,8 @@ export default function StudentToeicExamPage() {
                 disabled={submitting}
                 style={{
                   padding: '0.65rem 1.5rem',
-                  background: '#0284C7',
-                  color: '#FFFFFF',
+                  background: 'var(--brand-yellow)',
+                  color: 'var(--brand-text)',
                   border: 'none',
                   borderRadius: '8px',
                   fontWeight: 800,
@@ -798,12 +719,12 @@ export default function StudentToeicExamPage() {
         key={qId}
         id={`question-${qId}`}
         style={{
-          background: '#FFFFFF',
+          background: 'var(--brand-surface)',
           borderRadius: '12px',
-          border: activeQuestionId === qId ? '2px solid #0284C7' : '1px solid #E2E8F0',
+          border: activeQuestionId === qId ? '2px solid var(--brand-yellow)' : '1px solid var(--brand-border)',
           padding: '1.25rem',
           scrollMarginTop: '120px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          boxShadow: 'var(--shadow-subtle)',
           transition: 'border-color 0.15s ease',
         }}
       >
@@ -812,8 +733,8 @@ export default function StudentToeicExamPage() {
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
             <span
               style={{
-                background: '#0F172A',
-                color: '#FFFFFF',
+                background: 'var(--brand-coffee)',
+                color: 'var(--brand-surface)',
                 fontSize: '0.85rem',
                 fontWeight: 800,
                 padding: '0.2rem 0.6rem',
@@ -824,7 +745,7 @@ export default function StudentToeicExamPage() {
               Câu {qNum}
             </span>
             {questionPrompt && (
-              <span style={{ fontSize: '0.98rem', fontWeight: 600, color: '#0F172A', lineHeight: 1.5 }}>
+              <span style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--brand-text)', lineHeight: 1.5 }}>
                 {questionPrompt}
               </span>
             )}
@@ -838,7 +759,7 @@ export default function StudentToeicExamPage() {
               cursor: 'pointer',
               fontSize: '1.25rem',
               padding: '0.2rem',
-              color: isFlagged ? '#D97706' : '#94A3B8',
+              color: isFlagged ? 'var(--brand-warning)' : 'var(--brand-muted)',
               lineHeight: 1,
             }}
             title={isFlagged ? 'Bỏ đánh dấu' : 'Đánh dấu xem lại'}
@@ -863,11 +784,11 @@ export default function StudentToeicExamPage() {
                   gap: '0.75rem',
                   padding: '0.75rem 1rem',
                   borderRadius: '8px',
-                  border: isSelected ? '2px solid #0284C7' : '1px solid #E2E8F0',
-                  background: isSelected ? '#F0F9FF' : '#FFFFFF',
+                  border: isSelected ? '2px solid var(--brand-yellow)' : '1px solid var(--brand-border)',
+                  background: isSelected ? 'var(--brand-yellow-soft)' : 'var(--brand-surface)',
                   cursor: isExpired ? 'default' : 'pointer',
                   fontSize: '0.95rem',
-                  color: isSelected ? '#0369A1' : '#334155',
+                  color: isSelected ? 'var(--brand-coffee)' : 'var(--brand-text)',
                   fontWeight: isSelected ? 700 : 400,
                   transition: 'all 0.15s ease',
                 }}
@@ -878,7 +799,7 @@ export default function StudentToeicExamPage() {
                   checked={isSelected}
                   onChange={() => {}}
                   disabled={isExpired}
-                  style={{ width: '18px', height: '18px', accentColor: '#0284C7', cursor: 'pointer' }}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--brand-brown-sec)', cursor: 'pointer' }}
                 />
                 <span style={{ flex: 1 }}>{opt.text}</span>
               </label>
@@ -894,14 +815,14 @@ export default function StudentToeicExamPage() {
     return (
       <>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Danh Sách Câu Hỏi</h3>
-          <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 700 }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--brand-text)', margin: 0 }}>Danh Sách Câu Hỏi</h3>
+          <span style={{ fontSize: '0.85rem', color: 'var(--brand-muted)', fontWeight: 700 }}>
             {answeredCount}/{totalQuestions} câu
           </span>
         </div>
 
         {/* Filter Buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.25rem', background: '#F1F5F9', padding: '0.25rem', borderRadius: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.25rem', background: 'var(--brand-bg-sub)', padding: '0.25rem', borderRadius: '8px' }}>
           {[
             { id: 'ALL', label: 'Tất cả' },
             { id: 'UNANSWERED', label: 'Chưa làm' },
@@ -918,9 +839,9 @@ export default function StudentToeicExamPage() {
                 border: 'none',
                 borderRadius: '6px',
                 cursor: 'pointer',
-                background: navFilter === f.id ? '#FFFFFF' : 'transparent',
-                color: navFilter === f.id ? '#0F172A' : '#64748B',
-                boxShadow: navFilter === f.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                background: navFilter === f.id ? 'var(--brand-surface)' : 'transparent',
+                color: navFilter === f.id ? 'var(--brand-text)' : 'var(--brand-muted)',
+                boxShadow: navFilter === f.id ? 'var(--shadow-subtle)' : 'none',
               }}
             >
               {f.label}
@@ -929,17 +850,17 @@ export default function StudentToeicExamPage() {
         </div>
 
         {/* Legend */}
-        <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: '#64748B', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--brand-muted)', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#DCFCE7', border: '1px solid #22C55E' }} />
+            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'var(--brand-success-bg)', border: '1px solid var(--brand-success-border)' }} />
             <span>Đã làm</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#F1F5F9', border: '1px solid #CBD5E1' }} />
+            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'var(--brand-bg-sub)', border: '1px solid var(--brand-border)' }} />
             <span>Chưa làm</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#FEF3C7', border: '1px solid #F59E0B' }} />
+            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'var(--brand-warning-bg)', border: '1px solid var(--brand-warning-border)' }} />
             <span>Đánh dấu</span>
           </div>
         </div>
@@ -956,11 +877,11 @@ export default function StudentToeicExamPage() {
                   style={{
                     fontSize: '0.75rem',
                     fontWeight: 800,
-                    color: '#64748B',
+                    color: 'var(--brand-muted)',
                     textTransform: 'uppercase',
                     marginBottom: '0.4rem',
                     paddingBottom: '0.2rem',
-                    borderBottom: '1px solid #F1F5F9',
+                    borderBottom: '1px solid var(--brand-border-light)',
                   }}
                 >
                   Part {p.partNumber}
@@ -978,35 +899,11 @@ export default function StudentToeicExamPage() {
                     if (navFilter === 'ANSWERED' && !isAnswered) return null;
                     if (navFilter === 'FLAGGED' && !isFlagged) return null;
 
-                    let bgColor = '#F1F5F9';
-                    let textColor = '#475569';
-                    let borderColor = '#CBD5E1';
-
-                    if (isFlagged) {
-                      bgColor = '#FEF3C7';
-                      textColor = '#92400E';
-                      borderColor = '#F59E0B';
-                    } else if (isAnswered) {
-                      bgColor = '#DCFCE7';
-                      textColor = '#166534';
-                      borderColor = '#22C55E';
-                    }
-
                     return (
                       <button
                         key={qId}
                         onClick={() => jumpToQuestion(qId, p.partNumber)}
-                        style={{
-                          padding: '0.4rem 0',
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          borderRadius: '6px',
-                          border: `1px solid ${borderColor}`,
-                          background: bgColor,
-                          color: textColor,
-                          cursor: 'pointer',
-                          transition: 'transform 0.1s ease',
-                        }}
+                        className={`toeic-exam-screen__question-tile${isFlagged ? ' toeic-exam-screen__question-tile--flagged' : isAnswered ? ' toeic-exam-screen__question-tile--answered' : ''}`}
                       >
                         {qNum}
                       </button>

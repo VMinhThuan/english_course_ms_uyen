@@ -247,7 +247,7 @@ export const getAdminStats = async (req, res, next) => {
       Lesson.countDocuments({ status: 'published' }),
       Assessment.countDocuments({}),
       Attempt.countDocuments({ status: 'submitted' }),
-      Attempt.find({ status: 'submitted' }).select('score totalScore percentage'),
+      Attempt.find({ status: 'submitted' }).select('score maxScore scorePercentage'),
       User.find({ role: 'student', status: 'pending' })
         .select('-password')
         .sort({ createdAt: -1 })
@@ -261,7 +261,10 @@ export const getAdminStats = async (req, res, next) => {
 
     let avgPercentage = 0;
     if (submittedAttempts.length > 0) {
-      const sumPerc = submittedAttempts.reduce((acc, curr) => acc + (curr.percentage || 0), 0);
+      const sumPerc = submittedAttempts.reduce(
+        (acc, curr) => acc + (curr.scorePercentage ?? (curr.maxScore > 0 ? Math.round((curr.score / curr.maxScore) * 100) : 0)),
+        0
+      );
       avgPercentage = Math.round(sumPerc / submittedAttempts.length);
     }
 

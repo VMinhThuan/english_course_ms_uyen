@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { courseApi } from '../../api/courseApi.js';
 import { lessonApi } from '../../api/lessonApi.js';
+import PageHeader from '../../components/ui/PageHeader.jsx';
+import UiButton from '../../components/ui/UiButton.jsx';
+import DataTable from '../../components/ui/DataTable.jsx';
+import StatusBadge from '../../components/ui/StatusBadge.jsx';
 import './AdminStudentsPage.css';
 
 export default function AdminLessonsPage() {
@@ -225,40 +229,19 @@ export default function AdminLessonsPage() {
 
   return (
     <div className="admin-page-container">
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Quản Lý Bài Học</h1>
-          <p className="admin-page-sub">
-            Quản lý nội dung bài giảng, video, thứ tự sắp xếp và trạng thái hiển thị cho từng khóa học.
-          </p>
-        </div>
-        {selectedCourseId && (
-          <div>
-            <button
-              onClick={handleOpenCreate}
-              style={{
-                padding: '0.65rem 1.25rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#4F46E5',
-                color: '#FFFFFF',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 2px 4px rgba(79, 70, 229, 0.2)',
-              }}
-            >
+      <PageHeader
+        title="Quản Lý Bài Học"
+        description="Quản lý nội dung bài giảng, video, thứ tự sắp xếp và trạng thái hiển thị cho từng khóa học."
+        actions={selectedCourseId && (
+          <UiButton onClick={handleOpenCreate}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
               Thêm Bài Học Mới
-            </button>
-          </div>
+          </UiButton>
         )}
-      </div>
+      />
 
       {feedback.text && (
         <div
@@ -266,9 +249,9 @@ export default function AdminLessonsPage() {
             padding: '0.75rem 1rem',
             borderRadius: '8px',
             marginBottom: '1rem',
-            background: feedback.type === 'success' ? '#DCFCE7' : '#FEF2F2',
-            border: `1px solid ${feedback.type === 'success' ? '#86EFAC' : '#FCA5A5'}`,
-            color: feedback.type === 'success' ? '#166534' : '#991B1B',
+            background: feedback.type === 'success' ? 'var(--brand-success-bg)' : 'var(--brand-danger-bg)',
+            border: `1px solid ${feedback.type === 'success' ? 'var(--brand-success-border)' : 'var(--brand-danger-border)'}`,
+            color: feedback.type === 'success' ? 'var(--brand-success)' : 'var(--brand-danger)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -287,10 +270,10 @@ export default function AdminLessonsPage() {
       {/* Select Course Filter */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--brand-surface)',
           padding: '1.25rem',
           borderRadius: '12px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--brand-border)',
           marginBottom: '1.5rem',
           display: 'flex',
           alignItems: 'center',
@@ -300,9 +283,9 @@ export default function AdminLessonsPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <label style={{ fontWeight: 600, color: '#334155' }}>Khóa học đang chọn:</label>
+          <label style={{ fontWeight: 600, color: 'var(--brand-text)' }}>Khóa học đang chọn:</label>
           {courses.length === 0 ? (
-            <span style={{ color: '#64748B' }}>Chưa có khóa học nào</span>
+            <span style={{ color: 'var(--brand-muted)' }}>Chưa có khóa học nào</span>
           ) : (
             <select
               value={selectedCourseId}
@@ -310,7 +293,7 @@ export default function AdminLessonsPage() {
               style={{
                 padding: '0.6rem 1rem',
                 borderRadius: '8px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--brand-border)',
                 outline: 'none',
                 minWidth: '280px',
                 fontWeight: 500,
@@ -335,8 +318,8 @@ export default function AdminLessonsPage() {
               style={{
                 padding: '0.4rem 0.8rem',
                 borderRadius: '6px',
-                border: '1px solid #CBD5E1',
-                background: '#F8FAFC',
+                border: '1px solid var(--brand-border)',
+                background: 'var(--brand-bg-sub)',
                 cursor: 'pointer',
                 fontSize: '0.85rem',
                 fontWeight: 600,
@@ -349,34 +332,34 @@ export default function AdminLessonsPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)' }}>
           Đang tải khóa học...
         </div>
       ) : error ? (
-        <div style={{ padding: '1rem', background: '#FEF2F2', color: '#991B1B', borderRadius: '8px', textAlign: 'center' }}>
+        <div style={{ padding: '1rem', background: 'var(--brand-danger-bg)', color: 'var(--brand-danger)', borderRadius: '8px', textAlign: 'center' }}>
           {error}
           <div style={{ marginTop: '0.5rem' }}>
             <button
               onClick={fetchCourses}
-              style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid #FCA5A5', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+              style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid var(--brand-danger-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
             >
               Thử lại
             </button>
           </div>
         </div>
       ) : courses.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-          Bạn chưa tạo khóa học nào. Hãy vào <a href="/admin/courses" style={{ color: '#4F46E5', fontWeight: 600 }}>Quản lý khóa học</a> để tạo khóa học trước khi thêm bài học.
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)', background: 'var(--brand-surface)', borderRadius: '12px', border: '1px solid var(--brand-border)' }}>
+          Bạn chưa tạo khóa học nào. Hãy vào <a href="/admin/courses" style={{ color: 'var(--brand-coffee)', fontWeight: 600 }}>Quản lý khóa học</a> để tạo khóa học trước khi thêm bài học.
         </div>
       ) : loadingLessons ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)' }}>
           Đang tải bài học của khóa học...
         </div>
       ) : lessons.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)', background: 'var(--brand-surface)', borderRadius: '12px', border: '1px solid var(--brand-border)' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#334155' }}>Khóa học này chưa có bài học nào</div>
-          <p style={{ fontSize: '0.9rem', color: '#64748B', margin: '0.5rem 0 1.25rem' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--brand-text)' }}>Khóa học này chưa có bài học nào</div>
+          <p style={{ fontSize: '0.9rem', color: 'var(--brand-muted)', margin: '0.5rem 0 1.25rem' }}>
             Bắt đầu tạo bài học đầu tiên để học viên có thể học tập.
           </p>
           <button
@@ -385,8 +368,8 @@ export default function AdminLessonsPage() {
               padding: '0.6rem 1.25rem',
               borderRadius: '8px',
               border: 'none',
-              background: '#4F46E5',
-              color: '#FFFFFF',
+              background: 'var(--brand-yellow)',
+              color: 'var(--brand-text)',
               fontWeight: 600,
               cursor: 'pointer',
             }}
@@ -395,8 +378,7 @@ export default function AdminLessonsPage() {
           </button>
         </div>
       ) : (
-        <div className="table-responsive">
-          <table className="admin-table">
+        <DataTable className="table-responsive" tableClassName="admin-table">
             <thead>
               <tr>
                 <th style={{ width: '80px', textAlign: 'center' }}>Thứ Tự</th>
@@ -412,7 +394,7 @@ export default function AdminLessonsPage() {
               {lessons.map((lesson, index) => (
                 <tr key={lesson._id}>
                   <td style={{ textAlign: 'center' }}>
-                    <span style={{ fontWeight: 700, color: '#4F46E5' }}>#{lesson.order || index + 1}</span>
+                    <span style={{ fontWeight: 700, color: 'var(--brand-coffee)' }}>#{lesson.order || index + 1}</span>
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
@@ -423,10 +405,10 @@ export default function AdminLessonsPage() {
                         style={{
                           padding: '0.25rem 0.45rem',
                           borderRadius: '4px',
-                          border: '1px solid #CBD5E1',
-                          background: index === 0 ? '#F1F5F9' : '#FFFFFF',
+                          border: '1px solid var(--brand-border)',
+                          background: index === 0 ? 'var(--brand-bg-sub)' : 'var(--brand-surface)',
                           cursor: index === 0 ? 'not-allowed' : 'pointer',
-                          color: index === 0 ? '#94A3B8' : '#334155',
+                          color: index === 0 ? 'var(--brand-muted)' : 'var(--brand-text)',
                           fontSize: '0.75rem',
                         }}
                       >
@@ -439,10 +421,10 @@ export default function AdminLessonsPage() {
                         style={{
                           padding: '0.25rem 0.45rem',
                           borderRadius: '4px',
-                          border: '1px solid #CBD5E1',
-                          background: index === lessons.length - 1 ? '#F1F5F9' : '#FFFFFF',
+                          border: '1px solid var(--brand-border)',
+                          background: index === lessons.length - 1 ? 'var(--brand-bg-sub)' : 'var(--brand-surface)',
                           cursor: index === lessons.length - 1 ? 'not-allowed' : 'pointer',
-                          color: index === lessons.length - 1 ? '#94A3B8' : '#334155',
+                          color: index === lessons.length - 1 ? 'var(--brand-muted)' : 'var(--brand-text)',
                           fontSize: '0.75rem',
                         }}
                       >
@@ -453,21 +435,19 @@ export default function AdminLessonsPage() {
                   <td>
                     <strong>{lesson.title}</strong>
                     {lesson.description && (
-                      <div style={{ fontSize: '0.8rem', color: '#64748B', maxWidth: '340px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)', maxWidth: '340px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {lesson.description}
                       </div>
                     )}
                   </td>
                   <td>
-                    <span style={{ background: '#F8FAFC', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', border: '1px solid #E2E8F0' }}>
+                    <span style={{ background: 'var(--brand-bg-sub)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', border: '1px solid var(--brand-border)' }}>
                       {lesson.topic || 'General'}
                     </span>
                   </td>
                   <td>{lesson.duration || 0} phút</td>
                   <td>
-                    <span className={`status-badge ${lesson.status === 'published' ? 'badge-active' : 'badge-pending'}`}>
-                      {lesson.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}
-                    </span>
+                    <StatusBadge status={lesson.status === 'published' ? 'published' : 'draft'} />
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
@@ -477,9 +457,9 @@ export default function AdminLessonsPage() {
                         style={{
                           padding: '0.4rem 0.65rem',
                           borderRadius: '6px',
-                          border: '1px solid #CBD5E1',
-                          background: '#FFFFFF',
-                          color: '#0284C7',
+                          border: '1px solid var(--brand-border)',
+                          background: 'var(--brand-surface)',
+                          color: 'var(--brand-coffee)',
                           cursor: 'pointer',
                           fontSize: '0.8rem',
                           fontWeight: 600,
@@ -493,9 +473,9 @@ export default function AdminLessonsPage() {
                         style={{
                           padding: '0.4rem 0.65rem',
                           borderRadius: '6px',
-                          border: '1px solid #CBD5E1',
-                          background: lesson.status === 'published' ? '#FFFBEB' : '#ECFDF5',
-                          color: lesson.status === 'published' ? '#D97706' : '#059669',
+                          border: '1px solid var(--brand-border)',
+                          background: lesson.status === 'published' ? 'var(--brand-warning-bg)' : 'var(--brand-success-bg)',
+                          color: lesson.status === 'published' ? 'var(--brand-warning)' : 'var(--brand-success)',
                           cursor: 'pointer',
                           fontSize: '0.8rem',
                           fontWeight: 600,
@@ -509,8 +489,8 @@ export default function AdminLessonsPage() {
                         style={{
                           padding: '0.4rem 0.65rem',
                           borderRadius: '6px',
-                          border: '1px solid #CBD5E1',
-                          background: '#FFFFFF',
+                          border: '1px solid var(--brand-border)',
+                          background: 'var(--brand-surface)',
                           cursor: 'pointer',
                           fontSize: '0.8rem',
                           fontWeight: 600,
@@ -525,8 +505,8 @@ export default function AdminLessonsPage() {
                           padding: '0.4rem 0.65rem',
                           borderRadius: '6px',
                           border: 'none',
-                          background: '#FEE2E2',
-                          color: '#991B1B',
+                          background: 'var(--brand-danger-bg)',
+                          color: 'var(--brand-danger)',
                           cursor: 'pointer',
                           fontSize: '0.8rem',
                           fontWeight: 600,
@@ -539,46 +519,24 @@ export default function AdminLessonsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
+        </DataTable>
       )}
 
       {/* Create / Edit Lesson Modal */}
       {showModal && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-          }}
+          className="ds-modal-overlay"
         >
           <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              padding: '2rem',
-              maxWidth: '650px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            }}
+            className="ds-modal-content ds-modal-content--lg"
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--brand-text)', margin: 0 }}>
                 {editingLesson ? 'Chỉnh Sửa Bài Học' : 'Thêm Bài Học Mới'}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748B' }}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--brand-muted)' }}
               >
                 ×
               </button>
@@ -586,7 +544,7 @@ export default function AdminLessonsPage() {
 
             <form onSubmit={handleSaveLesson} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Tiêu đề bài học *
                 </label>
                 <input
@@ -595,25 +553,25 @@ export default function AdminLessonsPage() {
                   placeholder="Ví dụ: Lesson 1: Overview & Strategies for Part 1"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                     Chủ đề (Topic)
                   </label>
                   <input
                     type="text"
                     value={formData.topic}
                     onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                     Thứ tự (Order)
                   </label>
                   <input
@@ -621,12 +579,12 @@ export default function AdminLessonsPage() {
                     min="1"
                     value={formData.order}
                     onChange={(e) => setFormData({ ...formData, order: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                     Thời lượng (phút)
                   </label>
                   <input
@@ -634,13 +592,13 @@ export default function AdminLessonsPage() {
                     min="0"
                     value={formData.duration}
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Mô tả ngắn gọn
                 </label>
                 <input
@@ -648,13 +606,13 @@ export default function AdminLessonsPage() {
                   placeholder="Mô tả tóm tắt mục tiêu bài học..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="admin-form-grid">
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                     Video URL (YouTube/Embed)
                   </label>
                   <input
@@ -662,12 +620,12 @@ export default function AdminLessonsPage() {
                     placeholder="https://www.youtube.com/watch?v=..."
                     value={formData.videoUrl}
                     onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                     Audio URL
                   </label>
                   <input
@@ -675,13 +633,13 @@ export default function AdminLessonsPage() {
                     placeholder="/uploads/... hoặc audio URL"
                     value={formData.audioUrl}
                     onChange={(e) => setFormData({ ...formData, audioUrl: e.target.value })}
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Nội dung chi tiết bài học (Hỗ trợ Markdown)
                 </label>
                 <textarea
@@ -689,18 +647,18 @@ export default function AdminLessonsPage() {
                   placeholder="Nhập nội dung bài học, ghi chú hoặc transcript bài nghe..."
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none', resize: 'vertical' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Trạng thái
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 >
                   <option value="published">Đã xuất bản (Công khai cho học viên)</option>
                   <option value="draft">Bản nháp (Chỉ giáo viên/admin thấy)</option>
@@ -708,11 +666,11 @@ export default function AdminLessonsPage() {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid #E2E8F0', paddingTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid var(--brand-border)', paddingTop: '1rem' }}>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  style={{ padding: '0.65rem 1.25rem', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+                  style={{ padding: '0.65rem 1.25rem', borderRadius: '8px', border: '1px solid var(--brand-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
                 >
                   Hủy
                 </button>
@@ -723,8 +681,8 @@ export default function AdminLessonsPage() {
                     padding: '0.65rem 1.5rem',
                     borderRadius: '8px',
                     border: 'none',
-                    background: '#4F46E5',
-                    color: '#FFFFFF',
+                    background: 'var(--brand-yellow)',
+                    color: 'var(--brand-text)',
                     cursor: submitting ? 'not-allowed' : 'pointer',
                     fontWeight: 600,
                   }}
@@ -740,41 +698,22 @@ export default function AdminLessonsPage() {
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-          }}
+          className="ds-modal-overlay"
         >
           <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              padding: '1.75rem',
-              maxWidth: '440px',
-              width: '100%',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
-            }}
+            className="ds-modal-content ds-modal-content--sm"
           >
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--brand-text)', marginBottom: '0.75rem' }}>
               Xác Nhận Xóa Bài Học
             </h3>
-            <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1rem', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--brand-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
               Bạn có chắc chắn muốn xóa bài học <strong>"{deleteTarget.title}"</strong>?
             </p>
             <div
               style={{
-                background: '#FEF2F2',
-                border: '1px solid #FCA5A5',
-                color: '#991B1B',
+                background: 'var(--brand-danger-bg)',
+                border: '1px solid var(--brand-danger-border)',
+                color: 'var(--brand-danger)',
                 borderRadius: '8px',
                 padding: '0.75rem',
                 fontSize: '0.85rem',
@@ -786,13 +725,13 @@ export default function AdminLessonsPage() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 onClick={() => setDeleteTarget(null)}
-                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid var(--brand-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
               >
                 Hủy
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: '#DC2626', color: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: 'var(--brand-danger)', color: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
               >
                 Xác Nhận Xóa
               </button>

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import useAuthStore from '../store/authStore.js';
 import { authApi } from '../api/authApi.js';
+import PageHeader from '../components/ui/PageHeader.jsx';
+import StatusBadge from '../components/ui/StatusBadge.jsx';
+import UiButton from '../components/ui/UiButton.jsx';
 import './StudentProfilePage.css';
 
 export default function StudentProfilePage() {
@@ -97,10 +100,7 @@ export default function StudentProfilePage() {
 
   return (
     <div className="profile-page-container">
-      <div className="profile-page-header">
-        <h1>Hồ Sơ Cá Nhân & Bảo Mật</h1>
-        <p>Quản lý thông tin tài khoản và cập nhật mật khẩu đăng nhập.</p>
-      </div>
+      <PageHeader eyebrow="Tài khoản" title="Hồ sơ cá nhân & bảo mật" description="Quản lý thông tin tài khoản và cập nhật mật khẩu đăng nhập." />
 
       <div className="profile-grid">
         {/* Account Info Card */}
@@ -117,9 +117,7 @@ export default function StudentProfilePage() {
             </div>
             <div className="info-row">
               <span className="info-label">Trạng thái:</span>
-              <span className={`info-value status-badge badge-${user?.status}`}>
-                {user?.status === 'active' ? 'Đã kích hoạt (Active)' : user?.status}
-              </span>
+              <StatusBadge status={user?.status} label={user?.status === 'active' ? 'Đã kích hoạt' : undefined} />
             </div>
           </div>
 
@@ -152,9 +150,9 @@ export default function StudentProfilePage() {
               />
             </div>
 
-            <button type="submit" className="btn-save-profile" disabled={profileLoading}>
+            <UiButton type="submit" disabled={profileLoading}>
               {profileLoading ? 'Đang lưu...' : 'Lưu Thay Đổi'}
-            </button>
+            </UiButton>
           </form>
         </div>
 
@@ -201,9 +199,9 @@ export default function StudentProfilePage() {
               />
             </div>
 
-            <button type="submit" className="btn-change-password" disabled={passwordLoading}>
+            <UiButton type="submit" disabled={passwordLoading}>
               {passwordLoading ? 'Đang xử lý...' : 'Cập Nhật Mật Khẩu'}
-            </button>
+            </UiButton>
           </form>
         </div>
       </div>

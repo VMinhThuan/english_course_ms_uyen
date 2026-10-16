@@ -3,6 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import { courseApi } from '../../api/courseApi.js';
 import { lessonApi } from '../../api/lessonApi.js';
 import { materialApi } from '../../api/materialApi.js';
+import PageHeader from '../../components/ui/PageHeader.jsx';
+import UiButton from '../../components/ui/UiButton.jsx';
+import DataTable from '../../components/ui/DataTable.jsx';
+import StatusBadge from '../../components/ui/StatusBadge.jsx';
 import './AdminStudentsPage.css';
 
 function formatFileSize(bytes) {
@@ -216,40 +220,19 @@ export default function AdminMaterialsPage() {
 
   return (
     <div className="admin-page-container">
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Quản Lý Tài Liệu</h1>
-          <p className="admin-page-sub">
-            Quản lý tài liệu đính kèm, slide bài giảng, file nghe và phân quyền tải xuống cho học viên.
-          </p>
-        </div>
-        {selectedCourseId && lessons.length > 0 && (
-          <div>
-            <button
-              onClick={handleOpenCreate}
-              style={{
-                padding: '0.65rem 1.25rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#4F46E5',
-                color: '#FFFFFF',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 2px 4px rgba(79, 70, 229, 0.2)',
-              }}
-            >
+      <PageHeader
+        title="Quản Lý Tài Liệu"
+        description="Quản lý tài liệu đính kèm, slide bài giảng, file nghe và phân quyền tải xuống cho học viên."
+        actions={selectedCourseId && lessons.length > 0 && (
+          <UiButton onClick={handleOpenCreate}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
               Thêm Tài Liệu Mới
-            </button>
-          </div>
+          </UiButton>
         )}
-      </div>
+      />
 
       {feedback.text && (
         <div
@@ -257,9 +240,9 @@ export default function AdminMaterialsPage() {
             padding: '0.75rem 1rem',
             borderRadius: '8px',
             marginBottom: '1rem',
-            background: feedback.type === 'success' ? '#DCFCE7' : '#FEF2F2',
-            border: `1px solid ${feedback.type === 'success' ? '#86EFAC' : '#FCA5A5'}`,
-            color: feedback.type === 'success' ? '#166534' : '#991B1B',
+            background: feedback.type === 'success' ? 'var(--brand-success-bg)' : 'var(--brand-danger-bg)',
+            border: `1px solid ${feedback.type === 'success' ? 'var(--brand-success-border)' : 'var(--brand-danger-border)'}`,
+            color: feedback.type === 'success' ? 'var(--brand-success)' : 'var(--brand-danger)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -278,10 +261,10 @@ export default function AdminMaterialsPage() {
       {/* Course & Lesson Filters */}
       <div
         style={{
-          background: '#FFFFFF',
+          background: 'var(--brand-surface)',
           padding: '1.25rem',
           borderRadius: '12px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--brand-border)',
           marginBottom: '1.5rem',
           display: 'flex',
           alignItems: 'center',
@@ -290,14 +273,14 @@ export default function AdminMaterialsPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <label style={{ fontWeight: 600, color: '#334155' }}>Khóa học:</label>
+          <label style={{ fontWeight: 600, color: 'var(--brand-text)' }}>Khóa học:</label>
           <select
             value={selectedCourseId}
             onChange={(e) => {
               setSelectedCourseId(e.target.value);
               setSearchParams({ courseId: e.target.value });
             }}
-            style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', minWidth: '240px' }}
+            style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none', minWidth: '240px' }}
           >
             {courses.map((c) => (
               <option key={c._id} value={c._id}>
@@ -308,14 +291,14 @@ export default function AdminMaterialsPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <label style={{ fontWeight: 600, color: '#334155' }}>Bài học:</label>
+          <label style={{ fontWeight: 600, color: 'var(--brand-text)' }}>Bài học:</label>
           <select
             value={selectedLessonId}
             onChange={(e) => {
               setSelectedLessonId(e.target.value);
               setSearchParams({ courseId: selectedCourseId, lessonId: e.target.value });
             }}
-            style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', minWidth: '220px' }}
+            style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none', minWidth: '220px' }}
           >
             <option value="">Tất cả bài học</option>
             {lessons.map((l) => (
@@ -328,30 +311,30 @@ export default function AdminMaterialsPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)' }}>
           Đang tải khóa học...
         </div>
       ) : error ? (
-        <div style={{ padding: '1rem', background: '#FEF2F2', color: '#991B1B', borderRadius: '8px', textAlign: 'center' }}>
+        <div style={{ padding: '1rem', background: 'var(--brand-danger-bg)', color: 'var(--brand-danger)', borderRadius: '8px', textAlign: 'center' }}>
           {error}
           <div style={{ marginTop: '0.5rem' }}>
             <button
               onClick={fetchMaterials}
-              style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid #FCA5A5', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+              style={{ padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid var(--brand-danger-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
             >
               Thử lại
             </button>
           </div>
         </div>
       ) : loadingMaterials ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}>
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)' }}>
           Đang tải danh sách tài liệu...
         </div>
       ) : materials.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)', background: 'var(--brand-surface)', borderRadius: '12px', border: '1px solid var(--brand-border)' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📄</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#334155' }}>Chưa có tài liệu nào</div>
-          <p style={{ fontSize: '0.9rem', color: '#64748B', margin: '0.5rem 0 1.25rem' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--brand-text)' }}>Chưa có tài liệu nào</div>
+          <p style={{ fontSize: '0.9rem', color: 'var(--brand-muted)', margin: '0.5rem 0 1.25rem' }}>
             Thêm tài liệu hướng dẫn, file PDF hoặc tài liệu đính kèm cho bài học này.
           </p>
           {lessons.length > 0 && (
@@ -361,8 +344,8 @@ export default function AdminMaterialsPage() {
                 padding: '0.6rem 1.25rem',
                 borderRadius: '8px',
                 border: 'none',
-                background: '#4F46E5',
-                color: '#FFFFFF',
+                background: 'var(--brand-yellow)',
+                color: 'var(--brand-text)',
                 fontWeight: 600,
                 cursor: 'pointer',
               }}
@@ -372,8 +355,7 @@ export default function AdminMaterialsPage() {
           )}
         </div>
       ) : (
-        <div className="table-responsive">
-          <table className="admin-table">
+        <DataTable className="table-responsive" tableClassName="admin-table">
             <thead>
               <tr>
                 <th style={{ width: '30%' }}>Tên Tài Liệu</th>
@@ -391,35 +373,31 @@ export default function AdminMaterialsPage() {
                   <td>
                     <strong>{mat.title}</strong>
                     {mat.description && (
-                      <div style={{ fontSize: '0.8rem', color: '#64748B', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {mat.description}
                       </div>
                     )}
                   </td>
                   <td>
-                    <span style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--brand-text)' }}>
                       {mat.lesson?.title || '---'}
                     </span>
                   </td>
                   <td>
-                    <code style={{ background: '#F1F5F9', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                    <code style={{ background: 'var(--brand-bg-sub)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem' }}>
                       {mat.fileType || 'file'}
                     </code>
                   </td>
                   <td>
-                    <span style={{ fontSize: '0.85rem', color: '#64748B' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--brand-muted)' }}>
                       {formatFileSize(mat.fileSize)}
                     </span>
                   </td>
                   <td>
-                    <span className={`status-badge ${mat.allowDownload ? 'badge-active' : 'badge-pending'}`}>
-                      {mat.allowDownload ? 'Cho phép tải' : 'Chỉ xem'}
-                    </span>
+                    <StatusBadge status={mat.allowDownload ? 'active' : 'hidden'} label={mat.allowDownload ? 'Cho phép tải' : 'Chỉ xem'} />
                   </td>
                   <td>
-                    <span className={`status-badge ${mat.status === 'published' ? 'badge-active' : 'badge-pending'}`}>
-                      {mat.status === 'published' ? 'Đã xuất bản' : 'Ẩn'}
-                    </span>
+                    <StatusBadge status={mat.status === 'published' ? 'published' : 'hidden'} label={mat.status === 'published' ? 'Đã xuất bản' : 'Ẩn'} />
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
@@ -431,9 +409,9 @@ export default function AdminMaterialsPage() {
                           style={{
                             padding: '0.4rem 0.65rem',
                             borderRadius: '6px',
-                            border: '1px solid #CBD5E1',
-                            background: '#FFFFFF',
-                            color: '#4F46E5',
+                            border: '1px solid var(--brand-border)',
+                            background: 'var(--brand-surface)',
+                            color: 'var(--brand-coffee)',
                             textDecoration: 'none',
                             fontSize: '0.8rem',
                             fontWeight: 600,
@@ -448,8 +426,8 @@ export default function AdminMaterialsPage() {
                         style={{
                           padding: '0.4rem 0.65rem',
                           borderRadius: '6px',
-                          border: '1px solid #CBD5E1',
-                          background: '#FFFFFF',
+                          border: '1px solid var(--brand-border)',
+                          background: 'var(--brand-surface)',
                           cursor: 'pointer',
                           fontSize: '0.8rem',
                           fontWeight: 600,
@@ -463,8 +441,8 @@ export default function AdminMaterialsPage() {
                           padding: '0.4rem 0.65rem',
                           borderRadius: '6px',
                           border: 'none',
-                          background: '#FEE2E2',
-                          color: '#991B1B',
+                          background: 'var(--brand-danger-bg)',
+                          color: 'var(--brand-danger)',
                           cursor: 'pointer',
                           fontSize: '0.8rem',
                           fontWeight: 600,
@@ -477,46 +455,24 @@ export default function AdminMaterialsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
+        </DataTable>
       )}
 
       {/* Create / Edit Material Modal */}
       {showModal && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-          }}
+          className="ds-modal-overlay"
         >
           <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              padding: '2rem',
-              maxWidth: '560px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            }}
+            className="ds-modal-content ds-modal-content--md"
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--brand-text)', margin: 0 }}>
                 {editingMaterial ? 'Chỉnh Sửa Tài Liệu' : 'Thêm Tài Liệu Mới'}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748B' }}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--brand-muted)' }}
               >
                 ×
               </button>
@@ -524,7 +480,7 @@ export default function AdminMaterialsPage() {
 
             <form onSubmit={handleSaveMaterial} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Tiêu đề tài liệu *
                 </label>
                 <input
@@ -533,19 +489,19 @@ export default function AdminMaterialsPage() {
                   placeholder="Ví dụ: Slide Bài Giảng Part 1 - Picture Description"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Thuộc bài học *
                 </label>
                 <select
                   required
                   value={formData.lessonId}
                   onChange={(e) => setFormData({ ...formData, lessonId: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 >
                   <option value="">-- Chọn bài học --</option>
                   {lessons.map((l) => (
@@ -557,7 +513,7 @@ export default function AdminMaterialsPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Mô tả tài liệu
                 </label>
                 <textarea
@@ -565,28 +521,28 @@ export default function AdminMaterialsPage() {
                   placeholder="Ghi chú thêm về nội dung tài liệu..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none', resize: 'vertical' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Tải lên tệp tài liệu (PDF, Word, MP3, ZIP...)
                 </label>
                 <input
                   type="file"
                   onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 />
                 {editingMaterial && !formData.file && (
-                  <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.25rem' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)', marginTop: '0.25rem' }}>
                     Hiện tại: {editingMaterial.fileUrl ? <code>{editingMaterial.fileUrl}</code> : 'Chưa có file'} (chọn file mới nếu muốn thay thế)
                   </div>
                 )}
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Hoặc nhập File URL trực tiếp
                 </label>
                 <input
@@ -594,7 +550,7 @@ export default function AdminMaterialsPage() {
                   placeholder="https://... hoặc /uploads/..."
                   value={formData.fileUrl}
                   onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 />
               </div>
 
@@ -607,31 +563,31 @@ export default function AdminMaterialsPage() {
                     onChange={(e) => setFormData({ ...formData, allowDownload: e.target.checked })}
                     style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                   />
-                  <label htmlFor="allowDownloadCheck" style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1E293B', cursor: 'pointer' }}>
+                  <label htmlFor="allowDownloadCheck" style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--brand-text)', cursor: 'pointer' }}>
                     Cho phép học viên tải tài liệu về máy (Bỏ chọn nếu chỉ cho xem online)
                   </label>
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                   Trạng thái
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 >
                   <option value="published">Đã xuất bản (Công khai cho học viên)</option>
                   <option value="hidden">Ẩn</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid #E2E8F0', paddingTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid var(--brand-border)', paddingTop: '1rem' }}>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  style={{ padding: '0.65rem 1.25rem', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+                  style={{ padding: '0.65rem 1.25rem', borderRadius: '8px', border: '1px solid var(--brand-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
                 >
                   Hủy
                 </button>
@@ -642,8 +598,8 @@ export default function AdminMaterialsPage() {
                     padding: '0.65rem 1.5rem',
                     borderRadius: '8px',
                     border: 'none',
-                    background: '#4F46E5',
-                    color: '#FFFFFF',
+                    background: 'var(--brand-yellow)',
+                    color: 'var(--brand-text)',
                     cursor: submitting ? 'not-allowed' : 'pointer',
                     fontWeight: 600,
                   }}
@@ -659,46 +615,27 @@ export default function AdminMaterialsPage() {
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-          }}
+          className="ds-modal-overlay"
         >
           <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              padding: '1.75rem',
-              maxWidth: '440px',
-              width: '100%',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
-            }}
+            className="ds-modal-content ds-modal-content--sm"
           >
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--brand-text)', marginBottom: '0.75rem' }}>
               Xác Nhận Xóa Tài Liệu
             </h3>
-            <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--brand-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
               Bạn có chắc chắn muốn xóa tài liệu <strong>"{deleteTarget.title}"</strong>? Tệp vật lý đính kèm cũng sẽ được xóa khỏi hệ thống.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 onClick={() => setDeleteTarget(null)}
-                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid var(--brand-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
               >
                 Hủy
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: '#DC2626', color: '#FFFFFF', cursor: 'pointer', fontWeight: 600 }}
+                style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: 'var(--brand-danger)', color: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
               >
                 Xác Nhận Xóa
               </button>
