@@ -1,16 +1,27 @@
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
+import { getUploadDir } from './uploadConfig.js';
 
-const require = createRequire(import.meta.url);
-const pdfParseModule = require('pdf-parse');
-const PDFParseClass = pdfParseModule.PDFParse;
+let pdfParseModule = null;
+let PDFParseClass = null;
+
+const getPdfParser = () => {
+  if (!pdfParseModule && !PDFParseClass) {
+    try {
+      const require = createRequire(import.meta.url);
+      pdfParseModule = require('pdf-parse');
+      PDFParseClass = pdfParseModule?.PDFParse || pdfParseModule;
+    } catch (err) {
+      console.warn('PDF parser module could not be loaded:', err.message);
+    }
+  }
+  return { pdfParseModule, PDFParseClass };
+};
 
 /**
  * Helper to extract embedded JPEG & PNG images from raw PDF Buffer
  */
-import { getUploadDir } from './uploadConfig.js';
-
 const extractImagesFromPdfBuffer = (buffer) => {
   const images = [];
   const uploadsDir = getUploadDir();
@@ -114,13 +125,14 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
   // 1. Extract raw text with pdf-parse
   let pdfData;
   try {
+    const { pdfParseModule, PDFParseClass } = getPdfParser();
     if (typeof PDFParseClass === 'function') {
       const parser = new PDFParseClass(new Uint8Array(pdfBuffer));
       pdfData = await parser.getText();
     } else if (typeof pdfParseModule === 'function') {
       pdfData = await pdfParseModule(pdfBuffer);
     } else {
-      throw new Error('PDFParse module function not found');
+      throw new Error('PDFParse module function not available in this environment');
     }
   } catch (err) {
     throw new Error(`Không thể phân tích file PDF. Vui lòng kiểm tra file PDF: ${err.message}`);
