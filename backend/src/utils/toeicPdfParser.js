@@ -9,12 +9,11 @@ const PDFParseClass = pdfParseModule.PDFParse;
 /**
  * Helper to extract embedded JPEG & PNG images from raw PDF Buffer
  */
+import { getUploadDir } from './uploadConfig.js';
+
 const extractImagesFromPdfBuffer = (buffer) => {
   const images = [];
-  const uploadsDir = path.join(process.cwd(), 'uploads');
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
+  const uploadsDir = getUploadDir();
 
   try {
     // 1. JPEG Extraction (FF D8 FF ... FF D9)

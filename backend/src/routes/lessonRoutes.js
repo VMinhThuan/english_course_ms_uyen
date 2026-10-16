@@ -11,11 +11,13 @@ import { getStudentMaterialsByLesson } from '../controllers/materialController.j
 import { verifyToken, checkRole } from '../middlewares/auth.js';
 import multer from 'multer';
 
+import { getUploadDir } from '../utils/uploadConfig.js';
+
 const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, getUploadDir());
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);

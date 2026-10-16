@@ -67,8 +67,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+import { getUploadDir } from './utils/uploadConfig.js';
+
 // Serve uploaded static files
-app.use('/uploads', express.static(join(__dirname, '../uploads')));
+app.use('/uploads', express.static(getUploadDir()));
 
 // 2. Fast health endpoints - no database required
 app.get('/', (req, res) => {

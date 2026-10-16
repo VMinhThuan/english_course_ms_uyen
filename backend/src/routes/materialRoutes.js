@@ -10,17 +10,13 @@ import {
 } from '../controllers/materialController.js';
 import { verifyToken, checkRole, requireActiveStudent } from '../middlewares/auth.js';
 import multer from 'multer';
-import fs from 'fs';
+import { getUploadDir } from '../utils/uploadConfig.js';
 
 const router = express.Router();
 
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads', { recursive: true });
-}
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, getUploadDir());
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);

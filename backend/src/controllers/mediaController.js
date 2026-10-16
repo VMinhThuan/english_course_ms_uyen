@@ -1,12 +1,8 @@
 import path from 'path';
-import fs from 'fs';
 import multer from 'multer';
+import { getUploadDir } from '../utils/uploadConfig.js';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
-
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
+const UPLOAD_DIR = getUploadDir();
 
 // Allowed MIME types and extensions
 const ALLOWED_MIME_TYPES = [
