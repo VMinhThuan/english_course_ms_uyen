@@ -1,0 +1,499 @@
+/* Modal Container */
+.docx-import-modal {
+  width: min(1040px, 95vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--brand-surface, #fff);
+  border-radius: 16px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  position: relative;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  color: var(--brand-text, #302A25);
+}
+
+.docx-import-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--brand-border-light, #eee);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--brand-bg-sub, #faf8f5);
+}
+
+.docx-import-title-group h2 {
+  margin: 0;
+  font-size: 20px;
+  font-family: var(--font-serif, serif);
+  color: var(--brand-text, #302A25);
+}
+
+.docx-import-title-group p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--brand-muted, #82796F);
+}
+
+.docx-import-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--brand-muted, #82796F);
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 6px;
+}
+.docx-import-close-btn:hover {
+  background: var(--brand-border-light, #eee);
+  color: var(--brand-text, #302A25);
+}
+
+/* Steps Indicator */
+.docx-import-steps {
+  display: flex;
+  border-bottom: 1px solid var(--brand-border-light, #eee);
+  background: #fff;
+}
+
+.docx-step-item {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-muted, #82796F);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid transparent;
+}
+
+.docx-step-item.active {
+  color: var(--brand-coffee, #533B27);
+  border-bottom-color: var(--brand-coffee, #533B27);
+  background: var(--brand-bg-sub, #faf8f5);
+}
+
+.docx-step-item.completed {
+  color: #10b981;
+}
+
+.docx-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--brand-border-light, #eee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.docx-step-item.active .docx-step-num {
+  background: var(--brand-coffee, #533B27);
+  color: #fff;
+}
+
+.docx-step-item.completed .docx-step-num {
+  background: #10b981;
+  color: #fff;
+}
+
+/* Modal Body */
+.docx-import-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Step 1: Upload Form */
+.docx-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.docx-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.docx-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-text, #302A25);
+}
+
+.docx-field select,
+.docx-field input,
+.docx-field textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--brand-border, #DED7CE);
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+}
+
+/* Tab Switcher: File vs Text */
+.docx-input-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--brand-border-light, #eee);
+  padding-bottom: 8px;
+}
+
+.docx-input-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--brand-muted, #82796F);
+}
+
+.docx-input-tab-btn.active {
+  background: var(--brand-bg-sub, #faf8f5);
+  border-color: var(--brand-border, #DED7CE);
+  color: var(--brand-coffee, #533B27);
+}
+
+/* Drag Drop Zone */
+.docx-dropzone {
+  border: 2px dashed var(--brand-border, #DED7CE);
+  border-radius: 12px;
+  padding: 32px 20px;
+  text-align: center;
+  background: var(--brand-bg-sub, #faf8f5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.docx-dropzone:hover,
+.docx-dropzone.dragover {
+  border-color: var(--brand-coffee, #533B27);
+  background: #f4ede4;
+}
+
+.docx-dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.docx-dropzone-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.docx-dropzone-text strong {
+  display: block;
+  font-size: 14px;
+  color: var(--brand-coffee, #533B27);
+  margin-bottom: 4px;
+}
+
+.docx-dropzone-text span {
+  font-size: 12px;
+  color: var(--brand-muted, #82796F);
+}
+
+.docx-selected-file {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid var(--brand-border, #DED7CE);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.docx-file-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.docx-file-meta strong {
+  color: var(--brand-text, #302A25);
+}
+
+.docx-file-meta small {
+  color: var(--brand-muted, #82796F);
+}
+
+/* Step 2: Preview Toolbar & Metrics */
+.docx-preview-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--brand-border-light, #eee);
+}
+
+.docx-metrics-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.docx-metric-pill {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.docx-metric-pill.total {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.docx-metric-pill.valid {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.docx-metric-pill.duplicate {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.docx-metric-pill.invalid {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.docx-duplicate-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.docx-duplicate-control select {
+  padding: 6px 10px;
+  border: 1px solid var(--brand-border, #DED7CE);
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+}
+
+/* Preview Table */
+.docx-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--brand-border, #DED7CE);
+  border-radius: 10px;
+  max-height: 420px;
+  background: #fff;
+}
+
+.docx-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.docx-preview-table th {
+  position: sticky;
+  top: 0;
+  background: var(--brand-bg-sub, #faf8f5);
+  border-bottom: 1px solid var(--brand-border, #DED7CE);
+  padding: 10px 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--brand-muted, #82796F);
+  z-index: 10;
+}
+
+.docx-preview-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--brand-border-light, #eee);
+  vertical-align: top;
+}
+
+.docx-preview-table tr.is-duplicate {
+  background: #fffef5;
+}
+
+.docx-preview-table tr.is-invalid {
+  background: #fff5f5;
+}
+
+.docx-col-check { width: 36px; text-align: center; }
+.docx-col-stt { width: 44px; text-align: center; font-weight: bold; }
+.docx-col-topic { width: 85px; font-weight: 600; color: var(--brand-coffee, #533B27); }
+.docx-col-word { width: 140px; }
+.docx-col-pos { width: 80px; }
+.docx-col-meaning { min-width: 180px; }
+.docx-col-example { min-width: 200px; font-size: 12px; }
+.docx-col-notes { min-width: 160px; font-size: 12px; color: #555; }
+.docx-col-status { width: 95px; }
+.docx-col-action { width: 60px; text-align: center; }
+
+.docx-status-tag {
+  display: inline-block;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.docx-status-tag.ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.docx-status-tag.dup {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.docx-status-tag.err {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Warnings Box */
+.docx-warnings-box {
+  margin-top: 14px;
+  padding: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #92400e;
+}
+
+.docx-warnings-box ul {
+  margin: 6px 0 0 16px;
+  padding: 0;
+}
+
+/* Modal Footer */
+.docx-import-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--brand-border-light, #eee);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--brand-bg-sub, #faf8f5);
+}
+
+.docx-btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.docx-btn-primary {
+  background: var(--brand-yellow, #E5A93C);
+  color: #302A25;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.docx-btn-primary:hover:not(:disabled) {
+  background: #d49528;
+}
+
+.docx-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.docx-btn-secondary {
+  background: #fff;
+  border: 1px solid var(--brand-border, #DED7CE);
+  color: var(--brand-coffee, #533B27);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.docx-btn-secondary:hover:not(:disabled) {
+  background: #f5f0ea;
+}
+
+/* Step 3: Success Screen */
+.docx-result-screen {
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.docx-result-icon {
+  font-size: 54px;
+  margin-bottom: 12px;
+}
+
+.docx-result-screen h3 {
+  font-size: 20px;
+  margin: 0 0 8px;
+  color: #065f46;
+}
+
+.docx-result-stats {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: 20px 0;
+}
+
+.docx-result-stat-box {
+  padding: 14px 20px;
+  background: var(--brand-bg-sub, #faf8f5);
+  border: 1px solid var(--brand-border, #DED7CE);
+  border-radius: 10px;
+  min-width: 110px;
+}
+
+.docx-result-stat-box strong {
+  display: block;
+  font-size: 24px;
+  color: var(--brand-coffee, #533B27);
+}
+
+.docx-result-stat-box span {
+  font-size: 12px;
+  color: var(--brand-muted, #82796F);
+}
+
+@media (max-width: 768px) {
+  .docx-upload-grid {
+    grid-template-columns: 1fr;
+  }
+  .docx-preview-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .docx-metrics-badges {
+    width: 100%;
+  }
+}

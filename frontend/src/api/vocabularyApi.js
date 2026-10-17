@@ -37,4 +37,19 @@ export const vocabularyApi = {
     const response = await axiosInstance.delete(`/admin/vocabulary/${id}`);
     return response.data;
   },
+
+  // DOCX Import APIs
+  previewImportDocx: async (formData) => {
+    const response = await axiosInstance.post('/admin/vocabulary/import-docx/preview', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  confirmImportDocx: async (data) => {
+    const response = await axiosInstance.post('/admin/vocabulary/import-docx/confirm', data);
+    return response.data;
+  },
 };

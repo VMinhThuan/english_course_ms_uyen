@@ -31,6 +31,8 @@ import {
   getAdminVocabularyById,
   updateVocabulary,
   deleteVocabulary,
+  previewDocxVocabulary,
+  confirmDocxVocabularyImport,
 } from '../controllers/vocabularyController.js';
 import { getAdminStudentProgress } from '../controllers/progressController.js';
 import {
@@ -50,6 +52,7 @@ import {
 } from '../controllers/assessmentController.js';
 import { getAdminResults } from '../controllers/attemptController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
+import path from 'path';
 import multer from 'multer';
 import { getUploadDir } from '../utils/uploadConfig.js';
 
@@ -66,6 +69,30 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+const docxUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext !== '.docx') {
+      return cb(new Error('Chỉ chấp nhận file định dạng Word (.docx).'), false);
+    }
+    cb(null, true);
+  },
+});
+
+const handleDocxUpload = (req, res, next) => {
+  docxUpload.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        status: 'error',
+        message: err.message || 'Lỗi tải lên file DOCX.',
+      });
+    }
+    next();
+  });
+};
 
 // Require authenticated Admin or Teacher token for admin endpoints
 router.use(verifyToken, checkRole('admin', 'teacher'));
@@ -109,6 +136,8 @@ router.patch('/materials/:id', upload.single('file'), updateMaterial);
 router.delete('/materials/:id', deleteMaterial);
 
 // Vocabulary admin endpoints
+router.post('/vocabulary/import-docx/preview', handleDocxUpload, previewDocxVocabulary);
+router.post('/vocabulary/import-docx/confirm', confirmDocxVocabularyImport);
 router.post('/vocabulary', createVocabulary);
 router.get('/vocabulary', getAdminVocabulary);
 router.get('/vocabulary/:id', getAdminVocabularyById);
