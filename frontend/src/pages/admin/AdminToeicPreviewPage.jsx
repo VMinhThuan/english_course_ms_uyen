@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { toeicApi } from '../../api/toeicApi.js';
 import UiButton from '../../components/ui/UiButton.jsx';
 import StatusBadge from '../../components/ui/StatusBadge.jsx';
+import { resolveMediaUrl } from '../../utils/mediaUrl.js';
 import '../../styles/assessment-screens.css';
 
 export default function AdminToeicPreviewPage() {
@@ -73,6 +74,16 @@ export default function AdminToeicPreviewPage() {
     if (selectedPartFilter === 'ALL') return assessment.questionGroups;
     return assessment.questionGroups.filter((g) => g.partNumber === Number(selectedPartFilter));
   }, [assessment, selectedPartFilter]);
+
+  const questionCountsByPart = useMemo(() => {
+    return (assessment?.questionGroups || []).reduce((counts, group) => {
+      counts[group.partNumber] = (counts[group.partNumber] || 0) + (group.questionIds?.length || 0);
+      return counts;
+    }, {});
+  }, [assessment?.questionGroups]);
+
+  const totalQuestionCount = Object.values(questionCountsByPart).reduce((total, count) => total + count, 0);
+  const totalGroupCount = assessment?.questionGroups?.length || 0;
 
   if (loading) {
     return (
@@ -153,14 +164,16 @@ export default function AdminToeicPreviewPage() {
             color: selectedPartFilter === 'ALL' ? 'var(--brand-text)' : 'var(--brand-muted)',
           }}
         >
-          Tất Cả ({assessment.questionGroups?.length || 0} nhóm)
+          Tất Cả ({totalQuestionCount} câu, {totalGroupCount} nhóm)
         </button>
         {[1, 2, 3, 4, 5, 6, 7].map((pNum) => {
-          const count = (assessment.questionGroups || []).filter((g) => g.partNumber === pNum).length;
+          const groupCount = (assessment.questionGroups || []).filter((g) => g.partNumber === pNum).length;
+          const questionCount = questionCountsByPart[pNum] || 0;
           return (
             <button
               key={pNum}
               onClick={() => setSelectedPartFilter(String(pNum))}
+              title={`${groupCount} nhóm câu hỏi`}
               style={{
                 padding: '0.45rem 0.85rem',
                 borderRadius: '6px',
@@ -172,7 +185,7 @@ export default function AdminToeicPreviewPage() {
                 color: selectedPartFilter === String(pNum) ? 'var(--brand-text)' : 'var(--brand-muted)',
               }}
             >
-              Part {pNum} ({count})
+              Part {pNum} ({questionCount} câu)
             </button>
           );
         })}
@@ -220,14 +233,25 @@ export default function AdminToeicPreviewPage() {
               )}
 
               {/* Image Stimulus */}
-              {group.imageUrl && (
-                <div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-muted)', marginBottom: '0.4rem' }}>
-                    🖼 Hình Ảnh Minh Họa:
-                  </div>
-                  <img src={group.imageUrl} alt="Group visual" style={{ maxWidth: '320px', maxHeight: '240px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--brand-border)' }} />
+              {(group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : [])).map((imageUrl, imageIndex) => (
+                <div key={`${imageUrl}-${imageIndex}`}>
+                  {imageIndex === 0 && (
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-muted)', marginBottom: '0.4rem' }}>
+                      🖼 Hình Ảnh Minh Họa:
+                    </div>
+                  )}
+                  <img
+                    src={resolveMediaUrl(imageUrl)}
+                    alt={`Group visual ${imageIndex + 1}`}
+                    style={{ width: '100%', maxWidth: '720px', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--brand-border)' }}
+                  />
+                  {group.imagePageNumbers?.[imageIndex] && (
+                    <div style={{ fontSize: '0.72rem', color: 'var(--brand-muted)', marginTop: '0.2rem' }}>
+                      Trang {group.imagePageNumbers[imageIndex]} trong PDF
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
 
               {/* Passages */}
               {(group.passages || []).map((p, pIdx) => (

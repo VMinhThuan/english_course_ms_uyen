@@ -30,6 +30,14 @@ const questionGroupSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    imageUrls: {
+      type: [String],
+      default: [],
+    },
+    imagePageNumbers: {
+      type: [Number],
+      default: [],
+    },
     audioUrl: {
       type: String,
       default: '',

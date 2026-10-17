@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
+import { resolveMediaUrl } from '../utils/mediaUrl.js';
 import '../styles/assessment-screens.css';
 
 export default function StudentToeicExamPage() {
@@ -453,6 +454,20 @@ export default function StudentToeicExamPage() {
                       <div className="toeic-split-layout">
                         {/* Left Column: Shared Passages / Documents */}
                         <div className="toeic-passage-panel">
+                          {(group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : [])).map((imageUrl, imageIndex) => (
+                            <div key={`${imageUrl}-${imageIndex}`} style={{ marginBottom: '1rem' }}>
+                              <img
+                                src={resolveMediaUrl(imageUrl)}
+                                alt={`Passage visual ${imageIndex + 1}`}
+                                className="toeic-stimulus-image"
+                              />
+                              {group.imagePageNumbers?.[imageIndex] && (
+                                <small style={{ display: 'block', textAlign: 'center', color: 'var(--brand-muted)' }}>
+                                  Hình từ trang {group.imagePageNumbers[imageIndex]} của PDF
+                                </small>
+                              )}
+                            </div>
+                          ))}
                           <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--brand-coffee)', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
                             {group.passages.length > 1 ? `Đoạn văn đọc hiểu (${group.passages.length} tài liệu)` : 'Đoạn văn đọc hiểu'}
                           </div>
@@ -479,7 +494,7 @@ export default function StudentToeicExamPage() {
                                 <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{pas.content}</div>
                                 {pas.imageUrl && (
                                   <div style={{ marginTop: '0.75rem' }}>
-                                    <img src={pas.imageUrl} alt="Passage illustration" className="toeic-stimulus-image" />
+                                    <img src={resolveMediaUrl(pas.imageUrl)} alt="Passage illustration" className="toeic-stimulus-image" />
                                   </div>
                                 )}
                               </div>
@@ -509,15 +524,18 @@ export default function StudentToeicExamPage() {
                         )}
 
                         {/* Image Stimulus (Part 1 Photograph or Part 3/4 graphic) */}
-                        {group.imageUrl && (
-                          <div style={{ marginBottom: '1.25rem', textAlign: 'center' }}>
+                        {(group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : [])).map((imageUrl, imageIndex) => (
+                          <div key={`${imageUrl}-${imageIndex}`} style={{ marginBottom: '1.25rem', textAlign: 'center' }}>
                             <img
-                              src={group.imageUrl}
-                              alt="Question Stimulus"
+                              src={resolveMediaUrl(imageUrl)}
+                              alt={`Question stimulus ${imageIndex + 1}`}
                               className="toeic-stimulus-image"
                             />
+                            {group.imagePageNumbers?.[imageIndex] && (
+                              <small style={{ color: 'var(--brand-muted)' }}>Ảnh từ trang {group.imagePageNumbers[imageIndex]} của đề PDF</small>
+                            )}
                           </div>
-                        )}
+                        ))}
 
                         {/* Questions list */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

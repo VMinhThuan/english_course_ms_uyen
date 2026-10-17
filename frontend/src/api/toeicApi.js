@@ -70,6 +70,15 @@ export const toeicApi = {
     if (options.title) formData.append('title', options.title);
     if (options.toeicMode) formData.append('toeicMode', options.toeicMode);
     if (options.durationMinutes) formData.append('durationMinutes', options.durationMinutes);
+    if (options.previewOnly) formData.append('previewOnly', 'true');
+    if (options.ocrText) formData.append('ocrText', options.ocrText);
+    if (options.ocrPageCount) formData.append('ocrPageCount', String(options.ocrPageCount));
+    if (options.imagePageNumbers?.length) formData.append('imagePageNumbers', options.imagePageNumbers.join(','));
+    if (!options.previewOnly) {
+      (options.pageImages || []).forEach(({ pageNumber, blob }) => {
+        if (pageNumber && blob) formData.append('pageImages', blob, `page-${pageNumber}.jpg`);
+      });
+    }
     const endpoint = options.targetTestId
       ? `/admin/toeic-tests/${options.targetTestId}/import-pdf`
       : '/admin/toeic-tests/import-pdf';

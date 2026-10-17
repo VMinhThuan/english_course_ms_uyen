@@ -262,8 +262,9 @@ button {
 }
 
 .toeic-stimulus-image {
-    max-width: 100%;
-    max-height: 400px;
+    width: 100%;
+    max-width: 960px;
+    max-height: min(70vh, 720px);
     object-fit: contain;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);

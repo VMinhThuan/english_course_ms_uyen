@@ -38,6 +38,8 @@ const sanitizeGroupForStudent = (g) => ({
   title: g.title || '',
   instructions: g.instructions || '',
   imageUrl: g.imageUrl || '',
+  imageUrls: g.imageUrls?.length ? g.imageUrls : (g.imageUrl ? [g.imageUrl] : []),
+  imagePageNumbers: g.imagePageNumbers || [],
   audioUrl: g.audioUrl || '',
   passages: g.passages || [],
   questionIds: g.questionIds ? g.questionIds.map((id) => (typeof id === 'object' && id !== null ? (id.questionId || id._id || id).toString() : id.toString())) : [],
@@ -245,6 +247,8 @@ export const upsertQuestionGroup = async (req, res, next) => {
       title = '',
       instructions = '',
       imageUrl = '',
+      imageUrls,
+      imagePageNumbers,
       audioUrl = '',
       passages = [],
       questions = [],
@@ -272,6 +276,8 @@ export const upsertQuestionGroup = async (req, res, next) => {
         title,
         instructions,
         imageUrl,
+        imageUrls: imageUrls || (imageUrl ? [imageUrl] : []),
+        imagePageNumbers: imagePageNumbers || [],
         audioUrl,
         passages,
         order,
@@ -281,7 +287,10 @@ export const upsertQuestionGroup = async (req, res, next) => {
       group.type = type || group.type;
       group.title = title !== undefined ? title : group.title;
       group.instructions = instructions !== undefined ? instructions : group.instructions;
+      if (imageUrls !== undefined) group.imageUrls = imageUrls;
+      else if (imageUrl !== undefined && imageUrl !== group.imageUrl) group.imageUrls = imageUrl ? [imageUrl] : [];
       group.imageUrl = imageUrl !== undefined ? imageUrl : group.imageUrl;
+      group.imagePageNumbers = imagePageNumbers !== undefined ? imagePageNumbers : group.imagePageNumbers;
       group.audioUrl = audioUrl !== undefined ? audioUrl : group.audioUrl;
       group.passages = passages || group.passages;
       group.order = order || group.order;
@@ -306,7 +315,7 @@ export const upsertQuestionGroup = async (req, res, next) => {
         ? qData.correctAnswers
         : qData.correctAnswer
         ? [qData.correctAnswer]
-        : ['opt_1'];
+        : [];
 
       if (!qDoc) {
         qDoc = await Question.create({
@@ -435,6 +444,8 @@ export const duplicateToeicTest = async (req, res, next) => {
         title: group.title,
         instructions: group.instructions,
         imageUrl: group.imageUrl,
+        imageUrls: group.imageUrls,
+        imagePageNumbers: group.imagePageNumbers,
         audioUrl: group.audioUrl,
         passages: group.passages,
         questionIds: newQuestionIds,
@@ -885,9 +896,17 @@ export const importToeicPdf = async (req, res, next) => {
   let createdAssessment = null;
   let createdGroups = [];
   let createdQuestions = [];
+  let extractedImagePaths = [];
+  let uploadedPageImagePaths = [];
+  let persistedPageImagePaths = new Set();
+  let keepExtractedImages = false;
 
   try {
-    if (!req.file && !req.body.pdfBuffer) {
+    const pdfFile = req.files?.file?.[0] || req.file;
+    const pageImageFiles = req.files?.pageImages || [];
+    uploadedPageImagePaths = pageImageFiles.map((file) => file.path).filter(Boolean);
+
+    if (!pdfFile && !req.body.pdfBuffer) {
       return res.status(400).json({
         status: 'error',
         message: 'Vui lòng đính kèm file PDF đề thi TOEIC (dung lượng dưới 30MB)',
@@ -897,26 +916,104 @@ export const importToeicPdf = async (req, res, next) => {
     let pdfBuffer;
     let originalFilename = 'toeic_import.pdf';
 
-    if (req.file) {
-      pdfBuffer = fs.readFileSync(req.file.path);
-      originalFilename = req.file.originalname;
+    if (pdfFile) {
+      pdfBuffer = fs.readFileSync(pdfFile.path);
+      originalFilename = pdfFile.originalname;
     } else if (req.body.pdfBuffer) {
       pdfBuffer = Buffer.from(req.body.pdfBuffer, 'base64');
     }
 
     const targetAssessmentId = req.params ? req.params.id : null;
     const { title, toeicMode = 'full_test', durationMinutes = 120 } = req.body;
+    const previewOnly = req.body.previewOnly === true || req.body.previewOnly === 'true';
+    const ocrText = typeof req.body.ocrText === 'string' ? req.body.ocrText : '';
+    const ocrPageCount = parseInt(req.body.ocrPageCount, 10) || 0;
+    const imagePageNumbers = String(req.body.imagePageNumbers || '')
+      .split(',')
+      .map((value) => Number(value))
+      .filter((value) => Number.isInteger(value) && value > 0);
+    const pageImageUrlsByNumber = {};
+    for (const file of pageImageFiles) {
+      const pageNumber = Number(file.originalname.match(/^page-(\d+)\.jpg$/i)?.[1]);
+      if (!Number.isInteger(pageNumber) || pageNumber <= 0 || !file.path) continue;
+
+      pageImageUrlsByNumber[pageNumber] = {
+        url: `/uploads/${path.basename(file.path)}`,
+        path: file.path,
+      };
+    }
 
     // 1. Parse PDF using TOEIC PDF Parser Engine
-    const { parsedGroups, parsedQuestions, extractedImages, report } = await parseToeicPdf(pdfBuffer, {
+    const { parsedGroups, parsedQuestions, report } = await parseToeicPdf(pdfBuffer, {
       filename: originalFilename,
+      extractedText: ocrText,
+      extractionMethod: ocrPageCount > 0 ? 'browser_hybrid_ocr' : undefined,
+      ocrPageCount,
+      toeicMode,
+      imagePageNumbers: imagePageNumbers.length > 0 ? imagePageNumbers : Object.keys(pageImageUrlsByNumber),
+      pageImageUrlsByNumber: Object.fromEntries(
+        Object.entries(pageImageUrlsByNumber)
+          .filter(([, image]) => typeof image?.url === 'string' && image.url.length > 0)
+          .map(([pageNumber, image]) => [pageNumber, image.url]),
+      ),
+    });
+    const usedImagePageNumbers = new Set(parsedGroups.flatMap((group) => group.imagePageNumbers || []));
+    persistedPageImagePaths = new Set(
+      Object.entries(pageImageUrlsByNumber)
+        .filter(([pageNumber, image]) => usedImagePageNumbers.has(Number(pageNumber)) && Boolean(image?.path))
+        .map(([, image]) => image.path),
+    );
+    extractedImagePaths = [...persistedPageImagePaths];
+
+    parsedGroups.forEach((group) => {
+      group.imageUrls = (group.imagePageNumbers || [])
+        .map((pageNumber) => pageImageUrlsByNumber[pageNumber]?.url)
+        .filter(Boolean);
+      group.imageUrl = group.imageUrls[0] || '';
     });
 
     if (parsedQuestions.length === 0) {
       return res.status(400).json({
         status: 'error',
-        message: 'Không tìm thấy câu hỏi nào hợp lệ trong file PDF đề thi TOEIC.',
+        message: ['scanned_pdf', 'ocr_no_text'].includes(report.extraction?.status)
+          ? 'Không nhận diện được nội dung câu hỏi trong PDF scan. Hãy dùng bản rõ nét hơn hoặc chia nhỏ tài liệu rồi thử lại.'
+          : 'Không tìm thấy câu hỏi TOEIC nào hợp lệ trong file PDF. Hãy kiểm tra cấu trúc đề hoặc thử file có lớp văn bản.',
         report,
+      });
+    }
+
+    const cleanTitle = title?.trim() || `Đề thi TOEIC Import từ PDF - ${path.parse(originalFilename).name}`;
+
+    if (previewOnly) {
+      return res.json({
+        status: 'success',
+        message: `Đã phân tích PDF: nhận diện được ${parsedQuestions.length} câu hỏi.`,
+        data: {
+          previewOnly: true,
+          title: cleanTitle,
+          detected: report.detected,
+          extraction: report.extraction,
+          warnings: report.warnings,
+          missing: report.missing,
+          needsReview: true,
+          preview: {
+            groups: parsedGroups.map((group) => ({
+              partNumber: group.partNumber,
+              title: group.title,
+              questionCount: (group.questions || []).length,
+              imagePageNumbers: group.imagePageNumbers || [],
+            })),
+            questions: parsedQuestions.slice(0, 10).map((question) => ({
+              questionNumber: question.questionNumber,
+              toeicPart: question.toeicPart,
+              questionText: question.questionText,
+              sourcePageNumbers: question.sourcePageNumbers || [],
+              options: question.options,
+              correctAnswers: question.correctAnswers,
+            })),
+            totalQuestions: parsedQuestions.length,
+          },
+        },
       });
     }
 
@@ -931,7 +1028,6 @@ export const importToeicPdf = async (req, res, next) => {
         });
       }
     } else {
-      const cleanTitle = title || `Đề thi TOEIC Import từ PDF - ${path.parse(originalFilename).name}`;
       assessment = new Assessment({
         title: cleanTitle.trim(),
         description: `Import tự động từ file PDF: ${originalFilename}`,
@@ -958,6 +1054,8 @@ export const importToeicPdf = async (req, res, next) => {
         title: groupData.title || `Group Part ${groupData.partNumber}`,
         instructions: groupData.instructions || '',
         imageUrl: groupData.imageUrl || '',
+        imageUrls: groupData.imageUrls || (groupData.imageUrl ? [groupData.imageUrl] : []),
+        imagePageNumbers: groupData.imagePageNumbers || [],
         audioUrl: groupData.audioUrl || '',
         passages: groupData.passages || [],
         order: groupData.order || 1,
@@ -970,7 +1068,7 @@ export const importToeicPdf = async (req, res, next) => {
           questionText: qData.questionText,
           type: qData.type || 'single_choice',
           options: qData.options || [],
-          correctAnswers: qData.correctAnswers || ['opt_1'],
+          correctAnswers: qData.correctAnswers || [],
           explanation: qData.explanation || '',
           score: qData.score || 1,
           toeicPart: qData.toeicPart || groupData.partNumber || 1,
@@ -998,11 +1096,7 @@ export const importToeicPdf = async (req, res, next) => {
     assessment.questions = assessmentQuestions;
     assessment.status = 'draft'; // Re-enforce draft status
     await assessment.save();
-
-    // Remove uploaded temp PDF file if saved on disk
-    if (req.file && fs.existsSync(req.file.path)) {
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
-    }
+    keepExtractedImages = true;
 
     res.json({
       status: 'success',
@@ -1012,6 +1106,7 @@ export const importToeicPdf = async (req, res, next) => {
         title: assessment.title,
         status: assessment.status, // Always 'draft'
         detected: report.detected,
+        extraction: report.extraction,
         warnings: report.warnings,
         missing: report.missing,
         needsReview: true,
@@ -1028,10 +1123,17 @@ export const importToeicPdf = async (req, res, next) => {
     if (createdAssessment) {
       await Assessment.findByIdAndDelete(createdAssessment._id).catch(() => {});
     }
-    if (req.file && fs.existsSync(req.file.path)) {
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
-    }
     next(error);
+  } finally {
+    const removeFile = (filePath) => {
+      if (!filePath || !fs.existsSync(filePath)) return;
+      try { fs.unlinkSync(filePath); } catch (e) {}
+    };
+
+    removeFile(req.files?.file?.[0]?.path || req.file?.path);
+    if (!keepExtractedImages) uploadedPageImagePaths.forEach(removeFile);
+    else uploadedPageImagePaths.filter((filePath) => !persistedPageImagePaths.has(filePath)).forEach(removeFile);
+    if (!keepExtractedImages) extractedImagePaths.forEach(removeFile);
   }
 };
 
@@ -1236,6 +1338,8 @@ export const startToeicAttempt = async (req, res, next) => {
         title: group.title,
         instructions: group.instructions,
         imageUrl: group.imageUrl,
+        imageUrls: group.imageUrls,
+        imagePageNumbers: group.imagePageNumbers,
         audioUrl: group.audioUrl,
         passages: group.passages,
         questionIds: gQuestionIds,

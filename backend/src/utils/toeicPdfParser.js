@@ -1,10 +1,11 @@
 import { createRequire } from 'module';
-import fs from 'fs';
-import path from 'path';
-import { getUploadDir } from './uploadConfig.js';
 
 let pdfParseModule = null;
 let PDFParseClass = null;
+// Only Part 1 uses full-page captures as reliable visual stimuli. Pages in
+// Parts 3, 4, and 7 also contain printed questions/options, so attaching them
+// duplicates the text shown by the exam UI.
+const VISUAL_TOEIC_PARTS = new Set([1]);
 
 const getPdfParser = () => {
   if (!pdfParseModule && !PDFParseClass) {
@@ -19,70 +20,145 @@ const getPdfParser = () => {
   return { pdfParseModule, PDFParseClass };
 };
 
-/**
- * Helper to extract embedded JPEG & PNG images from raw PDF Buffer
- */
-const extractImagesFromPdfBuffer = (buffer) => {
-  const images = [];
-  const uploadsDir = getUploadDir();
+const stripPdfPageMarkers = (text = '') => text.replace(/--\s*\d+\s+of\s+\d+\s*--/gi, ' ');
 
-  try {
-    // 1. JPEG Extraction (FF D8 FF ... FF D9)
-    let pos = 0;
-    while (pos < buffer.length) {
-      const start = buffer.indexOf(Buffer.from([0xff, 0xd8, 0xff]), pos);
-      if (start === -1) break;
+const getMeaningfulTextCharacterCount = (text = '') =>
+  (stripPdfPageMarkers(text).match(/[\p{L}\p{N}]/gu) || []).length;
 
-      const end = buffer.indexOf(Buffer.from([0xff, 0xd9]), start + 3);
-      if (end === -1) break;
+const getPdfPageCount = (text = '') => {
+  const markers = text.match(/--\s*\d+\s+of\s+\d+\s*--/gi) || [];
+  if (markers.length === 0) return 0;
+  const lastMarker = markers[markers.length - 1].match(/of\s+(\d+)/i);
+  return lastMarker ? parseInt(lastMarker[1], 10) : markers.length;
+};
 
-      const imgBuffer = buffer.slice(start, end + 2);
-      // Ensure image is reasonable size (> 2KB to avoid tiny icon artifacts)
-      if (imgBuffer.length > 2048) {
-        const filename = `pdf_img_${Date.now()}_${images.length + 1}.jpg`;
-        const filepath = path.join(uploadsDir, filename);
-        fs.writeFileSync(filepath, imgBuffer);
-        images.push({
-          url: `/uploads/${filename}`,
-          path: filepath,
-          size: imgBuffer.length,
-          type: 'image/jpeg',
-        });
-      }
-      pos = end + 2;
-    }
+const TOEIC_FULL_TEST_QUESTION_RANGES = {
+  1: [1, 6],
+  2: [7, 31],
+  3: [32, 70],
+  4: [71, 100],
+  5: [101, 130],
+  6: [131, 146],
+  7: [147, 200],
+};
 
-    // 2. PNG Extraction (89 50 4E 47 0D 0A 1A 0A ... IEND)
-    pos = 0;
-    const pngHeader = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-    const pngEnd = Buffer.from([0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82]);
+const TOEIC_FULL_TEST_QUESTION_COUNTS = {
+  1: 6,
+  2: 25,
+  3: 39,
+  4: 30,
+  5: 30,
+  6: 16,
+  7: 54,
+};
 
-    while (pos < buffer.length) {
-      const start = buffer.indexOf(pngHeader, pos);
-      if (start === -1) break;
+const ANSWER_KEY_HEADER_REGEX = /^(?:ANSWER\s*KEYS?|ANSWERS|KEY|ĐÁP\s*ÁN)(?:\s*[:\-]?\s*\d{1,4}\+?)?\s*$/i;
 
-      const end = buffer.indexOf(pngEnd, start + 8);
-      if (end === -1) break;
+const PART6_MULTIWORD_NOISE_REGEX = /\b(?:\d{1,2}\s+)?way\s+~~\s+\w\b/gi;
+const PART6_OCR_ARTIFACT_WORDS = new Set(['eeth', 'etre', 'ett', 'een', 'evie', 'jae']);
+const PART6_SHORT_VALID_WORDS = new Set([
+  'a', 'i', 'am', 'an', 'as', 'at', 'be', 'by', 'do', 'go', 'he', 'if', 'in', 'is', 'it', 'me', 'my', 'no', 'of',
+  'on', 'or', 'so', 'to', 'up', 'us', 'we', 'the', 'and', 'are', 'but', 'for', 'not', 'you', 'your', 'his', 'her',
+  'they', 'that', 'this', 'with', 'will', 'any', 'all', 'was', 'were', 'had', 'has', 'have', 'can', 'may', 'one',
+  'two', 'new', 'web', 'ceo', 'inc', 'apt', 'mr', 'ms',
+]);
 
-      const imgBuffer = buffer.slice(start, end + 8);
-      if (imgBuffer.length > 2048) {
-        const filename = `pdf_img_${Date.now()}_${images.length + 1}.png`;
-        const filepath = path.join(uploadsDir, filename);
-        fs.writeFileSync(filepath, imgBuffer);
-        images.push({
-          url: `/uploads/${filename}`,
-          path: filepath,
-          size: imgBuffer.length,
-          type: 'image/png',
-        });
-      }
-      pos = end + 8;
-    }
-  } catch (err) {
-    console.error('Error extracting images from PDF buffer:', err);
+const getPart6QuestionNumberFromToken = (token, orderedQuestionNumbers) => {
+  const digits = String(token).match(/\d{1,3}/)?.[0];
+  if (!digits) return null;
+
+  const exactMatch = orderedQuestionNumbers.find((questionNumber) => String(questionNumber) === digits);
+  if (exactMatch) return exactMatch;
+  if (digits.length > 2) return null;
+
+  const suffixMatches = orderedQuestionNumbers.filter((questionNumber) => String(questionNumber).slice(-2) === digits.padStart(2, '0'));
+  return suffixMatches.length === 1 ? suffixMatches[0] : null;
+};
+
+const getPart6OcrArtifactScore = (token, orderedQuestionNumbers) => {
+  const core = String(token)
+    .replace(/^[^\p{L}\p{N}]+/gu, '')
+    .replace(/[^\p{L}\p{N}]+$/gu, '');
+  const lowerCore = core.toLowerCase();
+  if (!core) return 0;
+
+  if (getPart6QuestionNumberFromToken(token, orderedQuestionNumbers)) return 5;
+  if (PART6_OCR_ARTIFACT_WORDS.has(lowerCore)) return 4;
+
+  const structuralMarks = String(token).match(/[=~|°º]/g) || [];
+  const separatorMarks = String(token).match(/[;:]/g) || [];
+  const dashMarks = String(token).match(/[-–—]/g) || [];
+  if ((structuralMarks.length > 0 && /[\p{L}\p{N}]/u.test(core)) || separatorMarks.length >= 2 || (dashMarks.length >= 2 && /[\p{L}\p{N}]/u.test(core))) {
+    return 4;
   }
 
-  return images;
+  if (/^[A-Z]{1,5}$/.test(core) && !PART6_SHORT_VALID_WORDS.has(lowerCore)) return 3;
+  if (/^[a-z][A-Z]{1,2}$/.test(core)) return 3;
+  if (/^[a-z]{1,3}[”"']$/.test(String(token))) return 3;
+  if (/^[a-z]{1,3};$/.test(String(token))) return 3;
+  if (/^[“"']?\d{1,2}[a-z]{1,3}[.,!?]?$/i.test(token)) return 3;
+  return 0;
+};
+
+const isLikelyPageFooterNoise = (line, pageNumber) => {
+  if (/^[\W_]{2,}$/u.test(line)) return true;
+  if (/^(?:RT\s+SR\s+ER|OT\s+RH|EM\s+EE\]?)$/i.test(line)) return true;
+  if (/^(?:[a-z](?:\s+[a-z]){0,2})$/i.test(line)) return true;
+  if (/^(?:[a-z]{1,2}\s+){1,2}[a-z]{1,2}$/i.test(line) && line === line.toLowerCase()) return true;
+
+  const leadingPageNumber = line.match(/^(\d{1,3})(?:\s+|$)/);
+  return Boolean(leadingPageNumber && Math.abs(Number(leadingPageNumber[1]) - pageNumber) <= 3);
+};
+
+const normalizePart6Passage = (text, questionNumbers = []) => {
+  const orderedQuestionNumbers = [...new Set(questionNumbers.map(Number).filter(Number.isInteger))]
+    .sort((left, right) => left - right);
+  const markers = [];
+  const createMarker = (questionNumber = null) => {
+    const index = markers.length;
+    markers.push(questionNumber);
+    return `\uE000${index}\uE001`;
+  };
+
+  let normalized = String(text || '').replace(PART6_MULTIWORD_NOISE_REGEX, () => createMarker());
+  normalized = normalized
+    .replace(/\bif\s+(?:eaune|maemo)\b/gi, ' ')
+    .replace(/\big(?=\s+these\s+rules\b)/gi, ' ');
+  normalized = normalized.replace(/_{2,}(?:\s*(?:\((\d{1,3})\)|\[(\d{1,3})\]|(\d{1,3})[.)]?))?/gu, () => createMarker());
+
+  const artifactCandidates = [];
+  for (const match of normalized.matchAll(/\S+/gu)) {
+    const score = getPart6OcrArtifactScore(match[0], orderedQuestionNumbers);
+    if (score > 0) artifactCandidates.push({ token: match[0], index: match.index, score });
+  }
+
+  // Each Part 6 passage has one blank per question in its group. Use that
+  // known count to remove scan noise without treating every short word as a blank.
+  const remainingMarkers = Math.max(0, orderedQuestionNumbers.length - markers.length);
+  const selectedArtifacts = artifactCandidates
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .slice(0, remainingMarkers)
+    .sort((left, right) => left.index - right.index);
+  const selectedByIndex = new Map(selectedArtifacts.map((candidate) => [candidate.index, candidate]));
+  let markerReplacements = 0;
+  normalized = normalized.replace(/\S+/gu, (token, offset) => {
+    if (!selectedByIndex.has(offset)) return token;
+    markerReplacements += 1;
+    return createMarker();
+  });
+
+  normalized = normalized.replace(/\uE000(\d+)\uE001/gu, (_marker, markerIndex) => {
+    const markerIndexNumber = Number(markerIndex);
+    const questionNumber = markers[markerIndexNumber] || orderedQuestionNumbers[markerIndexNumber];
+    return questionNumber ? `________ [${questionNumber}]` : '________ [kiểm tra số câu]';
+  });
+
+  return {
+    text: normalized.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim(),
+    markerCount: markers.length,
+    expectedMarkerCount: orderedQuestionNumbers.length,
+    inferredMarkerCount: markerReplacements,
+  };
 };
 
 /**
@@ -93,16 +169,17 @@ const extractAnswerKey = (text) => {
   if (!text) return answerKeyMap;
 
   // Search for Answer Key block
-  const keyHeaderMatch = text.match(/(?:ANSWER\s*KEY|ANSWERS|KEY|ĐÁP\s*ÁN)[\s\S]*/i);
-  const searchSection = keyHeaderMatch ? keyHeaderMatch[0] : text;
+  const keyHeaderRegex = /^\s*(?:ANSWER\s*KEYS?|ANSWERS|KEY|ĐÁP\s*ÁN)(?:\s*[:\-]?\s*\d{1,4}\+?)?\s*$/im;
+  const keyHeaderMatch = keyHeaderRegex.exec(text);
+  const searchSection = keyHeaderMatch ? text.slice(keyHeaderMatch.index) : text;
 
-  // Patterns like: "101. A", "101 - A", "101:A", "101 A", "Q101: A"
-  const pairRegex = /(?:Q|Question)?\s*(\d{1,3})\s*[\.\:\-\s]+\s*([A-D])\b/gi;
+  // Supports both one-answer-per-line text and scanned answer-key grids such as "1 (C) 2 (A)".
+  const pairRegex = /(?:Q(?:uestion)?\s*)?(\d{1,3})\s*(?:[.\:\-]\s*)?(?:\(\s*([A-D])\s*\)|([A-D])\b)/gi;
   let match;
 
   while ((match = pairRegex.exec(searchSection)) !== null) {
     const qNum = parseInt(match[1], 10);
-    const ansLetter = match[2].toUpperCase();
+    const ansLetter = (match[2] || match[3]).toUpperCase();
     if (qNum >= 1 && qNum <= 200 && !answerKeyMap[qNum]) {
       answerKeyMap[qNum] = ansLetter;
     }
@@ -122,38 +199,114 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
     throw new Error('Buffer PDF không hợp lệ');
   }
 
-  // 1. Extract raw text with pdf-parse
-  let pdfData;
-  try {
-    const { pdfParseModule, PDFParseClass } = getPdfParser();
-    if (typeof PDFParseClass === 'function') {
-      const parser = new PDFParseClass(new Uint8Array(pdfBuffer));
-      pdfData = await parser.getText();
-    } else if (typeof pdfParseModule === 'function') {
-      pdfData = await pdfParseModule(pdfBuffer);
-    } else {
-      throw new Error('PDFParse module function not available in this environment');
+  // 1. Prefer browser OCR text when the PDF contains scanned pages; otherwise use its text layer.
+  let pdfData = null;
+  let rawText = typeof options.extractedText === 'string' ? options.extractedText : '';
+  const hasProvidedText = rawText.trim().length > 0;
+
+  if (!hasProvidedText) {
+    try {
+      const { pdfParseModule, PDFParseClass } = getPdfParser();
+      if (typeof PDFParseClass === 'function') {
+        const parser = new PDFParseClass(new Uint8Array(pdfBuffer));
+        pdfData = await parser.getText();
+      } else if (typeof pdfParseModule === 'function') {
+        pdfData = await pdfParseModule(pdfBuffer);
+      } else {
+        throw new Error('PDFParse module function not available in this environment');
+      }
+      rawText = pdfData.text || '';
+    } catch (err) {
+      throw new Error(`Không thể phân tích file PDF. Vui lòng kiểm tra file PDF: ${err.message}`);
     }
-  } catch (err) {
-    throw new Error(`Không thể phân tích file PDF. Vui lòng kiểm tra file PDF: ${err.message}`);
   }
 
-  const rawText = pdfData.text || '';
-  if (!rawText.trim()) {
-    throw new Error('File PDF là bản quét ảnh (Scanned PDF) không có dữ liệu văn bản. Vui lòng sử dụng file PDF chứa Text hoặc chuyển đổi OCR trước.');
-  }
+  const meaningfulCharacters = getMeaningfulTextCharacterCount(rawText);
+  const pageCount = Math.max(getPdfPageCount(rawText), Number(pdfData?.total) || 0);
+  const extractionMethod = options.extractionMethod || (hasProvidedText ? 'browser_ocr' : 'pdf_text');
+  const toeicMode = options.toeicMode || 'full_test';
 
-  // 2. Extract embedded images
-  const extractedImages = extractImagesFromPdfBuffer(pdfBuffer);
+  // Ignore pdf-parse's page labels (for example, "-- 1 of 46 --") when detecting scanned PDFs.
+  if (meaningfulCharacters < 20) {
+    const scannedPdf = pageCount > 0 && (!hasProvidedText || Number(options.ocrPageCount) > 0);
+    return {
+      parsedGroups: [],
+      parsedQuestions: [],
+      extractedImages: [],
+      answerKeyMap: {},
+      report: {
+        status: 'needs_ocr',
+        extraction: {
+          method: extractionMethod,
+          status: scannedPdf ? (hasProvidedText ? 'ocr_no_text' : 'scanned_pdf') : 'empty_text',
+          pages: pageCount,
+          scannedPages: Number(options.ocrPageCount) || 0,
+          meaningfulCharacters,
+        },
+        detected: { parts: [], partsCount: 0, questionGroups: 0, questions: 0, images: 0, answerKeys: 0 },
+        warnings: [
+          scannedPdf
+            ? hasProvidedText
+              ? `Đã OCR ${Number(options.ocrPageCount) || 0} trang nhưng không nhận diện đủ nội dung để phân tích. Hãy dùng PDF rõ nét hơn hoặc chia nhỏ file.`
+              : `PDF có ${pageCount} trang nhưng không có lớp văn bản để trích xuất. Hãy dùng OCR cho tài liệu scan rồi phân tích lại.`
+            : 'PDF không chứa đủ văn bản để phân tích câu hỏi TOEIC.',
+        ],
+        missing: [],
+        needsReview: true,
+      },
+    };
+  }
 
   // 3. Extract Answer Key
   const answerKeyMap = extractAnswerKey(rawText);
 
-  // 4. Split lines and process TOEIC Parts
-  const lines = rawText
+  const pageImageUrlsByNumber = options.pageImageUrlsByNumber || {};
+  const parsePageNumbers = (value) => {
+    const values = Array.isArray(value) ? value : String(value || '').split(',');
+    return [...new Set(values.map((item) => Number(item)).filter((item) => Number.isInteger(item) && item > 0))];
+  };
+  const availableImagePageNumbers = new Set([
+    ...parsePageNumbers(options.imagePageNumbers),
+    ...Object.keys(pageImageUrlsByNumber).map(Number).filter((item) => Number.isInteger(item) && item > 0),
+  ]);
+
+  // 4. Split OCR lines and recover question labels Tesseract merges across a two-column row.
+  const rawLines = rawText
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
+  const hasExplicitPartHeaders = rawLines.some((line) => /^PART\s*[1-7]\b/i.test(line));
+  const lines = [];
+  let linePart = 1;
+  for (const line of rawLines) {
+    const partHeader = line.match(/^PART\s*([1-7])\b/i);
+    if (partHeader) {
+      linePart = Number(partHeader[1]);
+      lines.push(line);
+      continue;
+    }
+
+    const questionRange = toeicMode === 'full_test' && hasExplicitPartHeaders
+      ? TOEIC_FULL_TEST_QUESTION_RANGES[linePart]
+      : null;
+    const labels = [...line.matchAll(/(?:^|\s)(?:Question\s+)?(\d{1,3})[.:)](?=\s|$)/gi)]
+      .filter((match) => {
+        if (!questionRange) return true;
+        const questionNumber = Number(match[1]);
+        return questionNumber >= questionRange[0] && questionNumber <= questionRange[1];
+      });
+
+    if (questionRange && labels.length > 1 && labels[0].index === 0) {
+      for (let index = 0; index < labels.length; index += 1) {
+        const start = labels[index].index;
+        const end = labels[index + 1]?.index ?? line.length;
+        const segment = line.slice(start, end).trim();
+        if (segment) lines.push(segment);
+      }
+    } else {
+      lines.push(line);
+    }
+  }
 
   const parsedGroups = [];
   const parsedQuestions = [];
@@ -163,7 +316,8 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
   let currentGroupHeader = '';
   let currentGroupType = 'single';
   let currentGroupQuestionNums = [];
-  let currentGroupImages = [];
+  let currentGroupSourcePageNumbers = new Set();
+  let currentPageNumber = 1;
 
   let pendingQuestion = null;
   let currentOptions = [];
@@ -173,30 +327,31 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
   const commitPendingQuestion = () => {
     if (!pendingQuestion) return;
 
-    // Ensure 4 options (A, B, C, D)
-    const formattedOptions = (currentOptions.length > 0 ? currentOptions : [
-      { id: 'opt_1', text: '(A) Statement A' },
-      { id: 'opt_2', text: '(B) Statement B' },
-      { id: 'opt_3', text: '(C) Statement C' },
-      { id: 'opt_4', text: '(D) Statement D' },
-    ]).slice(0, 4);
+    const formattedOptions = currentOptions.slice(0, 4);
+    const expectedOptionCount = currentPart <= 2 ? 0 : 4;
+    if (expectedOptionCount > 0 && formattedOptions.length < expectedOptionCount) {
+      warnings.push(`Câu hỏi ${pendingQuestion.questionNumber}: Chỉ nhận diện được ${formattedOptions.length}/${expectedOptionCount} lựa chọn. Giáo viên cần bổ sung hoặc kiểm tra.`);
+    }
 
     // Map Answer Key
     const qNum = pendingQuestion.questionNumber;
-    let correctOptionId = 'opt_1';
+    let correctOptionId = '';
 
     if (answerKeyMap[qNum]) {
       const letter = answerKeyMap[qNum];
-      if (letter === 'A') correctOptionId = 'opt_1';
-      else if (letter === 'B') correctOptionId = 'opt_2';
-      else if (letter === 'C') correctOptionId = 'opt_3';
-      else if (letter === 'D') correctOptionId = 'opt_4';
+      const optionIds = { A: 'opt_1', B: 'opt_2', C: 'opt_3', D: 'opt_4' };
+      const candidateId = optionIds[letter];
+      if (formattedOptions.some((option) => option.id === candidateId)) {
+        correctOptionId = candidateId;
+      } else {
+        warnings.push(`Câu hỏi ${qNum}: Có đáp án ${letter} trong Answer Key nhưng lựa chọn tương ứng chưa được nhận diện.`);
+      }
     } else {
-      warnings.push(`Câu hỏi ${qNum}: Không tìm thấy đáp án trong Answer Key, mặc định chọn đáp án (A). Giáo viên cần review.`);
+      warnings.push(`Câu hỏi ${qNum}: Chưa tìm thấy đáp án trong Answer Key. Giáo viên cần chọn đáp án đúng trước khi xuất bản.`);
     }
 
     pendingQuestion.options = formattedOptions;
-    pendingQuestion.correctAnswers = [correctOptionId];
+    pendingQuestion.correctAnswers = correctOptionId ? [correctOptionId] : [];
     pendingQuestion.toeicPart = currentPart;
 
     parsedQuestions.push(pendingQuestion);
@@ -211,30 +366,76 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
     if (parsedQuestions.length === 0 && !currentPassageText) return;
 
     // Find questions belonging to this group
-    const groupQuestions = parsedQuestions.filter((q) => !q.questionGroupRef);
+    const groupQuestions = parsedQuestions
+      .filter((q) => !q.questionGroupRef)
+      .sort((left, right) => left.questionNumber - right.questionNumber);
+
+    // Part direction pages are not passages. Avoid creating empty groups that
+    // later appear as blank cards in the draft builder.
+    const instructionOnly = groupQuestions.length === 0
+      && !currentGroupHeader
+      && /^\s*Directions\s*:/i.test(currentPassageText);
+    if (instructionOnly) {
+      currentPassageText = '';
+      currentGroupHeader = '';
+      currentGroupQuestionNums = [];
+      currentGroupSourcePageNumbers = new Set();
+      currentGroupType = 'single';
+      return;
+    }
 
     if (groupQuestions.length > 0 || currentPassageText) {
       const partNum = groupQuestions.length > 0 ? groupQuestions[0].toeicPart : currentPart;
+      const sourcePageNumbers = [...new Set([
+        ...currentGroupSourcePageNumbers,
+        ...groupQuestions.flatMap((question) => question.sourcePageNumbers || []),
+      ])].sort((left, right) => left - right);
+      const imagePageNumbers = VISUAL_TOEIC_PARTS.has(partNum)
+        ? sourcePageNumbers.filter((pageNumber) => availableImagePageNumbers.has(pageNumber))
+        : [];
+      const imageUrls = [...new Set(imagePageNumbers.map((pageNumber) => pageImageUrlsByNumber[pageNumber]).filter(Boolean))];
 
       let gType = currentGroupType;
       if (currentPassageText) {
         gType = partNum >= 6 ? 'passage' : 'single';
-      } else if (currentGroupImages.length > 0 && partNum <= 4) {
+      } else if (imagePageNumbers.length > 0 && partNum <= 4) {
         gType = 'audio_image';
       } else if (partNum <= 4) {
         gType = 'audio';
       }
 
+      const passageQuestionNumbers = currentGroupQuestionNums.length > 0
+        ? currentGroupQuestionNums
+        : groupQuestions.map((question) => question.questionNumber);
+      const normalizedPassage = partNum === 6
+        ? normalizePart6Passage(currentPassageText, passageQuestionNumbers)
+        : { text: currentPassageText, markerCount: 0, expectedMarkerCount: 0 };
+      if (partNum === 6 && normalizedPassage.markerCount !== normalizedPassage.expectedMarkerCount) {
+        warnings.push(
+          `Part 6 ${currentGroupHeader || 'passage'}: nhận diện ${normalizedPassage.markerCount}/${normalizedPassage.expectedMarkerCount} dấu chỗ trống; cần rà lại passage và vị trí từng câu.`,
+        );
+      }
+
       const passages = currentPassageText
-        ? [{ title: currentGroupHeader || 'Passage', content: currentPassageText, order: 1 }]
+        ? [{
+          title: currentGroupHeader || 'Passage',
+          content: partNum === 6 ? normalizedPassage.text : currentPassageText,
+          imageUrl: '',
+          order: 1,
+        }]
         : [];
 
       const groupObj = {
         partNumber: partNum,
         type: gType,
         title: currentGroupHeader || `Group Part ${partNum}`,
-        instructions: `Questions ${groupQuestions.map((q) => q.questionNumber).join(', ')}`,
-        imageUrl: currentGroupImages.length > 0 ? currentGroupImages[0].url : '',
+        instructions: groupQuestions.length > 0
+          ? `Questions ${groupQuestions.map((q) => q.questionNumber).join(', ')}`
+          : '',
+        imageUrl: imageUrls[0] || '',
+        imageUrls,
+        imagePageNumbers,
+        sourcePageNumbers,
         audioUrl: '',
         passages: passages,
         questions: groupQuestions,
@@ -252,7 +453,7 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
     currentPassageText = '';
     currentGroupHeader = '';
     currentGroupQuestionNums = [];
-    currentGroupImages = [];
+    currentGroupSourcePageNumbers = new Set();
     currentGroupType = 'single';
   };
 
@@ -262,10 +463,14 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
   const questionNumRegex = /^(?:Question\s+(\d{1,3})[\.\:\)]?|(\d{1,3})[\.\:\)])\s*(.*)/i;
   const optionRegex = /^\(?([A-D])[\.\)]\s*(.*)/i;
 
-  let imageIndex = 0;
-
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+
+    const pageMarkerMatch = line.match(/^--\s*(\d+)\s+of\s+\d+\s*--$/i);
+    if (pageMarkerMatch) {
+      currentPageNumber = Number(pageMarkerMatch[1]);
+      continue;
+    }
 
     // Check Part Header
     const partMatch = line.match(partHeaderRegex);
@@ -276,7 +481,7 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
     }
 
     // Stop parsing if we hit Answer Key section at bottom
-    if (/^(?:ANSWER\s*KEY|ANSWERS|KEY|ĐÁP\s*ÁN)/i.test(line)) {
+    if (ANSWER_KEY_HEADER_REGEX.test(line)) {
       commitCurrentGroup();
       break;
     }
@@ -286,15 +491,10 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
     if (groupMatch) {
       commitCurrentGroup();
       currentGroupHeader = line;
+      currentGroupSourcePageNumbers.add(currentPageNumber);
       const startNum = parseInt(groupMatch[1], 10);
       const endNum = parseInt(groupMatch[2], 10);
       currentGroupQuestionNums = Array.from({ length: endNum - startNum + 1 }, (_, idx) => startNum + idx);
-
-      // Assign extracted image if available for Part 1 or Part 3/4 graphic
-      if ((currentPart === 1 || currentPart === 3 || currentPart === 4 || currentPart === 7) && imageIndex < extractedImages.length) {
-        currentGroupImages.push(extractedImages[imageIndex]);
-        imageIndex++;
-      }
       continue;
     }
 
@@ -304,17 +504,63 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
       commitPendingQuestion();
       questionCounter++;
 
-      const qNum = parseInt(qMatch[1] || qMatch[2], 10);
-      const qText = qMatch[3] ? qMatch[3].trim() : `Question ${qNum}`;
+      const rawQuestionNumber = parseInt(qMatch[1] || qMatch[2], 10);
+      let qNum = rawQuestionNumber;
+      if (currentGroupQuestionNums.length > 0 && !currentGroupQuestionNums.includes(rawQuestionNumber)) {
+        const rawDigits = String(rawQuestionNumber);
+        const suffixCandidates = currentGroupQuestionNums.filter((questionNumber) =>
+          String(questionNumber).endsWith(rawDigits),
+        );
+        const importedInGroup = new Set(parsedQuestions
+          .map((question) => question.questionNumber)
+          .filter((questionNumber) => currentGroupQuestionNums.includes(questionNumber)));
+        if (suffixCandidates.length === 1) qNum = suffixCandidates[0];
+        else if (suffixCandidates.length === 0) {
+          const remainingQuestions = currentGroupQuestionNums.filter((questionNumber) => !importedInGroup.has(questionNumber));
+          if (remainingQuestions.length === 1) qNum = remainingQuestions[0];
+        }
+        if (qNum !== rawQuestionNumber) {
+          warnings.push(`Đã khôi phục số câu ${qNum} từ nhãn OCR bị thiếu chữ số đầu (${rawQuestionNumber}).`);
+        }
+      }
+      const questionRange = toeicMode === 'full_test' && hasExplicitPartHeaders
+        ? TOEIC_FULL_TEST_QUESTION_RANGES[currentPart]
+        : null;
+      if (questionRange && (qNum < questionRange[0] || qNum > questionRange[1])) {
+        if ((currentPart === 6 || currentPart === 7) && !pendingQuestion) {
+          currentGroupSourcePageNumbers.add(currentPageNumber);
+          currentPassageText += (currentPassageText ? '\n' : '') + line;
+        }
+        continue;
+      }
+
+      const rawQuestionText = qMatch[3] ? qMatch[3].trim() : '';
+      const inlineOptionMatch = rawQuestionText.match(/^\(?([A-D])[.)]\s*(.*)$/i);
+      const answerSheetPlaceholder = /^mark\s+your\s+answers?\s+on\s+your\s+answer\s+sheet\.?$/i.test(rawQuestionText);
+      let qText = rawQuestionText || `Question ${qNum}`;
+      if (currentPart === 1) qText = 'Look at the photograph and choose the correct statement.';
+      else if (currentPart === 2 && answerSheetPlaceholder) qText = 'Listen to the question and choose the best response.';
+      else if (inlineOptionMatch) qText = `Question ${qNum}`;
+      if (currentPart === 6 && qText === `Question ${qNum}`) {
+        qText = `Choose the best word or phrase for blank ${qNum} in the passage.`;
+      }
 
       pendingQuestion = {
         questionNumber: qNum,
-        questionText: qText || `Question ${qNum}`,
+        questionText: qText,
         type: 'single_choice',
         score: 1,
         explanation: '',
         order: qNum,
+        sourcePageNumbers: [currentPageNumber],
       };
+      if (inlineOptionMatch) {
+        const letter = inlineOptionMatch[1].toUpperCase();
+        currentOptions.push({
+          id: `opt_${letter.charCodeAt(0) - 64}`,
+          text: `(${letter}) ${inlineOptionMatch[2].trim()}`,
+        });
+      }
       continue;
     }
 
@@ -337,11 +583,21 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
       continue;
     }
 
+    if (pendingQuestion && currentOptions.length > 0 && !optMatch) {
+      if (/^(?:GO\s+ON\s+TO\s+THE\s+NEXT\s+PAGE|THIS\s+IS\s+THE\s+END\s+OF\s+THE\s+.+|PART\s*[1-7]\b)/i.test(line)) continue;
+      if (isLikelyPageFooterNoise(line, currentPageNumber)) continue;
+      const lastOption = currentOptions[currentOptions.length - 1];
+      lastOption.text = `${lastOption.text} ${line}`.trim();
+      continue;
+    }
+
     // If we are in Part 6 or 7 and line is not a question/option, accumulate passage text
     if ((currentPart === 6 || currentPart === 7) && !pendingQuestion) {
+      currentGroupSourcePageNumbers.add(currentPageNumber);
       currentPassageText += (currentPassageText ? '\n' : '') + line;
-    } else if (pendingQuestion && !optMatch && currentOptions.length === 0) {
+    } else if (pendingQuestion && !optMatch && currentOptions.length === 0 && ![1, 2, 6].includes(currentPart)) {
       // Append text to current questionText if prompt wraps across lines
+      if (!pendingQuestion.sourcePageNumbers.includes(currentPageNumber)) pendingQuestion.sourcePageNumbers.push(currentPageNumber);
       pendingQuestion.questionText += ' ' + line;
     }
   }
@@ -358,6 +614,9 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
         title: `Question ${q.questionNumber}`,
         instructions: '',
         imageUrl: '',
+        imageUrls: [],
+        imagePageNumbers: [],
+        sourcePageNumbers: q.sourcePageNumbers || [],
         audioUrl: '',
         passages: [],
         questions: [q],
@@ -366,6 +625,11 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
     }
   }
 
+  parsedQuestions.sort((left, right) =>
+    (left.toeicPart || 0) - (right.toeicPart || 0)
+    || left.questionNumber - right.questionNumber,
+  );
+
   // Listening section notification
   const listeningCount = parsedQuestions.filter((q) => q.toeicPart <= 4).length;
   if (listeningCount > 0) {
@@ -373,20 +637,59 @@ export const parseToeicPdf = async (pdfBuffer, options = {}) => {
   }
 
   const detectedPartsList = Array.from(new Set(parsedQuestions.map((q) => q.toeicPart))).sort((a, b) => a - b);
+  const partQuestionCounts = Object.fromEntries(
+    Array.from({ length: 7 }, (_, index) => {
+      const partNumber = index + 1;
+      return [partNumber, parsedQuestions.filter((question) => question.toeicPart === partNumber).length];
+    }),
+  );
+  const expectedQuestionCount = toeicMode === 'full_test'
+    ? Object.values(TOEIC_FULL_TEST_QUESTION_COUNTS).reduce((sum, count) => sum + count, 0)
+    : null;
+  const expectedFullTestQuestionNumbers = toeicMode === 'full_test'
+    ? Object.values(TOEIC_FULL_TEST_QUESTION_RANGES).flatMap(([start, end]) =>
+      Array.from({ length: end - start + 1 }, (_, index) => start + index),
+    )
+    : [];
+  const importedQuestionNumbers = new Set(parsedQuestions.map((question) => question.questionNumber));
+  const missingQuestionNumbers = expectedFullTestQuestionNumbers.filter((questionNumber) =>
+    !importedQuestionNumbers.has(questionNumber),
+  );
+  const missingQuestionCount = missingQuestionNumbers.length;
+  if (missingQuestionCount > 0) {
+    warnings.unshift(`Đề TOEIC full test cần ${expectedQuestionCount} câu; OCR còn thiếu câu ${missingQuestionNumbers.join(', ')}. Kiểm tra các câu này trước khi lưu.`);
+  }
+  const detectedImagePageNumbers = new Set(parsedGroups.flatMap((group) => group.imagePageNumbers || []));
+  const unassignedImagePageNumbers = [...availableImagePageNumbers].filter((pageNumber) => !detectedImagePageNumbers.has(pageNumber));
+  if (unassignedImagePageNumbers.length > 0) {
+    warnings.push(`Chưa gắn được ảnh ở trang PDF ${unassignedImagePageNumbers.join(', ')} vào nhóm câu hỏi; cần kiểm tra thủ công.`);
+  }
 
   return {
     parsedGroups,
     parsedQuestions,
-    extractedImages,
+    extractedImages: [],
     answerKeyMap,
     report: {
       status: 'draft',
+      extraction: {
+        method: extractionMethod,
+        status: 'text_extracted',
+        pages: pageCount,
+        scannedPages: Number(options.ocrPageCount) || 0,
+        meaningfulCharacters,
+      },
       detected: {
         parts: detectedPartsList.length > 0 ? detectedPartsList : [1],
         partsCount: detectedPartsList.length || 1,
         questionGroups: parsedGroups.length,
         questions: parsedQuestions.length,
-        images: extractedImages.length,
+        partQuestionCounts,
+        expectedQuestions: expectedQuestionCount,
+        missingQuestions: missingQuestionCount,
+        missingQuestionNumbers,
+        images: detectedImagePageNumbers.size,
+        imagePages: [...detectedImagePageNumbers].sort((left, right) => left - right),
         answerKeys: Object.keys(answerKeyMap).length,
       },
       warnings,

@@ -5,6 +5,7 @@ import PageHeader from '../../components/ui/PageHeader.jsx';
 import UiButton from '../../components/ui/UiButton.jsx';
 import DataTable from '../../components/ui/DataTable.jsx';
 import StatusBadge from '../../components/ui/StatusBadge.jsx';
+import { extractToeicPdfText } from '../../utils/toeicPdfOcr.js';
 import './AdminStudentsPage.css';
 
 export default function AdminToeicListPage() {
@@ -28,9 +29,21 @@ export default function AdminToeicListPage() {
   const [pdfDuration, setPdfDuration] = useState(120);
   const [pdfUploading, setPdfUploading] = useState(false);
   const [pdfImportReport, setPdfImportReport] = useState(null);
+  const [pdfImportSaved, setPdfImportSaved] = useState(false);
+  const [pdfOcrText, setPdfOcrText] = useState('');
+  const [pdfOcrPageCount, setPdfOcrPageCount] = useState(0);
+  const [pdfPageImages, setPdfPageImages] = useState([]);
+  const [pdfPageImageUrls, setPdfPageImageUrls] = useState({});
+  const [pdfProgress, setPdfProgress] = useState('');
   const [pdfError, setPdfError] = useState(null);
 
   const navigate = useNavigate();
+
+  const clearPdfPageImages = () => {
+    Object.values(pdfPageImageUrls).forEach((url) => URL.revokeObjectURL(url));
+    setPdfPageImages([]);
+    setPdfPageImageUrls({});
+  };
 
   useEffect(() => {
     fetchToeicTests();
@@ -131,29 +144,86 @@ export default function AdminToeicListPage() {
       setPdfUploading(true);
       setPdfError(null);
       setPdfImportReport(null);
+      setPdfProgress('Đang đọc các trang PDF...');
+      clearPdfPageImages();
+
+      const extraction = await extractToeicPdfText(pdfFile, {
+        onProgress: ({ phase, currentPage, totalPages }) => {
+          if (phase === 'ocr') setPdfProgress(`Đang OCR trang ${currentPage}/${totalPages}...`);
+          else if (phase === 'reading') setPdfProgress(`Đang kiểm tra trang ${currentPage}/${totalPages}...`);
+          else if (phase === 'images') setPdfProgress(`Đang tạo ảnh xem trước trang ${currentPage}...`);
+          else if (phase === 'loading_ocr') setPdfProgress('Đang khởi tạo OCR tiếng Anh...');
+        },
+      });
+      setPdfOcrText(extraction.text);
+      setPdfOcrPageCount(extraction.ocrPageCount);
+      setPdfPageImages(extraction.pageImages || []);
+      setPdfPageImageUrls(Object.fromEntries(
+        (extraction.pageImages || []).map(({ pageNumber, blob }) => [pageNumber, URL.createObjectURL(blob)]),
+      ));
+      setPdfProgress('Đang phân tích câu hỏi...');
 
       const res = await toeicApi.importToeicPdf(pdfFile, {
         title: pdfTitle.trim() || undefined,
         toeicMode: pdfMode,
         durationMinutes: pdfDuration,
+        previewOnly: true,
+        ocrText: extraction.text,
+        ocrPageCount: extraction.ocrPageCount,
+        imagePageNumbers: (extraction.pageImages || []).map(({ pageNumber }) => pageNumber),
       });
 
       if (res.status === 'success') {
         setPdfImportReport(res.data);
-        fetchToeicTests();
+        setPdfImportSaved(false);
       }
     } catch (err) {
       setPdfError(err.response?.data?.message || 'Không thể import file PDF. Vui lòng kiểm tra lại định dạng file.');
     } finally {
       setPdfUploading(false);
+      setPdfProgress('');
+    }
+  };
+
+  const handleConfirmPdfImport = async () => {
+    if (!pdfFile || !pdfImportReport) return;
+    try {
+      setPdfUploading(true);
+      setPdfError(null);
+      setPdfProgress('Đang lưu đề thi ở trạng thái bản nháp...');
+      const res = await toeicApi.importToeicPdf(pdfFile, {
+        title: pdfTitle.trim() || undefined,
+        toeicMode: pdfMode,
+        durationMinutes: pdfDuration,
+        ocrText: pdfOcrText,
+        ocrPageCount: pdfOcrPageCount,
+        imagePageNumbers: pdfPageImages.map(({ pageNumber }) => pageNumber),
+        pageImages: pdfPageImages,
+      });
+
+      if (res.status === 'success') {
+        setPdfImportReport(res.data);
+        setPdfImportSaved(true);
+        fetchToeicTests();
+      }
+    } catch (err) {
+      setPdfError(err.response?.data?.message || 'Không thể lưu đề thi TOEIC đã phân tích.');
+    } finally {
+      setPdfUploading(false);
+      setPdfProgress('');
     }
   };
 
   const handleClosePdfModal = () => {
+    clearPdfPageImages();
     setShowPdfModal(false);
     setPdfFile(null);
     setPdfTitle('');
     setPdfImportReport(null);
+    setPdfImportSaved(false);
+    setPdfOcrText('');
+    setPdfOcrPageCount(0);
+    setPdfProgress('');
     setPdfError(null);
   };
 
@@ -448,7 +518,11 @@ export default function AdminToeicListPage() {
                       onChange={(e) => {
                         const file = e.target.files[0];
                         if (file) {
+                          clearPdfPageImages();
                           setPdfFile(file);
+                          setPdfImportReport(null);
+                          setPdfImportSaved(false);
+                          setPdfError(null);
                           if (!pdfTitle) {
                             setPdfTitle(file.name.replace(/\.pdf$/i, ''));
                           }
@@ -466,7 +540,7 @@ export default function AdminToeicListPage() {
                     ) : (
                       <div>
                         <div style={{ fontWeight: 700, color: 'var(--brand-text)' }}>Kéo thả hoặc nhấp để chọn file PDF đề thi</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)', marginTop: '0.35rem' }}>Hỗ trợ file PDF đề thi TOEIC tối đa 30MB</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)', marginTop: '0.35rem' }}>Tối đa 30MB khi kết nối backend local</div>
                       </div>
                     )}
                   </div>
@@ -510,7 +584,8 @@ export default function AdminToeicListPage() {
                   </div>
 
                   <div style={{ background: 'var(--brand-yellow-soft)', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid var(--brand-border)', fontSize: '0.8rem', color: 'var(--brand-coffee)', lineHeight: 1.5 }}>
-                    <strong>Quy trình xử lý an toàn:</strong> Đề thi sau khi import sẽ được lưu ở trạng thái <strong>BẢN NHÁP (Draft)</strong> và KHÔNG hiển thị cho học viên cho đến khi Giáo viên duyệt và bấm "Xuất bản".
+                    <strong>Quy trình:</strong> Hệ thống phân tích trước để bạn xem số câu và cảnh báo. Chỉ lưu sau khi bạn xác nhận; đề luôn ở trạng thái <strong>BẢN NHÁP (Draft)</strong> cho đến khi giáo viên xuất bản.
+                    <br />PDF scan được OCR ngay trên trình duyệt. File trên 4.5MB cần backend local vì Vercel Function giới hạn request ở 4.5MB. Lần đầu OCR có thể cần tải engine và dữ liệu nhận diện tiếng Anh.
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
@@ -534,7 +609,7 @@ export default function AdminToeicListPage() {
                       {pdfUploading ? (
                         <>
                           <div style={{ width: '16px', height: '16px', border: '2px solid var(--brand-surface)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                          Đang phân tích PDF...
+                          {pdfProgress || 'Đang phân tích PDF...'}
                         </>
                       ) : (
                         'Bắt Đầu Import'
@@ -547,12 +622,30 @@ export default function AdminToeicListPage() {
               /* IMPORT RESULT REPORT */
               <div>
                 <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🎉</div>
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--brand-text)' }}>Import PDF Thành Công!</h3>
+                  <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>{pdfImportSaved ? '🎉' : '🔎'}</div>
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--brand-text)' }}>
+                    {pdfImportSaved ? 'Đã lưu bản nháp TOEIC' : 'Xem trước kết quả phân tích PDF'}
+                  </h3>
                   <p style={{ color: 'var(--brand-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
-                    Đề thi <strong>"{pdfImportReport.title}"</strong> đã được tạo ở trạng thái <strong>BẢN NHÁP (Draft)</strong>.
+                    {pdfImportSaved
+                      ? <>Đề thi <strong>"{pdfImportReport.title}"</strong> đang ở trạng thái <strong>BẢN NHÁP (Draft)</strong>.</>
+                      : <>Chưa có dữ liệu nào được lưu. Kiểm tra kết quả rồi xác nhận để tạo đề thi bản nháp.</>}
                   </p>
                 </div>
+
+                {pdfError && (
+                  <div style={{ padding: '0.85rem', borderRadius: '8px', background: 'var(--brand-danger-bg)', border: '1px solid var(--brand-danger-border)', color: 'var(--brand-danger)', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
+                    {pdfError}
+                  </div>
+                )}
+
+                {pdfImportReport.extraction && (
+                  <div style={{ padding: '0.75rem 1rem', borderRadius: '8px', background: 'var(--brand-bg-sub)', color: 'var(--brand-muted)', marginBottom: '1rem', fontSize: '0.82rem' }}>
+                    Trích xuất: {pdfImportReport.extraction.scannedPages > 0
+                      ? `OCR ${pdfImportReport.extraction.scannedPages}/${pdfImportReport.extraction.pages || pdfImportReport.extraction.scannedPages} trang scan trên trình duyệt`
+                      : 'lớp văn bản của PDF'}; {pdfImportReport.extraction.meaningfulCharacters?.toLocaleString('vi-VN') || 0} ký tự nhận diện.
+                  </div>
+                )}
 
                 {/* Detected Stats Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
@@ -566,13 +659,94 @@ export default function AdminToeicListPage() {
                   </div>
                   <div style={{ background: 'var(--brand-bg-sub)', padding: '1rem', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--brand-border)' }}>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--brand-success)' }}>{pdfImportReport.detected?.questions || 0}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--brand-muted)', fontWeight: 600 }}>Tổng Số Câu Hỏi</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--brand-muted)', fontWeight: 600 }}>{pdfImportSaved ? 'Câu Hỏi Đã Lưu' : 'Câu Hỏi Nhận Diện'}</div>
                   </div>
                   <div style={{ background: 'var(--brand-bg-sub)', padding: '1rem', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--brand-border)' }}>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--brand-coffee)' }}>{pdfImportReport.detected?.images || 0}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--brand-muted)', fontWeight: 600 }}>Hình Ảnh Trích Xuất</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--brand-muted)', fontWeight: 600 }}>Trang Có Ảnh</div>
                   </div>
                 </div>
+
+                {pdfImportReport.detected?.partQuestionCounts && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                    {Object.entries(pdfImportReport.detected.partQuestionCounts).map(([partNumber, detectedCount]) => {
+                      const expectedCount = pdfImportReport.detected.expectedQuestions
+                        ? ({ 1: 6, 2: 25, 3: 39, 4: 30, 5: 30, 6: 16, 7: 54 })[partNumber]
+                        : null;
+                      return (
+                        <span
+                          key={partNumber}
+                          style={{
+                            padding: '0.35rem 0.65rem',
+                            borderRadius: '6px',
+                            background: expectedCount === null || detectedCount === expectedCount ? 'var(--brand-success-bg)' : 'var(--brand-danger-bg)',
+                            color: expectedCount === null || detectedCount === expectedCount ? 'var(--brand-success)' : 'var(--brand-danger)',
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          Part {partNumber}: {detectedCount}{expectedCount ? `/${expectedCount}` : ''}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {(pdfImportReport.preview?.groups || []).some((group) => group.imagePageNumbers?.length > 0) && (
+                  <div style={{ border: '1px solid var(--brand-border)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
+                    <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.75rem', color: 'var(--brand-text)' }}>
+                      Ảnh trang đề sẽ gắn vào nhóm câu hỏi
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
+                      {[...new Set((pdfImportReport.preview.groups || []).flatMap((group) => group.imagePageNumbers || []))]
+                        .filter((pageNumber) => pdfPageImageUrls[pageNumber])
+                        .slice(0, 12)
+                        .map((pageNumber) => (
+                          <figure key={pageNumber} style={{ margin: 0, padding: '0.5rem', borderRadius: '8px', background: 'var(--brand-bg-sub)' }}>
+                            <img
+                              src={pdfPageImageUrls[pageNumber]}
+                              alt={`Trang ${pageNumber} của PDF`}
+                              style={{ width: '100%', height: '190px', objectFit: 'contain', background: '#fff', borderRadius: '5px' }}
+                            />
+                            <figcaption style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--brand-muted)', marginTop: '0.4rem' }}>
+                              Trang {pageNumber}
+                            </figcaption>
+                          </figure>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {!pdfImportSaved && pdfImportReport.preview?.questions?.length > 0 && (
+                  <div style={{ border: '1px solid var(--brand-border)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
+                    <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.75rem', color: 'var(--brand-text)' }}>
+                      Mẫu {pdfImportReport.preview.questions.length} câu đầu
+                    </h4>
+                    <ol style={{ margin: 0, paddingLeft: '1.35rem', display: 'grid', gap: '0.75rem' }}>
+                      {pdfImportReport.preview.questions.map((question) => {
+                        const correctOption = question.options?.find((option) => question.correctAnswers?.includes(option.id));
+                        return (
+                          <li key={`${question.toeicPart}-${question.questionNumber}`} style={{ paddingLeft: '0.2rem', color: 'var(--brand-text)' }}>
+                            <div style={{ fontWeight: 700 }}>Part {question.toeicPart} · Câu {question.questionNumber}: {question.questionText}</div>
+                            <div style={{ color: 'var(--brand-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                              {question.options?.length
+                                ? question.options.map((option) => option.text).join(' · ')
+                                : 'Chưa nhận diện được lựa chọn'}
+                            </div>
+                            <div style={{ color: correctOption ? 'var(--brand-success)' : 'var(--brand-warning)', fontSize: '0.8rem', marginTop: '0.2rem' }}>
+                              {correctOption ? `Đáp án nhận diện: ${correctOption.text}` : 'Chưa có đáp án; cần bổ sung trong Builder'}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                    {pdfImportReport.preview.totalQuestions > pdfImportReport.preview.questions.length && (
+                      <p style={{ fontSize: '0.78rem', color: 'var(--brand-muted)', margin: '0.75rem 0 0' }}>
+                        Còn {pdfImportReport.preview.totalQuestions - pdfImportReport.preview.questions.length} câu khác sẽ được đưa vào bản nháp.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Warnings / Missing Notices */}
                 {pdfImportReport.missing && pdfImportReport.missing.length > 0 && (
@@ -609,19 +783,30 @@ export default function AdminToeicListPage() {
                     onClick={handleClosePdfModal}
                     style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', border: '1px solid var(--brand-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}
                   >
-                    Đóng
+                    {pdfImportSaved ? 'Đóng' : 'Hủy'}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const testId = pdfImportReport.testId;
-                      handleClosePdfModal();
-                      navigate(`/admin/toeic-tests/${testId}/edit`);
-                    }}
-                    style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: 'var(--brand-yellow)', color: 'var(--brand-text)', cursor: 'pointer', fontWeight: 700 }}
-                  >
-                    Mở Builder Để Kiểm Tra & Sửa →
-                  </button>
+                  {pdfImportSaved ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const testId = pdfImportReport.testId;
+                        handleClosePdfModal();
+                        navigate(`/admin/toeic-tests/${testId}/edit`);
+                      }}
+                      style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: 'var(--brand-yellow)', color: 'var(--brand-text)', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      Mở Builder Để Kiểm Tra & Sửa →
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleConfirmPdfImport}
+                      disabled={pdfUploading}
+                      style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: 'var(--brand-yellow)', color: 'var(--brand-text)', cursor: pdfUploading ? 'wait' : 'pointer', fontWeight: 700, opacity: pdfUploading ? 0.7 : 1 }}
+                    >
+                      {pdfUploading ? pdfProgress || 'Đang lưu...' : 'Xác nhận lưu bản nháp'}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
