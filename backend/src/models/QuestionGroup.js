@@ -47,6 +47,8 @@ const questionGroupSchema = new mongoose.Schema(
         title: { type: String, default: '' },
         content: { type: String, default: '' },
         imageUrl: { type: String, default: '' },
+        imageUrls: { type: [String], default: [] },
+        imagePageNumbers: { type: [Number], default: [] },
         order: { type: Number, default: 1 },
       },
     ],

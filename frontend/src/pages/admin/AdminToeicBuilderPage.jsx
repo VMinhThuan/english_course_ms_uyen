@@ -72,8 +72,11 @@ export default function AdminToeicBuilderPage() {
   const [pdfUploading, setPdfUploading] = useState(false);
   const [pdfReport, setPdfReport] = useState(null);
   const [pdfImportSaved, setPdfImportSaved] = useState(false);
+  const [pdfReviewConfirmed, setPdfReviewConfirmed] = useState(false);
   const [pdfOcrText, setPdfOcrText] = useState('');
   const [pdfOcrPageCount, setPdfOcrPageCount] = useState(0);
+  const [pdfPageImages, setPdfPageImages] = useState([]);
+  const [pdfPageImageUrls, setPdfPageImageUrls] = useState({});
   const [pdfProgress, setPdfProgress] = useState('');
   const [pdfError, setPdfError] = useState(null);
 
@@ -82,6 +85,10 @@ export default function AdminToeicBuilderPage() {
       fetchToeicTestDetails();
     }
   }, [id]);
+
+  useEffect(() => () => {
+    Object.values(pdfPageImageUrls).forEach((url) => URL.revokeObjectURL(url));
+  }, [pdfPageImageUrls]);
 
   const fetchToeicTestDetails = async () => {
     try {
@@ -284,7 +291,7 @@ export default function AdminToeicBuilderPage() {
   };
 
   // Media Upload handler
-  const handleMediaUpload = async (e, type) => {
+  const handleMediaUpload = async (e, type, passageIndex = -1) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -299,6 +306,13 @@ export default function AdminToeicBuilderPage() {
           setGroupImagePageNumbers([]);
         }
         else if (type === 'group_audio') setGroupAudioUrl(res.data.fileUrl);
+        else if (type === 'passage_image' && passageIndex >= 0) {
+          setPassages((current) => current.map((passage, index) =>
+            index === passageIndex
+              ? { ...passage, imageUrl: res.data.fileUrl, imageUrls: [res.data.fileUrl], imagePageNumbers: [] }
+              : passage,
+          ));
+        }
         setFeedback({ type: 'success', text: `Upload file ${res.data.originalName || file.name} thành công!` });
       }
     } catch (err) {
@@ -334,7 +348,7 @@ export default function AdminToeicBuilderPage() {
         imageUrls: groupImageUrls.length ? groupImageUrls : (groupImageUrl ? [groupImageUrl] : []),
         imagePageNumbers: groupImagePageNumbers,
         audioUrl: groupAudioUrl,
-        passages: passages.filter((p) => p.content?.trim() || p.title?.trim()),
+        passages: passages.filter((p) => p.content?.trim() || p.title?.trim() || p.imageUrl || p.imageUrls?.length),
         order: groupOrder,
         questions: questions.map((q, idx) => ({
           _id: q._id || undefined,
@@ -423,6 +437,7 @@ export default function AdminToeicBuilderPage() {
       setPdfUploading(true);
       setPdfError(null);
       setPdfReport(null);
+      setPdfReviewConfirmed(false);
       setPdfProgress('Đang đọc các trang PDF...');
 
       const extraction = await extractToeicPdfText(pdfFile, {
@@ -434,6 +449,11 @@ export default function AdminToeicBuilderPage() {
       });
       setPdfOcrText(extraction.text);
       setPdfOcrPageCount(extraction.ocrPageCount);
+      const pageImages = extraction.pageImages || [];
+      setPdfPageImages(pageImages);
+      setPdfPageImageUrls(Object.fromEntries(
+        pageImages.map(({ pageNumber, blob }) => [pageNumber, URL.createObjectURL(blob)]),
+      ));
       setPdfProgress('Đang phân tích câu hỏi...');
 
       const res = await toeicApi.importToeicPdf(pdfFile, {
@@ -442,6 +462,8 @@ export default function AdminToeicBuilderPage() {
         previewOnly: true,
         ocrText: extraction.text,
         ocrPageCount: extraction.ocrPageCount,
+        imagePageNumbers: pageImages.map(({ pageNumber }) => pageNumber),
+        passageImagePageNumbers: extraction.passageImagePageNumbers || [],
       });
 
       if (res.status === 'success') {
@@ -468,6 +490,10 @@ export default function AdminToeicBuilderPage() {
         toeicMode,
         ocrText: pdfOcrText,
         ocrPageCount: pdfOcrPageCount,
+        imagePageNumbers: pdfPageImages.map(({ pageNumber }) => pageNumber),
+        passageImagePageNumbers: pdfPageImages.filter(({ isPassagePage }) => isPassagePage).map(({ pageNumber }) => pageNumber),
+        pageImages: pdfPageImages,
+        confirmOcrReview: pdfReviewConfirmed,
       });
 
       if (res.status === 'success') {
@@ -1082,17 +1108,73 @@ export default function AdminToeicBuilderPage() {
                           </button>
                         )}
                       </div>
-                      <textarea
-                        placeholder="Dán hoặc nhập nội dung văn bản đoạn văn tại đây..."
-                        rows={6}
-                        value={p.content}
-                        onChange={(e) => {
-                          const updated = [...passages];
-                          updated[pIdx].content = e.target.value;
-                          setPassages(updated);
-                        }}
-                        style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--brand-border)', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: 1.5 }}
-                      />
+                      {activePartNumber === 7 && (
+                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                          <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-coffee)' }}>
+                            Ảnh passage (Part 7)
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleMediaUpload(e, 'passage_image', pIdx)}
+                              disabled={mediaUploading}
+                              style={{ display: 'block', marginTop: '0.35rem', maxWidth: '100%' }}
+                            />
+                          </label>
+                          {(p.imageUrls?.length || p.imageUrl) && (
+                            <button
+                              type="button"
+                              onClick={() => setPassages((current) => current.map((passage, index) =>
+                                index === pIdx ? { ...passage, imageUrl: '', imageUrls: [], imagePageNumbers: [] } : passage,
+                              ))}
+                              style={{ padding: '0.4rem 0.7rem', background: 'var(--brand-danger-bg)', color: 'var(--brand-danger)', border: '1px solid var(--brand-border)', borderRadius: '6px', cursor: 'pointer' }}
+                            >
+                              Gỡ ảnh
+                            </button>
+                          )}
+                          {(p.imageUrls?.length || p.imageUrl) && (
+                            <div style={{ display: 'grid', gap: '0.5rem', width: '100%' }}>
+                              {(p.imageUrls?.length ? p.imageUrls : [p.imageUrl]).map((imageUrl, imageIndex) => (
+                                <img
+                                  key={`${imageUrl}-${imageIndex}`}
+                                  src={resolveMediaUrl(imageUrl)}
+                                  alt={`Xem trước ${p.title || `passage ${pIdx + 1}`}, trang ${imageIndex + 1}`}
+                                  style={{ display: 'block', width: '100%', maxHeight: '320px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--brand-border)' }}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {activePartNumber === 7 && (p.imageUrls?.length || p.imageUrl) ? (
+                        <details>
+                          <summary style={{ cursor: 'pointer', color: 'var(--brand-muted)', fontSize: '0.8rem', fontWeight: 600 }}>
+                            Nội dung OCR dự phòng (không hiển thị cho học viên)
+                          </summary>
+                          <textarea
+                            placeholder="Nội dung OCR dự phòng..."
+                            rows={5}
+                            value={p.content}
+                            onChange={(e) => {
+                              const updated = [...passages];
+                              updated[pIdx].content = e.target.value;
+                              setPassages(updated);
+                            }}
+                            style={{ width: '100%', marginTop: '0.6rem', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--brand-border)', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: 1.5 }}
+                          />
+                        </details>
+                      ) : (
+                        <textarea
+                          placeholder={activePartNumber === 7 ? 'Dán nội dung passage hoặc thêm ảnh ở trên...' : 'Dán hoặc nhập nội dung văn bản đoạn văn tại đây...'}
+                          rows={6}
+                          value={p.content}
+                          onChange={(e) => {
+                            const updated = [...passages];
+                            updated[pIdx].content = e.target.value;
+                            setPassages(updated);
+                          }}
+                          style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--brand-border)', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: 1.5 }}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1305,6 +1387,9 @@ export default function AdminToeicBuilderPage() {
                     setPdfReport(null);
                     setPdfImportSaved(false);
                     setPdfError(null);
+                    setPdfReviewConfirmed(false);
+                    setPdfPageImages([]);
+                    setPdfPageImageUrls({});
                   }}
                   style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
                 />
@@ -1420,6 +1505,55 @@ export default function AdminToeicBuilderPage() {
                 </div>
               )}
 
+              {!pdfImportSaved && pdfReport.preview?.reviewQuestions?.length > 0 && (
+                <div style={{ border: '1px solid var(--brand-warning-border)', background: 'var(--brand-warning-bg)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
+                  <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.75rem', color: 'var(--brand-warning)' }}>
+                    Câu cần đối chiếu với PDF nguồn ({pdfReport.preview.reviewQuestions.length})
+                  </h4>
+                  <div style={{ display: 'grid', gap: '0.65rem', maxHeight: '420px', overflowY: 'auto' }}>
+                    {pdfReport.preview.reviewQuestions.map((question) => (
+                      <div key={`${question.toeicPart}-${question.questionNumber}`} style={{ background: 'var(--brand-surface)', border: '1px solid var(--brand-border)', borderRadius: '8px', padding: '0.75rem' }}>
+                        <strong>Part {question.toeicPart} · Câu {question.questionNumber}</strong>
+                        <div style={{ marginTop: '0.25rem', fontSize: '0.82rem' }}>{question.questionText}</div>
+                        <small style={{ display: 'block', marginTop: '0.2rem', color: 'var(--brand-muted)' }}>Trang PDF: {question.sourcePageNumbers?.join(', ') || 'không xác định'}</small>
+                        <div style={{ marginTop: '0.25rem', fontSize: '0.78rem', color: 'var(--brand-muted)' }}>
+                          {question.options?.length ? question.options.map((option) => option.text).join(' · ') : 'Chưa nhận diện được lựa chọn'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!pdfImportSaved && Object.entries(pdfPageImageUrls).length > 0 && (
+                <div style={{ border: '1px solid var(--brand-border)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
+                  <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.75rem', color: 'var(--brand-text)' }}>
+                    Ảnh trang nguồn cho Part 1 và passage Part 7 ({Object.keys(pdfPageImageUrls).length} trang)
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem', maxHeight: '420px', overflowY: 'auto' }}>
+                    {Object.entries(pdfPageImageUrls).map(([pageNumber, imageUrl]) => (
+                      <figure key={pageNumber} style={{ margin: 0, padding: '0.5rem', border: '1px solid var(--brand-border)', borderRadius: '8px', background: 'var(--brand-bg-sub)' }}>
+                        <img src={imageUrl} alt={`Trang PDF ${pageNumber}`} style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', display: 'block' }} />
+                        <figcaption style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--brand-muted)', marginTop: '0.4rem' }}>Trang {pageNumber}</figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {pdfReport.saveValidation?.allowed === false && (
+                <div role="alert" style={{ background: 'var(--brand-danger-bg)', border: '1px solid var(--brand-danger-border)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem', color: 'var(--brand-danger)' }}>
+                  <strong>Chưa thể lưu đề full test. Cần xử lý các lỗi OCR trước:</strong>
+                  <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.25rem', lineHeight: 1.5 }}>
+                    {(pdfReport.saveValidation.blockers || []).map((blocker) => <li key={blocker}>{blocker}</li>)}
+                  </ul>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.55rem', marginTop: '0.85rem', color: 'var(--brand-text)', fontSize: '0.82rem', lineHeight: 1.45 }}>
+                    <input type="checkbox" checked={pdfReviewConfirmed} onChange={(event) => setPdfReviewConfirmed(event.target.checked)} />
+                    <span>Tôi đã đối chiếu các câu/cảnh báo trên với PDF nguồn và xác nhận lưu bản nháp để tiếp tục chỉnh sửa. Đề vẫn giữ trạng thái nháp.</span>
+                  </label>
+                </div>
+              )}
+
               {pdfReport.missing && pdfReport.missing.length > 0 && (
                 <div style={{ background: 'var(--brand-warning-bg)', border: '1px solid var(--brand-warning-border)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
                   <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-warning)', marginBottom: '0.4rem' }}>
@@ -1472,6 +1606,9 @@ export default function AdminToeicBuilderPage() {
                       setPdfError(null);
                       setPdfOcrText('');
                       setPdfOcrPageCount(0);
+                      setPdfReviewConfirmed(false);
+                      setPdfPageImages([]);
+                      setPdfPageImageUrls({});
                     }}
                     disabled={pdfUploading}
                     style={{ background: 'var(--brand-surface)', color: 'var(--brand-text)', padding: '0.75rem 1.25rem', borderRadius: '8px', border: '1px solid var(--brand-border)', fontWeight: 700, cursor: pdfUploading ? 'not-allowed' : 'pointer' }}
@@ -1481,8 +1618,8 @@ export default function AdminToeicBuilderPage() {
                   <button
                     type="button"
                     onClick={handleConfirmPdfImport}
-                    disabled={pdfUploading}
-                    style={{ background: 'var(--brand-yellow)', color: 'var(--brand-text)', padding: '0.75rem 1.75rem', borderRadius: '8px', border: 'none', fontWeight: 700, cursor: pdfUploading ? 'wait' : 'pointer', opacity: pdfUploading ? 0.7 : 1 }}
+                    disabled={pdfUploading || (pdfReport.saveValidation?.allowed === false && !pdfReviewConfirmed)}
+                    style={{ background: 'var(--brand-yellow)', color: 'var(--brand-text)', padding: '0.75rem 1.75rem', borderRadius: '8px', border: 'none', fontWeight: 700, cursor: pdfUploading || (pdfReport.saveValidation?.allowed === false && !pdfReviewConfirmed) ? 'not-allowed' : 'pointer', opacity: pdfUploading || (pdfReport.saveValidation?.allowed === false && !pdfReviewConfirmed) ? 0.55 : 1 }}
                   >
                     {pdfUploading ? pdfProgress || 'Đang lưu...' : 'Xác nhận thêm vào bản nháp'}
                   </button>

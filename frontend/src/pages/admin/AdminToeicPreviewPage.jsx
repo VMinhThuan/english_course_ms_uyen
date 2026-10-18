@@ -257,9 +257,22 @@ export default function AdminToeicPreviewPage() {
               {(group.passages || []).map((p, pIdx) => (
                 <div key={pIdx} style={{ background: 'var(--brand-bg-sub)', padding: '1.25rem', borderRadius: '10px', border: '1px solid var(--brand-border)' }}>
                   <strong style={{ fontSize: '0.9rem', color: 'var(--brand-text)' }}>{p.title || `Passage ${pIdx + 1}`}</strong>
-                  <p style={{ marginTop: '0.6rem', whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--brand-text)', lineHeight: 1.6, margin: '0.6rem 0 0' }}>
-                    {p.content}
-                  </p>
+                  {group.partNumber === 7 && (p.imageUrls?.length || p.imageUrl) ? (
+                    <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.75rem' }}>
+                      {(p.imageUrls?.length ? p.imageUrls : [p.imageUrl]).map((imageUrl, imageIndex) => (
+                        <img
+                          key={`${imageUrl}-${imageIndex}`}
+                          src={resolveMediaUrl(imageUrl)}
+                          alt={`Ảnh ${p.title || `passage ${pIdx + 1}`}, trang ${imageIndex + 1}`}
+                          style={{ display: 'block', width: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--brand-border)' }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ marginTop: '0.6rem', whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: 'var(--brand-text)', lineHeight: 1.6, margin: '0.6rem 0 0' }}>
+                      {p.content}
+                    </p>
+                  )}
                 </div>
               ))}
 

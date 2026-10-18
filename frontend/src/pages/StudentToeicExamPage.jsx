@@ -491,10 +491,23 @@ export default function StudentToeicExamPage() {
                                     {pas.title}
                                   </h4>
                                 )}
-                                <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{pas.content}</div>
-                                {pas.imageUrl && (
+                                {group.partNumber === 7 && (pas.imageUrls?.length || pas.imageUrl) ? (
+                                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                                    {(pas.imageUrls?.length ? pas.imageUrls : [pas.imageUrl]).map((imageUrl, imageIndex) => (
+                                      <img
+                                        key={`${imageUrl}-${imageIndex}`}
+                                        src={resolveMediaUrl(imageUrl)}
+                                        alt={`Passage ${pas.title || pIdx + 1}, trang ${imageIndex + 1}`}
+                                        className="toeic-stimulus-image"
+                                      />
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{pas.content}</div>
+                                )}
+                                {pas.imageUrl && group.partNumber !== 7 && (
                                   <div style={{ marginTop: '0.75rem' }}>
-                                    <img src={resolveMediaUrl(pas.imageUrl)} alt="Passage illustration" className="toeic-stimulus-image" />
+                                    <img src={resolveMediaUrl(pas.imageUrl)} alt={`Passage illustration ${pIdx + 1}`} className="toeic-stimulus-image" />
                                   </div>
                                 )}
                               </div>

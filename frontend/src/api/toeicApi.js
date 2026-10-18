@@ -71,9 +71,11 @@ export const toeicApi = {
     if (options.toeicMode) formData.append('toeicMode', options.toeicMode);
     if (options.durationMinutes) formData.append('durationMinutes', options.durationMinutes);
     if (options.previewOnly) formData.append('previewOnly', 'true');
+    if (options.confirmOcrReview) formData.append('confirmOcrReview', 'true');
     if (options.ocrText) formData.append('ocrText', options.ocrText);
     if (options.ocrPageCount) formData.append('ocrPageCount', String(options.ocrPageCount));
     if (options.imagePageNumbers?.length) formData.append('imagePageNumbers', options.imagePageNumbers.join(','));
+    if (options.passageImagePageNumbers?.length) formData.append('passageImagePageNumbers', options.passageImagePageNumbers.join(','));
     if (!options.previewOnly) {
       (options.pageImages || []).forEach(({ pageNumber, blob }) => {
         if (pageNumber && blob) formData.append('pageImages', blob, `page-${pageNumber}.jpg`);

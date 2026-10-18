@@ -30,6 +30,7 @@ export default function AdminToeicListPage() {
   const [pdfUploading, setPdfUploading] = useState(false);
   const [pdfImportReport, setPdfImportReport] = useState(null);
   const [pdfImportSaved, setPdfImportSaved] = useState(false);
+  const [pdfReviewConfirmed, setPdfReviewConfirmed] = useState(false);
   const [pdfOcrText, setPdfOcrText] = useState('');
   const [pdfOcrPageCount, setPdfOcrPageCount] = useState(0);
   const [pdfPageImages, setPdfPageImages] = useState([]);
@@ -145,6 +146,7 @@ export default function AdminToeicListPage() {
       setPdfError(null);
       setPdfImportReport(null);
       setPdfProgress('Đang đọc các trang PDF...');
+      setPdfReviewConfirmed(false);
       clearPdfPageImages();
 
       const extraction = await extractToeicPdfText(pdfFile, {
@@ -171,6 +173,7 @@ export default function AdminToeicListPage() {
         ocrText: extraction.text,
         ocrPageCount: extraction.ocrPageCount,
         imagePageNumbers: (extraction.pageImages || []).map(({ pageNumber }) => pageNumber),
+        passageImagePageNumbers: extraction.passageImagePageNumbers || [],
       });
 
       if (res.status === 'success') {
@@ -198,7 +201,9 @@ export default function AdminToeicListPage() {
         ocrText: pdfOcrText,
         ocrPageCount: pdfOcrPageCount,
         imagePageNumbers: pdfPageImages.map(({ pageNumber }) => pageNumber),
+        passageImagePageNumbers: pdfPageImages.filter(({ isPassagePage }) => isPassagePage).map(({ pageNumber }) => pageNumber),
         pageImages: pdfPageImages,
+        confirmOcrReview: pdfReviewConfirmed,
       });
 
       if (res.status === 'success') {
@@ -221,6 +226,7 @@ export default function AdminToeicListPage() {
     setPdfTitle('');
     setPdfImportReport(null);
     setPdfImportSaved(false);
+    setPdfReviewConfirmed(false);
     setPdfOcrText('');
     setPdfOcrPageCount(0);
     setPdfProgress('');
@@ -692,13 +698,16 @@ export default function AdminToeicListPage() {
                   </div>
                 )}
 
-                {(pdfImportReport.preview?.groups || []).some((group) => group.imagePageNumbers?.length > 0) && (
+                {(pdfImportReport.preview?.groups || []).some((group) => group.imagePageNumbers?.length > 0 || group.passageImagePageNumbers?.length > 0) && (
                   <div style={{ border: '1px solid var(--brand-border)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
                     <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.75rem', color: 'var(--brand-text)' }}>
-                      Ảnh trang đề sẽ gắn vào nhóm câu hỏi
+                      Ảnh trang Part 1 và passage Part 7
                     </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
-                      {[...new Set((pdfImportReport.preview.groups || []).flatMap((group) => group.imagePageNumbers || []))]
+                      {[...new Set((pdfImportReport.preview.groups || []).flatMap((group) => [
+                        ...(group.imagePageNumbers || []),
+                        ...(group.passageImagePageNumbers || []),
+                      ]))]
                         .filter((pageNumber) => pdfPageImageUrls[pageNumber])
                         .slice(0, 12)
                         .map((pageNumber) => (
@@ -748,6 +757,26 @@ export default function AdminToeicListPage() {
                   </div>
                 )}
 
+                {!pdfImportSaved && pdfImportReport.preview?.reviewQuestions?.length > 0 && (
+                  <div style={{ border: '1px solid var(--brand-warning-border)', background: 'var(--brand-warning-bg)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
+                    <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.75rem', color: 'var(--brand-warning)' }}>
+                      Câu cần đối chiếu với PDF nguồn ({pdfImportReport.preview.reviewQuestions.length})
+                    </h4>
+                    <div style={{ display: 'grid', gap: '0.65rem', maxHeight: '420px', overflowY: 'auto' }}>
+                      {pdfImportReport.preview.reviewQuestions.map((question) => (
+                        <div key={`${question.toeicPart}-${question.questionNumber}`} style={{ background: 'var(--brand-surface)', border: '1px solid var(--brand-border)', borderRadius: '8px', padding: '0.75rem' }}>
+                          <strong>Part {question.toeicPart} · Câu {question.questionNumber}</strong>
+                          <div style={{ marginTop: '0.25rem', fontSize: '0.82rem' }}>{question.questionText}</div>
+                          <small style={{ display: 'block', marginTop: '0.2rem', color: 'var(--brand-muted)' }}>Trang PDF: {question.sourcePageNumbers?.join(', ') || 'không xác định'}</small>
+                          <div style={{ marginTop: '0.25rem', fontSize: '0.78rem', color: 'var(--brand-muted)' }}>
+                            {question.options?.length ? question.options.map((option) => option.text).join(' · ') : 'Chưa nhận diện được lựa chọn'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Warnings / Missing Notices */}
                 {pdfImportReport.missing && pdfImportReport.missing.length > 0 && (
                   <div style={{ background: 'var(--brand-warning-bg)', border: '1px solid var(--brand-warning-border)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
@@ -776,6 +805,19 @@ export default function AdminToeicListPage() {
                   </div>
                 )}
 
+                {!pdfImportSaved && pdfImportReport.saveValidation?.allowed === false && (
+                  <div role="alert" style={{ background: 'var(--brand-danger-bg)', border: '1px solid var(--brand-danger-border)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem', color: 'var(--brand-danger)' }}>
+                    <strong>Chưa thể lưu đề full test. Cần xử lý các lỗi OCR trước:</strong>
+                    <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.25rem', lineHeight: 1.5 }}>
+                      {(pdfImportReport.saveValidation.blockers || []).map((blocker) => <li key={blocker}>{blocker}</li>)}
+                    </ul>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.55rem', marginTop: '0.85rem', color: 'var(--brand-text)', fontSize: '0.82rem', lineHeight: 1.45 }}>
+                      <input type="checkbox" checked={pdfReviewConfirmed} onChange={(event) => setPdfReviewConfirmed(event.target.checked)} />
+                      <span>Tôi đã đối chiếu các câu/cảnh báo trên với PDF nguồn và xác nhận lưu bản nháp để tiếp tục chỉnh sửa. Đề vẫn giữ trạng thái nháp.</span>
+                    </label>
+                  </div>
+                )}
+
                 {/* Action buttons */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
                   <button
@@ -801,8 +843,8 @@ export default function AdminToeicListPage() {
                     <button
                       type="button"
                       onClick={handleConfirmPdfImport}
-                      disabled={pdfUploading}
-                      style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: 'var(--brand-yellow)', color: 'var(--brand-text)', cursor: pdfUploading ? 'wait' : 'pointer', fontWeight: 700, opacity: pdfUploading ? 0.7 : 1 }}
+                      disabled={pdfUploading || (pdfImportReport.saveValidation?.allowed === false && !pdfReviewConfirmed)}
+                      style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: 'var(--brand-yellow)', color: 'var(--brand-text)', cursor: pdfUploading || (pdfImportReport.saveValidation?.allowed === false && !pdfReviewConfirmed) ? 'not-allowed' : 'pointer', fontWeight: 700, opacity: pdfUploading || (pdfImportReport.saveValidation?.allowed === false && !pdfReviewConfirmed) ? 0.55 : 1 }}
                     >
                       {pdfUploading ? pdfProgress || 'Đang lưu...' : 'Xác nhận lưu bản nháp'}
                     </button>

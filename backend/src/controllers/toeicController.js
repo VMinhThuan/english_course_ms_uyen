@@ -932,6 +932,10 @@ export const importToeicPdf = async (req, res, next) => {
       .split(',')
       .map((value) => Number(value))
       .filter((value) => Number.isInteger(value) && value > 0);
+    const passageImagePageNumbers = String(req.body.passageImagePageNumbers || '')
+      .split(',')
+      .map((value) => Number(value))
+      .filter((value) => Number.isInteger(value) && value > 0);
     const pageImageUrlsByNumber = {};
     for (const file of pageImageFiles) {
       const pageNumber = Number(file.originalname.match(/^page-(\d+)\.jpg$/i)?.[1]);
@@ -951,13 +955,26 @@ export const importToeicPdf = async (req, res, next) => {
       ocrPageCount,
       toeicMode,
       imagePageNumbers: imagePageNumbers.length > 0 ? imagePageNumbers : Object.keys(pageImageUrlsByNumber),
+      passageImagePageNumbers,
       pageImageUrlsByNumber: Object.fromEntries(
         Object.entries(pageImageUrlsByNumber)
           .filter(([, image]) => typeof image?.url === 'string' && image.url.length > 0)
           .map(([pageNumber, image]) => [pageNumber, image.url]),
       ),
     });
-    const usedImagePageNumbers = new Set(parsedGroups.flatMap((group) => group.imagePageNumbers || []));
+    const confirmOcrReview = req.body.confirmOcrReview === true || req.body.confirmOcrReview === 'true';
+    if (!previewOnly && toeicMode === 'full_test' && report.saveValidation?.allowed === false && !confirmOcrReview) {
+      return res.status(422).json({
+        status: 'error',
+        message: 'Chưa thể lưu đề TOEIC full test vì còn lỗi cấu trúc OCR. Hãy sửa hoặc quét lại các câu được liệt kê trong cảnh báo.',
+        report,
+      });
+    }
+
+    const usedImagePageNumbers = new Set(parsedGroups.flatMap((group) => [
+      ...(group.imagePageNumbers || []),
+      ...(group.passages || []).flatMap((passage) => passage.imagePageNumbers || []),
+    ]));
     persistedPageImagePaths = new Set(
       Object.entries(pageImageUrlsByNumber)
         .filter(([pageNumber, image]) => usedImagePageNumbers.has(Number(pageNumber)) && Boolean(image?.path))
@@ -970,6 +987,16 @@ export const importToeicPdf = async (req, res, next) => {
         .map((pageNumber) => pageImageUrlsByNumber[pageNumber]?.url)
         .filter(Boolean);
       group.imageUrl = group.imageUrls[0] || '';
+      group.passages = (group.passages || []).map((passage) => {
+        const imageUrls = (passage.imagePageNumbers || [])
+          .map((pageNumber) => pageImageUrlsByNumber[pageNumber]?.url)
+          .filter(Boolean);
+        return {
+          ...passage,
+          imageUrls,
+          imageUrl: passage.imageUrl || imageUrls[0] || '',
+        };
+      });
     });
 
     if (parsedQuestions.length === 0) {
@@ -985,6 +1012,11 @@ export const importToeicPdf = async (req, res, next) => {
     const cleanTitle = title?.trim() || `Đề thi TOEIC Import từ PDF - ${path.parse(originalFilename).name}`;
 
     if (previewOnly) {
+      const reviewQuestionNumbers = new Set([
+        ...(report.detected.incompleteOptionQuestionNumbers || []),
+        ...(report.detected.suspiciousOptionQuestionNumbers || []),
+      ]);
+      const reviewQuestions = parsedQuestions.filter((question) => reviewQuestionNumbers.has(question.questionNumber));
       return res.json({
         status: 'success',
         message: `Đã phân tích PDF: nhận diện được ${parsedQuestions.length} câu hỏi.`,
@@ -993,6 +1025,7 @@ export const importToeicPdf = async (req, res, next) => {
           title: cleanTitle,
           detected: report.detected,
           extraction: report.extraction,
+          saveValidation: report.saveValidation,
           warnings: report.warnings,
           missing: report.missing,
           needsReview: true,
@@ -1002,8 +1035,17 @@ export const importToeicPdf = async (req, res, next) => {
               title: group.title,
               questionCount: (group.questions || []).length,
               imagePageNumbers: group.imagePageNumbers || [],
+              passageImagePageNumbers: [...new Set((group.passages || []).flatMap((passage) => passage.imagePageNumbers || []))],
             })),
             questions: parsedQuestions.slice(0, 10).map((question) => ({
+              questionNumber: question.questionNumber,
+              toeicPart: question.toeicPart,
+              questionText: question.questionText,
+              sourcePageNumbers: question.sourcePageNumbers || [],
+              options: question.options,
+              correctAnswers: question.correctAnswers,
+            })),
+            reviewQuestions: reviewQuestions.map((question) => ({
               questionNumber: question.questionNumber,
               toeicPart: question.toeicPart,
               questionText: question.questionText,
@@ -1107,6 +1149,7 @@ export const importToeicPdf = async (req, res, next) => {
         status: assessment.status, // Always 'draft'
         detected: report.detected,
         extraction: report.extraction,
+        saveValidation: report.saveValidation,
         warnings: report.warnings,
         missing: report.missing,
         needsReview: true,
