@@ -172,7 +172,7 @@ export default function AdminCoursesPage() {
   };
 
   return (
-    <div className="admin-page-container">
+    <div className="admin-page-container admin-courses-page">
       <PageHeader
         title="Quản Lý Khóa Học"
         description="Quản lý khóa học, lộ trình bài giảng, tài liệu đính kèm và trạng thái xuất bản cho học viên."
@@ -212,21 +212,8 @@ export default function AdminCoursesPage() {
       )}
 
       {/* Filter & Search Bar */}
-      <div
-        style={{
-          background: 'var(--brand-surface)',
-          padding: '1.25rem',
-          borderRadius: '12px',
-          border: '1px solid var(--brand-border)',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          flexWrap: 'wrap',
-        }}
-      >
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.5rem', flex: '1', minWidth: '260px' }}>
+      <section className="course-filter-bar" aria-label="Tìm kiếm và lọc khóa học">
+        <form onSubmit={handleSearchSubmit} className="course-search-form">
           <input
             type="text"
             placeholder="Tìm theo tên hoặc mô tả khóa học..."
@@ -241,51 +228,38 @@ export default function AdminCoursesPage() {
               fontSize: '0.9rem',
             }}
           />
-          <button
-            type="submit"
-            style={{
-              padding: '0.6rem 1.25rem',
-              borderRadius: '8px',
-              border: '1px solid var(--brand-border)',
-              background: 'var(--brand-bg-sub)',
-              cursor: 'pointer',
-              fontWeight: 600,
-              color: 'var(--brand-text)',
-            }}
-          >
+          <button type="submit" className="course-search-submit">
             Tìm kiếm
           </button>
         </form>
 
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--brand-muted)', fontWeight: 600 }}>Trạng thái:</span>
+        <div className="course-filter-controls">
+          <label className="course-filter-field">
+            <span>Trạng thái</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              style={{ padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="published">Đã xuất bản</option>
               <option value="draft">Bản nháp</option>
             </select>
-          </div>
+          </label>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--brand-muted)', fontWeight: 600 }}>Cấp độ:</span>
+          <label className="course-filter-field">
+            <span>Cấp độ</span>
             <select
               value={levelFilter}
               onChange={(e) => setLevelFilter(e.target.value)}
-              style={{ padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
             >
               <option value="all">Tất cả cấp độ</option>
               <option value="Beginner">Beginner</option>
               <option value="Intermediate">Intermediate</option>
               <option value="Advanced">Advanced</option>
             </select>
-          </div>
+          </label>
         </div>
-      </div>
+      </section>
 
       {/* Course List Table */}
       {loading ? (
@@ -338,7 +312,7 @@ export default function AdminCoursesPage() {
           </button>
         </div>
       ) : (
-        <DataTable className="table-responsive" tableClassName="admin-table">
+        <DataTable className="table-responsive course-table-shell" tableClassName="admin-table course-admin-table">
             <thead>
               <tr>
                 <th style={{ width: '30%' }}>Khóa Học</th>
@@ -355,36 +329,22 @@ export default function AdminCoursesPage() {
               {courses.map((course) => (
                 <tr key={course._id}>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div className="course-title-cell">
                       {course.thumbnail || course.image ? (
                         <img
                           src={course.thumbnail || course.image}
                           alt={course.title}
-                          style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
+                          className="course-thumbnail"
                           onError={(e) => { e.target.style.display = 'none'; }}
                         />
                       ) : (
-                        <div
-                          style={{
-                            width: '48px',
-                            height: '48px',
-                            borderRadius: '8px',
-                            background: 'var(--brand-yellow-soft)',
-                            color: 'var(--brand-coffee)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 700,
-                            fontSize: '1.1rem',
-                            flexShrink: 0,
-                          }}
-                        >
+                        <div className="course-thumbnail course-thumbnail--fallback">
                           📖
                         </div>
                       )}
-                      <div>
+                      <div className="course-title-copy">
                         <strong>{course.title}</strong>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div>
                           {course.description}
                         </div>
                       </div>
@@ -392,9 +352,9 @@ export default function AdminCoursesPage() {
                   </td>
                   <td>{course.teacher?.fullName || '---'}</td>
                   <td>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--brand-text)' }}>{course.level}</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--brand-muted)' }}>{course.englishType} ({course.category})</span>
+                    <div className="course-level-cell">
+                      <span>{course.level}</span>
+                      <span>{course.englishType} · {course.category}</span>
                     </div>
                   </td>
                   <td>
@@ -418,71 +378,15 @@ export default function AdminCoursesPage() {
                     <StatusBadge status={course.isPublished ? 'published' : 'draft'} />
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
-                      <button
-                        onClick={() => navigate(`/admin/lessons?courseId=${course._id}`)}
-                        title="Quản lý bài học"
-                        style={{
-                          padding: '0.4rem 0.65rem',
-                          borderRadius: '6px',
-                          border: '1px solid var(--brand-border)',
-                          background: 'var(--brand-surface)',
-                          color: 'var(--brand-coffee)',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Bài học
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(course)}
-                        title={course.isPublished ? 'Gỡ xuất bản' : 'Xuất bản khóa học'}
-                        style={{
-                          padding: '0.4rem 0.65rem',
-                          borderRadius: '6px',
-                          border: '1px solid var(--brand-border)',
-                          background: course.isPublished ? 'var(--brand-warning-bg)' : 'var(--brand-success-bg)',
-                          color: course.isPublished ? 'var(--brand-warning)' : 'var(--brand-success)',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {course.isPublished ? 'Gỡ' : 'Xuất bản'}
-                      </button>
-                      <button
-                        onClick={() => handleOpenEdit(course)}
-                        title="Chỉnh sửa khóa học"
-                        style={{
-                          padding: '0.4rem 0.65rem',
-                          borderRadius: '6px',
-                          border: '1px solid var(--brand-border)',
-                          background: 'var(--brand-surface)',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Sửa
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(course)}
-                        title="Xóa khóa học"
-                        style={{
-                          padding: '0.4rem 0.65rem',
-                          borderRadius: '6px',
-                          border: 'none',
-                          background: 'var(--brand-danger-bg)',
-                          color: 'var(--brand-danger)',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Xóa
-                      </button>
-                    </div>
+                    <details className="course-action-menu">
+                      <summary aria-label={`Thao tác cho ${course.title}`}>•••</summary>
+                      <div className="course-action-menu__items">
+                        <button onClick={() => navigate(`/admin/lessons?courseId=${course._id}`)}>Quản lý bài học</button>
+                        <button onClick={() => handleToggleStatus(course)}>{course.isPublished ? 'Gỡ xuất bản' : 'Xuất bản'}</button>
+                        <button onClick={() => handleOpenEdit(course)}>Chỉnh sửa</button>
+                        <button className="course-action-menu__delete" onClick={() => setDeleteTarget(course)}>Xóa khóa học</button>
+                      </div>
+                    </details>
                   </td>
                 </tr>
               ))}

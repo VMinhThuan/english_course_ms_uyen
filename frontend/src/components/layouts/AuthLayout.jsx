@@ -63,16 +63,25 @@ export default function AuthLayout({ activeTab, title, subtitle, children, showT
 
               <div className="auth-visual-bottom">
                 <div className="auth-quote">"Discipline today, a brighter tomorrow."</div>
-                <div className="auth-slide-dots">
-                  {backgroundImages.map((_, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      aria-label={`Slide ${index + 1}`}
-                      className={`dot ${index === currentSlide ? 'active' : ''}`}
-                      onClick={() => setCurrentSlide(index)}
-                    />
-                  ))}
+                <div className="auth-slide-controls" aria-label="Chọn ảnh nền">
+                  <span className="auth-slide-count" aria-live="polite">
+                    {String(currentSlide + 1).padStart(2, '0')}
+                    <i aria-hidden="true" />
+                    {String(backgroundImages.length).padStart(2, '0')}
+                  </span>
+                  <div className="auth-slide-dots" role="tablist" aria-label="Ảnh nền">
+                    {backgroundImages.map((_, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        role="tab"
+                        aria-label={`Chuyển đến ảnh ${index + 1}`}
+                        aria-selected={index === currentSlide}
+                        className={`auth-slide-dot ${index === currentSlide ? 'active' : ''}`}
+                        onClick={() => setCurrentSlide(index)}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
