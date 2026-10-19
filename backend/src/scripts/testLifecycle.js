@@ -55,19 +55,16 @@ async function runLifecycleTests() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB database.');
 
-    // 0. Ensure an Admin user exists for approval testing
-    let adminUser = await User.findOne({ role: 'admin' });
-    if (!adminUser) {
-      adminUser = await User.create({
-        email: `admin_${timestamp}@example.com`,
-        password: 'adminpassword123',
-        fullName: 'Test System Admin',
-        role: 'admin',
-        status: 'active',
-        isActive: true,
-      });
-      console.log('👑 Created temporary Test System Admin account.');
-    }
+    // 0. Ensure a dedicated test Admin user exists for approval testing
+    const adminUser = await User.create({
+      email: `admin_life_${timestamp}@example.com`,
+      password: 'adminpassword123',
+      fullName: 'Test System Admin',
+      role: 'admin',
+      status: 'active',
+      isActive: true,
+    });
+    console.log(`👑 Created dedicated Test System Admin account: ${adminUser.email}`);
     adminUserId = adminUser._id.toString();
 
     // Login Admin to get token

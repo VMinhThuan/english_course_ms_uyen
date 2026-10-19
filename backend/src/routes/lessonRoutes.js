@@ -8,7 +8,7 @@ import {
   deleteLesson,
 } from '../controllers/lessonController.js';
 import { getStudentMaterialsByLesson } from '../controllers/materialController.js';
-import { verifyToken, checkRole } from '../middlewares/auth.js';
+import { verifyToken, checkRole, optionalAuth } from '../middlewares/auth.js';
 import multer from 'multer';
 
 import { getUploadDir } from '../utils/uploadConfig.js';
@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.get('/course/:courseId', verifyToken, getLessonsByCourse);
+router.get('/course/:courseId', optionalAuth, getLessonsByCourse);
 router.get('/:id', verifyToken, getLessonById);
 router.get('/:lessonId/materials', verifyToken, getStudentMaterialsByLesson);
 

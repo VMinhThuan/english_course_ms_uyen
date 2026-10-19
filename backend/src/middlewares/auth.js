@@ -42,6 +42,24 @@ export const verifyToken = async (req, res, next) => {
   }
 };
 
+// Optional auth middleware (attaches user if valid token present, otherwise continues as guest)
+export const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const decoded = jwt.verify(token, jwtConfig.secret);
+      const user = await User.findById(decoded.userId).select('-password');
+      if (user && user.isActive) {
+        req.user = user;
+      }
+    }
+  } catch {
+    // Proceed as guest
+  }
+  next();
+};
+
 // Check role middleware
 export const checkRole = (...roles) => {
   return (req, res, next) => {

@@ -14,8 +14,8 @@ export const getLessonsByCourse = async (req, res, next) => {
     const { courseId } = req.params;
 
     const filter = { course: courseId };
-    // Students only see published lessons
-    if (req.user && req.user.role === 'student') {
+    // Students and guests only see published lessons
+    if (!req.user || req.user.role === 'student') {
       filter.status = 'published';
     }
 

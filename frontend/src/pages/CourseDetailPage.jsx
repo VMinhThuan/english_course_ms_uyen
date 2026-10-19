@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 import { courseApi } from '../api/courseApi.js';
 import { lessonApi } from '../api/lessonApi.js';
@@ -8,9 +8,201 @@ import ProgressBar from '../components/ui/ProgressBar.jsx';
 import './CourseLearning.css';
 
 export default function CourseDetailPage() {
-  const { id } = useParams(); const isAuthenticated = useAuthStore((state) => state.isAuthenticated); const [course,setCourse]=useState(null); const [lessons,setLessons]=useState([]); const [enrollment,setEnrollment]=useState(null); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
-  const load=useCallback(async()=>{setLoading(true);setError('');try{const courseRes=await courseApi.getCourseById(id);setCourse(courseRes.data.course);if(isAuthenticated){const [lessonsRes,myRes]=await Promise.all([lessonApi.getLessonsByCourse(id),enrollmentApi.getMyCourses()]);setLessons(lessonsRes.data.lessons||[]);setEnrollment((myRes.data.enrollments||[]).find((item)=>String(item.course?._id||item.course)===String(courseRes.data.course._id))||null);}}catch{setError('Không thể tải khóa học. Vui lòng thử lại.');}finally{setLoading(false);}},[id,isAuthenticated]);useEffect(()=>{load();},[load]);
-  if(loading)return <main className="learning-page"><div className="learning-loading">Đang tải khóa học...</div></main>;if(!course)return <main className="learning-page"><div className="learning-error">{error}<button onClick={load}>Thử lại</button></div></main>;
-  const progress=Number(enrollment?.progress||0); const nextLesson=lessons.find((lesson)=>true);
-  return <main className="learning-page"><Link className="learning-back" to="/courses">← Tất cả khóa học</Link><section className="course-hero"><div><p className="learning-eyebrow">{course.englishType} · {course.level}</p><h1>{course.title}</h1><p>{course.description}</p>{course.teacherName&&<span className="course-teacher">Giảng viên: {course.teacherName}</span>}</div>{isAuthenticated && (enrollment?<div className="course-progress"><span>Tiến độ học tập</span><strong>{progress}%</strong><ProgressBar value={progress}/><Link className="learning-primary" to={nextLesson?`/student/courses/${course._id}/lessons/${nextLesson._id}`:'/student/my-courses'}>Tiếp tục học</Link></div>:<Link className="learning-primary" to={`/student/enroll/${course._id}`}>Đăng ký học</Link>)}</section>{isAuthenticated&&<section className="lesson-list"><div className="section-title"><h2>Nội dung khóa học</h2><span>{lessons.length} bài học</span></div>{lessons.length?lessons.map((lesson,index)=><article className="lesson-row" key={lesson._id}><span className="lesson-index">{index+1}</span><div><h3>{lesson.title}</h3>{lesson.description&&<p>{lesson.description}</p>}{lesson.duration>0&&<small>{lesson.duration} phút</small>}</div>{enrollment?<Link to={`/student/courses/${course._id}/lessons/${lesson._id}`}>Mở bài học →</Link>:<span className="lesson-lock">Đăng ký để học</span>}</article>):<div className="learning-empty">Khóa học chưa có bài học.</div>}</section>}</main>;
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [course, setCourse] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [enrollment, setEnrollment] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      // 1. Fetch course details
+      const courseRes = await courseApi.getCourseById(id);
+      const courseData = courseRes.data.course;
+      setCourse(courseData);
+
+      // 2. Fetch public course lessons outline (works for both guests & students)
+      try {
+        const lessonsRes = await lessonApi.getLessonsByCourse(id);
+        setLessons(lessonsRes.data?.lessons || []);
+      } catch (lessonErr) {
+        console.warn('Could not load lessons for course:', lessonErr);
+        setLessons([]);
+      }
+
+      // 3. If authenticated, check enrollment status
+      if (isAuthenticated) {
+        try {
+          const myRes = await enrollmentApi.getMyCourses();
+          const enrollments = myRes.data?.enrollments || [];
+          const match = enrollments.find(
+            (item) => String(item.course?._id || item.course) === String(courseData._id)
+          );
+          setEnrollment(match || null);
+        } catch (enrollErr) {
+          console.warn('Could not check enrollment status:', enrollErr);
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Không thể tải thông tin khóa học. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, isAuthenticated]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (loading) {
+    return (
+      <main className="learning-page">
+        <div className="learning-loading">Đang tải thông tin khóa học...</div>
+      </main>
+    );
+  }
+
+  if (!course) {
+    return (
+      <main className="learning-page">
+        <div className="learning-error">
+          <span>{error || 'Không tìm thấy khóa học này.'}</span>
+          <button onClick={load}>Thử lại</button>
+        </div>
+        <Link className="learning-back" to="/courses">← Quay lại danh sách khóa học</Link>
+      </main>
+    );
+  }
+
+  const isEnrolled = !!enrollment;
+  const progress = Number(enrollment?.progress || 0);
+  const totalDuration = lessons.reduce((acc, l) => acc + (Number(l.duration) || 0), 0);
+  const nextLesson = lessons.find((l) => true);
+
+  return (
+    <main className="learning-page">
+      <Link className="learning-back" to="/courses">← Tất cả khóa học</Link>
+
+      {/* Hero Section */}
+      <section className="course-hero">
+        <div className="course-hero-info">
+          <p className="learning-eyebrow">
+            {course.englishType || 'TIẾNG ANH'} · {course.level || 'MỌI CẤP ĐỘ'}
+          </p>
+          <h1>{course.title}</h1>
+          <p className="course-desc-text">{course.description}</p>
+          
+          <div className="course-meta-tags">
+            {course.teacherName && (
+              <span className="course-teacher">
+                👨‍🏫 Giảng viên: <strong>{course.teacherName}</strong>
+              </span>
+            )}
+            <span className="course-lessons-count">
+              📚 {lessons.length} bài học ({totalDuration > 0 ? `${totalDuration} phút` : 'Lộ trình chuẩn'})
+            </span>
+            {course.category && (
+              <span className="course-category-tag">
+                🎯 Kỹ năng: {course.category.toUpperCase()}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Enrollment / Action Card */}
+        <div className="course-action-card">
+          {isEnrolled ? (
+            <div className="course-progress">
+              <span>Tiến độ học tập của bạn</span>
+              <div className="progress-score-wrap">
+                <strong>{progress}%</strong>
+                <span className="progress-label">{progress === 100 ? 'Đã hoàn thành' : 'Đang học'}</span>
+              </div>
+              <ProgressBar value={progress} />
+              <Link
+                className="learning-primary"
+                to={nextLesson ? `/student/courses/${course._id}/lessons/${nextLesson._id}` : '/student/my-courses'}
+              >
+                Tiếp tục học ngay →
+              </Link>
+            </div>
+          ) : (
+            <div className="course-enroll-card">
+              <div className="price-tag-wrap">
+                <span className="price-label">Học phí trọn khóa:</span>
+                <span className="price-amount">
+                  {Number(course.price) === 0 ? 'Miễn phí' : `${Number(course.price).toLocaleString()} VNĐ`}
+                </span>
+              </div>
+
+              {isAuthenticated ? (
+                <Link className="learning-primary" to={`/student/enroll/${course._id}`}>
+                  ⚡ Đăng ký học ngay
+                </Link>
+              ) : (
+                <button
+                  className="learning-primary"
+                  onClick={() => navigate(`/login?redirect=/student/enroll/${course._id}`)}
+                >
+                  🔑 Đăng nhập để đăng ký
+                </button>
+              )}
+              <small className="enroll-note">✓ Truy cập trọn đời bài giảng và tài liệu</small>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Curriculum Outline */}
+      <section className="lesson-list">
+        <div className="section-title">
+          <h2>Đề cương & Danh sách bài học</h2>
+          <span>{lessons.length} bài học · {totalDuration} phút học</span>
+        </div>
+
+        {lessons.length > 0 ? (
+          lessons.map((lesson, index) => (
+            <article className="lesson-row" key={lesson._id}>
+              <span className="lesson-index">{index + 1}</span>
+              <div className="lesson-info-col">
+                <div className="lesson-title-row">
+                  <h3>{lesson.title}</h3>
+                  {lesson.topic && <span className="lesson-topic-badge">{lesson.topic}</span>}
+                </div>
+                {lesson.description && <p>{lesson.description}</p>}
+                <div className="lesson-submeta">
+                  {lesson.duration > 0 && <small>⏱️ {lesson.duration} phút</small>}
+                  {lesson.videoUrl && <small>🎥 Video bài giảng</small>}
+                </div>
+              </div>
+
+              <div className="lesson-action-col">
+                {isEnrolled ? (
+                  <Link
+                    to={`/student/courses/${course._id}/lessons/${lesson._id}`}
+                    className="btn-open-lesson"
+                  >
+                    Vào học bài →
+                  </Link>
+                ) : (
+                  <span className="lesson-lock" title="Đăng ký khóa học để mở khóa bài giảng này">
+                    🔒 Cần đăng ký
+                  </span>
+                )}
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="learning-empty">
+            <p>Khóa học này đang được giáo viên biên soạn bài học.</p>
+          </div>
+        )}
+      </section>
+    </main>
+  );
 }
