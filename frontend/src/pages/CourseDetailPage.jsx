@@ -85,7 +85,7 @@ export default function CourseDetailPage() {
   const nextLesson = lessons.find((l) => true);
 
   return (
-    <main className="learning-page">
+    <main className="learning-page course-detail-page">
       <Link className="learning-back" to="/courses">← Tất cả khóa học</Link>
 
       {/* Hero Section */}
@@ -198,8 +198,9 @@ export default function CourseDetailPage() {
             </article>
           ))
         ) : (
-          <div className="learning-empty">
-            <p>Khóa học này đang được giáo viên biên soạn bài học.</p>
+          <div className="learning-empty course-curriculum-empty">
+            <span aria-hidden="true">✦</span>
+            <div><strong>Nội dung đang được hoàn thiện</strong><p>Giáo viên đang biên soạn bài học cho khóa học này. Vui lòng quay lại sau nhé.</p></div>
           </div>
         )}
       </section>
