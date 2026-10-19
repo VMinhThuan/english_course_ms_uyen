@@ -525,7 +525,7 @@ export default function AdminLessonsPage() {
       {/* Create / Edit Lesson Modal */}
       {showModal && (
         <div
-          className="ds-modal-overlay"
+          className="ds-modal-overlay ds-modal-overlay--scroll"
         >
           <div
             className="ds-modal-content ds-modal-content--lg"
@@ -557,7 +557,7 @@ export default function AdminLessonsPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+              <div className="admin-form-grid-3">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
                     Chủ đề (Topic)
@@ -666,7 +666,7 @@ export default function AdminLessonsPage() {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid var(--brand-border)', paddingTop: '1rem' }}>
+              <div className="admin-modal-actions">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
@@ -698,7 +698,7 @@ export default function AdminLessonsPage() {
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div
-          className="ds-modal-overlay"
+          className="ds-modal-overlay ds-modal-overlay--scroll"
         >
           <div
             className="ds-modal-content ds-modal-content--sm"
@@ -722,7 +722,7 @@ export default function AdminLessonsPage() {
             >
               ⚠️ Thao tác này sẽ tự động xóa các tài liệu đính kèm, từ vựng và tiến độ liên kết với bài học này.
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <div className="admin-modal-actions">
               <button
                 onClick={() => setDeleteTarget(null)}
                 style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid var(--brand-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}

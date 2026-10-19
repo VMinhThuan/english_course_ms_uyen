@@ -29,6 +29,9 @@
 .admin-page-container button:hover:not(:disabled) { transform: translateY(-1px); }
 .admin-page-container a { border-radius: var(--radius-xs); color: var(--brand-coffee); font-family: var(--font-sans); }
 .admin-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.admin-form-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.admin-form-grid > div, .admin-form-grid-3 > div { min-width: 0; }
+.admin-modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; border-top: 1px solid var(--brand-border); padding-top: 1rem; }
 
 /* Student profile: the approval decision is visually separate from account metadata. */
 .admin-student-detail-page { max-width: 1040px; margin: 0 auto; gap: 18px; }
@@ -87,7 +90,10 @@
 @media (max-width: 620px) { .course-filter-bar { padding: 13px; }.course-search-form { flex-direction: column; }.course-search-submit { min-height: 40px; }.course-filter-controls { align-items: stretch; flex-direction: column; gap: 9px; }.course-filter-field select { width: 100%; }.course-title-copy div { max-width: 190px; } }
 @media (max-width: 900px) {
   .admin-page-container .ds-page-header { align-items: stretch; }
-  .admin-form-grid { grid-template-columns: 1fr; }
+  .admin-form-grid,
+  .admin-form-grid-3 { grid-template-columns: 1fr; }
+  .admin-modal-actions { flex-direction: column-reverse; }
+  .admin-modal-actions button { width: 100%; min-height: 44px; }
 }
 
 
