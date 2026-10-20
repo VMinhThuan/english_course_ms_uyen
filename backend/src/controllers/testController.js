@@ -1,6 +1,7 @@
 import Test from '../models/Test.js';
 import Enrollment from '../models/Enrollment.js';
 import { checkReadingText } from '../utils/textSimilarity.js';
+import { sanitizeLessonRecord } from '../security/lessonHtml.js';
 
 // @desc    Get test by lesson
 // @route   GET /api/v1/tests/lesson/:lessonId
@@ -18,27 +19,25 @@ export const getTestByLesson = async (req, res, next) => {
       });
     }
 
-    // Remove correct answers for students
-    if (req.user.role === 'student') {
-      const testWithoutAnswers = {
-        ...test.toObject(),
-        questions: test.questions.map((q) => ({
-          ...q.toObject(),
-          correctAnswer: undefined, // Hide correct answer
-        })),
-      };
-      return res.json({
-        status: 'success',
-        data: {
-          test: testWithoutAnswers,
-        },
+    const testResponse = test.toObject();
+    if (test.lesson) {
+      testResponse.lesson = sanitizeLessonRecord(test.lesson, {
+        includeAttachments: req.user.role !== 'student',
       });
     }
 
-    res.json({
+    // Remove correct answers for students and avoid disclosing private local attachment URLs.
+    if (req.user.role === 'student') {
+      testResponse.questions = test.questions.map((question) => ({
+        ...question.toObject(),
+        correctAnswer: undefined,
+      }));
+    }
+
+    return res.json({
       status: 'success',
       data: {
-        test,
+        test: testResponse,
       },
     });
   } catch (error) {

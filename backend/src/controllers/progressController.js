@@ -1,6 +1,10 @@
+import mongoose from 'mongoose';
 import LearningProgress from '../models/LearningProgress.js';
 import Lesson from '../models/Lesson.js';
 import Enrollment from '../models/Enrollment.js';
+import Course from '../models/Course.js';
+import Material from '../models/Material.js';
+import User from '../models/User.js';
 import { recalculateCourseProgress } from '../utils/progressHelper.js';
 
 // @desc    Access lesson (initialize/update lesson progress)
@@ -155,82 +159,147 @@ export const completeLesson = async (req, res, next) => {
 // @access  Private (Admin/Teacher)
 export const getAdminStudentProgress = async (req, res, next) => {
   try {
-    const { studentId } = req.params;
-    const { courseId } = req.query;
+    const { studentId: rawStudentId } = req.params;
+    if (!/^[\da-f]{24}$/i.test(rawStudentId)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_STUDENT_ID', message: 'Mã học viên không hợp lệ.' });
+    }
+    const studentId = new mongoose.Types.ObjectId(rawStudentId);
+    const student = await User.exists({ _id: studentId, role: 'student' });
+    if (!student) return res.status(404).json({ status: 'error', code: 'STUDENT_NOT_FOUND', message: 'Không tìm thấy thông tin học viên.' });
 
-    const lessonFilter = { status: 'published' };
-    if (courseId) lessonFilter.course = courseId;
+    const parsePage = (value, fallback, max = 1000000) => {
+      if (value === undefined || value === '') return fallback;
+      if (!/^[0-9]+$/.test(String(value))) return null;
+      const parsed = Number(value);
+      return Number.isSafeInteger(parsed) && parsed >= 1 && parsed <= max ? parsed : null;
+    };
+    const lessonPage = parsePage(req.query.page, 1);
+    const lessonLimit = parsePage(req.query.limit, 20, 100);
+    const coursePage = parsePage(req.query.coursePage, 1);
+    const courseLimit = parsePage(req.query.courseLimit, 20, 100);
+    if ([lessonPage, lessonLimit, coursePage, courseLimit].some((value) => value === null)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_PAGINATION', message: 'Trang hoặc số dòng mỗi trang không hợp lệ.' });
+    }
+    if (req.query.courseId && !/^[\da-f]{24}$/i.test(String(req.query.courseId))) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_COURSE_ID', message: 'Mã khóa học không hợp lệ.' });
+    }
 
-    const publishedLessons = await Lesson.find(lessonFilter)
-      .populate('course', 'title')
-      .sort({ order: 1 });
+    const enrollments = await Enrollment.find({ student: studentId }).select('course enrolledAt').lean();
+    const enrolledCourseIds = enrollments.map((item) => item.course).filter(Boolean);
+    const legacyCourseIds = await Course.distinct('_id', { students: studentId });
+    const allCourseIds = [...new Map([...enrolledCourseIds, ...legacyCourseIds].map((id) => [String(id), id])).values()];
+    const enrollmentByCourse = new Map(enrollments.map((item) => [String(item.course), item]));
+    const courses = allCourseIds.length
+      ? await Course.find({ _id: { $in: allCourseIds } }).select('_id title isPublished updatedAt').lean()
+      : [];
+    const courseById = new Map(courses.map((course) => [String(course._id), course]));
+    const availableCourseIds = allCourseIds.filter((id) => courseById.has(String(id)));
+    const requestedCourseId = req.query.courseId ? new mongoose.Types.ObjectId(String(req.query.courseId)) : null;
+    const scopedCourseIds = requestedCourseId
+      ? availableCourseIds.filter((id) => String(id) === String(requestedCourseId))
+      : availableCourseIds;
 
-    const totalLessons = publishedLessons.length;
-    const lessonIds = publishedLessons.map((l) => l._id);
-
-    const progressRecords = await LearningProgress.find({
-      student: studentId,
-      lesson: { $in: lessonIds },
-    });
-
-    const progressMap = new Map();
-    let maxActivity = null;
-
-    progressRecords.forEach((rec) => {
-      progressMap.set(rec.lesson.toString(), rec);
-      if (rec.lastAccessedAt) {
-        if (!maxActivity || rec.lastAccessedAt > maxActivity) {
-          maxActivity = rec.lastAccessedAt;
-        }
-      }
-    });
-
-    let completedLessons = 0;
-    let inProgressLessons = 0;
-    let notStartedLessons = 0;
-
-    const lessonsDetail = publishedLessons.map((l) => {
-      const rec = progressMap.get(l._id.toString());
-      let lStatus = 'not_started';
-      let lProgress = 0;
-      let completedAt = null;
-      let lastAccessedAt = null;
-
-      if (rec) {
-        lStatus = rec.status;
-        lProgress = rec.progress;
-        completedAt = rec.completedAt;
-        lastAccessedAt = rec.lastAccessedAt;
-      }
-
-      if (lStatus === 'completed') completedLessons++;
-      else if (lStatus === 'in_progress') inProgressLessons++;
-      else notStartedLessons++;
-
+    const courseStats = availableCourseIds.length ? await Lesson.aggregate([
+      { $match: { course: { $in: availableCourseIds }, status: 'published' } },
+      {
+        $lookup: {
+          from: LearningProgress.collection.name,
+          let: { lessonId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $and: [{ $eq: ['$lesson', '$$lessonId'] }, { $eq: ['$student', studentId] }] } } },
+            { $project: { status: 1, progress: 1, completedAt: 1, lastAccessedAt: 1, startedAt: 1 } },
+          ],
+          as: '__studentProgress',
+        },
+      },
+      { $set: { __progress: { $arrayElemAt: ['$__studentProgress', 0] } } },
+      {
+        $group: {
+          _id: '$course',
+          totalLessons: { $sum: 1 },
+          completedLessons: { $sum: { $cond: [{ $eq: ['$__progress.status', 'completed'] }, 1, 0] } },
+          inProgressLessons: { $sum: { $cond: [{ $eq: ['$__progress.status', 'in_progress'] }, 1, 0] } },
+          lastLearningActivity: { $max: '$__progress.lastAccessedAt' },
+        },
+      },
+    ]).allowDiskUse(true) : [];
+    const statsByCourse = new Map(courseStats.map((item) => [String(item._id), item]));
+    const courseRows = availableCourseIds.map((id) => {
+      const course = courseById.get(String(id));
+      const stats = statsByCourse.get(String(id)) || { totalLessons: 0, completedLessons: 0, inProgressLessons: 0, lastLearningActivity: null };
+      const totalLessons = stats.totalLessons || 0;
+      const completedLessons = stats.completedLessons || 0;
+      const inProgressLessons = stats.inProgressLessons || 0;
       return {
-        _id: l._id,
-        title: l.title,
-        course: l.course,
-        status: lStatus,
-        progress: lProgress,
-        completedAt,
-        lastAccessedAt,
+        _id: course._id,
+        title: course.title,
+        isPublished: course.isPublished,
+        enrolledAt: enrollmentByCourse.get(String(id))?.enrolledAt || null,
+        totalLessons,
+        completedLessons,
+        inProgressLessons,
+        notStartedLessons: Math.max(0, totalLessons - completedLessons - inProgressLessons),
+        completionPercentage: totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0,
+        lastLearningActivity: stats.lastLearningActivity || null,
+      };
+    }).sort((a, b) => String(a.title).localeCompare(String(b.title), 'vi') || String(a._id).localeCompare(String(b._id)));
+
+    const summaryRows = courseRows.filter((course) => scopedCourseIds.some((id) => String(id) === String(course._id)));
+    const totalLessons = summaryRows.reduce((sum, item) => sum + item.totalLessons, 0);
+    const completedLessons = summaryRows.reduce((sum, item) => sum + item.completedLessons, 0);
+    const inProgressLessons = summaryRows.reduce((sum, item) => sum + item.inProgressLessons, 0);
+    const notStartedLessons = Math.max(0, totalLessons - completedLessons - inProgressLessons);
+    const lastLearningActivity = summaryRows.reduce((latest, item) => item.lastLearningActivity && (!latest || item.lastLearningActivity > latest) ? item.lastLearningActivity : latest, null);
+    const completionPercentage = totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+    const courseTotal = courseRows.length;
+    const coursePageRows = courseRows.slice((coursePage - 1) * courseLimit, coursePage * courseLimit);
+    const lessonFilter = { course: { $in: scopedCourseIds }, status: 'published' };
+    const [lessonDocs, lessonTotal] = await Promise.all([
+      Lesson.find(lessonFilter)
+        .select('_id title course order createdAt updatedAt')
+        .sort({ course: 1, order: 1, _id: 1 })
+        .skip((lessonPage - 1) * lessonLimit)
+        .limit(lessonLimit)
+        .lean(),
+      Lesson.countDocuments(lessonFilter),
+    ]);
+    const lessonIds = lessonDocs.map((lesson) => lesson._id);
+    const progressRows = lessonIds.length ? await LearningProgress.find({ student: studentId, lesson: { $in: lessonIds } })
+      .select('lesson status progress startedAt completedAt lastAccessedAt')
+      .lean() : [];
+    const progressByLesson = new Map(progressRows.map((row) => [String(row.lesson), row]));
+    const lessonRows = lessonDocs.map((lesson) => {
+      const record = progressByLesson.get(String(lesson._id));
+      const course = courseById.get(String(lesson.course));
+      return {
+        _id: lesson._id,
+        title: lesson.title,
+        order: lesson.order,
+        course: course ? { _id: course._id, title: course.title } : null,
+        status: record?.status || 'not_started',
+        progress: record?.progress ?? 0,
+        startedAt: record?.startedAt || null,
+        completedAt: record?.completedAt || null,
+        lastAccessedAt: record?.lastAccessedAt || null,
       };
     });
 
-    const completionPercentage =
-      totalLessons > 0 ? Math.min(100, Math.max(0, Math.round((completedLessons / totalLessons) * 100))) : 0;
-
-    res.json({
+    return res.json({
       status: 'success',
       data: {
+        courseCount: availableCourseIds.length,
+        totalCourses: availableCourseIds.length,
         totalLessons,
         completedLessons,
         inProgressLessons,
         notStartedLessons,
         completionPercentage,
-        lastLearningActivity: maxActivity,
-        lessons: lessonsDetail,
+        lastLearningActivity,
+        courses: coursePageRows,
+        coursePagination: { page: coursePage, limit: courseLimit, total: courseTotal, pages: Math.ceil(courseTotal / courseLimit) },
+        lessons: lessonRows,
+        lessonPagination: { page: lessonPage, limit: lessonLimit, total: lessonTotal, pages: Math.ceil(lessonTotal / lessonLimit) },
       },
     });
   } catch (error) {
@@ -313,8 +382,11 @@ export const getStudentDashboard = async (req, res, next) => {
       }
     }
 
-    // Recent published lessons (up to 5)
-    const recentLessons = publishedLessons.slice(0, 5).map((l) => {
+    // Recently updated published lessons (up to 5)
+    const recentLessons = [...publishedLessons]
+      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+      .slice(0, 5)
+      .map((l) => {
       const rec = progressMap.get(l._id.toString());
       return {
         _id: l._id,
@@ -326,14 +398,44 @@ export const getStudentDashboard = async (req, res, next) => {
       };
     });
 
+    const recentMaterials = await Material.find({
+      lesson: { $in: publishedLessonIds },
+      status: 'published',
+    })
+      .select('title description fileType fileSize lesson createdAt updatedAt')
+      .populate({ path: 'lesson', select: 'title course', populate: { path: 'course', select: 'title' } })
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .limit(5)
+      .lean();
+
     // Dynamically import Assessment and Attempt if needed or use mongoose models
     const Assessment = (await import('../models/Assessment.js')).default;
     const Attempt = (await import('../models/Attempt.js')).default;
+    const now = new Date();
 
-    const availableAssessments = await Assessment.find({ status: 'published' })
-      .select('title type duration minutes attemptLimit passScore questions')
+    const availableAssessments = await Assessment.find({
+      status: 'published',
+      $and: [
+        { $or: [{ availableFrom: { $exists: false } }, { availableFrom: null }, { availableFrom: { $lte: now } }] },
+        { $or: [{ availableUntil: { $exists: false } }, { availableUntil: null }, { availableUntil: { $gte: now } }] },
+      ],
+    })
+      .select('title description type duration durationMinutes minutes attemptLimit passScore questions availableFrom availableUntil')
       .sort({ createdAt: -1 })
       .limit(5);
+
+    const availableAssessmentIds = availableAssessments.map((assessment) => assessment._id);
+    const submittedAssessmentCounts = availableAssessmentIds.length
+      ? await Attempt.aggregate([
+        { $match: { student: studentId, assessment: { $in: availableAssessmentIds }, status: { $in: ['submitted', 'completed'] } } },
+        { $group: { _id: '$assessment', count: { $sum: 1 } } },
+      ])
+      : [];
+    const submittedAttemptCounts = new Map(submittedAssessmentCounts.map(({ _id, count }) => [_id.toString(), count]));
+    const taskAssessments = availableAssessments.map((assessment) => ({
+      ...assessment.toObject(),
+      submittedAttemptCount: submittedAttemptCounts.get(assessment._id.toString()) || 0,
+    }));
 
     const recentAttemptDocs = await Attempt.find({ student: studentId, status: 'submitted' })
       .populate('assessment', 'title type passScore totalScore')
@@ -344,6 +446,7 @@ export const getStudentDashboard = async (req, res, next) => {
       const passScore = Number.isFinite(Number(attempt.passScore)) ? Number(attempt.passScore) : Number(attempt.assessment?.passScore || 0);
       return {
         ...attempt.toObject(),
+        totalScore: Number.isFinite(Number(attempt.maxScore)) ? Number(attempt.maxScore) : Number(attempt.assessment?.totalScore || 0),
         scorePercentage: attempt.scorePercentage ?? scorePercentage,
         passScore,
         passed: typeof attempt.passed === 'boolean' ? attempt.passed : scorePercentage >= passScore,
@@ -354,13 +457,15 @@ export const getStudentDashboard = async (req, res, next) => {
       status: 'success',
       data: {
         studentName: req.user.fullName || req.user.email,
+        studentAvatar: typeof req.user.avatar === 'string' ? req.user.avatar : '',
         totalAvailableLessons,
         completedLessons: completedCount,
         inProgressLessons: inProgressCount,
         overallProgress,
         continueLearningLesson,
         recentLessons,
-        availableAssessments,
+        recentMaterials,
+        availableAssessments: taskAssessments,
         recentResults,
       },
     });

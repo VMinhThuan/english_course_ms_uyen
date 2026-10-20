@@ -2,8 +2,9 @@ import { Link, useLocation } from 'react-router-dom';
 import AuthLayout from '../components/layouts/AuthLayout.jsx';
 
 export default function AccountStatusPage() {
-  const { state } = useLocation();
-  const status = state?.status || 'pending';
+  const location = useLocation();
+  const { state } = location;
+  const status = state?.status || new URLSearchParams(location.search).get('status') || 'pending';
   const content = {
     pending: {
       title: state?.registered ? 'Đăng ký thành công' : 'Tài khoản đang chờ phê duyệt',

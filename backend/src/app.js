@@ -6,6 +6,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandler.js';
 import connectDB from './configs/database.js';
+import { protectLegacyUpload, protectPrivateUpload, protectPublicUpload } from './middlewares/protectedUploads.js';
+import { getPublicUploadDir, getUploadDir } from './utils/uploadConfig.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -54,7 +56,7 @@ const corsOptions = {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    exposedHeaders: ['Authorization'],
+    exposedHeaders: ['Authorization', 'Content-Disposition'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
 };
@@ -67,10 +69,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-import { getUploadDir } from './utils/uploadConfig.js';
+const uploadStaticHeaders = (res) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+};
 
-// Serve uploaded static files
-app.use('/uploads', express.static(getUploadDir()));
+// New public media is separated from lesson/material uploads. Private and legacy files are
+// intercepted before static serving so a public URL cannot bypass a Material access check.
+app.use('/uploads/public', protectPublicUpload, express.static(getPublicUploadDir(), { setHeaders: uploadStaticHeaders }));
+app.use('/uploads/private', protectPrivateUpload);
+app.use('/uploads', protectLegacyUpload, express.static(getUploadDir(), { setHeaders: uploadStaticHeaders }));
 
 // 2. Fast health endpoints - no database required
 app.get('/', (req, res) => {

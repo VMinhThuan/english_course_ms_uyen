@@ -22,6 +22,7 @@ const lessonSchema = new mongoose.Schema(
     attachments: [
       {
         filename: String,
+        originalName: String,
         url: String,
         type: String,
       },
@@ -38,6 +39,12 @@ const lessonSchema = new mongoose.Schema(
     topic: {
       type: String,
       default: 'General',
+    },
+    // Optional for legacy lessons. No default/backfill is applied to existing records.
+    difficulty: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced', null],
+      default: undefined,
     },
     status: {
       type: String,
@@ -57,6 +64,8 @@ const lessonSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+lessonSchema.index({ course: 1, status: 1, order: 1, _id: 1 }, { name: 'lesson_course_status_order' });
 
 const Lesson = mongoose.model('Lesson', lessonSchema);
 

@@ -1,17 +1,30 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { assessmentApi } from '../api/assessmentApi.js';
 import StatusBadge from '../components/ui/StatusBadge.jsx';
 import UiButton from '../components/ui/UiButton.jsx';
 import AssessmentQuestionReviewCard from '../components/assessment/AssessmentQuestionReviewCard.jsx';
+import useAssessmentAttemptTabLock from '../hooks/useAssessmentAttemptTabLock.js';
 import { speakText, stopSpeaking } from '../utils/tts.js';
 import { startSpeechRecognition, stopSpeechRecognition, isSpeechRecognitionSupported } from '../utils/speechRecognition.js';
 import './TestPage.css';
 import '../styles/assessment-screens.css';
 
+function formatAttemptDuration(value) {
+  const durationSeconds = Number.isFinite(Number(value)) ? Math.max(0, Math.floor(Number(value))) : 0;
+  const minutes = Math.floor(durationSeconds / 60);
+  const seconds = durationSeconds % 60;
+  return `${minutes} phút ${seconds} giây`;
+}
+
+const AUTO_SUBMIT_RETRY_BASE_MS = 1000;
+const AUTO_SUBMIT_RETRY_MAX_MS = 15000;
+
 export default function TestPage() {
   const { testId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const skipResumePromptRef = useRef(location.state?.skipResumePrompt === true);
 
   const [attemptId, setAttemptId] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -22,19 +35,39 @@ export default function TestPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [errorCode, setErrorCode] = useState('');
   const [saveState, setSaveState] = useState('');
+  const [revisionConflict, setRevisionConflict] = useState(false);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
+  const [questionNavigationFilter, setQuestionNavigationFilter] = useState('unanswered');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [showLeaveAttemptNotice, setShowLeaveAttemptNotice] = useState(false);
   const desktopNavigatorRef = useRef(null);
   const mobileNavigatorRef = useRef(null);
+  const mobileSheetTriggerRef = useRef(null);
 
   // STT / TTS states
   const [isRecording, setIsRecording] = useState(false);
   const [recognitionRef, setRecognitionRef] = useState(null);
   const hasStartedAttempt = useRef(false);
   const autosaveVersion = useRef(0);
+  const revisionRef = useRef(1);
+  const serverClockOffsetRef = useRef(0);
+  const saveQueueRef = useRef(Promise.resolve());
+  const autoSubmitStartedRef = useRef(false);
+  const submissionInFlightRef = useRef(false);
+  const autoSubmitRetryCountRef = useRef(0);
+  const autoSubmitRetryTimerRef = useRef(null);
+  const submitHandlerRef = useRef(null);
+  const answersDirtyRef = useRef(false);
+  const { isDuplicateTab, takeOverAttempt } = useAssessmentAttemptTabLock(attemptId, Boolean(attemptId && !result));
+
+  useEffect(() => () => {
+    if (autoSubmitRetryTimerRef.current) window.clearTimeout(autoSubmitRetryTimerRef.current);
+  }, []);
 
   // Start or resume assessment attempt
   const initAttempt = useCallback(async () => {
@@ -42,20 +75,28 @@ export default function TestPage() {
     hasStartedAttempt.current = true;
     setLoading(true);
     setErrorMsg('');
+    setErrorCode('');
+    setRevisionConflict(false);
     try {
       const res = await assessmentApi.startAttempt(testId);
       if (res.data) {
+        setShowResumeModal(res.message === 'Resumed existing active attempt' && !skipResumePromptRef.current);
+        skipResumePromptRef.current = false;
         setAttemptId(res.data.attemptId);
         setQuestions(res.data.questions || []);
         setDeadlineAt(res.data.deadlineAt);
+        revisionRef.current = res.data.revision || 1;
+        if (res.data.serverTime) serverClockOffsetRef.current = new Date(res.data.serverTime).getTime() - Date.now();
         if (res.data.answers) {
           setAnswers(res.data.answers);
         }
+        answersDirtyRef.current = false;
       }
     } catch (err) {
       hasStartedAttempt.current = false;
       console.error('Failed to start/resume attempt:', err);
       setErrorMsg(err.response?.data?.message || 'Không thể mở bài kiểm tra. Vui lòng thử lại.');
+      setErrorCode(err.response?.data?.code || '');
     } finally {
       setLoading(false);
     }
@@ -65,44 +106,60 @@ export default function TestPage() {
     initAttempt();
   }, [initAttempt]);
 
+  useEffect(() => {
+    if (!skipResumePromptRef.current) return;
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, navigate]);
+
   // Persist answers with a short debounce. The backend merges the answer map,
   // so a refresh resumes the same server-owned attempt and deadline.
   useEffect(() => {
-    if (!attemptId || loading || result) return undefined;
+    if (!attemptId || loading || result || revisionConflict || submitting || isDuplicateTab || autoSubmitStartedRef.current || !answersDirtyRef.current) return undefined;
     const version = ++autosaveVersion.current;
     setSaveState('saving');
     const timer = setTimeout(async () => {
       try {
-        await assessmentApi.autosaveAttemptAnswers(attemptId, answers);
-        // An older response must never mark a newer text edit as saved.
-        if (version === autosaveVersion.current) setSaveState('saved');
+        const savePromise = saveQueueRef.current.catch(() => undefined).then(() =>
+          assessmentApi.autosaveAttemptAnswers(attemptId, { answers, revision: revisionRef.current })
+        );
+        saveQueueRef.current = savePromise;
+        const response = await savePromise;
+        revisionRef.current = response.data.revision;
+        if (version === autosaveVersion.current) {
+          answersDirtyRef.current = false;
+          setSaveState('saved');
+        }
       } catch (error) {
-        if (version === autosaveVersion.current) setSaveState('error');
+        if (error.response?.status === 409 || error.response?.status === 428) {
+          setRevisionConflict(true);
+          setSaveState('conflict');
+        } else if (version === autosaveVersion.current) setSaveState('error');
       }
     }, 650);
     return () => clearTimeout(timer);
-  }, [answers, attemptId, loading, result]);
+  }, [answers, attemptId, isDuplicateTab, loading, result, revisionConflict, submitting]);
 
   // Server-based Timer Countdown Display
   useEffect(() => {
-    if (!deadlineAt || result) return;
+    if (!deadlineAt || result || isDuplicateTab) return;
 
     const interval = setInterval(() => {
-      const remainingMs = new Date(deadlineAt).getTime() - Date.now();
-      const seconds = Math.max(0, Math.floor(remainingMs / 1000));
+      const remainingMs = new Date(deadlineAt).getTime() - (Date.now() + serverClockOffsetRef.current);
+      const seconds = Math.max(0, Math.ceil(remainingMs / 1000));
       setTimeLeftSeconds(seconds);
 
       if (seconds <= 0) {
         clearInterval(interval);
+        if (!autoSubmitStartedRef.current) submitHandlerRef.current?.(true);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [deadlineAt, result]);
+  }, [deadlineAt, isDuplicateTab, result]);
 
-  // Lock background scroll when mobile sheet or modal is open
+  // Lock background scroll while a modal or the mobile question sheet is open.
   useEffect(() => {
-    if (showMobileSheet || showConfirmModal) {
+    if (showMobileSheet || showConfirmModal || showResumeModal || showLeaveAttemptNotice || isDuplicateTab) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -110,7 +167,58 @@ export default function TestPage() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showMobileSheet, showConfirmModal]);
+  }, [showMobileSheet, showConfirmModal, showResumeModal, showLeaveAttemptNotice, isDuplicateTab]);
+
+  // Keep focus in the mobile question sheet and return it to the trigger on close.
+  useEffect(() => {
+    if (!showMobileSheet) return undefined;
+
+    const closeButton = document.querySelector('.bottom-sheet-close');
+    closeButton?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setShowMobileSheet(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      mobileSheetTriggerRef.current?.focus();
+    };
+  }, [showMobileSheet]);
+
+  // Warn before a browser-level navigation closes or reloads an active attempt.
+  useEffect(() => {
+    if (!attemptId || result) return undefined;
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [attemptId, result]);
+
+  // Keep the student on the active test when browser back/forward is used.
+  useEffect(() => {
+    if (!attemptId || result) return undefined;
+
+    const attemptUrl = window.location.pathname + window.location.search + window.location.hash;
+    window.history.pushState({ ...(window.history.state || {}), activeAttemptGuard: true }, '', attemptUrl);
+
+    const handlePopState = (event) => {
+      event.stopImmediatePropagation();
+      window.history.pushState({ ...(window.history.state || {}), activeAttemptGuard: true }, '', attemptUrl);
+      setShowLeaveAttemptNotice(true);
+    };
+
+    window.addEventListener('popstate', handlePopState, true);
+    return () => window.removeEventListener('popstate', handlePopState, true);
+  }, [attemptId, result]);
 
   // Keep the navigator in sync when the learner scrolls through the question list.
   useEffect(() => {
@@ -171,7 +279,9 @@ export default function TestPage() {
     });
 
     recognition.onresult = (event) => {
+      if (timeLeftSeconds === 0 || revisionConflict || submitting || isDuplicateTab) return;
       const transcript = event.results[0][0].transcript;
+      answersDirtyRef.current = true;
       setAnswers((prev) => ({
         ...prev,
         [qId]: transcript,
@@ -202,6 +312,7 @@ export default function TestPage() {
 
   // Select option for single choice or toggle for multiple choice
   const handleOptionSelect = (qId, optionId, isMultiple = false) => {
+    if (timeLeftSeconds === 0 || revisionConflict || submitting || isDuplicateTab) return;
     if (isMultiple) {
       const currentArr = Array.isArray(answers[qId]) ? answers[qId] : [];
       let updated;
@@ -210,27 +321,120 @@ export default function TestPage() {
       } else {
         updated = [...currentArr, optionId];
       }
+      answersDirtyRef.current = true;
       setAnswers((prev) => ({ ...prev, [qId]: updated }));
     } else {
+      answersDirtyRef.current = true;
       setAnswers((prev) => ({ ...prev, [qId]: optionId }));
     }
   };
 
-  const handleSubmit = async () => {
-    if (!attemptId) return;
+  const scheduleAutomaticSubmitRetry = () => {
+    if (autoSubmitRetryTimerRef.current || result) return;
+    const exponent = Math.min(autoSubmitRetryCountRef.current, 4);
+    const retryDelay = Math.min(AUTO_SUBMIT_RETRY_MAX_MS, AUTO_SUBMIT_RETRY_BASE_MS * (2 ** exponent));
+    autoSubmitRetryCountRef.current += 1;
+    setSaveState('auto-submit-retrying');
+    autoSubmitRetryTimerRef.current = window.setTimeout(() => {
+      autoSubmitRetryTimerRef.current = null;
+      submitHandlerRef.current?.(true);
+    }, retryDelay);
+  };
+
+  const handleSubmit = async (automatic = false) => {
+    if (!attemptId || isDuplicateTab || result || submissionInFlightRef.current) return;
+    if (automatic) autoSubmitStartedRef.current = true;
+    if (autoSubmitRetryTimerRef.current) {
+      window.clearTimeout(autoSubmitRetryTimerRef.current);
+      autoSubmitRetryTimerRef.current = null;
+    }
+    submissionInFlightRef.current = true;
     setShowConfirmModal(false);
     setSubmitting(true);
     try {
-      const response = await assessmentApi.submitAttempt(attemptId, answers);
-      if (response.status === 'success') {
-        const resultRes = await assessmentApi.getAttemptResult(attemptId);
-        setResult(resultRes.data.result);
+      // Finish any queued autosave first so the submit uses the newest server revision.
+      await saveQueueRef.current.catch(() => undefined);
+      const response = await assessmentApi.submitAttempt(attemptId, answers, revisionRef.current);
+      if (response.status !== 'success') throw new Error('Attempt submission did not succeed.');
+
+      const resultRes = await assessmentApi.getAttemptResult(attemptId);
+      setResult(resultRes.data.result);
+      setSaveState('');
+      autoSubmitRetryCountRef.current = 0;
+    } catch (error) {
+      const autoSubmitStillNeeded = automatic || autoSubmitStartedRef.current;
+      const serverRevision = Number(error.response?.data?.serverRevision);
+      if (Number.isInteger(serverRevision) && serverRevision > 0) revisionRef.current = serverRevision;
+
+      if (autoSubmitStillNeeded) {
+        try {
+          // The submit may have reached the server even if its response was lost.
+          const resultRes = await assessmentApi.getAttemptResult(attemptId);
+          if (resultRes.data?.result) {
+            setResult(resultRes.data.result);
+            setSaveState('');
+            autoSubmitRetryCountRef.current = 0;
+            return;
+          }
+        } catch {}
+
+        const status = error.response?.status;
+        const errorCode = error.response?.data?.code;
+        const retryableConflict = status === 409 && ['ATTEMPT_FINALIZING', 'STALE_REVISION'].includes(errorCode);
+        const shouldRetry = !error.response
+          || status === 408
+          || status === 429
+          || status >= 500
+          || retryableConflict;
+
+        if (shouldRetry) {
+          console.warn('Automatic assessment submission failed; retrying after connectivity recovers.', error);
+          scheduleAutomaticSubmitRetry();
+          return;
+        }
+      }
+
+      if (error.response?.status === 409 || error.response?.status === 428) {
+        setRevisionConflict(true);
+        setSaveState('conflict');
+      } else if (autoSubmitStillNeeded) {
+        console.error('Automatic assessment submission could not be completed:', error);
+        setSaveState('error');
+      } else {
+        console.error('Error submitting assessment:', error);
+        alert(error.response?.data?.message || 'Nộp bài thất bại.');
+      }
+    } finally {
+      submissionInFlightRef.current = false;
+      setSubmitting(false);
+    }
+  };
+  submitHandlerRef.current = handleSubmit;
+
+  const reloadAttemptState = async () => {
+    try {
+      setLoading(true);
+      const response = await assessmentApi.startAttempt(testId);
+      if (response.data) {
+        setAttemptId(response.data.attemptId);
+        setQuestions(response.data.questions || []);
+        setDeadlineAt(response.data.deadlineAt);
+        setAnswers(response.data.answers || {});
+        answersDirtyRef.current = false;
+        revisionRef.current = response.data.revision || 1;
+        if (response.data.serverTime) serverClockOffsetRef.current = new Date(response.data.serverTime).getTime() - Date.now();
+        setRevisionConflict(false);
+        setSaveState('saved');
+      if (autoSubmitRetryTimerRef.current) window.clearTimeout(autoSubmitRetryTimerRef.current);
+      autoSubmitRetryTimerRef.current = null;
+      submissionInFlightRef.current = false;
+      autoSubmitRetryCountRef.current = 0;
+        autoSubmitStartedRef.current = false;
       }
     } catch (error) {
-      console.error('Error submitting assessment:', error);
-      alert(error.response?.data?.message || 'Nộp bài thất bại.');
+      setErrorMsg(error.response?.data?.message || 'Không thể tải lại bài làm.');
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -252,13 +456,18 @@ export default function TestPage() {
   if (errorMsg || questions.length === 0) {
     return (
       <div className="test-screen test-screen--state test-screen--error">
-        <h3>{errorMsg || 'Không tìm thấy bài kiểm tra'}</h3>
-        <button
-          onClick={() => navigate(-1)}
-          className="ds-button ds-button--primary test-screen__retry-button"
-        >
-          Quay Lại
-        </button>
+        {errorCode === 'ATTEMPT_LIMIT_REACHED' ? (
+          <>
+            <h3>Đã hết lượt làm bài</h3>
+            <p>Bạn đã sử dụng hết số lượt làm bài kiểm tra này.</p>
+            <button onClick={() => navigate('/student/assessments')} className="ds-button ds-button--primary test-screen__retry-button">Quay về danh sách bài kiểm tra</button>
+          </>
+        ) : (
+          <>
+            <h3>{errorMsg || 'Không tìm thấy bài kiểm tra'}</h3>
+            <button onClick={() => navigate(-1)} className="ds-button ds-button--primary test-screen__retry-button">Quay Lại</button>
+          </>
+        )}
       </div>
     );
   }
@@ -290,6 +499,10 @@ export default function TestPage() {
               <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--brand-muted)' }}>{result.unansweredCount}</div>
               <p style={{ color: 'var(--brand-muted)', fontSize: '0.85rem', margin: 0 }}>Bỏ Trống</p>
             </div>
+            <div style={{ background: 'var(--brand-bg-sub)', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: '1px solid var(--brand-border)' }}>
+              <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--brand-muted)' }}>{formatAttemptDuration(result.duration)}</div>
+              <p style={{ color: 'var(--brand-muted)', fontSize: '0.85rem', margin: 0 }}>Thời gian làm bài</p>
+            </div>
           </div>
 
           <h3 style={{ fontSize: '1.2rem', color: 'var(--brand-text)', marginBottom: '1rem' }}>Chi Tiết Từng Câu Hỏi:</h3>
@@ -315,10 +528,14 @@ export default function TestPage() {
   }
 
   const totalQuestions = questions.length;
-  const answeredCount = Object.keys(answers).filter((k) => {
-    const val = answers[k];
-    return val !== undefined && val !== null && val !== '' && !(Array.isArray(val) && val.length === 0);
-  }).length;
+  const unansweredQuestionNumbers = questions.reduce((numbers, question, index) => {
+    const answer = answers[question.questionId];
+    const answered = answer !== undefined && answer !== null && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
+    if (!answered) numbers.push(index + 1);
+    return numbers;
+  }, []);
+  const answeredCount = totalQuestions - unansweredQuestionNumbers.length;
+  const completionPercentage = totalQuestions ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   return (
     <div className="test-screen test-screen--active">
@@ -327,7 +544,17 @@ export default function TestPage() {
       <div className="test-sticky-header">
         <div className="test-title-box">
           <h2>Bài Kiểm Tra</h2>
-          <p>Đã làm {answeredCount}/{totalQuestions} câu {saveState === 'saving' ? '· Đang lưu...' : saveState === 'saved' ? '· Đã lưu' : saveState === 'error' ? '· Chưa thể lưu' : ''}</p>
+          <p>Đã làm {answeredCount}/{totalQuestions} câu ({completionPercentage}%) {saveState === 'auto-submit-retrying' ? '· Mất kết nối, đang thử nộp lại...' : saveState === 'saving' ? '· Đang lưu...' : saveState === 'saved' ? '· Đã lưu' : saveState === 'conflict' ? '· Có cập nhật từ phiên khác' : saveState === 'error' ? '· Chưa thể lưu hoặc nộp bài' : ''}</p>
+          <div
+            className="test-progress"
+            role="progressbar"
+            aria-label="Tiến độ làm bài"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={completionPercentage}
+          >
+            <div className="test-progress__fill" style={{ width: `${completionPercentage}%` }} />
+          </div>
         </div>
         <div className="test-timer-badge" style={{ background: timeLeftSeconds < 180 ? 'var(--brand-danger-bg)' : 'var(--brand-yellow-soft)', color: timeLeftSeconds < 180 ? 'var(--brand-danger)' : 'var(--brand-coffee)' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -337,6 +564,13 @@ export default function TestPage() {
           <span>{formatTime(timeLeftSeconds)}</span>
         </div>
       </div>
+
+      {revisionConflict && (
+        <div className="attempt-conflict-banner" role="alert">
+          <div><strong>Bài làm đã thay đổi ở một tab khác.</strong><span> Hệ thống đã chặn việc ghi đè để giữ đáp án mới nhất.</span></div>
+          <button type="button" onClick={reloadAttemptState} disabled={loading}>Tải bản mới nhất</button>
+        </div>
+      )}
 
       {/* Main Split Area */}
       <div className="test-main-split">
@@ -353,7 +587,8 @@ export default function TestPage() {
 
                 {/* Choice Questions */}
                 {(question.type === 'single_choice' || question.type === 'multiple_choice') && question.options && (
-                  <div className="options-list">
+                  <fieldset className="options-list" aria-label={`Câu ${index + 1}, ${question.type === 'multiple_choice' ? 'chọn nhiều đáp án' : 'chọn một đáp án'}`} disabled={timeLeftSeconds === 0 || revisionConflict || isDuplicateTab}>
+                    <legend className="visually-hidden">{question.type === 'multiple_choice' ? 'Chọn tất cả đáp án đúng' : 'Chọn một đáp án'}</legend>
                     {question.options.map((option) => {
                       const isMultiple = question.type === 'multiple_choice';
                       const isSelected = isMultiple
@@ -361,17 +596,23 @@ export default function TestPage() {
                         : currentAnswer === option.id;
 
                       return (
-                        <div
+                        <label
                           key={option.id}
                           className={`option-card ${isSelected ? 'selected' : ''}`}
-                          onClick={() => handleOptionSelect(qId, option.id, isMultiple)}
                         >
-                          <div className="option-radio-circle" />
+                          <input
+                            type={isMultiple ? 'checkbox' : 'radio'}
+                            name={`question-${qId}`}
+                            checked={isSelected}
+                            onChange={() => handleOptionSelect(qId, option.id, isMultiple)}
+                            disabled={timeLeftSeconds === 0 || revisionConflict || isDuplicateTab}
+                          />
+                          <span className={`option-radio-circle${isMultiple ? ' option-check-square' : ''}`} aria-hidden="true" />
                           <span className="option-text-label">{option.text}</span>
-                        </div>
+                        </label>
                       );
                     })}
-                  </div>
+                  </fieldset>
                 )}
 
                 {/* Fill Blank or Typed Answer Questions */}
@@ -388,7 +629,7 @@ export default function TestPage() {
                       <button
                         type="button"
                         onClick={() => handleStartRecording(qId)}
-                        disabled={isRecording}
+                        disabled={isRecording || isDuplicateTab}
                         style={{ padding: '6px 12px', background: isRecording ? 'var(--brand-bg-sub)' : 'var(--brand-success)', color: 'var(--brand-surface)', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer' }}
                       >
                         {isRecording ? '⏹ Đang Ghi Âm...' : '🎤 Nói Để Nhập (STT)'}
@@ -406,7 +647,8 @@ export default function TestPage() {
                     <input
                       type="text"
                       value={currentAnswer || ''}
-                      onChange={(e) => setAnswers((prev) => ({ ...prev, [qId]: e.target.value }))}
+                      onChange={(e) => { if (timeLeftSeconds !== 0 && !revisionConflict && !isDuplicateTab) { answersDirtyRef.current = true; setAnswers((prev) => ({ ...prev, [qId]: e.target.value })); } }}
+                      disabled={timeLeftSeconds === 0 || revisionConflict || isDuplicateTab}
                       placeholder="Nhập câu trả lời của bạn..."
                       style={{ width: '100%', height: '48px', padding: '0 16px', borderRadius: '10px', border: '1px solid var(--brand-border)', fontSize: '1rem' }}
                     />
@@ -446,7 +688,7 @@ export default function TestPage() {
             type="button"
             className="btn-submit-exam"
             onClick={() => setShowConfirmModal(true)}
-            disabled={submitting}
+            disabled={submitting || revisionConflict || isDuplicateTab}
           >
             {submitting ? 'Đang Nộp Bài...' : 'Nộp Bài Kiểm Tra'}
           </button>
@@ -469,7 +711,14 @@ export default function TestPage() {
 
         <button
           className="btn-mobile-sheet-trigger"
-          onClick={() => setShowMobileSheet(true)}
+          ref={mobileSheetTriggerRef}
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={showMobileSheet}
+          onClick={() => {
+            setQuestionNavigationFilter('unanswered');
+            setShowMobileSheet(true);
+          }}
         >
           Danh Sách Câu ({answeredCount}/{totalQuestions})
         </button>
@@ -490,15 +739,39 @@ export default function TestPage() {
       {/* Mobile Bottom Sheet Drawer */}
       {showMobileSheet && (
         <div className="bottom-sheet-overlay" onClick={() => setShowMobileSheet(false)}>
-          <div className="bottom-sheet-content" onClick={(e) => e.stopPropagation()}>
+          <div className="bottom-sheet-content" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Danh sách câu hỏi">
             <div className="bottom-sheet-handle" />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.15rem', color: 'var(--brand-text)', margin: 0 }}>Danh Sách Câu Hỏi</h3>
+            <div className="question-sheet-header">
+              <div>
+                <h3>Danh Sách Câu Hỏi</h3>
+                <p className="question-sheet-legend">Câu chưa làm được đánh dấu nền sáng; câu đã làm có nền xanh.</p>
+              </div>
               <button
+                type="button"
+                className="bottom-sheet-close"
+                aria-label="Đóng danh sách câu hỏi"
                 onClick={() => setShowMobileSheet(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.5rem', color: 'var(--brand-muted)', cursor: 'pointer' }}
               >
                 ×
+              </button>
+            </div>
+
+            <div className="question-sheet-filters" role="group" aria-label="Lọc danh sách câu hỏi">
+              <button
+                type="button"
+                className={questionNavigationFilter === 'unanswered' ? 'active' : ''}
+                aria-pressed={questionNavigationFilter === 'unanswered'}
+                onClick={() => setQuestionNavigationFilter('unanswered')}
+              >
+                Chưa làm ({unansweredQuestionNumbers.length})
+              </button>
+              <button
+                type="button"
+                className={questionNavigationFilter === 'all' ? 'active' : ''}
+                aria-pressed={questionNavigationFilter === 'all'}
+                onClick={() => setQuestionNavigationFilter('all')}
+              >
+                Tất cả ({totalQuestions})
               </button>
             </div>
 
@@ -506,6 +779,7 @@ export default function TestPage() {
               {questions.map((q, idx) => {
                 const val = answers[q.questionId];
                 const isAnswered = val !== undefined && val !== null && val !== '' && !(Array.isArray(val) && val.length === 0);
+                if (questionNavigationFilter === 'unanswered' && isAnswered) return null;
                 const isCurrent = currentQuestionIndex === idx;
                 return (
                   <button
@@ -515,19 +789,21 @@ export default function TestPage() {
                     onClick={() => {
                       setCurrentQuestionIndex(idx);
                       setShowMobileSheet(false);
-                      document.getElementById(`question-${idx}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      window.requestAnimationFrame(() => document.getElementById('question-' + idx)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
                     }}
                   >
                     {idx + 1}
                   </button>
                 );
               })}
+              {questionNavigationFilter === 'unanswered' && unansweredQuestionNumbers.length === 0 && (
+                <p className="question-sheet-empty">Bạn đã trả lời tất cả câu hỏi.</p>
+              )}
             </div>
 
             <button
               type="button"
-              className="btn-submit-exam"
-              style={{ marginTop: '1rem' }}
+              className="btn-submit-exam question-sheet-submit"
               onClick={() => {
                 setShowMobileSheet(false);
                 setShowConfirmModal(true);
@@ -552,7 +828,7 @@ export default function TestPage() {
                 Bạn đã trả lời <strong>{answeredCount} / {totalQuestions}</strong> câu hỏi.
                 {answeredCount < totalQuestions && (
                   <span style={{ color: 'var(--brand-danger)', display: 'block', marginTop: '0.5rem' }}>
-                    ⚠️ Vẫn còn {totalQuestions - answeredCount} câu chưa trả lời!
+                    ⚠️ Câu chưa trả lời: {unansweredQuestionNumbers.join(', ')}
                   </span>
                 )}
                 <br />
@@ -569,7 +845,8 @@ export default function TestPage() {
               </button>
               <button
                 type="button"
-                onClick={handleSubmit}
+                onClick={() => handleSubmit(false)}
+                disabled={submitting || revisionConflict}
                 className="btn-submit-exam"
                 style={{ width: 'auto', padding: '10px 24px' }}
               >
@@ -577,6 +854,55 @@ export default function TestPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showResumeModal && !isDuplicateTab && (
+        <div className="attempt-guard-overlay">
+          <section className="attempt-guard-dialog" role="alertdialog" aria-modal="true" aria-labelledby="resume-attempt-title">
+            <span className="attempt-guard-icon" aria-hidden="true">↻</span>
+            <h2 id="resume-attempt-title">Bạn đang có bài kiểm tra chưa hoàn thành</h2>
+            <p>Tiến độ và thời gian làm bài đã được lưu. Tiếp tục bài kiểm tra đang làm dở của bạn.</p>
+            <button type="button" className="attempt-guard-primary" autoFocus onClick={() => setShowResumeModal(false)}>
+              Tiếp tục làm bài
+            </button>
+          </section>
+        </div>
+      )}
+
+      {showLeaveAttemptNotice && !isDuplicateTab && (
+        <div className="attempt-guard-overlay">
+          <section className="attempt-guard-dialog" role="alertdialog" aria-modal="true" aria-labelledby="leave-attempt-title">
+            <span className="attempt-guard-icon" aria-hidden="true">!</span>
+            <h2 id="leave-attempt-title">Bài kiểm tra vẫn đang diễn ra</h2>
+            <p>Hãy ở lại trang này để tiếp tục làm bài. Nếu đóng trang, câu trả lời đã lưu sẽ được khôi phục khi bạn mở lại bài kiểm tra.</p>
+            <button type="button" className="attempt-guard-primary" autoFocus onClick={() => setShowLeaveAttemptNotice(false)}>
+              Ở lại bài kiểm tra
+            </button>
+          </section>
+        </div>
+      )}
+
+      {isDuplicateTab && (
+        <div className="attempt-guard-overlay attempt-guard-overlay--duplicate">
+          <section className="attempt-guard-dialog" role="alertdialog" aria-modal="true" aria-labelledby="duplicate-attempt-title">
+            <span className="attempt-guard-icon" aria-hidden="true">↗</span>
+            <h2 id="duplicate-attempt-title">Bài kiểm tra đang mở ở tab khác</h2>
+            <p>Để tránh hai phiên cùng ghi câu trả lời, thao tác ở tab này đang tạm khóa. Bạn có thể chuyển bài kiểm tra sang tab hiện tại.</p>
+            <button
+              type="button"
+              className="attempt-guard-primary"
+              autoFocus
+              onClick={() => {
+                if (takeOverAttempt()) setShowResumeModal(true);
+              }}
+            >
+              Tiếp tục trên tab này
+            </button>
+            <button type="button" className="attempt-guard-secondary" onClick={() => navigate('/student/assessments')}>
+              Quay về danh sách
+            </button>
+          </section>
         </div>
       )}
     </div>

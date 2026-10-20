@@ -1,5 +1,4 @@
 import express from 'express';
-import path from 'path';
 import multer from 'multer';
 import {
   createVocabulary,
@@ -12,32 +11,21 @@ import {
   confirmDocxVocabularyImport,
 } from '../controllers/vocabularyController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
+import {
+  createUpload,
+  DOCX_UPLOAD_POLICIES,
+  MAX_DOCX_IMPORT_BYTES,
+} from '../utils/uploadValidation.js';
 
 const router = express.Router();
 
-const docxUpload = multer({
+const docxUpload = createUpload({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (ext !== '.docx') {
-      return cb(new Error('Chỉ chấp nhận file định dạng Word (.docx).'), false);
-    }
-    cb(null, true);
-  },
+  policies: DOCX_UPLOAD_POLICIES,
+  maxFileSize: MAX_DOCX_IMPORT_BYTES,
+  maxFiles: 1,
 });
-
-const handleDocxUpload = (req, res, next) => {
-  docxUpload.single('file')(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({
-        status: 'error',
-        message: err.message || 'Lỗi tải lên file DOCX.',
-      });
-    }
-    next();
-  });
-};
+const handleDocxUpload = docxUpload.single('file', { required: true });
 
 // Student routes
 router.get('/', verifyToken, getStudentVocabularyByLesson);

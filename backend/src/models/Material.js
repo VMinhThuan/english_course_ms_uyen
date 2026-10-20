@@ -29,6 +29,11 @@ const materialSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    originalName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     fileType: {
       type: String,
       default: 'document',
@@ -49,6 +54,12 @@ const materialSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform(_document, returned) {
+        delete returned.filePath;
+        return returned;
+      },
+    },
   }
 );
 

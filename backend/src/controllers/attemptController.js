@@ -1,6 +1,11 @@
 import Attempt from '../models/Attempt.js';
 import Assessment from '../models/Assessment.js';
 import Question from '../models/Question.js';
+import {
+  finalizeAttempt,
+  isTerminalAttempt,
+  resolveAttemptEngine,
+} from '../utils/attemptLifecycle.js';
 
 // Helper to generate safe student question DTO (NO secret answers/grading rules)
 const sanitizeQuestionSnapshotForStudent = (snapshot) => {
@@ -35,6 +40,7 @@ export const getAvailableAssessments = async (req, res, next) => {
     const now = new Date();
     const filter = {
       status: 'published',
+      examFormat: { $in: ['standard', null] },
       $and: [
         { $or: [{ availableFrom: null }, { availableFrom: { $lte: now } }] },
         { $or: [{ availableUntil: null }, { availableUntil: { $gte: now } }] },
@@ -46,12 +52,96 @@ export const getAvailableAssessments = async (req, res, next) => {
       .populate('course', 'title')
       .select('-questions.question');
 
+    const assessmentIds = assessments.map((assessment) => assessment._id);
+    let attempts = assessmentIds.length
+      ? await Attempt.find({ student: req.user._id, assessment: { $in: assessmentIds } }).sort({ submittedAt: -1 })
+      : [];
+    const assessmentsById = new Map(assessments.map((assessment) => [String(assessment._id), assessment]));
+    for (const attempt of attempts) {
+      if (attempt.status !== 'in_progress' || new Date(attempt.deadlineAt) > now) continue;
+      const assessment = assessmentsById.get(String(attempt.assessment));
+      if (resolveAttemptEngine(attempt, assessment) !== 'standard') continue;
+      await finalizeAttempt({ Attempt, attempt, assessment, engine: 'standard', now });
+    }
+    if (assessmentIds.length) {
+      attempts = await Attempt.find({ student: req.user._id, assessment: { $in: assessmentIds } }).sort({ submittedAt: -1 });
+    }
+
+    const attemptsByAssessment = new Map();
+    for (const attempt of attempts) {
+      const key = String(attempt.assessment);
+      if (!attemptsByAssessment.has(key)) attemptsByAssessment.set(key, []);
+      attemptsByAssessment.get(key).push(attempt);
+    }
+    const assessmentsWithAttemptState = assessments.map((assessment) => {
+      const assessmentAttempts = attemptsByAssessment.get(String(assessment._id)) || [];
+      const activeAttempt = assessmentAttempts.find((attempt) => attempt.status === 'in_progress');
+      const finishedAttempts = assessmentAttempts.filter(isTerminalAttempt);
+      const lastAttempt = finishedAttempts[0];
+      const attemptLimit = Number(assessment.attemptLimit || 0);
+      return {
+        ...(assessment.toObject ? assessment.toObject() : assessment),
+        attemptCount: finishedAttempts.length,
+        attemptLimit,
+        remainingAttempts: attemptLimit === 0 ? null : Math.max(0, attemptLimit - finishedAttempts.length),
+        hasActiveAttempt: Boolean(activeAttempt),
+        activeAttemptId: activeAttempt?._id || null,
+        lastAttempt: lastAttempt ? {
+          attemptId: lastAttempt._id,
+          status: lastAttempt.status,
+          score: lastAttempt.score,
+          maxScore: lastAttempt.maxScore,
+          percentage: lastAttempt.scorePercentage ?? (lastAttempt.maxScore > 0
+            ? Math.round((lastAttempt.score / lastAttempt.maxScore) * 100)
+            : 0),
+          passed: lastAttempt.passed,
+          submittedAt: lastAttempt.submittedAt,
+          isExpired: lastAttempt.isExpired,
+        } : null,
+      };
+    });
+
     res.json({
       status: 'success',
       data: {
-        assessments,
+        assessments: assessmentsWithAttemptState,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Student get active attempts for login-time resume prompt
+// @route   GET /api/v1/attempts/active
+// @access  Private (Active Student)
+export const getStudentActiveAttempts = async (req, res, next) => {
+  try {
+    const attempts = await Attempt.find({
+      student: req.user._id,
+      status: 'in_progress',
+      deadlineAt: { $gt: new Date() },
+    })
+      .populate('assessment', 'title examFormat toeicMode')
+      .sort({ startedAt: -1 });
+
+    const activeAttempts = attempts.reduce((items, attempt) => {
+      const assessment = attempt.assessment;
+      const engine = resolveAttemptEngine(attempt, assessment);
+      if (!assessment || !engine) return items;
+
+      items.push({
+        attemptId: attempt._id,
+        assessmentId: assessment._id,
+        title: assessment.title || 'Bài kiểm tra',
+        engine,
+        startedAt: attempt.startedAt,
+        deadlineAt: attempt.deadlineAt,
+      });
+      return items;
+    }, []);
+
+    res.json({ status: 'success', data: { attempts: activeAttempts } });
   } catch (error) {
     next(error);
   }
@@ -67,7 +157,7 @@ export const getStudentAssessmentById = async (req, res, next) => {
       .populate('lesson', 'title')
       .populate('course', 'title');
 
-    if (!assessment || assessment.status !== 'published') {
+    if (!assessment || assessment.status !== 'published' || assessment.examFormat !== 'standard') {
       return res.status(404).json({
         status: 'error',
         message: 'Assessment not found or not available',
@@ -110,6 +200,9 @@ export const startAttempt = async (req, res, next) => {
         message: 'Assessment not found or not published',
       });
     }
+    if (assessment.examFormat !== 'standard') {
+      return res.status(409).json({ status: 'error', code: 'ASSESSMENT_ENGINE_MISMATCH', message: 'Bài đánh giá này thuộc hệ thống thi khác.' });
+    }
 
     // Validate availability dates
     const now = new Date();
@@ -138,7 +231,11 @@ export const startAttempt = async (req, res, next) => {
 
     if (activeAttempt) {
       // Check if attempt is still within valid window
-      if (now <= activeAttempt.deadlineAt) {
+      const engine = resolveAttemptEngine(activeAttempt, assessment);
+      if (engine !== 'standard') {
+        return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+      }
+      if (now < activeAttempt.deadlineAt) {
         const sanitizedQuestions = activeAttempt.questionSnapshots.map(sanitizeQuestionSnapshotForStudent);
         return res.json({
           status: 'success',
@@ -147,18 +244,15 @@ export const startAttempt = async (req, res, next) => {
             attemptId: activeAttempt._id,
             startedAt: activeAttempt.startedAt,
             deadlineAt: activeAttempt.deadlineAt,
+            serverTime: now,
+            revision: activeAttempt.revision || 1,
             durationMinutes: assessment.durationMinutes,
             answers: activeAttempt.answers || {},
             questions: sanitizedQuestions,
           },
         });
       } else {
-        // Active attempt has passed deadline, mark it as expired/submitted
-        activeAttempt.status = 'submitted';
-        activeAttempt.isExpired = true;
-        activeAttempt.submittedAt = activeAttempt.deadlineAt;
-        activeAttempt.duration = Math.round((activeAttempt.deadlineAt - activeAttempt.startedAt) / 1000);
-        await activeAttempt.save();
+        await finalizeAttempt({ Attempt, attempt: activeAttempt, assessment, engine: 'standard', now });
       }
     }
 
@@ -166,14 +260,14 @@ export const startAttempt = async (req, res, next) => {
     const submittedCount = await Attempt.countDocuments({
       student: studentId,
       assessment: id,
-      status: 'submitted',
+      status: { $in: ['submitted', 'completed'] },
     });
 
     if (assessment.attemptLimit > 0 && submittedCount >= assessment.attemptLimit) {
       return res.status(403).json({
         status: 'error',
         code: 'ATTEMPT_LIMIT_REACHED',
-        message: `You have reached the maximum allowed attempt limit (${assessment.attemptLimit}) for this assessment.`,
+        message: 'Bạn đã sử dụng hết số lượt làm bài kiểm tra này.',
       });
     }
 
@@ -210,9 +304,12 @@ export const startAttempt = async (req, res, next) => {
         student: studentId,
         assessment: id,
         assessmentType: assessment.type,
+        engine: 'standard',
+        passScore: Number(assessment.passScore || 0),
         startedAt,
         deadlineAt,
         status: 'in_progress',
+        revision: 1,
         questionSnapshots,
         answers: {},
       });
@@ -229,6 +326,8 @@ export const startAttempt = async (req, res, next) => {
           attemptId: resumedAttempt._id,
           startedAt: resumedAttempt.startedAt,
           deadlineAt: resumedAttempt.deadlineAt,
+          serverTime: new Date(),
+          revision: resumedAttempt.revision || 1,
           durationMinutes: assessment.durationMinutes,
           answers: resumedAttempt.answers || {},
           questions: resumedAttempt.questionSnapshots.map(sanitizeQuestionSnapshotForStudent),
@@ -245,6 +344,8 @@ export const startAttempt = async (req, res, next) => {
         attemptId: newAttempt._id,
         startedAt: newAttempt.startedAt,
         deadlineAt: newAttempt.deadlineAt,
+        serverTime: new Date(),
+        revision: newAttempt.revision,
         durationMinutes: assessment.durationMinutes,
         questions: sanitizedQuestions,
       },
@@ -278,9 +379,17 @@ export const submitAttempt = async (req, res, next) => {
       });
     }
 
-    // REQUIREMENT 13: Idempotent Submission / Prevent Double Submission
-    if (attempt.status === 'submitted') {
-      const assessment = await Assessment.findById(attempt.assessment).select('passScore');
+    const assessment = await Assessment.findById(attempt.assessment).select('passScore examFormat showCorrectAnswers');
+    const engine = resolveAttemptEngine(attempt, assessment);
+    if (!engine) {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+    }
+    if (engine !== 'standard') {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_MISMATCH', message: 'Lượt làm bài này phải được nộp qua hệ thống thi TOEIC.' });
+    }
+
+    // Idempotent submission: the stored terminal result is never regraded.
+    if (isTerminalAttempt(attempt)) {
       const passResult = getPassResult(attempt, assessment);
       return res.json({
         status: 'success',
@@ -303,91 +412,30 @@ export const submitAttempt = async (req, res, next) => {
       });
     }
 
-    const submittedAt = new Date();
-    let durationSeconds = Math.max(0, Math.round((submittedAt - attempt.startedAt) / 1000));
-    let isExpired = false;
-
-    // Deadline check with 10s buffer
-    if (submittedAt.getTime() > attempt.deadlineAt.getTime() + 10000) {
-      isExpired = true;
-      durationSeconds = Math.round((attempt.deadlineAt - attempt.startedAt) / 1000);
+    const now = new Date();
+    if (now < new Date(attempt.deadlineAt) && !Number.isInteger(req.body.revision)) {
+      return res.status(428).json({ status: 'error', code: 'REVISION_REQUIRED', message: 'Thiếu revision để nộp bài an toàn. Hãy tải lại lượt làm bài.' });
     }
-
-    const rawAnswers = req.body.answers || {};
-
-    let totalEarnedScore = 0;
-    let maxPossibleScore = 0;
-    let correctCount = 0;
-    let incorrectCount = 0;
-    let unansweredCount = 0;
-
-    // Server Auto-Grading against immutable questionSnapshots
-    for (const snapshot of attempt.questionSnapshots) {
-      const qId = snapshot.questionId;
-      const qScore = snapshot.score || 1;
-      maxPossibleScore += qScore;
-
-      const subAns = rawAnswers[qId];
-
-      if (
-        subAns === undefined ||
-        subAns === null ||
-        subAns === '' ||
-        (Array.isArray(subAns) && subAns.length === 0)
-      ) {
-        unansweredCount++;
-        continue;
-      }
-
-      let isCorrect = false;
-
-      if (snapshot.type === 'single_choice') {
-        if (typeof subAns === 'string' && snapshot.correctAnswers.includes(subAns)) {
-          isCorrect = true;
-        }
-      } else if (snapshot.type === 'multiple_choice') {
-        const submittedArray = Array.isArray(subAns) ? subAns : [subAns];
-        const submittedSet = new Set(submittedArray);
-        const correctSet = new Set(snapshot.correctAnswers);
-
-        if (submittedSet.size === correctSet.size) {
-          isCorrect = [...submittedSet].every((val) => correctSet.has(val));
-        }
-      } else if (snapshot.type === 'fill_blank' || snapshot.type === 'typed_answer') {
-        if (typeof subAns === 'string') {
-          const normSub = subAns.trim().toLowerCase();
-          isCorrect = snapshot.correctAnswers.some(
-            (ans) => String(ans).trim().toLowerCase() === normSub
-          );
-        }
-      }
-
-      if (isCorrect) {
-        totalEarnedScore += qScore;
-        correctCount++;
-      } else {
-        incorrectCount++;
-      }
+    const finalized = await finalizeAttempt({
+      Attempt,
+      attempt,
+      assessment,
+      engine,
+      answers: req.body.answers,
+      revision: req.body.revision,
+      now,
+    });
+    if (finalized.kind === 'revision_conflict') {
+      return res.status(409).json({
+        status: 'error',
+        code: now >= attempt.deadlineAt ? 'ATTEMPT_FINALIZING' : 'STALE_REVISION',
+        message: 'Bài làm đã được cập nhật ở phiên khác. Hãy tải lại trạng thái mới nhất trước khi nộp.',
+        serverRevision: finalized.attempt?.revision || attempt.revision || 1,
+        answers: finalized.attempt?.answers || attempt.answers || {},
+      });
     }
-
-    const assessment = await Assessment.findById(attempt.assessment).select('passScore');
-    const scorePercentage = maxPossibleScore > 0 ? Math.round((totalEarnedScore / maxPossibleScore) * 100) : 0;
-    const passScore = Number(assessment?.passScore || 0);
-    attempt.answers = rawAnswers;
-    attempt.score = totalEarnedScore;
-    attempt.maxScore = maxPossibleScore;
-    attempt.correctCount = correctCount;
-    attempt.incorrectCount = incorrectCount;
-    attempt.unansweredCount = unansweredCount;
-    attempt.duration = durationSeconds;
-    attempt.submittedAt = submittedAt;
-    attempt.status = 'submitted';
-    attempt.isExpired = isExpired;
-    attempt.scorePercentage = scorePercentage;
-    attempt.passScore = passScore;
-    attempt.passed = scorePercentage >= passScore;
-
-    await attempt.save();
+    const finalAttempt = finalized.attempt;
+    const passResult = getPassResult(finalAttempt, assessment);
 
     res.json({
       status: 'success',
@@ -395,18 +443,16 @@ export const submitAttempt = async (req, res, next) => {
       data: {
         result: {
           attemptId: attempt._id,
-          score: totalEarnedScore,
-          maxScore: maxPossibleScore,
-          percentage: scorePercentage,
-          scorePercentage,
-          passScore,
-          passed: attempt.passed,
-          correctCount,
-          incorrectCount,
-          unansweredCount,
-          duration: durationSeconds,
-          submittedAt: attempt.submittedAt,
-          isExpired,
+          score: finalAttempt.score,
+          maxScore: finalAttempt.maxScore,
+          percentage: passResult.scorePercentage,
+          ...passResult,
+          correctCount: finalAttempt.correctCount,
+          incorrectCount: finalAttempt.incorrectCount,
+          unansweredCount: finalAttempt.unansweredCount,
+          duration: finalAttempt.duration,
+          submittedAt: finalAttempt.submittedAt,
+          isExpired: finalAttempt.isExpired,
         },
       },
     });
@@ -423,7 +469,7 @@ export const getAttemptResult = async (req, res, next) => {
     const { attemptId } = req.params;
     const studentId = req.user._id;
 
-    const attempt = await Attempt.findById(attemptId);
+    let attempt = await Attempt.findById(attemptId);
     if (!attempt) {
       return res.status(404).json({
         status: 'error',
@@ -439,6 +485,21 @@ export const getAttemptResult = async (req, res, next) => {
       });
     }
 
+    const assessment = await Assessment.findById(attempt.assessment);
+    const engine = resolveAttemptEngine(attempt, assessment);
+    if (!engine) {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+    }
+    if (engine !== 'standard') {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_MISMATCH', message: 'Lượt làm bài này thuộc hệ thống thi TOEIC.' });
+    }
+
+    if (attempt.status === 'in_progress' && new Date() >= new Date(attempt.deadlineAt)) {
+      const finalized = await finalizeAttempt({ Attempt, attempt, assessment, engine, now: new Date() });
+      if (finalized.kind === 'revision_conflict') return res.status(409).json({ status: 'error', code: 'ATTEMPT_FINALIZING', message: 'Đang hoàn tất bài làm. Vui lòng tải lại kết quả.' });
+      attempt = finalized.attempt;
+    }
+
     if (attempt.status !== 'submitted') {
       return res.status(400).json({
         status: 'error',
@@ -446,7 +507,6 @@ export const getAttemptResult = async (req, res, next) => {
       });
     }
 
-    const assessment = await Assessment.findById(attempt.assessment);
     const showAnswers = assessment ? assessment.showCorrectAnswers : true;
 
     const questionReview = attempt.questionSnapshots.map((q) => {
@@ -521,6 +581,16 @@ export const getAttemptResult = async (req, res, next) => {
 export const getStudentHistory = async (req, res, next) => {
   try {
     const studentId = req.user._id;
+    const now = new Date();
+    const expiredAttempts = await Attempt.find({
+      student: studentId,
+      status: 'in_progress',
+      deadlineAt: { $lte: now },
+    }).populate('assessment');
+    for (const expiredAttempt of expiredAttempts) {
+      if (resolveAttemptEngine(expiredAttempt, expiredAttempt.assessment) !== 'standard') continue;
+      await finalizeAttempt({ Attempt, attempt: expiredAttempt, assessment: expiredAttempt.assessment, engine: 'standard', now });
+    }
 
     const attempts = await Attempt.find({
       student: studentId,
@@ -566,49 +636,5 @@ export const getStudentHistory = async (req, res, next) => {
   }
 };
 
-// @desc    Admin view all student attempt results
-// @route   GET /api/v1/admin/results
-// @access  Private (Admin/Teacher)
-export const getAdminResults = async (req, res, next) => {
-  try {
-    const { student, assessment, type } = req.query;
-
-    const filter = { status: { $in: ['submitted', 'completed'] } };
-    if (student) filter.student = student;
-    if (assessment) filter.assessment = assessment;
-    if (type) filter.assessmentType = type;
-
-    const attempts = await Attempt.find(filter)
-      .populate('student', 'fullName email')
-      .populate('assessment', 'title type passScore totalScore examFormat toeicMode')
-      .sort({ submittedAt: -1 });
-
-    const results = attempts.map((att) => ({
-      _id: att._id,
-      attemptId: att._id,
-      studentName: att.student?.fullName || att.student?.email || 'Student',
-      assessmentTitle: att.assessment?.title || 'Assessment',
-      student: att.student,
-      assessment: att.assessment,
-      score: att.score,
-      maxScore: att.maxScore,
-      totalScore: att.maxScore,
-      percentage: getPassResult(att, att.assessment).scorePercentage,
-      scorePercentage: getPassResult(att, att.assessment).scorePercentage,
-      passScore: getPassResult(att, att.assessment).passScore,
-      passed: getPassResult(att, att.assessment).passed,
-      duration: att.duration,
-      submittedAt: att.submittedAt,
-    }));
-
-    res.json({
-      status: 'success',
-      data: {
-        attempts,
-        results,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+// Admin reports use the read-only canonical attempt reporting pipeline.
+export { getAdminResults } from './adminReportingController.js';

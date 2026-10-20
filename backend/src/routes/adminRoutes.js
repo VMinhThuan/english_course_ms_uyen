@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getStudents,
+  createStudent,
   getStudent,
   approveStudent,
   rejectStudent,
@@ -35,6 +36,7 @@ import {
   confirmDocxVocabularyImport,
 } from '../controllers/vocabularyController.js';
 import { getAdminStudentProgress } from '../controllers/progressController.js';
+import { getAdminStudentAttempts, getAdminReportAssessments } from '../controllers/adminReportingController.js';
 import {
   createQuestion,
   getQuestions,
@@ -50,49 +52,43 @@ import {
   updateAssessmentStatus,
   deleteAssessment,
 } from '../controllers/assessmentController.js';
-import { getAdminResults } from '../controllers/attemptController.js';
+import { getAdminResults } from '../controllers/adminReportingController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
-import path from 'path';
 import multer from 'multer';
-import { getUploadDir } from '../utils/uploadConfig.js';
+import { getPrivateUploadDir } from '../utils/uploadConfig.js';
+import {
+  createSafeDiskStorage,
+  createUpload,
+  DOCX_UPLOAD_POLICIES,
+  GENERAL_UPLOAD_POLICIES,
+  MAX_DOCX_IMPORT_BYTES,
+  MAX_GENERAL_UPLOAD_BYTES,
+  MAX_LESSON_ATTACHMENTS,
+} from '../utils/uploadValidation.js';
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, getUploadDir());
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
-  },
+const lessonUpload = createUpload({
+  storage: createSafeDiskStorage({ directory: getPrivateUploadDir, prefix: 'lesson' }),
+  policies: GENERAL_UPLOAD_POLICIES,
+  maxFileSize: MAX_GENERAL_UPLOAD_BYTES,
+  maxFiles: MAX_LESSON_ATTACHMENTS,
 });
 
-const upload = multer({ storage });
+const materialUpload = createUpload({
+  storage: createSafeDiskStorage({ directory: getPrivateUploadDir, prefix: 'material' }),
+  policies: GENERAL_UPLOAD_POLICIES,
+  maxFileSize: MAX_GENERAL_UPLOAD_BYTES,
+  maxFiles: 1,
+});
 
-const docxUpload = multer({
+const docxUpload = createUpload({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (ext !== '.docx') {
-      return cb(new Error('Chỉ chấp nhận file định dạng Word (.docx).'), false);
-    }
-    cb(null, true);
-  },
+  policies: DOCX_UPLOAD_POLICIES,
+  maxFileSize: MAX_DOCX_IMPORT_BYTES,
+  maxFiles: 1,
 });
-
-const handleDocxUpload = (req, res, next) => {
-  docxUpload.single('file')(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({
-        status: 'error',
-        message: err.message || 'Lỗi tải lên file DOCX.',
-      });
-    }
-    next();
-  });
-};
+const handleDocxUpload = docxUpload.single('file', { required: true });
 
 // Require authenticated Admin or Teacher token for admin endpoints
 router.use(verifyToken, checkRole('admin', 'teacher'));
@@ -102,6 +98,7 @@ router.get('/stats', getAdminStats);
 
 // Student management
 router.get('/students', getStudents);
+router.post('/students', createStudent);
 router.get('/students/:id', getStudent);
 router.patch('/students/:id/approve', approveStudent);
 router.patch('/students/:id/reject', rejectStudent);
@@ -110,6 +107,7 @@ router.patch('/students/:id/activate', activateStudent);
 
 // Student progress inspector
 router.get('/students/:studentId/progress', getAdminStudentProgress);
+router.get('/students/:studentId/attempts', getAdminStudentAttempts);
 
 // Course admin endpoints
 router.get('/courses', getAdminCourses);
@@ -122,17 +120,17 @@ router.put('/courses/:id/reorder-lessons', reorderCourseLessons);
 router.delete('/courses/:id', deleteCourse);
 
 // Lesson admin endpoints
-router.post('/lessons', upload.array('attachments', 10), createLesson);
-router.put('/lessons/:id', upload.array('attachments', 10), updateLesson);
+router.post('/lessons', lessonUpload.array('attachments', MAX_LESSON_ATTACHMENTS), createLesson);
+router.put('/lessons/:id', lessonUpload.array('attachments', MAX_LESSON_ATTACHMENTS), updateLesson);
 router.patch('/lessons/:id/status', updateLessonStatus);
 router.delete('/lessons/:id', deleteLesson);
 
 // Material admin endpoints
-router.post('/materials', upload.single('file'), createMaterial);
+router.post('/materials', materialUpload.single('file'), createMaterial);
 router.get('/materials', getAdminMaterials);
 router.get('/materials/:id', getAdminMaterialById);
-router.put('/materials/:id', upload.single('file'), updateMaterial);
-router.patch('/materials/:id', upload.single('file'), updateMaterial);
+router.put('/materials/:id', materialUpload.single('file'), updateMaterial);
+router.patch('/materials/:id', materialUpload.single('file'), updateMaterial);
 router.delete('/materials/:id', deleteMaterial);
 
 // Vocabulary admin endpoints
@@ -163,6 +161,7 @@ router.patch('/assessments/:id/status', updateAssessmentStatus);
 router.delete('/assessments/:id', deleteAssessment);
 
 // Admin Results inspector
+router.get('/report-assessments', getAdminReportAssessments);
 router.get('/results', getAdminResults);
 
 export default router;

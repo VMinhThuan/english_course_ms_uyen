@@ -96,6 +96,7 @@ const courseSchema = new mongoose.Schema(
 // Index for search and filtering
 courseSchema.index({ title: 'text', description: 'text' });
 courseSchema.index({ englishType: 1, level: 1, category: 1 });
+courseSchema.index({ students: 1 }, { name: 'course_students_lookup' });
 
 const Course = mongoose.model('Course', courseSchema);
 

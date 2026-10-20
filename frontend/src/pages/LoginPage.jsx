@@ -41,7 +41,7 @@ export default function LoginPage() {
     } else {
       setError(result.message === 'Account is deactivated'
         ? 'Tài khoản của bạn hiện không thể sử dụng. Vui lòng liên hệ giáo viên để được hỗ trợ.'
-        : 'Email/số điện thoại hoặc mật khẩu không chính xác.');
+        : 'Email/tên đăng nhập hoặc mật khẩu không chính xác.');
     }
   };
 
@@ -64,7 +64,7 @@ export default function LoginPage() {
             autoComplete="username"
             aria-invalid={Boolean(fieldErrors.email)}
             className={`auth-input-field ${fieldErrors.email ? 'input-error' : ''}`}
-            placeholder="email@example.com hoặc số điện thoại"
+            placeholder="Email, tên đăng nhập hoặc số điện thoại"
           />
           {fieldErrors.email && <div className="auth-field-error">{fieldErrors.email}</div>}
         </div>

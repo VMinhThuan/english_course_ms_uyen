@@ -128,8 +128,8 @@ export const toeicApi = {
     return response.data;
   },
 
-  submitToeicAttempt: async (attemptId, answers) => {
-    const payload = answers ? { answers } : {};
+  submitToeicAttempt: async (attemptId, answers, revision) => {
+    const payload = answers ? { answers, revision } : { revision };
     const response = await axiosInstance.post(`/toeic/attempts/${attemptId}/submit`, payload);
     return response.data;
   },

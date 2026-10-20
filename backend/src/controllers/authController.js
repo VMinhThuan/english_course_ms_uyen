@@ -2,6 +2,14 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/generateToken.js';
 import { jwtConfig } from '../configs/jwt.js';
+import {
+    clearRefreshTokenCookie,
+} from '../middlewares/auth.js';
+import {
+    getRevokedSessionError,
+    getStudentStatusError,
+    isTokenIssuedBeforeSuspension,
+} from '../security/accountAccessPolicy.js';
 
 // @desc    Register new user
 // @route   POST /api/v1/auth/register
@@ -71,22 +79,27 @@ export const register = async(req, res, next) => {
 // @access  Public
 export const login = async(req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email, username, password } = req.body;
+        const loginIdentifier = typeof email === 'string' ? email : username;
 
-        if (!email || !password) {
+        if (typeof loginIdentifier !== 'string' || !loginIdentifier.trim() || typeof password !== 'string' || !password) {
             return res.status(400).json({
                 status: 'error',
                 message: 'Please provide email and password',
             });
         }
 
-        const input = email.trim();
+        const input = loginIdentifier.trim();
         const isEmail = input.includes('@');
         let user;
 
         if (isEmail) {
             user = await User.findOne({ email: input.toLowerCase() });
         } else {
+            user = await User.findOne({ username: input.toLowerCase() });
+        }
+
+        if (!user && !isEmail) {
             const cleanedPhone = input.replace(/[^\d+]/g, '');
             let normalizedPhone = '';
             if (cleanedPhone.startsWith('+84')) {
@@ -124,47 +137,22 @@ export const login = async(req, res, next) => {
             });
         }
 
-        // Check overall isActive flag
+        const studentStatusError = getStudentStatusError(user);
+        if (studentStatusError) {
+            if (studentStatusError.code === 'ACCOUNT_SUSPENDED') clearRefreshTokenCookie(res);
+            return res.status(studentStatusError.statusCode).json({
+                status: 'error',
+                code: studentStatusError.code,
+                message: studentStatusError.message,
+            });
+        }
+
+        // Check overall isActive flag for teacher/admin accounts.
         if (!user.isActive) {
             return res.status(401).json({
                 status: 'error',
                 message: 'Account is deactivated',
             });
-        }
-
-        // Enforce Account Status checks for Students
-        if (user.role === 'student') {
-            if (user.status === 'pending') {
-                return res.status(403).json({
-                    status: 'error',
-                    code: 'ACCOUNT_PENDING',
-                    message: 'Tài khoản của bạn đang chờ giáo viên/Admin phê duyệt.',
-                });
-            }
-
-            if (user.status === 'rejected') {
-                return res.status(403).json({
-                    status: 'error',
-                    code: 'ACCOUNT_REJECTED',
-                    message: 'Tài khoản của bạn đã bị từ chối phê duyệt.',
-                });
-            }
-
-            if (user.status === 'suspended') {
-                return res.status(403).json({
-                    status: 'error',
-                    code: 'ACCOUNT_SUSPENDED',
-                    message: 'Tài khoản của bạn đã bị tạm khóa.',
-                });
-            }
-
-            if (user.status !== 'active') {
-                return res.status(403).json({
-                    status: 'error',
-                    code: 'ACCOUNT_NOT_ACTIVE',
-                    message: 'Tài khoản chưa được kích hoạt.',
-                });
-            }
         }
 
         // Generate tokens
@@ -175,6 +163,7 @@ export const login = async(req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
+            path: '/',
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
@@ -214,7 +203,36 @@ export const refreshToken = async(req, res, next) => {
         const decoded = jwt.verify(refreshToken, jwtConfig.refreshSecret);
         const user = await User.findById(decoded.userId);
 
-        if (!user || !user.isActive) {
+        if (!user) {
+            clearRefreshTokenCookie(res);
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid refresh token',
+            });
+        }
+
+        const studentStatusError = getStudentStatusError(user);
+        if (studentStatusError) {
+            clearRefreshTokenCookie(res);
+            return res.status(studentStatusError.statusCode).json({
+                status: 'error',
+                code: studentStatusError.code,
+                message: studentStatusError.message,
+            });
+        }
+
+        if (isTokenIssuedBeforeSuspension(user, decoded.iat)) {
+            clearRefreshTokenCookie(res);
+            const revokedError = getRevokedSessionError();
+            return res.status(revokedError.statusCode).json({
+                status: 'error',
+                code: revokedError.code,
+                message: revokedError.message,
+            });
+        }
+
+        if (!user.isActive) {
+            clearRefreshTokenCookie(res);
             return res.status(401).json({
                 status: 'error',
                 message: 'Invalid refresh token',
@@ -242,7 +260,7 @@ export const refreshToken = async(req, res, next) => {
 // @route   POST /api/v1/auth/logout
 // @access  Private
 export const logout = async(req, res) => {
-    res.clearCookie('refreshToken');
+    clearRefreshTokenCookie(res);
     res.json({
         status: 'success',
         message: 'Logged out successfully',

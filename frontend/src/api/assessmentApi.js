@@ -17,13 +17,13 @@ export const assessmentApi = {
     return response.data;
   },
 
-  submitAttempt: async (attemptId, answers) => {
-    const response = await axiosInstance.post(`/attempts/${attemptId}/submit`, { answers });
+  submitAttempt: async (attemptId, answers, revision) => {
+    const response = await axiosInstance.post(`/attempts/${attemptId}/submit`, { answers, revision });
     return response.data;
   },
 
-  autosaveAttemptAnswers: async (attemptId, answers) => {
-    const response = await axiosInstance.patch(`/attempts/${attemptId}/answers`, { answers });
+  autosaveAttemptAnswers: async (attemptId, data) => {
+    const response = await axiosInstance.patch(`/attempts/${attemptId}/answers`, data);
     return response.data;
   },
 
@@ -34,6 +34,11 @@ export const assessmentApi = {
 
   getStudentHistory: async () => {
     const response = await axiosInstance.get('/attempts/history');
+    return response.data;
+  },
+
+  getActiveAttempts: async () => {
+    const response = await axiosInstance.get('/attempts/active');
     return response.data;
   },
 
@@ -89,6 +94,10 @@ export const assessmentApi = {
   // Admin Results Inspector
   getAdminResults: async (params = {}) => {
     const response = await axiosInstance.get('/admin/results', { params });
+    return response.data;
+  },
+  getAdminReportAssessments: async (params = {}) => {
+    const response = await axiosInstance.get('/admin/report-assessments', { params });
     return response.data;
   },
 };

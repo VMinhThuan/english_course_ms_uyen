@@ -9,23 +9,23 @@ import {
 } from '../controllers/lessonController.js';
 import { getStudentMaterialsByLesson } from '../controllers/materialController.js';
 import { verifyToken, checkRole, optionalAuth } from '../middlewares/auth.js';
-import multer from 'multer';
-
-import { getUploadDir } from '../utils/uploadConfig.js';
+import { getPrivateUploadDir } from '../utils/uploadConfig.js';
+import {
+  createSafeDiskStorage,
+  createUpload,
+  GENERAL_UPLOAD_POLICIES,
+  MAX_GENERAL_UPLOAD_BYTES,
+  MAX_LESSON_ATTACHMENTS,
+} from '../utils/uploadValidation.js';
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, getUploadDir());
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
-  },
+const upload = createUpload({
+  storage: createSafeDiskStorage({ directory: getPrivateUploadDir, prefix: 'lesson' }),
+  policies: GENERAL_UPLOAD_POLICIES,
+  maxFileSize: MAX_GENERAL_UPLOAD_BYTES,
+  maxFiles: MAX_LESSON_ATTACHMENTS,
 });
-
-const upload = multer({ storage });
 
 router.get('/course/:courseId', optionalAuth, getLessonsByCourse);
 router.get('/:id', verifyToken, getLessonById);
@@ -35,7 +35,7 @@ router.post(
   '/',
   verifyToken,
   checkRole('teacher', 'admin'),
-  upload.array('attachments', 10),
+  upload.array('attachments', MAX_LESSON_ATTACHMENTS),
   createLesson
 );
 
@@ -43,7 +43,7 @@ router.put(
   '/:id',
   verifyToken,
   checkRole('teacher', 'admin'),
-  upload.array('attachments', 10),
+  upload.array('attachments', MAX_LESSON_ATTACHMENTS),
   updateLesson
 );
 

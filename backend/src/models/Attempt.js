@@ -17,6 +17,12 @@ const attemptSchema = new mongoose.Schema(
       enum: ['exercise', 'exam'],
       default: 'exercise',
     },
+    // Captured at start so route selection cannot change which scorer owns an attempt.
+    // Legacy attempts resolve this from their assessment's examFormat.
+    engine: {
+      type: String,
+      enum: ['standard', 'toeic'],
+    },
     startedAt: {
       type: Date,
       default: Date.now,
@@ -130,6 +136,8 @@ const attemptSchema = new mongoose.Schema(
 );
 
 attemptSchema.index({ student: 1, assessment: 1, status: 1 });
+// Supports bounded per-assessment reporting and optional attempt-start date ranges.
+attemptSchema.index({ assessment: 1, startedAt: 1 }, { name: 'assessment_startedAt_report' });
 // At most one resumable attempt may exist for a student and an assessment.
 attemptSchema.index(
   { student: 1, assessment: 1 },

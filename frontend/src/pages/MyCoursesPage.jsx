@@ -36,6 +36,10 @@ export default function MyCoursesPage() {
           <p>Theo dõi và tiếp tục các khóa học bạn đã đăng ký.</p>
         </div>
       </header>
+      <nav className="course-view-switch" aria-label="Chuyển danh sách khóa học">
+        <Link to="/student/my-courses" aria-current="page">Khóa học của tôi</Link>
+        <Link to="/student/courses">Tất cả khóa học</Link>
+      </nav>
 
       {error && (
         <div className="learning-error">
@@ -54,9 +58,9 @@ export default function MyCoursesPage() {
 
             return (
               <article className="my-course-card" key={_id}>
-                <div className={`my-course-card__cover${course?.thumbnail ? ' my-course-card__cover--image' : ''}`}>
-                  {course?.thumbnail ? (
-                    <img src={course.thumbnail} alt={`Ảnh bìa khóa học ${title}`} />
+                <div className={`my-course-card__cover${course?.image || course?.thumbnail ? ' my-course-card__cover--image' : ''}`}>
+                  {course?.image || course?.thumbnail ? (
+                    <img src={course.image || course.thumbnail} alt={`Ảnh bìa khóa học ${title}`} />
                   ) : (
                     <span className="my-course-card__initial" aria-hidden="true">
                       {title.trim().slice(0, 1).toLocaleUpperCase() || 'K'}
@@ -81,7 +85,7 @@ export default function MyCoursesPage() {
 
                   <Link
                     className="learning-primary my-course-card__action"
-                    to={`/courses/${course?._id}`}
+                    to={`/student/courses/${course?._id}`}
                     aria-label={`Tiếp tục học ${title}`}
                   >
                     <span>Tiếp tục học</span>
@@ -96,7 +100,7 @@ export default function MyCoursesPage() {
         <section className="learning-empty">
           <h2>Bạn chưa đăng ký khóa học nào.</h2>
           <p>Hãy khám phá khóa học phù hợp để bắt đầu.</p>
-          <Link className="learning-primary" to="/courses">Khám phá khóa học</Link>
+          <Link className="learning-primary" to="/student/courses">Khám phá khóa học</Link>
         </section>
       )}
     </main>

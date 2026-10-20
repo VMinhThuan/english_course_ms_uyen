@@ -112,6 +112,8 @@ function AppRoutes() {
         <Route path="dashboard" element={<StudentDashboardPage />} />
         <Route path="enroll/:courseId" element={<EnrollCoursePage />} />
         <Route path="my-courses" element={<MyCoursesPage />} />
+        <Route path="courses" element={<CourseListPage studentMode />} />
+        <Route path="courses/:id" element={<CourseDetailPage />} />
         <Route path="assessments" element={<StudentAssessmentsPage />} />
         <Route path="toeic" element={<StudentToeicLibraryPage />} />
         <Route path="toeic/:assessmentId" element={<StudentToeicOverviewPage />} />

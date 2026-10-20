@@ -3,6 +3,33 @@ import Lesson from '../models/Lesson.js';
 import Course from '../models/Course.js';
 import DocxVocabularyParser from '../services/docxVocabularyParser.js';
 
+const MAX_STUDENT_VOCABULARY_PAGE_SIZE = 100;
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const ACCENTED_VOWELS = {
+  a: 'aàáạảãâầấậẩẫăằắặẳẵ',
+  e: 'eèéẹẻẽêềếệểễ',
+  i: 'iìíịỉĩ',
+  o: 'oòóọỏõôồốộổỗơờớợởỡ',
+  u: 'uùúụủũưừứựửữ',
+  y: 'yỳýỵỷỹ',
+};
+const createVocabularySearchRegex = (search) => {
+  const normalized = String(search || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/đ/g, 'd');
+  const pattern = [...normalized].map((character) => {
+    if (/\s/.test(character)) return '\\s+';
+    if (character === 'd') return '[dđ]';
+    const vowels = ACCENTED_VOWELS[character];
+    if (vowels) return `[${vowels}]`;
+    return escapeRegex(character);
+  }).join('');
+  return new RegExp(pattern, 'i');
+};
+
 // @desc    Admin create vocabulary
 // @route   POST /api/v1/admin/vocabulary
 // @access  Private (Admin/Teacher)
@@ -243,7 +270,25 @@ export const deleteVocabulary = async (req, res, next) => {
 export const getStudentVocabularyByLesson = async (req, res, next) => {
   try {
     const lessonId = req.params.lessonId || req.query.lessonId || req.query.lesson;
-    const { topic } = req.query;
+    const { topic, search, sort = 'word_asc', ids: rawIds } = req.query;
+    const isPaginatedRequest = ['page', 'limit', 'search', 'sort', 'ids']
+      .some((parameter) => Object.prototype.hasOwnProperty.call(req.query, parameter));
+    const pageNum = Number(req.query.page || 1);
+    const limitNum = Number(req.query.limit || 50);
+
+    if (!Number.isInteger(pageNum) || pageNum < 1 || pageNum > 1_000_000
+      || !Number.isInteger(limitNum) || limitNum < 1 || limitNum > MAX_STUDENT_VOCABULARY_PAGE_SIZE) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_PAGINATION', message: 'Trang hoặc số lượng từ vựng không hợp lệ.' });
+    }
+    if (typeof search === 'string' && search.length > 80) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_VOCABULARY_SEARCH', message: 'Từ khóa tìm kiếm tối đa 80 ký tự.' });
+    }
+    if (topic !== undefined && (typeof topic !== 'string' || topic.length > 120)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_VOCABULARY_TOPIC', message: 'Chủ đề từ vựng không hợp lệ.' });
+    }
+    if (!['word_asc', 'word_desc'].includes(sort)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_VOCABULARY_SORT', message: 'Thứ tự sắp xếp từ vựng không hợp lệ.' });
+    }
 
     const filter = { status: 'published' };
 
@@ -269,14 +314,56 @@ export const getStudentVocabularyByLesson = async (req, res, next) => {
       filter.topic = topic;
     }
 
-    const vocabulary = await Vocabulary.find(filter)
-      .sort({ order: 1, createdAt: 1 })
+    if (rawIds !== undefined) {
+      const ids = String(rawIds).split(',').filter((value) => /^[a-f\d]{24}$/i.test(value));
+      if (!ids.length || ids.length > MAX_STUDENT_VOCABULARY_PAGE_SIZE) {
+        return res.status(400).json({ status: 'error', code: 'INVALID_VOCABULARY_IDS', message: 'Danh sách từ vựng không hợp lệ.' });
+      }
+      filter._id = { $in: ids };
+    }
+
+    if (typeof search === 'string' && search.trim()) {
+      const query = createVocabularySearchRegex(search);
+      filter.$or = [
+        { word: query },
+        { meaning: query },
+        { partOfSpeech: query },
+        { pronunciation: query },
+        { explanation: query },
+        { example: query },
+        { exampleEnglish: query },
+        { exampleVietnamese: query },
+      ];
+    }
+
+    const vocabularyQuery = Vocabulary.find(filter)
+      .sort(isPaginatedRequest
+        ? { word: sort === 'word_desc' ? -1 : 1, _id: 1 }
+        : { order: 1, createdAt: 1 })
       .select('-__v');
+    if (isPaginatedRequest) {
+      vocabularyQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
+    }
+
+    const [vocabulary, total, topics] = await Promise.all([
+      vocabularyQuery,
+      Vocabulary.countDocuments(filter),
+      Vocabulary.distinct('topic', { status: 'published', ...(lessonId ? { lesson: lessonId } : {}) }),
+    ]);
 
     res.json({
       status: 'success',
       data: {
         vocabulary,
+        topics: topics.filter(Boolean).sort((left, right) => left.localeCompare(right, 'vi')),
+        ...(isPaginatedRequest ? {
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            pages: Math.ceil(total / limitNum) || 1,
+          },
+        } : {}),
       },
     });
   } catch (error) {

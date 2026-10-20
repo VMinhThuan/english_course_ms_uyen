@@ -105,3 +105,34 @@
 .admin-summary-card > span { display: block; line-height: 1.45; }
 .admin-summary-card strong { margin-top: 10px; line-height: 1.05; }
 .admin-summary-card small { margin-top: auto; padding-top: 12px; line-height: 1.5; }
+
+/* Phase 3 student creation, progress, and attempt history. */
+.student-create-modal { width: min(560px, 100%); }
+.student-create-modal h2 { margin: 0 32px 8px 0; font-size: 24px; }
+.student-create-modal form { display: grid; gap: 14px; }
+.student-create-field { display: grid; gap: 6px; color: var(--brand-coffee); font: 700 13px var(--font-sans); }
+.student-create-field input { box-sizing: border-box; width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid var(--brand-border); border-radius: 9px; background: var(--brand-surface); color: var(--brand-text); font: 14px var(--font-sans); }
+.student-create-field input[aria-invalid="true"] { border-color: var(--brand-danger)!important; }
+.student-create-field small { color: var(--brand-danger); font-size: 12px; font-weight: 500; line-height: 1.45; }
+.student-create-modal .modal-actions { margin-top: 4px; }
+.student-learning-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.student-detail-table { min-width: 860px; }
+.student-history-filter, .student-history-filters label { display: grid; gap: 5px; color: var(--brand-muted); font-size: 11px; font-weight: 800; }
+.student-history-filter select, .student-history-filters select { min-width: 145px; min-height: 38px; padding: 0 30px 0 10px; border: 1px solid var(--brand-border); border-radius: 8px; background: var(--brand-surface); color: var(--brand-text); font: 12px var(--font-sans); }
+.student-history-filters { display: flex; flex-wrap: wrap; gap: 9px; }
+.student-learning-state, .student-attempt-state { display: inline-flex; max-width: 190px; padding: 5px 8px; border-radius: 999px; background: var(--brand-bg-sub); color: var(--brand-muted); font-size: 11px; font-weight: 750; line-height: 1.4; }
+.student-learning-state.completed, .student-attempt-state.completed_scored { background: var(--brand-success-bg); color: var(--brand-success); }
+.student-learning-state.in_progress, .student-attempt-state.in_progress { background: var(--brand-warning-bg); color: var(--brand-warning); }
+.student-attempt-state.expired_pending_finalization { background: var(--brand-danger-bg); color: var(--brand-danger); }
+.student-detail-page .admin-summary-card { min-height: 128px; }
+@media (max-width: 900px) { .student-learning-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .student-learning-summary { grid-template-columns: 1fr; }
+  .student-learning-summary .admin-summary-card { min-height: 0; }
+  .student-detail-panel .admin-panel-head { align-items: stretch; flex-direction: column; }
+  .student-history-filters { align-items: stretch; flex-direction: column; }
+  .student-history-filters select, .student-history-filter select { width: 100%; }
+  .student-create-modal { padding: 23px 18px; }
+  .student-create-modal .modal-actions { flex-direction: column-reverse; }
+  .student-create-modal .modal-actions button { width: 100%; min-height: 44px; }
+}

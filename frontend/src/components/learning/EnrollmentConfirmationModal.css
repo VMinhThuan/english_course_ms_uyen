@@ -1,0 +1,57 @@
+.enrollment-confirmation {
+  width: min(100% - 32px, 510px);
+  max-width: 510px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--brand-text);
+}
+
+.enrollment-confirmation::backdrop {
+  background: rgba(35, 29, 24, .56);
+  backdrop-filter: blur(3px);
+}
+
+.enrollment-confirmation__panel {
+  position: relative;
+  padding: clamp(24px, 5vw, 36px);
+  border: 1px solid var(--brand-border);
+  border-radius: 18px;
+  background: var(--brand-surface);
+  box-shadow: 0 24px 70px rgba(35, 29, 24, .24);
+}
+
+.enrollment-confirmation__close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--brand-border);
+  border-radius: 50%;
+  background: var(--brand-bg);
+  color: var(--brand-muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.enrollment-confirmation__close:disabled { cursor: wait; opacity: .55; }
+.enrollment-confirmation__panel h2 { max-width: calc(100% - 24px); margin: 0 0 10px; font: 600 clamp(23px, 5vw, 30px)/1.25 var(--font-serif); }
+.enrollment-confirmation__description { margin: 0; color: var(--brand-muted); line-height: 1.6; }
+.enrollment-confirmation__error { margin-top: 17px; padding: 12px; border: 1px solid var(--brand-danger-border); border-radius: 10px; background: var(--brand-danger-bg); color: var(--brand-danger); font-size: 13px; line-height: 1.5; }
+.enrollment-confirmation__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+.enrollment-confirmation__actions > button:first-child { min-height: 44px; padding: 0 16px; border: 1px solid var(--brand-border); border-radius: 10px; background: var(--brand-surface); color: var(--brand-text); font: 700 13px var(--font-sans); cursor: pointer; }
+.enrollment-confirmation__actions > button:disabled { cursor: not-allowed; opacity: .65; }
+.enrollment-confirmation__actions .learning-primary { min-height: 44px; }
+
+@media (max-width: 520px) {
+  .enrollment-confirmation__actions { flex-direction: column-reverse; }
+  .enrollment-confirmation__actions > button { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enrollment-confirmation::backdrop { backdrop-filter: none; }
+}

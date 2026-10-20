@@ -7,6 +7,7 @@ import PageHeader from '../../components/ui/PageHeader.jsx';
 import UiButton from '../../components/ui/UiButton.jsx';
 import DataTable from '../../components/ui/DataTable.jsx';
 import StatusBadge from '../../components/ui/StatusBadge.jsx';
+import { isDownloadErrorBlob, readDownloadErrorMessage, resolveMaterialFilename } from '../../utils/materialDownload.js';
 import './AdminStudentsPage.css';
 
 function formatFileSize(bytes) {
@@ -196,6 +197,36 @@ export default function AdminMaterialsPage() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleOpenMaterial = async (material) => {
+    if (material.fileUrl && /^https:\/\//i.test(material.fileUrl)) {
+      window.open(material.fileUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    try {
+      const response = await materialApi.downloadMaterial(material._id);
+      if (isDownloadErrorBlob(response.data)) {
+        const message = await readDownloadErrorMessage(response.data);
+        throw new Error(message || 'Máy chủ không trả về tệp hợp lệ.');
+      }
+      const objectUrl = URL.createObjectURL(response.data);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = resolveMaterialFilename({
+        contentDisposition: response.headers?.['content-disposition'],
+        fallbackName: material.originalName || material.filename || material.title || 'tai-lieu',
+        mimeType: response.data.type || response.headers?.['content-type'],
+      });
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch (err) {
+      const responseMessage = await readDownloadErrorMessage(err.response?.data);
+      setFeedback({ type: 'error', text: responseMessage || err.message || err.response?.data?.message || 'Không thể mở tệp này.' });
     }
   };
 
@@ -394,7 +425,7 @@ export default function AdminMaterialsPage() {
                     </span>
                   </td>
                   <td>
-                    <StatusBadge status={mat.allowDownload ? 'active' : 'hidden'} label={mat.allowDownload ? 'Cho phép tải' : 'Chỉ xem'} />
+                          <StatusBadge status={mat.allowDownload ? 'active' : 'hidden'} label={mat.allowDownload ? 'Cho phép tải' : 'Không cho tải'} />
                   </td>
                   <td>
                     <StatusBadge status={mat.status === 'published' ? 'published' : 'hidden'} label={mat.status === 'published' ? 'Đã xuất bản' : 'Ẩn'} />
@@ -402,24 +433,23 @@ export default function AdminMaterialsPage() {
                   <td>
                     <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
                       {mat.fileUrl && (
-                        <a
-                          href={mat.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => handleOpenMaterial(mat)}
                           style={{
                             padding: '0.4rem 0.65rem',
                             borderRadius: '6px',
                             border: '1px solid var(--brand-border)',
                             background: 'var(--brand-surface)',
                             color: 'var(--brand-coffee)',
-                            textDecoration: 'none',
+                            cursor: 'pointer',
                             fontSize: '0.8rem',
                             fontWeight: 600,
                             display: 'inline-block',
                           }}
                         >
-                          Mở file
-                        </a>
+                          Mở / tải file
+                        </button>
                       )}
                       <button
                         onClick={() => handleOpenEdit(mat)}
@@ -527,10 +557,11 @@ export default function AdminMaterialsPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
-                  Tải lên tệp tài liệu (PDF, Word, MP3, ZIP...)
+                  Tải lên tệp tài liệu (PDF, Word, bảng tính, ảnh, MP3 hoặc ZIP)
                 </label>
                 <input
                   type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.jpg,.jpeg,.png,.webp,.mp3,.m4a,.wav"
                   onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })}
                   style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                 />
@@ -564,9 +595,14 @@ export default function AdminMaterialsPage() {
                     style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                   />
                   <label htmlFor="allowDownloadCheck" style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--brand-text)', cursor: 'pointer' }}>
-                    Cho phép học viên tải tài liệu về máy (Bỏ chọn nếu chỉ cho xem online)
+                    Cho phép học viên tải tài liệu về máy
                   </label>
                 </div>
+                {!formData.allowDownload && (
+                  <small style={{ color: 'var(--brand-muted)' }}>
+                    Tài liệu sẽ không được gửi cho học viên; chức năng xem trực tuyến chưa được hỗ trợ.
+                  </small>
+                )}
               </div>
 
               <div>

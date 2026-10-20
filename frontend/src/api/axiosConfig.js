@@ -33,9 +33,32 @@ axiosInstance.interceptors.response.use(
     async(error) => {
         const originalRequest = error.config;
         const requestUrl = originalRequest?.url || '';
+        let responseData = error.response?.data;
+        if (typeof Blob !== 'undefined' && responseData instanceof Blob) {
+            try {
+                responseData = JSON.parse(await responseData.text());
+                error.response.data = responseData;
+            } catch {
+                responseData = null;
+            }
+        }
+        const errorCode = responseData?.code;
         const isAuthRequest = ['/auth/login', '/auth/register', '/auth/refresh'].some(
             (path) => requestUrl.includes(path)
         );
+
+        const redirectSuspendedAccount = () => {
+            localStorage.removeItem('accessToken');
+            if (window.location.pathname !== '/account-status'
+                || new URLSearchParams(window.location.search).get('status') !== 'suspended') {
+                window.location.replace('/account-status?status=suspended');
+            }
+        };
+
+        if (errorCode === 'ACCOUNT_SUSPENDED') {
+            redirectSuspendedAccount();
+            return Promise.reject(error);
+        }
 
         // A failed login/register must be shown to the user, not retried with an
         // older refresh cookie. Only expired protected requests use the refresh flow.
@@ -55,9 +78,12 @@ axiosInstance.interceptors.response.use(
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                 return axiosInstance(originalRequest);
             } catch (refreshError) {
-                // Refresh failed, logout user
                 localStorage.removeItem('accessToken');
-                window.location.href = '/login';
+                if (refreshError.response?.data?.code === 'ACCOUNT_SUSPENDED') {
+                    redirectSuspendedAccount();
+                } else {
+                    window.location.replace('/login');
+                }
                 return Promise.reject(refreshError);
             }
         }

@@ -1,6 +1,4 @@
 import express from 'express';
-import multer from 'multer';
-import fs from 'fs';
 import {
   createToeicTest,
   getAdminToeicTests,
@@ -19,42 +17,30 @@ import {
   getStudentToeicTestOverview,
   startToeicAttempt,
   getStudentToeicAttempt,
-  autosaveAttemptAnswers,
+  autosaveToeicAttemptAnswers,
   submitToeicAttempt,
   getStudentToeicHistory,
 } from '../controllers/toeicController.js';
 import { verifyToken, checkRole, requireActiveStudent } from '../middlewares/auth.js';
-import { getUploadDir } from '../utils/uploadConfig.js';
+import { getPrivateUploadDir, getPublicUploadDir } from '../utils/uploadConfig.js';
+import {
+  createSafeDiskStorage,
+  createUpload,
+  MAX_TOEIC_IMPORT_BYTES,
+  MiB,
+  TOEIC_UPLOAD_POLICIES,
+} from '../utils/uploadValidation.js';
 
-const pdfStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, getUploadDir());
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    if (file.fieldname === 'pageImages') {
-      const pageNumber = file.originalname.match(/^page-(\d+)\.jpg$/i)?.[1];
-      return cb(null, `toeic-page-${uniqueSuffix}-${pageNumber}.jpg`);
-    }
-    cb(null, 'pdf-' + uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_'));
-  },
+const pdfUpload = createUpload({
+  storage: createSafeDiskStorage({
+    directory: (_req, file) => file.fieldname === 'pageImages' ? getPublicUploadDir() : getPrivateUploadDir(),
+    prefix: 'toeic',
+  }),
+  policies: TOEIC_UPLOAD_POLICIES,
+  maxFileSize: MAX_TOEIC_IMPORT_BYTES,
+  maxFiles: 101,
+  maxFieldSize: 5 * MiB,
 });
-
-const pdfUpload = multer({
-  storage: pdfStorage,
-  fileFilter: (req, file, cb) => {
-    if (file.fieldname === 'file' && (file.mimetype === 'application/pdf' || file.originalname.toLowerCase().endsWith('.pdf'))) {
-      cb(null, true);
-    } else if (file.fieldname === 'pageImages' && file.mimetype === 'image/jpeg' && /^page-\d+\.jpg$/i.test(file.originalname)) {
-      cb(null, true);
-    } else {
-      cb(new Error('PDF chỉ nhận file PDF và ảnh trang JPEG được đánh số.'), false);
-    }
-  },
-  limits: { fileSize: 30 * 1024 * 1024, fieldSize: 5 * 1024 * 1024, files: 101 }, // PDF, browser OCR text, and rendered visual pages
-});
-
-const router = express.Router();
 
 // ==================================================
 // ADMIN / TEACHER ROUTES (/api/v1/admin/toeic-tests)
@@ -98,7 +84,7 @@ studentRouter.get('/tests/:id', getStudentToeicTestOverview);
 studentRouter.post('/tests/:id/start', startToeicAttempt);
 studentRouter.get('/history', getStudentToeicHistory);
 studentRouter.get('/attempts/:attemptId', getStudentToeicAttempt);
-studentRouter.patch('/attempts/:attemptId/answers', autosaveAttemptAnswers);
+studentRouter.patch('/attempts/:attemptId/answers', autosaveToeicAttemptAnswers);
 studentRouter.post('/attempts/:attemptId/submit', submitToeicAttempt);
 
 export { adminRouter as adminToeicRoutes, studentRouter as studentToeicRoutes };

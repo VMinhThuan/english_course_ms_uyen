@@ -27,12 +27,17 @@ export default function StudentToeicExamPage() {
   const [activeQuestionId, setActiveQuestionId] = useState(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [revisionConflict, setRevisionConflict] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [navFilter, setNavFilter] = useState('ALL'); // 'ALL' | 'UNANSWERED' | 'ANSWERED' | 'FLAGGED'
 
   const autosaveTimerRef = useRef(null);
   const autosaveVersionRef = useRef(0);
   const revisionRef = useRef(1);
+  const serverClockOffsetRef = useRef(0);
+  const autosaveQueueRef = useRef(Promise.resolve());
+  const autoSubmitStartedRef = useRef(false);
+  const autoSubmitHandlerRef = useRef(null);
 
   useEffect(() => {
     loadAttempt();
@@ -46,9 +51,16 @@ export default function StudentToeicExamPage() {
       const res = await toeicApi.getToeicAttempt(attemptId);
       if (res.status === 'success') {
         const att = res.data.attempt;
+        if (['submitted', 'completed'].includes(att.status)) {
+          navigate(`/student/toeic/results/${attemptId}`, { replace: true });
+          return;
+        }
         setAttempt(att);
         setAssessment(res.data.assessment || att.assessment);
         setRevisionState(att.revision || 1);
+        setRevisionConflict(false);
+        setIsExpired(false);
+        if (res.data.serverTime) serverClockOffsetRef.current = new Date(res.data.serverTime).getTime() - Date.now();
         setFlaggedIds(att.flaggedQuestionIds || []);
 
         // Restore user answers map
@@ -67,11 +79,12 @@ export default function StudentToeicExamPage() {
 
         // Server-authoritative timer setup
         const deadline = new Date(att.deadlineAt).getTime();
-        const now = Date.now();
-        const diff = Math.max(0, Math.floor((deadline - now) / 1000));
+        const now = Date.now() + serverClockOffsetRef.current;
+        const diff = Math.max(0, Math.ceil((deadline - now) / 1000));
         setRemainingSeconds(diff);
         if (diff <= 0) {
           setIsExpired(true);
+          window.setTimeout(() => autoSubmitHandlerRef.current?.(), 0);
         }
       }
     } catch (err) {
@@ -91,17 +104,17 @@ export default function StudentToeicExamPage() {
 
     const timer = setInterval(() => {
       const deadline = new Date(attempt.deadlineAt).getTime();
-      const now = Date.now();
-      const diff = Math.max(0, Math.floor((deadline - now) / 1000));
+      const now = Date.now() + serverClockOffsetRef.current;
+      const diff = Math.max(0, Math.ceil((deadline - now) / 1000));
 
       setRemainingSeconds(diff);
 
       if (diff <= 0) {
         setIsExpired(true);
         clearInterval(timer);
-        handleAutoSubmitOnExpire();
+        autoSubmitHandlerRef.current?.();
       }
-    }, 1000);
+    }, 500);
 
     return () => clearInterval(timer);
   }, [attempt, isExpired]);
@@ -121,21 +134,21 @@ export default function StudentToeicExamPage() {
           selectedOptionIds: options,
         }));
 
-        const res = await toeicApi.autosaveToeicAnswers(attemptId, {
-          answers: payloadAnswers,
-          flaggedQuestionIds: newFlags,
-          revision: revisionRef.current,
-        });
-
-        if (res.status === 'success') {
-          revisionRef.current = res.data.revision;
-          if (version === autosaveVersionRef.current) setSaveStatus('saved');
-        }
+        const pendingSave = autosaveQueueRef.current.catch(() => undefined).then(() =>
+          toeicApi.autosaveToeicAnswers(attemptId, {
+            answers: payloadAnswers,
+            flaggedQuestionIds: newFlags,
+            revision: revisionRef.current,
+          })
+        );
+        autosaveQueueRef.current = pendingSave;
+        const res = await pendingSave;
+        revisionRef.current = res.data.revision;
+        if (version === autosaveVersionRef.current) setSaveStatus('saved');
       } catch (err) {
-        if (err.response?.status === 409) {
-          // Stale revision, reload state
+        if (err.response?.status === 409 || err.response?.status === 428) {
+          setRevisionConflict(true);
           if (version === autosaveVersionRef.current) setSaveStatus('error');
-          loadAttempt();
         } else {
           if (version === autosaveVersionRef.current) setSaveStatus('error');
         }
@@ -143,18 +156,19 @@ export default function StudentToeicExamPage() {
     }, 600);
   };
 
-  const handleSelectOption = (questionId, optionId) => {
-    if (isExpired || submitting) return;
-
-    const updated = {
-      ...userAnswers,
-      [questionId]: [optionId],
-    };
+  const handleSelectOption = (questionId, optionId, isMultiple = false) => {
+    if (isExpired || submitting || revisionConflict) return;
+    const selected = Array.isArray(userAnswers[questionId]) ? userAnswers[questionId] : [];
+    const nextSelected = isMultiple
+      ? (selected.includes(optionId) ? selected.filter((id) => id !== optionId) : [...selected, optionId])
+      : [optionId];
+    const updated = { ...userAnswers, [questionId]: nextSelected };
     setUserAnswers(updated);
     triggerAutosave(updated, flaggedIds);
   };
 
   const handleToggleFlag = (questionId) => {
+    if (isExpired || submitting || revisionConflict) return;
     let updatedFlags = [];
     if (flaggedIds.includes(questionId)) {
       updatedFlags = flaggedIds.filter((id) => id !== questionId);
@@ -166,28 +180,47 @@ export default function StudentToeicExamPage() {
   };
 
   const handleAutoSubmitOnExpire = async () => {
+    if (autoSubmitStartedRef.current || !attemptId) return;
+    autoSubmitStartedRef.current = true;
     try {
       setSubmitting(true);
-      const res = await toeicApi.submitToeicAttempt(attemptId, userAnswers);
+      const res = await toeicApi.submitToeicAttempt(attemptId, userAnswers, revisionRef.current);
       if (res.status === 'success') {
         navigate(`/student/toeic/results/${attemptId}`);
       }
     } catch (err) {
-      console.error('Auto-submit failed:', err);
+      try {
+        const current = await toeicApi.getToeicAttempt(attemptId);
+        if (['submitted', 'completed'].includes(current.data?.attempt?.status)) {
+          navigate(`/student/toeic/results/${attemptId}`);
+          return;
+        }
+      } catch {}
+      setRevisionConflict(true);
+      setSaveStatus('error');
     } finally {
       setSubmitting(false);
     }
   };
+  autoSubmitHandlerRef.current = handleAutoSubmitOnExpire;
 
   const handleSubmitAttempt = async () => {
     try {
       setSubmitting(true);
-      const res = await toeicApi.submitToeicAttempt(attemptId, userAnswers);
+      await autosaveQueueRef.current.catch(() => undefined);
+      const res = await toeicApi.submitToeicAttempt(attemptId, userAnswers, revisionRef.current);
       if (res.status === 'success') {
         navigate(`/student/toeic/results/${attemptId}`);
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Nộp bài thất bại. Vui lòng thử lại.');
+      if (err.response?.data?.code === 'ATTEMPT_FINALIZED') {
+        navigate(`/student/toeic/results/${attemptId}`);
+      } else if (err.response?.status === 409 || err.response?.status === 428) {
+        setRevisionConflict(true);
+        setSaveStatus('error');
+      } else {
+        alert(err.response?.data?.message || 'Nộp bài thất bại. Vui lòng thử lại.');
+      }
     } finally {
       setSubmitting(false);
       setShowSubmitModal(false);
@@ -287,6 +320,12 @@ export default function StudentToeicExamPage() {
   }, [allQuestions, userAnswers]);
 
   const unansweredCount = totalQuestions - answeredCount;
+  const unansweredQuestionNumbers = allQuestions.reduce((numbers, question, index) => {
+    const answer = userAnswers[question.qId];
+    const answered = Array.isArray(answer) ? answer.length > 0 : answer !== undefined && answer !== null && answer !== '';
+    if (!answered) numbers.push(question.questionNumber || index + 1);
+    return numbers;
+  }, []);
 
   // Formatting time MM:SS or HH:MM:SS
   const formatTime = (seconds) => {
@@ -369,7 +408,7 @@ export default function StudentToeicExamPage() {
 
           <button
             onClick={() => setShowSubmitModal(true)}
-            disabled={submitting}
+            disabled={submitting || revisionConflict}
             className="toeic-exam-screen__submit-button"
           >
             {submitting ? 'ĐANG NỘP...' : 'NỘP BÀI'}
@@ -393,6 +432,13 @@ export default function StudentToeicExamPage() {
         })}
       </nav>
       </div>
+
+      {revisionConflict && (
+        <div className="attempt-conflict-banner" role="alert">
+          <div><strong>Bài làm đã thay đổi ở một tab khác.</strong><span> Đáp án ở tab này đang bị khóa để tránh ghi đè dữ liệu mới hơn.</span></div>
+          <button type="button" onClick={loadAttempt} disabled={loading}>Tải bản mới nhất</button>
+        </div>
+      )}
 
       {/* Main Exam Room Container */}
       <div className="toeic-exam-container">
@@ -673,7 +719,7 @@ export default function StudentToeicExamPage() {
                   marginBottom: '1.25rem',
                 }}
               >
-                ⚠️ <strong>Còn {unansweredCount} câu chưa trả lời.</strong>
+                ⚠️ <strong>Câu chưa trả lời: {unansweredQuestionNumbers.join(', ')}.</strong>
                 <div style={{ marginTop: '0.35rem', fontSize: '0.875rem' }}>
                   Bạn có chắc chắn muốn kết thúc bài thi và nộp bài ngay bây giờ?
                 </div>
@@ -701,7 +747,7 @@ export default function StudentToeicExamPage() {
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setShowSubmitModal(false)}
-                disabled={submitting}
+                disabled={submitting || revisionConflict}
                 style={{
                   padding: '0.65rem 1.25rem',
                   background: 'var(--brand-bg-sub)',
@@ -717,7 +763,7 @@ export default function StudentToeicExamPage() {
 
               <button
                 onClick={handleSubmitAttempt}
-                disabled={submitting}
+                disabled={submitting || revisionConflict}
                 style={{
                   padding: '0.65rem 1.5rem',
                   background: 'var(--brand-yellow)',
@@ -740,9 +786,10 @@ export default function StudentToeicExamPage() {
   // Helper to render individual Question Card
   function renderQuestionCard(q) {
     const qId = q.questionId || q._id;
-    const qNum = q.questionNumber || q.order;
+    const qNum = q.questionNumber || allQuestions.findIndex((question) => question.qId === qId) + 1;
     const isFlagged = flaggedIds.includes(qId);
-    const selectedOpts = userAnswers[qId] || [];
+    const selectedOpts = Array.isArray(userAnswers[qId]) ? userAnswers[qId] : (userAnswers[qId] ? [userAnswers[qId]] : []);
+    const isMultiple = q.type === 'multiple_choice';
     const questionPrompt = q.questionText || q.prompt || q.text;
 
     return (
@@ -783,7 +830,9 @@ export default function StudentToeicExamPage() {
           </div>
 
           <button
+            type="button"
             onClick={() => handleToggleFlag(qId)}
+            disabled={isExpired || submitting || revisionConflict}
             style={{
               background: 'transparent',
               border: 'none',
@@ -800,7 +849,8 @@ export default function StudentToeicExamPage() {
         </div>
 
         {/* Options Radio List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
+        <fieldset aria-label={`Câu ${qNum}, ${isMultiple ? 'chọn nhiều đáp án' : 'chọn một đáp án'}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem', border: 0, padding: 0, minWidth: 0 }}>
+          <legend className="visually-hidden">{isMultiple ? 'Chọn tất cả đáp án đúng' : 'Chọn một đáp án'}</legend>
           {(q.options || []).map((opt) => {
             const optId = opt.id || opt._id;
             const isSelected = selectedOpts.includes(optId);
@@ -817,7 +867,7 @@ export default function StudentToeicExamPage() {
                   borderRadius: '8px',
                   border: isSelected ? '2px solid var(--brand-yellow)' : '1px solid var(--brand-border)',
                   background: isSelected ? 'var(--brand-yellow-soft)' : 'var(--brand-surface)',
-                  cursor: isExpired ? 'default' : 'pointer',
+                  cursor: isExpired || revisionConflict ? 'default' : 'pointer',
                   fontSize: '0.95rem',
                   color: isSelected ? 'var(--brand-coffee)' : 'var(--brand-text)',
                   fontWeight: isSelected ? 700 : 400,
@@ -825,18 +875,18 @@ export default function StudentToeicExamPage() {
                 }}
               >
                 <input
-                  type="radio"
+                  type={isMultiple ? 'checkbox' : 'radio'}
                   name={`q-${qId}`}
                   checked={isSelected}
-                  onChange={() => {}}
-                  disabled={isExpired}
+                  onChange={() => handleSelectOption(qId, optId, isMultiple)}
+                  disabled={isExpired || revisionConflict}
                   style={{ width: '18px', height: '18px', accentColor: 'var(--brand-brown-sec)', cursor: 'pointer' }}
                 />
                 <span style={{ flex: 1 }}>{opt.text}</span>
               </label>
             );
           })}
-        </div>
+        </fieldset>
       </div>
     );
   }

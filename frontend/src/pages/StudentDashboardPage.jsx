@@ -44,13 +44,24 @@ export default function StudentDashboardPage() {
     );
   }
 
+  const studentName = dashboard?.studentName || 'Học viên';
+  const avatarValue = typeof dashboard?.studentAvatar === 'string' ? dashboard.studentAvatar.trim() : '';
+  const avatarSource = /^https:\/\//i.test(avatarValue) || /^\/(?!\/)/.test(avatarValue) ? avatarValue : '';
+  const avatarInitials = studentName.split(/\s+/).filter(Boolean).slice(-2).map((part) => part[0]).join('').toLocaleUpperCase('vi-VN') || 'HV';
+
   return (
     <div className="student-dashboard-page">
       {/* Welcome Banner */}
       <div className="dashboard-welcome-banner">
-        <div className="welcome-text">
-          <h1>Xin chào, {dashboard?.studentName || 'Học viên'}! 👋</h1>
-          <p>Hôm nay mình tiếp tục tiến trình học tập cùng Ms Uyen nhé.</p>
+        <div className="welcome-identity">
+          <div className="dashboard-student-avatar" role="img" aria-label={`Ảnh đại diện ${studentName}`}>
+            <span aria-hidden="true">{avatarInitials}</span>
+            {avatarSource && <img src={avatarSource} alt="" onError={(event) => event.currentTarget.remove()} />}
+          </div>
+          <div className="welcome-text">
+            <h1>Xin chào, {studentName}! 👋</h1>
+            <p>Hôm nay mình tiếp tục tiến trình học tập cùng Ms Uyen nhé.</p>
+          </div>
         </div>
         <div className="quick-nav-pills">
           <Link to="/student/my-courses" className="quick-pill">📚 Bài học</Link>
@@ -147,11 +158,55 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
+      <div className="dashboard-two-columns dashboard-discovery-grid">
+        <section className="dashboard-section-card" aria-labelledby="dashboard-recent-lessons-title">
+          <div className="section-card-header">
+            <h3 id="dashboard-recent-lessons-title">Bài học mới</h3>
+            <Link to="/student/my-courses" className="link-see-all">Khóa học của tôi →</Link>
+          </div>
+          {dashboard?.recentLessons?.length ? (
+            <div className="dashboard-discovery-list">
+              {dashboard.recentLessons.map((lesson) => (
+                <Link
+                  key={lesson._id}
+                  className="dashboard-discovery-item"
+                  to={`/student/courses/${lesson.course?._id || lesson.course}/lessons/${lesson._id}`}
+                >
+                  <span><strong>{lesson.title}</strong><small>{lesson.course?.title || 'Bài học'}</small></span>
+                  <span className="dashboard-discovery-progress">{lesson.progress || 0}%</span>
+                </Link>
+              ))}
+            </div>
+          ) : <p className="empty-state-text">Chưa có bài học mới.</p>}
+        </section>
+
+        <section className="dashboard-section-card" aria-labelledby="dashboard-recent-materials-title">
+          <div className="section-card-header">
+            <h3 id="dashboard-recent-materials-title">Tài liệu mới</h3>
+            <Link to="/student/my-courses" className="link-see-all">Khóa học của tôi →</Link>
+          </div>
+          {dashboard?.recentMaterials?.length ? (
+            <div className="dashboard-discovery-list">
+              {dashboard.recentMaterials.map((material) => (
+                <Link
+                  key={material._id}
+                  className="dashboard-discovery-item"
+                  to={`/student/courses/${material.lesson?.course?._id || material.lesson?.course}/lessons/${material.lesson?._id}`}
+                >
+                  <span><strong>{material.title}</strong><small>{material.lesson?.title || 'Tài liệu bài học'}</small></span>
+                  <span className="dashboard-discovery-type">{String(material.fileType || 'Tài liệu').split('/').pop()}</span>
+                </Link>
+              ))}
+            </div>
+          ) : <p className="empty-state-text">Chưa có tài liệu mới.</p>}
+        </section>
+      </div>
+
       <div className="dashboard-two-columns">
         {/* Available Exercises & Exams */}
         <div className="dashboard-section-card">
           <div className="section-card-header">
-            <h3>Bài Tập & Đề Thi Mới</h3>
+            <h3>Nhiệm vụ cần làm</h3>
             <Link to="/student/assessments" className="link-see-all">Xem tất cả →</Link>
           </div>
           {dashboard?.availableAssessments && dashboard.availableAssessments.length > 0 ? (
@@ -163,7 +218,11 @@ export default function StudentDashboardPage() {
                       {ass.type === 'exam' ? 'Bài kiểm tra' : 'Bài tập'}
                     </span>
                     <h4>{ass.title}</h4>
-                    <span className="meta-text">{ass.questions?.length || 0} câu hỏi • {ass.duration || ass.minutes || 30} phút</span>
+                    <div className="dashboard-task-meta">
+                      <span className="meta-text">{ass.questions?.length || 0} câu hỏi • {ass.durationMinutes || ass.duration || ass.minutes || 30} phút</span>
+                      <span className="meta-text">{ass.availableUntil ? `Hạn nộp: ${new Date(ass.availableUntil).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })}` : ass.availableFrom ? `Mở từ: ${new Date(ass.availableFrom).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })}` : 'Không có hạn nộp'}</span>
+                      <span className="meta-text">{ass.submittedAttemptCount > 0 ? 'Đã làm' : 'Chưa làm'}</span>
+                    </div>
                   </div>
                   <Link to={`/student/tests/${ass._id}`} className="btn-start-test">
                     Làm bài

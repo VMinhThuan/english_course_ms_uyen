@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore.js';
+import { assessmentApi } from '../../api/assessmentApi.js';
 import './StudentLayout.css';
 
 export default function StudentLayout() {
@@ -8,15 +9,26 @@ export default function StudentLayout() {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const location = useLocation();
+  const locationPathRef = useRef(location.pathname);
+  locationPathRef.current = location.pathname;
+  const isActiveAssessmentRoute = location.pathname.startsWith('/student/tests/');
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [activeAttemptPrompt, setActiveAttemptPrompt] = useState(null);
+  const hamburgerRef = useRef(null);
+  const sidebarRef = useRef(null);
+  const checkedActiveAttemptsUserRef = useRef(null);
+  const activeAttemptCheckKey = user ? String(user._id || user.id || user.email || '') : '';
 
   // Dynamic Document Title
   useEffect(() => {
     const path = location.pathname;
     let pageTitle = 'Học viên';
     if (path.includes('dashboard')) pageTitle = 'Trang chủ';
-    else if (path.includes('my-courses')) pageTitle = 'Bài học';
+    else if (path.includes('/courses/')) pageTitle = path.includes('/lessons/') ? 'Bài học' : 'Khóa học';
+    else if (path === '/student/courses') pageTitle = 'Tất cả khóa học';
+    else if (path.includes('my-courses')) pageTitle = 'Bài học của tôi';
     else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
+    else if (path.includes('/tests/')) pageTitle = 'Đang làm bài kiểm tra';
     else if (path.includes('assessments')) pageTitle = 'Luyện tập';
     else if (path.includes('toeic')) pageTitle = 'Thi thử TOEIC';
     else if (path.includes('history')) pageTitle = 'Lịch sử';
@@ -24,6 +36,48 @@ export default function StudentLayout() {
 
     document.title = `${pageTitle} | Ms Uyen`;
   }, [location]);
+
+  useEffect(() => {
+    if (isActiveAssessmentRoute) setIsMobileOpen(false);
+  }, [isActiveAssessmentRoute]);
+
+  // Check for an unfinished attempt as soon as the authenticated student area opens.
+  useEffect(() => {
+    if (!activeAttemptCheckKey || user?.role !== 'student') return undefined;
+    if (checkedActiveAttemptsUserRef.current === activeAttemptCheckKey) return undefined;
+    checkedActiveAttemptsUserRef.current = activeAttemptCheckKey;
+
+    const isAlreadyOnAttempt = locationPathRef.current.startsWith('/student/tests/')
+      || locationPathRef.current.startsWith('/student/toeic/attempt/');
+    if (isAlreadyOnAttempt) return undefined;
+
+    assessmentApi.getActiveAttempts()
+      .then((response) => {
+        const activeAttempts = response.data?.attempts || [];
+        const onAttemptPage = locationPathRef.current.startsWith('/student/tests/')
+          || locationPathRef.current.startsWith('/student/toeic/attempt/');
+        if (!onAttemptPage && activeAttempts.length) setActiveAttemptPrompt(activeAttempts);
+      })
+      .catch(() => {
+        // The page can still be used if the resume check is temporarily unavailable.
+      });
+    return undefined;
+  }, [activeAttemptCheckKey, user?.role]);
+
+  useEffect(() => {
+    if (!activeAttemptPrompt) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setActiveAttemptPrompt(null);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeAttemptPrompt]);
 
   // Lock background scroll when mobile drawer is open
   useEffect(() => {
@@ -34,6 +88,52 @@ export default function StudentLayout() {
     }
     return () => {
       document.body.style.overflow = '';
+    };
+  }, [isMobileOpen]);
+
+  useEffect(() => {
+    if (!isMobileOpen) return undefined;
+
+    const sidebar = sidebarRef.current;
+    const isMobileViewport = () => window.matchMedia?.('(max-width: 1023px)').matches ?? window.innerWidth <= 1023;
+    const getFocusable = () => [...(sidebar?.querySelectorAll(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    ) || [])].filter((element) => element.getClientRects().length > 0);
+    getFocusable()[0]?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsMobileOpen(false);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusable();
+      if (!focusable.length) {
+        event.preventDefault();
+        sidebar?.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !sidebar?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !sidebar?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    const handleResize = () => {
+      if (!isMobileViewport()) setIsMobileOpen(false);
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleResize);
+      if (isMobileViewport()) hamburgerRef.current?.focus();
     };
   }, [isMobileOpen]);
 
@@ -57,25 +157,42 @@ export default function StudentLayout() {
     setIsMobileOpen(false);
   };
 
+  const continueActiveAttempt = (attempt) => {
+    setActiveAttemptPrompt(null);
+    const path = attempt.engine === 'toeic'
+      ? `/student/toeic/attempt/${attempt.attemptId}`
+      : `/student/tests/${attempt.assessmentId}`;
+    navigate(path, attempt.engine === 'toeic' ? undefined : { state: { skipResumePrompt: true } });
+  };
+
   return (
-    <div className="student-layout">
+    <div className={isActiveAssessmentRoute ? 'student-layout student-layout--active-test' : 'student-layout'}>
       {/* Top Navigation Bar */}
       <header className="student-header">
         <div className="header-brand">
-          <button
+          {!isActiveAssessmentRoute && <button
             className="mobile-hamburger-btn"
+            ref={hamburgerRef}
             onClick={() => setIsMobileOpen(!isMobileOpen)}
-            aria-label="Toggle navigation menu"
+            aria-label={isMobileOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
+            aria-expanded={isMobileOpen}
+            aria-controls="student-navigation"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="3" y1="12" x2="21" y2="12"></line>
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
-          </button>
-          <Link to="/" className="brand-logo-text">
-            <span className="brand-title-text">Toeic Ms Uyen<span className="brand-dot">.</span></span>
-          </Link>
+          </button>}
+          {isActiveAssessmentRoute ? (
+            <span className="brand-logo-text" aria-label="Toeic Ms Uyen">
+              <span className="brand-title-text">Toeic Ms Uyen<span className="brand-dot">.</span></span>
+            </span>
+          ) : (
+            <Link to="/" className="brand-logo-text">
+              <span className="brand-title-text">Toeic Ms Uyen<span className="brand-dot">.</span></span>
+            </Link>
+          )}
         </div>
 
         <div className="header-user-section">
@@ -86,25 +203,25 @@ export default function StudentLayout() {
               <span className="user-role-tag">Học viên</span>
             </div>
           </div>
-          <button className="btn-logout-icon" onClick={handleLogout} title="Đăng xuất">
+          {!isActiveAssessmentRoute && <button className="btn-logout-icon" onClick={handleLogout} title="Đăng xuất">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
               <line x1="21" y1="12" x2="9" y2="12"></line>
             </svg>
             <span>Đăng xuất</span>
-          </button>
+          </button>}
         </div>
       </header>
 
       <div className="student-container">
         {/* Backdrop overlay on mobile */}
-        {isMobileOpen && (
-          <div className="sidebar-backdrop" onClick={closeMobileMenu} />
+        {!isActiveAssessmentRoute && isMobileOpen && (
+          <button type="button" className="sidebar-backdrop" onClick={closeMobileMenu} aria-label="Đóng menu điều hướng" />
         )}
 
         {/* Responsive Sidebar Drawer */}
-        <aside className={`student-sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
+        <aside id="student-navigation" ref={sidebarRef} className={`student-sidebar ${isMobileOpen ? 'mobile-open' : ''}`} aria-label="Điều hướng học viên">
           <NavLink
             to="/student/dashboard"
             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
@@ -121,6 +238,7 @@ export default function StudentLayout() {
 
           <NavLink
             to="/student/my-courses"
+            end
             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             onClick={closeMobileMenu}
           >
@@ -129,6 +247,19 @@ export default function StudentLayout() {
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
             <span>Bài Học Của Tôi</span>
+          </NavLink>
+
+          <NavLink
+            to="/student/courses"
+            end
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-4-4"></path>
+            </svg>
+            <span>Tất Cả Khóa Học</span>
           </NavLink>
 
           <NavLink
@@ -206,6 +337,37 @@ export default function StudentLayout() {
           <Outlet />
         </main>
       </div>
+
+      {activeAttemptPrompt && (
+        <div className="active-attempt-resume-overlay">
+          <section className="active-attempt-resume-dialog" role="alertdialog" aria-modal="true" aria-labelledby="active-attempt-resume-title">
+            <span className="active-attempt-resume-icon" aria-hidden="true">↻</span>
+            <h2 id="active-attempt-resume-title">Bạn đang có bài kiểm tra chưa hoàn thành</h2>
+            <p>
+              {activeAttemptPrompt.length === 1
+                ? `Tiến độ và thời gian của “${activeAttemptPrompt[0].title}” đã được lưu.`
+                : `Bạn có ${activeAttemptPrompt.length} bài kiểm tra đang làm dở. Chọn bài muốn tiếp tục.`}
+            </p>
+            <div className="active-attempt-resume-list">
+              {activeAttemptPrompt.map((attempt, index) => (
+                <button
+                  key={attempt.attemptId}
+                  type="button"
+                  autoFocus={index === 0}
+                  className={activeAttemptPrompt.length === 1 ? 'active-attempt-resume-primary' : 'active-attempt-resume-item'}
+                  onClick={() => continueActiveAttempt(attempt)}
+                >
+                  {activeAttemptPrompt.length === 1 ? 'Tiếp tục làm bài' : attempt.title}
+                  {activeAttemptPrompt.length > 1 && <span>{attempt.engine === 'toeic' ? 'Đề thi TOEIC' : 'Bài kiểm tra'}</span>}
+                </button>
+              ))}
+            </div>
+            <button type="button" className="active-attempt-resume-dismiss" onClick={() => setActiveAttemptPrompt(null)}>
+              Để sau
+            </button>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

@@ -31,6 +31,7 @@ export default function AdminLessonsPage() {
   const initialLessonForm = {
     title: '',
     topic: 'General',
+    difficulty: '',
     description: '',
     content: '',
     order: 1,
@@ -113,6 +114,7 @@ export default function AdminLessonsPage() {
     setFormData({
       title: lesson.title || '',
       topic: lesson.topic || 'General',
+      difficulty: lesson.difficulty || '',
       description: lesson.description || '',
       content: lesson.content || '',
       order: lesson.order || 1,
@@ -142,6 +144,7 @@ export default function AdminLessonsPage() {
       const payload = {
         ...formData,
         course: selectedCourseId,
+        difficulty: formData.difficulty || null,
         order: Number(formData.order) || 1,
         duration: Number(formData.duration) || 0,
       };
@@ -385,6 +388,7 @@ export default function AdminLessonsPage() {
                 <th style={{ width: '80px', textAlign: 'center' }}>Di Chuyển</th>
                 <th>Tiêu Đề Bài Học</th>
                 <th>Chủ Đề</th>
+                <th>Mức Độ</th>
                 <th>Thời Lượng</th>
                 <th>Trạng Thái</th>
                 <th style={{ textAlign: 'center' }}>Thao Tác</th>
@@ -444,6 +448,13 @@ export default function AdminLessonsPage() {
                     <span style={{ background: 'var(--brand-bg-sub)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', border: '1px solid var(--brand-border)' }}>
                       {lesson.topic || 'General'}
                     </span>
+                  </td>
+                  <td>
+                    {lesson.difficulty ? (
+                      <span className={`lesson-difficulty-badge lesson-difficulty-badge--${lesson.difficulty}`}>
+                        {{ beginner: 'Cơ bản', intermediate: 'Trung cấp', advanced: 'Nâng cao' }[lesson.difficulty] || 'Chưa phân loại'}
+                      </span>
+                    ) : <span style={{ color: 'var(--brand-muted)', fontSize: '0.8rem' }}>Chưa phân loại</span>}
                   </td>
                   <td>{lesson.duration || 0} phút</td>
                   <td>
@@ -594,6 +605,24 @@ export default function AdminLessonsPage() {
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                     style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
                   />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--brand-text)', marginBottom: '0.35rem' }}>
+                    Mức độ bài học (tùy chọn)
+                  </label>
+                  <select
+                    value={formData.difficulty}
+                    onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--brand-border)', outline: 'none' }}
+                  >
+                    <option value="">Chưa phân loại</option>
+                    <option value="beginner">Cơ bản</option>
+                    <option value="intermediate">Trung cấp</option>
+                    <option value="advanced">Nâng cao</option>
+                  </select>
+                  <small style={{ display: 'block', marginTop: '0.35rem', color: 'var(--brand-muted)', lineHeight: 1.45 }}>
+                    Mức độ dùng chung cho hệ thống; bài học cũ được giữ ở trạng thái chưa phân loại.
+                  </small>
                 </div>
               </div>
 

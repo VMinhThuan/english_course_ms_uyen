@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { courseApi } from '../api/courseApi.js';
-import { enrollmentApi } from '../api/enrollmentApi.js';
-import './CourseLearning.css';
-export default function EnrollCoursePage() { const { courseId } = useParams(); const navigate = useNavigate(); const [course,setCourse]=useState(null); const [loading,setLoading]=useState(true); const [submitting,setSubmitting]=useState(false); const [error,setError]=useState(''); useEffect(()=>{courseApi.getCourseById(courseId).then(r=>setCourse(r.data.course)).catch(()=>setError('Không thể tải thông tin khóa học.')).finally(()=>setLoading(false));},[courseId]); const enroll=async()=>{setSubmitting(true);setError('');try{await enrollmentApi.enrollCourse(courseId);navigate(`/courses/${courseId}`,{state:{enrolled:true}});}catch(e){setError(e.response?.data?.message==='Already enrolled in this course'?'Bạn đã đăng ký khóa học này.':e.response?.data?.message||'Không thể đăng ký khóa học.');}finally{setSubmitting(false)}}; if(loading)return <main className="learning-page"><div className="learning-loading">Đang tải khóa học...</div></main>; if(!course)return <main className="learning-page"><div className="learning-error">{error||'Không tìm thấy khóa học.'}</div></main>; return <main className="learning-page"><Link className="learning-back" to={`/courses/${courseId}`}>← Quay lại khóa học</Link><section className="learning-confirm"><p className="learning-eyebrow">XÁC NHẬN ĐĂNG KÝ</p><h1>{course.title}</h1><p>{course.description}</p>{error&&<div className="learning-error">{error}</div>}<button className="learning-primary" disabled={submitting} onClick={enroll}>{submitting?'Đang đăng ký...':'Đăng ký học'}</button></section></main>; }
+import { Navigate, useParams } from 'react-router-dom';
+
+// Preserve old links, but reopen the confirmation inside the course detail context.
+export default function EnrollCoursePage() {
+  const { courseId } = useParams();
+  return <Navigate to={`/student/courses/${courseId}?enroll=1`} replace />;
+}

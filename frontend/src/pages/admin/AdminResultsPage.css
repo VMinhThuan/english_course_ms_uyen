@@ -1,0 +1,33 @@
+.admin-results-page { max-width: 1440px; margin: 0 auto; }
+.report-selector-panel, .report-filters-panel { padding: 21px; }
+.report-assessment-search, .report-student-search { display: flex; align-items: center; gap: 9px; margin-bottom: 13px; }
+.report-assessment-search label, .report-student-search label, .report-assessment-select label { flex: 0 0 auto; color: var(--brand-coffee); font-size: 12px; font-weight: 800; }
+.report-assessment-search input, .report-student-search input { box-sizing: border-box; min-width: 0; min-height: 40px; flex: 1; padding: 8px 11px; border: 1px solid var(--brand-border); border-radius: 8px; background: var(--brand-surface); color: var(--brand-text); font: 13px var(--font-sans); }
+.report-assessment-select { display: grid; grid-template-columns: 100px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.report-assessment-select select, .report-filter-field select, .report-filter-field input { box-sizing: border-box; width: 100%; min-height: 40px; padding: 7px 10px; border: 1px solid var(--brand-border); border-radius: 8px; background: var(--brand-surface); color: var(--brand-text); font: 13px var(--font-sans); }
+.report-assessment-select span { color: var(--brand-muted); font-size: 11px; }
+.report-selector-panel .admin-pagination { margin-top: 13px; }
+.report-student-search { max-width: 760px; }
+.report-filter-field { display: grid; min-width: 0; gap: 6px; color: var(--brand-muted); font-size: 11px; font-weight: 800; }
+.report-filter-field small { font-weight: 500; }
+.report-filter-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.report-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.report-summary-grid .admin-summary-card { min-height: 132px; }
+.report-summary-grid .admin-summary-card strong { font-size: clamp(23px, 2.5vw, 30px); overflow-wrap: anywhere; }
+.report-results-table { min-width: 1220px; }
+.report-results-table td strong { color: var(--brand-text); }
+.report-results-table td { vertical-align: middle; }
+.report-empty { border: 1px dashed var(--brand-border); border-radius: var(--radius-card); background: var(--brand-surface); }
+@media (max-width: 980px) {
+  .report-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .report-selector-panel, .report-filters-panel { padding: 15px; }
+  .report-assessment-search, .report-student-search { align-items: stretch; flex-direction: column; }
+  .report-assessment-search label, .report-student-search label { flex: auto; }
+  .report-assessment-select { grid-template-columns: 1fr; }
+  .report-assessment-select span { text-align: right; }
+  .report-filter-grid, .report-summary-grid { grid-template-columns: 1fr; }
+  .report-summary-grid .admin-summary-card { min-height: 108px; }
+}

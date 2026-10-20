@@ -7,28 +7,30 @@ import {
   deleteMaterial,
   getStudentMaterialsByLesson,
   downloadMaterial,
+  previewMaterial,
 } from '../controllers/materialController.js';
-import { verifyToken, checkRole, requireActiveStudent } from '../middlewares/auth.js';
-import multer from 'multer';
-import { getUploadDir } from '../utils/uploadConfig.js';
+import { verifyToken, checkRole } from '../middlewares/auth.js';
+import { getPrivateUploadDir } from '../utils/uploadConfig.js';
+import {
+  createSafeDiskStorage,
+  createUpload,
+  GENERAL_UPLOAD_POLICIES,
+  MAX_GENERAL_UPLOAD_BYTES,
+} from '../utils/uploadValidation.js';
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, getUploadDir());
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, 'mat-' + uniqueSuffix + '-' + file.originalname);
-  },
+const upload = createUpload({
+  storage: createSafeDiskStorage({ directory: getPrivateUploadDir, prefix: 'material' }),
+  policies: GENERAL_UPLOAD_POLICIES,
+  maxFileSize: MAX_GENERAL_UPLOAD_BYTES,
+  maxFiles: 1,
 });
-
-const upload = multer({ storage });
 
 // Student routes
 router.get('/lesson/:lessonId', verifyToken, getStudentMaterialsByLesson);
-router.get('/:id/download', verifyToken, requireActiveStudent, downloadMaterial);
+router.get('/:id/download', verifyToken, downloadMaterial);
+router.get('/:id/preview', verifyToken, previewMaterial);
 
 // Admin / Teacher routes
 router.post('/admin', verifyToken, checkRole('teacher', 'admin'), upload.single('file'), createMaterial);

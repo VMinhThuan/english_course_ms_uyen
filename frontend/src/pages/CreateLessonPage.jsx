@@ -18,6 +18,7 @@ export default function CreateLessonPage() {
   const [formData, setFormData] = useState({
     title: '',
     topic: 'General',
+    difficulty: '',
     description: '',
     content: '',
     videoUrl: '',
@@ -67,6 +68,7 @@ export default function CreateLessonPage() {
         setFormData({
           title: l.title || '',
           topic: l.topic || 'General',
+          difficulty: l.difficulty || '',
           description: l.description || '',
           content: l.content || '',
           videoUrl: l.videoUrl || '',
@@ -107,6 +109,7 @@ export default function CreateLessonPage() {
     try {
       const payload = {
         ...formData,
+        difficulty: formData.difficulty || null,
         course: formData.courseId,
         attachments,
       };
@@ -214,6 +217,22 @@ export default function CreateLessonPage() {
               <option value="Writing">Viết (Writing)</option>
               <option value="Practice">Luyện tập (Practice)</option>
             </select>
+          </label>
+
+          <label className="form-group">
+            <span className="form-label">Mức độ bài học (tùy chọn):</span>
+            <select
+              className="form-input"
+              name="difficulty"
+              value={formData.difficulty}
+              onChange={handleInputChange}
+            >
+              <option value="">Chưa phân loại</option>
+              <option value="beginner">Cơ bản</option>
+              <option value="intermediate">Trung cấp</option>
+              <option value="advanced">Nâng cao</option>
+            </select>
+            <small className="form-help">Bài học cũ không tự gán độ khó; bạn có thể cập nhật khi phù hợp.</small>
           </label>
 
           <label className="form-group">

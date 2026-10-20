@@ -4,8 +4,15 @@ import Assessment from '../models/Assessment.js';
 import QuestionGroup from '../models/QuestionGroup.js';
 import Question from '../models/Question.js';
 import Attempt from '../models/Attempt.js';
-import { DEFAULT_TOEIC_PARTS, calculateEstimatedListeningScore, calculateEstimatedReadingScore } from '../utils/toeicHelper.js';
+import { DEFAULT_TOEIC_PARTS } from '../utils/toeicHelper.js';
 import { parseToeicPdf } from '../utils/toeicPdfParser.js';
+import { MAX_TOEIC_IMPORT_BYTES } from '../utils/uploadValidation.js';
+import {
+  compareAndSwapAttemptAnswers,
+  finalizeAttempt,
+  isTerminalAttempt,
+  resolveAttemptEngine,
+} from '../utils/attemptLifecycle.js';
 
 // Helper to sanitize questions for student DTO
 const sanitizeQuestionForStudent = (q) => ({
@@ -909,6 +916,7 @@ export const importToeicPdf = async (req, res, next) => {
     if (!pdfFile && !req.body.pdfBuffer) {
       return res.status(400).json({
         status: 'error',
+        code: 'FILE_REQUIRED',
         message: 'Vui lòng đính kèm file PDF đề thi TOEIC (dung lượng dưới 30MB)',
       });
     }
@@ -920,7 +928,32 @@ export const importToeicPdf = async (req, res, next) => {
       pdfBuffer = fs.readFileSync(pdfFile.path);
       originalFilename = pdfFile.originalname;
     } else if (req.body.pdfBuffer) {
-      pdfBuffer = Buffer.from(req.body.pdfBuffer, 'base64');
+      const encodedPdf = req.body.pdfBuffer;
+      const validBase64 = typeof encodedPdf === 'string'
+        && encodedPdf.length <= Math.ceil(MAX_TOEIC_IMPORT_BYTES * 4 / 3) + 8
+        && /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encodedPdf);
+      if (!validBase64) {
+        return res.status(400).json({
+          status: 'error',
+          code: 'FILE_CONTENT_INVALID',
+          message: 'Nội dung PDF không hợp lệ.',
+        });
+      }
+      pdfBuffer = Buffer.from(encodedPdf, 'base64');
+      if (pdfBuffer.length > MAX_TOEIC_IMPORT_BYTES) {
+        return res.status(400).json({
+          status: 'error',
+          code: 'FILE_TOO_LARGE',
+          message: 'Dung lượng PDF vượt quá 30 MiB.',
+        });
+      }
+      if (pdfBuffer.length < 5 || pdfBuffer.subarray(0, 5).toString('ascii') !== '%PDF-') {
+        return res.status(400).json({
+          status: 'error',
+          code: 'FILE_CONTENT_INVALID',
+          message: 'Nội dung tệp không phải PDF hợp lệ.',
+        });
+      }
     }
 
     const targetAssessmentId = req.params ? req.params.id : null;
@@ -942,7 +975,7 @@ export const importToeicPdf = async (req, res, next) => {
       if (!Number.isInteger(pageNumber) || pageNumber <= 0 || !file.path) continue;
 
       pageImageUrlsByNumber[pageNumber] = {
-        url: `/uploads/${path.basename(file.path)}`,
+        url: '/uploads/public/' + path.basename(file.path),
         path: file.path,
       };
     }
@@ -1138,6 +1171,7 @@ export const importToeicPdf = async (req, res, next) => {
     assessment.questions = assessmentQuestions;
     assessment.status = 'draft'; // Re-enforce draft status
     await assessment.save();
+    req.uploadsPersisted = true;
     keepExtractedImages = true;
 
     res.json({
@@ -1199,12 +1233,34 @@ export const getStudentToeicTests = async (req, res, next) => {
 
     const tests = await Assessment.find(query).sort({ createdAt: -1 });
     const studentId = req.user._id;
+    const now = new Date();
+    const testIds = tests.map((test) => test._id);
+    let attempts = testIds.length
+      ? await Attempt.find({ student: studentId, assessment: { $in: testIds } }).sort({ submittedAt: -1 })
+      : [];
+    const testsById = new Map(tests.map((test) => [String(test._id), test]));
+    for (const attempt of attempts) {
+      if (attempt.status !== 'in_progress' || new Date(attempt.deadlineAt) > now) continue;
+      const assessment = testsById.get(String(attempt.assessment));
+      if (resolveAttemptEngine(attempt, assessment) !== 'toeic') continue;
+      await finalizeAttempt({ Attempt, attempt, assessment, engine: 'toeic', now });
+    }
+    if (testIds.length) {
+      attempts = await Attempt.find({ student: studentId, assessment: { $in: testIds } }).sort({ submittedAt: -1 });
+    }
+    const attemptsByTest = new Map();
+    for (const attempt of attempts) {
+      const key = String(attempt.assessment);
+      if (!attemptsByTest.has(key)) attemptsByTest.set(key, []);
+      attemptsByTest.get(key).push(attempt);
+    }
 
-    const testsWithStudentStatus = await Promise.all(
-      tests.map(async (t) => {
-        const activeAttempt = await Attempt.findOne({ student: studentId, assessment: t._id, status: 'in_progress' });
-        const lastSubmittedAttempt = await Attempt.findOne({ student: studentId, assessment: t._id, status: { $in: ['submitted', 'completed'] } }).sort({ submittedAt: -1 });
-
+    const testsWithStudentStatus = tests.map((t) => {
+        const testAttempts = attemptsByTest.get(String(t._id)) || [];
+        const activeAttempt = testAttempts.find((attempt) => attempt.status === 'in_progress');
+        const finishedAttempts = testAttempts.filter(isTerminalAttempt);
+        const lastSubmittedAttempt = finishedAttempts[0];
+        const attemptLimit = Number(t.attemptLimit || 0);
         return {
           _id: t._id,
           title: t.title,
@@ -1213,19 +1269,21 @@ export const getStudentToeicTests = async (req, res, next) => {
           durationMinutes: t.durationMinutes,
           questionCount: t.questions ? t.questions.length : 0,
           attemptLimit: t.attemptLimit,
+          attemptCount: finishedAttempts.length,
+          remainingAttempts: attemptLimit === 0 ? null : Math.max(0, attemptLimit - finishedAttempts.length),
           hasActiveAttempt: !!activeAttempt,
           activeAttemptId: activeAttempt ? activeAttempt._id : null,
           lastAttempt: lastSubmittedAttempt
             ? {
                 score: lastSubmittedAttempt.score,
                 maxScore: lastSubmittedAttempt.maxScore,
-                percentage: Math.round((lastSubmittedAttempt.score / (lastSubmittedAttempt.maxScore || 1)) * 100),
+                percentage: lastSubmittedAttempt.scorePercentage ?? Math.round((lastSubmittedAttempt.score / (lastSubmittedAttempt.maxScore || 1)) * 100),
                 submittedAt: lastSubmittedAttempt.submittedAt,
+                isExpired: lastSubmittedAttempt.isExpired,
               }
             : null,
         };
-      })
-    );
+      });
 
     res.json({
       status: 'success',
@@ -1254,7 +1312,14 @@ export const getStudentToeicTestOverview = async (req, res, next) => {
       });
     }
 
-    const activeAttempt = await Attempt.findOne({ student: studentId, assessment: id, status: 'in_progress' });
+    let activeAttempt = await Attempt.findOne({ student: studentId, assessment: id, status: 'in_progress' });
+    if (activeAttempt && new Date() >= new Date(activeAttempt.deadlineAt)) {
+      if (resolveAttemptEngine(activeAttempt, assessment) !== 'toeic') {
+        return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+      }
+      const finalized = await finalizeAttempt({ Attempt, attempt: activeAttempt, assessment, engine: 'toeic', now: new Date() });
+      activeAttempt = finalized.attempt?.status === 'in_progress' ? finalized.attempt : null;
+    }
     const submittedCount = await Attempt.countDocuments({ student: studentId, assessment: id, status: { $in: ['submitted', 'completed'] } });
 
     res.json({
@@ -1270,6 +1335,9 @@ export const getStudentToeicTestOverview = async (req, res, next) => {
           parts: assessment.parts || DEFAULT_TOEIC_PARTS,
           attemptLimit: assessment.attemptLimit,
           submittedCount,
+          remainingAttempts: Number(assessment.attemptLimit || 0) === 0
+            ? null
+            : Math.max(0, Number(assessment.attemptLimit || 0) - submittedCount),
           hasActiveAttempt: !!activeAttempt,
           activeAttemptId: activeAttempt ? activeAttempt._id : null,
         },
@@ -1310,7 +1378,11 @@ export const startToeicAttempt = async (req, res, next) => {
     });
 
     if (activeAttempt) {
-      if (now <= activeAttempt.deadlineAt) {
+      const engine = resolveAttemptEngine(activeAttempt, assessment);
+      if (engine !== 'toeic') {
+        return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+      }
+      if (now < activeAttempt.deadlineAt) {
         const sanitizedQuestions = activeAttempt.questionSnapshots.map(sanitizeQuestionSnapshotForStudent);
         const sanitizedGroups = (activeAttempt.groupSnapshots || []).map(sanitizeGroupForStudent);
 
@@ -1321,6 +1393,7 @@ export const startToeicAttempt = async (req, res, next) => {
             attemptId: activeAttempt._id,
             startedAt: activeAttempt.startedAt,
             deadlineAt: activeAttempt.deadlineAt,
+            serverTime: now,
             durationMinutes: assessment.durationMinutes,
             answers: activeAttempt.answers || {},
             flaggedQuestionIds: activeAttempt.flaggedQuestionIds || [],
@@ -1331,12 +1404,7 @@ export const startToeicAttempt = async (req, res, next) => {
           },
         });
       } else {
-        // Expired active attempt
-        activeAttempt.status = 'submitted';
-        activeAttempt.isExpired = true;
-        activeAttempt.submittedAt = activeAttempt.deadlineAt;
-        activeAttempt.duration = Math.round((activeAttempt.deadlineAt - activeAttempt.startedAt) / 1000);
-        await activeAttempt.save();
+        await finalizeAttempt({ Attempt, attempt: activeAttempt, assessment, engine: 'toeic', now });
       }
     }
 
@@ -1346,7 +1414,7 @@ export const startToeicAttempt = async (req, res, next) => {
       return res.status(403).json({
         status: 'error',
         code: 'ATTEMPT_LIMIT_REACHED',
-        message: `Bạn đã vượt quá số lần làm bài tối đa (${assessment.attemptLimit}) cho đề thi này.`,
+        message: 'Bạn đã sử dụng hết số lượt làm bài kiểm tra này.',
       });
     }
 
@@ -1421,19 +1489,43 @@ export const startToeicAttempt = async (req, res, next) => {
     const startedAt = new Date();
     const deadlineAt = new Date(startedAt.getTime() + assessment.durationMinutes * 60 * 1000);
 
-    const newAttempt = await Attempt.create({
-      student: studentId,
-      assessment: id,
-      assessmentType: 'exam',
-      startedAt,
-      deadlineAt,
-      status: 'in_progress',
-      questionSnapshots,
-      groupSnapshots,
-      answers: {},
-      flaggedQuestionIds: [],
-      revision: 1,
-    });
+    let newAttempt;
+    try {
+      newAttempt = await Attempt.create({
+        student: studentId,
+        assessment: id,
+        assessmentType: 'exam',
+        engine: 'toeic',
+        startedAt,
+        deadlineAt,
+        status: 'in_progress',
+        questionSnapshots,
+        groupSnapshots,
+        answers: {},
+        flaggedQuestionIds: [],
+        revision: 1,
+      });
+    } catch (error) {
+      if (error?.code !== 11000) throw error;
+      const resumedAttempt = await Attempt.findOne({ student: studentId, assessment: id, status: 'in_progress' });
+      if (!resumedAttempt) throw error;
+      if (resolveAttemptEngine(resumedAttempt, assessment) !== 'toeic') {
+        return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+      }
+      return res.json({ status: 'success', message: 'Resumed existing active TOEIC attempt', data: {
+        attemptId: resumedAttempt._id,
+        startedAt: resumedAttempt.startedAt,
+        deadlineAt: resumedAttempt.deadlineAt,
+        serverTime: new Date(),
+        durationMinutes: assessment.durationMinutes,
+        answers: resumedAttempt.answers || {},
+        flaggedQuestionIds: resumedAttempt.flaggedQuestionIds || [],
+        revision: resumedAttempt.revision || 1,
+        questions: resumedAttempt.questionSnapshots.map(sanitizeQuestionSnapshotForStudent),
+        groups: (resumedAttempt.groupSnapshots || []).map(sanitizeGroupForStudent),
+        parts: assessment.parts || DEFAULT_TOEIC_PARTS,
+      } });
+    }
 
     const sanitizedQuestions = questionSnapshots.map(sanitizeQuestionSnapshotForStudent);
     const sanitizedGroups = groupSnapshots.map(sanitizeGroupForStudent);
@@ -1445,6 +1537,7 @@ export const startToeicAttempt = async (req, res, next) => {
         attemptId: newAttempt._id,
         startedAt: newAttempt.startedAt,
         deadlineAt: newAttempt.deadlineAt,
+        serverTime: new Date(),
         durationMinutes: assessment.durationMinutes,
         answers: {},
         flaggedQuestionIds: [],
@@ -1459,10 +1552,7 @@ export const startToeicAttempt = async (req, res, next) => {
   }
 };
 
-// @desc    Student autosave answers & flags with concurrency revision check
-// @route   PATCH /api/v1/attempts/:attemptId/answers
-// @access  Private (Active Student)
-export const autosaveAttemptAnswers = async (req, res, next) => {
+const autosaveForEngine = (expectedEngine) => async (req, res, next) => {
   try {
     const { attemptId } = req.params;
     const { answers, flaggedQuestionIds, revision } = req.body;
@@ -1483,73 +1573,87 @@ export const autosaveAttemptAnswers = async (req, res, next) => {
       });
     }
 
+    const assessment = await Assessment.findById(attempt.assessment);
+    const engine = resolveAttemptEngine(attempt, assessment);
+    if (!engine) {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+    }
+    if (engine !== expectedEngine) {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_MISMATCH', message: 'Lượt làm bài thuộc hệ thống thi khác.' });
+    }
+
     if (attempt.status !== 'in_progress') {
       return res.status(400).json({
         status: 'error',
+        code: 'ATTEMPT_FINALIZED',
         message: 'Bài thi đã kết thúc hoặc nộp bài.',
       });
     }
 
-    // Check deadline
     const now = new Date();
-    if (now.getTime() > attempt.deadlineAt.getTime() + 10000) {
-      attempt.status = 'submitted';
-      attempt.isExpired = true;
-      attempt.submittedAt = attempt.deadlineAt;
-      await attempt.save();
-
-      return res.status(403).json({
-        status: 'error',
-        code: 'EXPIRED',
-        message: 'Đã hết thời gian làm bài.',
-      });
+    const currentRevision = attempt.revision || 1;
+    if (!Number.isInteger(revision)) {
+      return res.status(428).json({ status: 'error', code: 'REVISION_REQUIRED', message: 'Thiếu revision để lưu an toàn. Hãy tải lại lượt làm bài.' });
     }
-
-    // Concurrency revision check
-    if (revision !== undefined && revision < attempt.revision) {
+    if (revision !== currentRevision) {
       return res.status(409).json({
         status: 'error',
         code: 'STALE_REVISION',
         message: 'Dữ liệu lưu không phải phiên bản mới nhất.',
-        serverRevision: attempt.revision,
+        serverRevision: currentRevision,
+        answers: attempt.answers || {},
       });
     }
 
-    if (answers !== undefined) {
-      let answersMap = {};
-      if (Array.isArray(answers)) {
-        answers.forEach((item) => {
-          if (item.questionId) {
-            answersMap[item.questionId.toString()] = item.selectedOptionIds || item.answer || [];
-          }
-        });
-      } else if (typeof answers === 'object') {
-        answersMap = answers;
+    if (now.getTime() >= new Date(attempt.deadlineAt).getTime()) {
+      await finalizeAttempt({ Attempt, attempt, assessment, engine, now });
+      return res.status(403).json({ status: 'error', code: 'ATTEMPT_EXPIRED', message: 'Đã hết thời gian làm bài; hệ thống đã hoàn tất theo đáp án đã lưu.' });
+    }
+
+    const saveResult = await compareAndSwapAttemptAnswers({
+      Attempt,
+      attempt,
+      engine,
+      answers,
+      flaggedQuestionIds,
+      now,
+    });
+    if (saveResult.kind !== 'saved') {
+      const latest = saveResult.attempt;
+      if (latest?.status === 'in_progress' && new Date() >= new Date(latest.deadlineAt)) {
+        await finalizeAttempt({ Attempt, attempt: latest, assessment, engine, now: new Date() });
+        return res.status(403).json({ status: 'error', code: 'ATTEMPT_EXPIRED', message: 'Đã hết thời gian làm bài; hệ thống đã hoàn tất theo đáp án đã lưu.' });
       }
-      attempt.answers = { ...(attempt.answers || {}), ...answersMap };
+      return res.status(409).json({
+        status: 'error',
+        code: saveResult.kind === 'finalized' ? 'ATTEMPT_FINALIZED' : 'STALE_REVISION',
+        message: 'Bài làm đã được cập nhật ở phiên khác. Hãy tải lại trạng thái mới nhất.',
+        serverRevision: latest?.revision || currentRevision,
+        answers: latest?.answers || attempt.answers || {},
+      });
     }
-
-    if (flaggedQuestionIds !== undefined && Array.isArray(flaggedQuestionIds)) {
-      attempt.flaggedQuestionIds = flaggedQuestionIds;
-    }
-
-    attempt.revision = (attempt.revision || 1) + 1;
-    await attempt.save();
+    const updated = saveResult.attempt;
 
     res.json({
       status: 'success',
       message: 'Đã lưu đáp án thành công',
       data: {
         saved: true,
-        revision: attempt.revision,
-        flaggedQuestionIds: attempt.flaggedQuestionIds,
-        savedAt: new Date(),
+        revision: updated.revision,
+        flaggedQuestionIds: updated.flaggedQuestionIds,
+        savedAt: now,
+        serverTime: now,
       },
     });
   } catch (error) {
     next(error);
   }
 };
+
+export const autosaveStandardAttemptAnswers = autosaveForEngine('standard');
+export const autosaveToeicAttemptAnswers = autosaveForEngine('toeic');
+// Compatibility export for any internal caller; routes bind the expected engine explicitly.
+export const autosaveAttemptAnswers = autosaveStandardAttemptAnswers;
 
 // @desc    Student submit TOEIC attempt with Part 1-7 & Listening/Reading breakdown grading
 // @route   POST /api/v1/toeic/attempts/:attemptId/submit
@@ -1574,7 +1678,16 @@ export const submitToeicAttempt = async (req, res, next) => {
       });
     }
 
-    if (attempt.status === 'submitted' || attempt.status === 'completed') {
+    const assessment = await Assessment.findById(attempt.assessment);
+    const engine = resolveAttemptEngine(attempt, assessment);
+    if (!engine) {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+    }
+    if (engine !== 'toeic') {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_MISMATCH', message: 'Lượt làm bài này không thuộc hệ thống thi TOEIC.' });
+    }
+
+    if (isTerminalAttempt(attempt)) {
       const percentage = attempt.maxScore > 0 ? Math.round((attempt.score / attempt.maxScore) * 100) : 0;
       return res.json({
         status: 'success',
@@ -1605,156 +1718,55 @@ export const submitToeicAttempt = async (req, res, next) => {
       });
     }
 
-    const submittedAt = new Date();
-    let durationSeconds = Math.max(0, Math.round((submittedAt - attempt.startedAt) / 1000));
-    let isExpired = false;
-
-    if (submittedAt.getTime() > attempt.deadlineAt.getTime() + 10000) {
-      isExpired = true;
-      durationSeconds = Math.round((attempt.deadlineAt - attempt.startedAt) / 1000);
+    const now = new Date();
+    if (now < new Date(attempt.deadlineAt) && !Number.isInteger(req.body.revision)) {
+      return res.status(428).json({ status: 'error', code: 'REVISION_REQUIRED', message: 'Thiếu revision để nộp bài an toàn. Hãy tải lại lượt làm bài.' });
     }
-
-    const rawAnswers = req.body.answers || attempt.answers || {};
-
-    let totalEarnedScore = 0;
-    let maxPossibleScore = 0;
-    let correctCount = 0;
-    let incorrectCount = 0;
-    let unansweredCount = 0;
-
-    let listeningCorrect = 0;
-    let listeningTotal = 0;
-    let readingCorrect = 0;
-    let readingTotal = 0;
-
-    const partBreakdown = {
-      part1: { correct: 0, total: 0 },
-      part2: { correct: 0, total: 0 },
-      part3: { correct: 0, total: 0 },
-      part4: { correct: 0, total: 0 },
-      part5: { correct: 0, total: 0 },
-      part6: { correct: 0, total: 0 },
-      part7: { correct: 0, total: 0 },
-    };
-
-    // Auto-grading against immutable questionSnapshots
-    for (const snapshot of attempt.questionSnapshots || []) {
-      const qId = snapshot.questionId;
-      const qScore = snapshot.score || 1;
-      const partNum = snapshot.toeicPart || 1;
-      const isListening = partNum <= 4;
-
-      maxPossibleScore += qScore;
-      if (isListening) listeningTotal++;
-      else readingTotal++;
-
-      const partKey = `part${partNum}`;
-      if (partBreakdown[partKey]) {
-        partBreakdown[partKey].total++;
-      }
-
-      const subAns = rawAnswers[qId];
-
-      if (
-        subAns === undefined ||
-        subAns === null ||
-        subAns === '' ||
-        (Array.isArray(subAns) && subAns.length === 0)
-      ) {
-        unansweredCount++;
-        continue;
-      }
-
-      let isCorrect = false;
-      const submittedValues = Array.isArray(subAns) ? subAns : [subAns];
-
-      if (snapshot.type === 'single_choice') {
-        const chosenTexts = (snapshot.options || [])
-          .filter((o) => submittedValues.includes(o.id) || submittedValues.includes(o._id?.toString()) || submittedValues.includes(o.text))
-          .map((o) => o.text);
-
-        isCorrect = submittedValues.some(
-          (val) =>
-            (snapshot.correctAnswers || []).includes(val) ||
-            (snapshot.correctOptionIds || []).includes(val) ||
-            chosenTexts.some((txt) => (snapshot.correctAnswers || []).includes(txt))
-        );
-      } else if (snapshot.type === 'multiple_choice') {
-        const submittedSet = new Set(submittedValues);
-        const correctSet = new Set(snapshot.correctAnswers);
-        if (submittedSet.size === correctSet.size) {
-          isCorrect = [...submittedSet].every((val) => correctSet.has(val));
-        }
-      } else if (snapshot.type === 'fill_blank' || snapshot.type === 'typed_answer') {
-        const normSub = String(subAns).trim().toLowerCase();
-        isCorrect = (snapshot.correctAnswers || []).some((ans) => String(ans).trim().toLowerCase() === normSub);
-      }
-
-      if (isCorrect) {
-        totalEarnedScore += qScore;
-        correctCount++;
-        if (isListening) listeningCorrect++;
-        else readingCorrect++;
-        if (partBreakdown[partKey]) partBreakdown[partKey].correct++;
-      } else {
-        incorrectCount++;
-      }
+    const finalized = await finalizeAttempt({
+      Attempt,
+      attempt,
+      assessment,
+      engine,
+      answers: req.body.answers,
+      revision: req.body.revision,
+      now,
+    });
+    if (finalized.kind === 'revision_conflict') {
+      return res.status(409).json({
+        status: 'error',
+        code: now >= new Date(attempt.deadlineAt) ? 'ATTEMPT_FINALIZING' : 'STALE_REVISION',
+        message: 'Bài làm đã được cập nhật ở phiên khác. Hãy tải lại trạng thái mới nhất trước khi nộp.',
+        serverRevision: finalized.attempt?.revision || attempt.revision || 1,
+        answers: finalized.attempt?.answers || attempt.answers || {},
+      });
     }
-
-    const listeningScore = calculateEstimatedListeningScore(listeningCorrect, listeningTotal || 100);
-    const readingScore = calculateEstimatedReadingScore(readingCorrect, readingTotal || 100);
-    const estimatedToeicScore = listeningScore + readingScore;
-
-    attempt.answers = rawAnswers;
-    attempt.score = totalEarnedScore;
-    attempt.maxScore = maxPossibleScore;
-    attempt.correctCount = correctCount;
-    attempt.incorrectCount = incorrectCount;
-    attempt.unansweredCount = unansweredCount;
-    attempt.duration = durationSeconds;
-    attempt.submittedAt = submittedAt;
-    attempt.status = 'completed';
-    attempt.isExpired = isExpired;
-
-    attempt.toeicBreakdown = {
-      listeningCorrect,
-      readingCorrect,
-      listeningTotal,
-      readingTotal,
-      listeningScore,
-      readingScore,
-      estimatedToeicScore,
-      partBreakdown,
-    };
-
-    await attempt.save();
-
-    const percentage = maxPossibleScore > 0 ? Math.round((totalEarnedScore / maxPossibleScore) * 100) : 0;
+    const finalAttempt = finalized.attempt;
+    const percentage = finalAttempt.maxScore > 0 ? Math.round((finalAttempt.score / finalAttempt.maxScore) * 100) : 0;
 
     res.json({
       status: 'success',
       message: 'Nộp bài thi TOEIC và chấm điểm thành công',
       data: {
         attempt: {
-          _id: attempt._id,
-          status: attempt.status,
-          score: totalEarnedScore,
-          maxScore: maxPossibleScore,
+          _id: finalAttempt._id,
+          status: finalAttempt.status,
+          score: finalAttempt.score,
+          maxScore: finalAttempt.maxScore,
           percentage,
         },
         result: {
           attemptId: attempt._id,
-          status: attempt.status,
-          score: totalEarnedScore,
-          maxScore: maxPossibleScore,
+          status: finalAttempt.status,
+          score: finalAttempt.score,
+          maxScore: finalAttempt.maxScore,
           percentage,
-          correctCount,
-          incorrectCount,
-          unansweredCount,
-          duration: durationSeconds,
-          submittedAt: attempt.submittedAt,
-          isExpired,
-          toeicBreakdown: attempt.toeicBreakdown,
+          correctCount: finalAttempt.correctCount,
+          incorrectCount: finalAttempt.incorrectCount,
+          unansweredCount: finalAttempt.unansweredCount,
+          duration: finalAttempt.duration,
+          submittedAt: finalAttempt.submittedAt,
+          isExpired: finalAttempt.isExpired,
+          toeicBreakdown: finalAttempt.toeicBreakdown,
         },
       },
     });
@@ -1771,7 +1783,7 @@ export const getStudentToeicAttempt = async (req, res, next) => {
     const { attemptId } = req.params;
     const studentId = req.user._id;
 
-    const attempt = await Attempt.findById(attemptId).populate('assessment');
+    let attempt = await Attempt.findById(attemptId).populate('assessment');
     if (!attempt) {
       return res.status(404).json({
         status: 'error',
@@ -1784,6 +1796,21 @@ export const getStudentToeicAttempt = async (req, res, next) => {
         status: 'error',
         message: 'Không có quyền truy cập lượt làm bài này',
       });
+    }
+
+    const engine = resolveAttemptEngine(attempt, attempt.assessment);
+    if (!engine) {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_UNRESOLVED', message: 'Không thể xác định hệ thống chấm điểm của lượt làm bài.' });
+    }
+    if (engine !== 'toeic') {
+      return res.status(409).json({ status: 'error', code: 'ATTEMPT_ENGINE_MISMATCH', message: 'Lượt làm bài này thuộc hệ thống đánh giá tiêu chuẩn.' });
+    }
+    if (attempt.status === 'in_progress' && new Date() >= new Date(attempt.deadlineAt)) {
+      const finalized = await finalizeAttempt({ Attempt, attempt, assessment: attempt.assessment, engine, now: new Date() });
+      if (finalized.kind === 'revision_conflict') {
+        return res.status(409).json({ status: 'error', code: 'ATTEMPT_FINALIZING', message: 'Đang hoàn tất bài thi. Vui lòng tải lại trạng thái.' });
+      }
+      attempt = await Attempt.findById(attemptId).populate('assessment');
     }
 
     const isCompleted = attempt.status === 'completed' || attempt.status === 'submitted';
@@ -1938,6 +1965,7 @@ export const getStudentToeicAttempt = async (req, res, next) => {
           maxScore: attempt.maxScore,
         },
         assessment: attempt.assessment,
+        serverTime: new Date(),
       },
     });
   } catch (error) {
@@ -1951,6 +1979,16 @@ export const getStudentToeicAttempt = async (req, res, next) => {
 export const getStudentToeicHistory = async (req, res, next) => {
   try {
     const studentId = req.user._id;
+    const now = new Date();
+    const expiredAttempts = await Attempt.find({
+      student: studentId,
+      status: 'in_progress',
+      deadlineAt: { $lte: now },
+    }).populate('assessment');
+    for (const expiredAttempt of expiredAttempts) {
+      if (resolveAttemptEngine(expiredAttempt, expiredAttempt.assessment) !== 'toeic') continue;
+      await finalizeAttempt({ Attempt, attempt: expiredAttempt, assessment: expiredAttempt.assessment, engine: 'toeic', now });
+    }
 
     const attempts = await Attempt.find({
       student: studentId,

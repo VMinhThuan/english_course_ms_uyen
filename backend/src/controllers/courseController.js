@@ -9,6 +9,30 @@ import Vocabulary from '../models/Vocabulary.js';
 import LearningProgress from '../models/LearningProgress.js';
 import Enrollment from '../models/Enrollment.js';
 import fs from 'fs';
+import { isPathWithinRoot, resolveStoredUploadPath } from '../security/materialAccessPolicy.js';
+import { sanitizeLessonRecord } from '../security/lessonHtml.js';
+import { getUploadDir } from '../utils/uploadConfig.js';
+
+const removeMaterialFileIfUnreferenced = async (material) => {
+  const uploadRoot = getUploadDir();
+  const filePath = resolveStoredUploadPath(material, uploadRoot);
+  if (!filePath || !isPathWithinRoot(uploadRoot, filePath)) return;
+
+  const otherMaterial = await Material.exists({
+    _id: { $ne: material._id },
+    $or: [{ filePath }, ...(material.fileUrl ? [{ fileUrl: material.fileUrl }] : [])],
+  });
+  if (otherMaterial) return;
+  if (material.fileUrl && await Lesson.exists({ 'attachments.url': material.fileUrl })) return;
+
+  if (fs.existsSync(filePath)) {
+    try {
+      fs.unlinkSync(filePath);
+    } catch {
+      console.error('Failed to delete an unreferenced course material file.');
+    }
+  }
+};
 
 function generateSlug(title) {
   const base = (title || 'course')
@@ -291,7 +315,7 @@ export const getAdminCourseById = async (req, res, next) => {
       data: {
         course: {
           ...course.toObject(),
-          lessons,
+          lessons: lessons.map((lesson) => sanitizeLessonRecord(lesson)),
           enrolledCount: enrolledCount || course.students?.length || 0,
         },
       },
@@ -517,7 +541,7 @@ export const reorderCourseLessons = async (req, res, next) => {
       status: 'success',
       message: 'Cập nhật thứ tự bài học thành công',
       data: {
-        lessons: updatedLessons,
+        lessons: updatedLessons.map((lesson) => sanitizeLessonRecord(lesson)),
       },
     });
   } catch (error) {
@@ -570,13 +594,7 @@ export const deleteCourse = async (req, res, next) => {
     for (const lesson of lessons) {
       const materials = await Material.find({ lesson: lesson._id });
       for (const mat of materials) {
-        if (mat.filePath && fs.existsSync(mat.filePath)) {
-          try {
-            fs.unlinkSync(mat.filePath);
-          } catch (err) {
-            console.error(`Failed to delete file: ${mat.filePath}`, err);
-          }
-        }
+        await removeMaterialFileIfUnreferenced(mat);
       }
       await Material.deleteMany({ lesson: lesson._id });
       await Vocabulary.deleteMany({ lesson: lesson._id });
@@ -587,13 +605,7 @@ export const deleteCourse = async (req, res, next) => {
     // Cleanup materials directly associated with course
     const courseMaterials = await Material.find({ course: course._id });
     for (const mat of courseMaterials) {
-      if (mat.filePath && fs.existsSync(mat.filePath)) {
-        try {
-          fs.unlinkSync(mat.filePath);
-        } catch (err) {
-          console.error(`Failed to delete file: ${mat.filePath}`, err);
-        }
-      }
+      await removeMaterialFileIfUnreferenced(mat);
     }
     await Material.deleteMany({ course: course._id });
 

@@ -1,5 +1,56 @@
 import User from '../models/User.js';
 
+const STUDENT_SELECT = 'fullName email username phoneNumber role status isActive createdAt updatedAt approvedAt lastLoginAt';
+const STUDENT_STATUSES = new Set(['pending', 'active', 'rejected', 'suspended']);
+const VIETNAMESE_LETTER_PATTERN = {
+  a: '[aàáảãạăằắẳẵặâầấẩẫậ]',
+  d: '[dđ]',
+  e: '[eèéẻẽẹêềếểễệ]',
+  i: '[iìíỉĩị]',
+  o: '[oòóỏõọôồốổỗộơờớởỡợ]',
+  u: '[uùúủũụưừứửữự]',
+  y: '[yỳýỷỹỵ]',
+};
+
+const safeStudentSearchRegex = (value) => {
+  const folded = value
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/đ/gi, 'd')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+  const pattern = Array.from(folded).map((character) => {
+    if (character === ' ') return '\\s+';
+    if (VIETNAMESE_LETTER_PATTERN[character]) return VIETNAMESE_LETTER_PATTERN[character];
+    return character.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }).join('');
+  return new RegExp(pattern, 'iu');
+};
+
+const parseBoundedInteger = (value, fallback, maximum) => {
+  if (value === undefined || value === '') return fallback;
+  if (!/^[0-9]+$/.test(String(value))) return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed >= 1 && parsed <= maximum ? parsed : null;
+};
+
+const safeStudent = (student) => ({
+  _id: student._id,
+  id: student._id,
+  fullName: student.fullName,
+  email: student.email,
+  username: student.username || '',
+  phoneNumber: student.phoneNumber || '',
+  role: student.role,
+  status: student.status,
+  isActive: student.isActive,
+  createdAt: student.createdAt,
+  updatedAt: student.updatedAt,
+  approvedAt: student.approvedAt || null,
+  lastLoginAt: student.lastLoginAt || null,
+});
+
 // @desc    Get list of students (with filtering, search, pagination)
 // @route   GET /api/v1/admin/students
 // @access  Private (Admin only)
@@ -9,36 +60,48 @@ export const getStudents = async (req, res, next) => {
 
     const query = { role: 'student' };
 
-    if (status && status !== 'ALL') {
-      query.status = status.toLowerCase();
+    if (status && String(status).toUpperCase() !== 'ALL') {
+      const normalizedStatus = String(status).toLowerCase();
+      if (!STUDENT_STATUSES.has(normalizedStatus)) {
+        return res.status(400).json({ status: 'error', code: 'INVALID_STATUS', message: 'Trạng thái học viên không hợp lệ.' });
+      }
+      query.status = normalizedStatus;
     }
 
     if (search) {
-      const searchRegex = new RegExp(search, 'i');
+      if (typeof search !== 'string' || search.trim().length > 80) {
+        return res.status(400).json({ status: 'error', code: 'INVALID_SEARCH', message: 'Từ khóa tìm kiếm quá dài.' });
+      }
+      const searchRegex = safeStudentSearchRegex(search);
       query.$or = [
         { fullName: searchRegex },
         { email: searchRegex },
+        { username: searchRegex },
         { phoneNumber: searchRegex },
       ];
     }
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = parseBoundedInteger(page, 1, 1000000);
+    const limitNum = parseBoundedInteger(limit, 20, 100);
+    if (pageNum === null || limitNum === null) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_PAGINATION', message: 'Trang hoặc số dòng mỗi trang không hợp lệ.' });
+    }
     const skip = (pageNum - 1) * limitNum;
 
     const [students, total] = await Promise.all([
       User.find(query)
-        .select('-password')
-        .sort({ createdAt: -1 })
+        .select(STUDENT_SELECT)
+        .sort({ createdAt: -1, _id: -1 })
         .skip(skip)
-        .limit(limitNum),
+        .limit(limitNum)
+        .lean(),
       User.countDocuments(query),
     ]);
 
     res.json({
       status: 'success',
       data: {
-        students,
+        students: students.map(safeStudent),
         pagination: {
           page: pageNum,
           limit: limitNum,
@@ -54,10 +117,79 @@ export const getStudents = async (req, res, next) => {
 
 export const getStudent = async (req, res, next) => {
   try {
-    const student = await User.findOne({ _id: req.params.id, role: 'student' }).select('-password');
+    if (!/^[\da-f]{24}$/i.test(req.params.id)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_STUDENT_ID', message: 'Mã học viên không hợp lệ.' });
+    }
+    const student = await User.findOne({ _id: req.params.id, role: 'student' }).select(STUDENT_SELECT).lean();
     if (!student) return res.status(404).json({ status: 'error', message: 'Không tìm thấy thông tin học viên' });
-    return res.json({ status: 'success', data: { student } });
+    return res.json({ status: 'success', data: { student: safeStudent(student) } });
   } catch (error) { return next(error); }
+};
+
+// @desc Create an active student account from the admin UI.
+// @route POST /api/v1/admin/students
+// @access Private (existing admin/teacher RBAC)
+export const createStudent = async (req, res, next) => {
+  try {
+    const fullName = typeof req.body?.fullName === 'string' ? req.body.fullName.trim().replace(/\s+/g, ' ') : '';
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const username = typeof req.body?.username === 'string' ? req.body.username.trim().toLowerCase() : '';
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    const errors = {};
+
+    if (!fullName) errors.fullName = 'Vui lòng nhập họ và tên.';
+    else if (fullName.length > 100) errors.fullName = 'Họ và tên không được vượt quá 100 ký tự.';
+    else if (/[\u0000-\u001f\u007f]/.test(fullName)) errors.fullName = 'Họ và tên chứa ký tự không hợp lệ.';
+    if (!email) errors.email = 'Vui lòng nhập email.';
+    else if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Email không hợp lệ.';
+    if (!username) errors.username = 'Vui lòng nhập tên đăng nhập.';
+    else if (!/^[a-z0-9._-]{3,30}$/.test(username)) errors.username = 'Tên đăng nhập gồm 3–30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.';
+    if (!password) errors.password = 'Vui lòng nhập mật khẩu ban đầu.';
+    else if (password.length < 6 || Buffer.byteLength(password, 'utf8') > 72) errors.password = 'Mật khẩu phải có ít nhất 6 ký tự và tối đa 72 byte UTF-8.';
+
+    if (Object.keys(errors).length) {
+      return res.status(400).json({ status: 'error', code: 'VALIDATION_ERROR', message: 'Thông tin học viên chưa hợp lệ.', errors });
+    }
+
+    const existing = await User.findOne({ $or: [{ email }, { username }] }).select('email username').lean();
+    if (existing) {
+      const duplicateField = existing.email === email ? 'email' : 'username';
+      const message = duplicateField === 'email' ? 'Email này đã được sử dụng.' : 'Tên đăng nhập này đã được sử dụng.';
+      return res.status(409).json({ status: 'error', code: 'STUDENT_ALREADY_EXISTS', field: duplicateField, message });
+    }
+
+    const student = await User.create({
+      fullName,
+      email,
+      username,
+      password,
+      role: 'student',
+      status: 'active',
+      isActive: true,
+      approvedAt: new Date(),
+      approvedBy: req.user._id,
+    });
+    return res.status(201).json({
+      status: 'success',
+      message: 'Đã tạo tài khoản học viên. Học viên có thể đăng nhập ngay bằng email hoặc tên đăng nhập.',
+      data: { student: safeStudent(student) },
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      const key = Object.keys(error.keyPattern || {})[0] || 'email';
+      const field = key === 'username' ? 'username' : 'email';
+      return res.status(409).json({
+        status: 'error',
+        code: 'STUDENT_ALREADY_EXISTS',
+        field,
+        message: field === 'username' ? 'Tên đăng nhập này đã được sử dụng.' : 'Email này đã được sử dụng.',
+      });
+    }
+    if (error?.name === 'ValidationError') {
+      return res.status(400).json({ status: 'error', code: 'VALIDATION_ERROR', message: 'Thông tin học viên chưa hợp lệ.' });
+    }
+    return next(error);
+  }
 };
 
 // Helper to check target student account
@@ -101,6 +233,7 @@ export const approveStudent = async (req, res, next) => {
     }
 
     student.status = 'active';
+    student.isActive = true;
     student.approvedAt = new Date();
     student.approvedBy = req.user._id;
     await student.save();
@@ -171,6 +304,7 @@ export const suspendStudent = async (req, res, next) => {
     }
 
     student.status = 'suspended';
+    student.isActive = false;
     student.suspendedAt = new Date();
     student.suspendedBy = req.user._id;
     await student.save();
@@ -205,6 +339,7 @@ export const activateStudent = async (req, res, next) => {
     }
 
     student.status = 'active';
+    student.isActive = true;
     student.approvedAt = new Date();
     student.approvedBy = req.user._id;
     await student.save();

@@ -6,7 +6,11 @@
     "type": "module",
     "scripts": {
         "start": "node src/server.js",
-        "dev": "nodemon src/server.js",
+        "dev": "node --watch src/server.js",
+        "test:phase1": "node --test tests/phase1Security.test.js",
+        "test:phase2": "node --test tests/phase2ExamEngine.test.js tests/phase2MaterialDownload.test.js tests/phase2FrontendDownload.test.js",
+        "test:phase3": "node --test tests/phase3AttemptReporting.test.js tests/phase3Admin.integration.test.js",
+        "test:phase4": "node --test tests/phase4Learning.integration.test.js",
         "seed": "node src/scripts/seedData.js",
         "seed:demo": "node src/scripts/seedDemoData.js"
     },
@@ -29,9 +33,13 @@
         "mongoose": "^8.0.3",
         "multer": "^1.4.5-lts.1",
         "pdf-parse": "^2.4.5",
-        "pdfkit": "^0.20.2"
+        "pdfkit": "^0.20.2",
+        "sanitize-html": "^2.18.1"
     },
     "devDependencies": {
-        "nodemon": "^3.0.2"
+        "mongodb-memory-server": "^11.3.0"
+    },
+    "engines": {
+        "node": ">=22.12.0"
     }
 }

@@ -24,4 +24,17 @@ export const getUploadDir = () => {
   return uploadDir;
 };
 
+const ensureUploadSubdirectory = (name) => {
+  const directory = path.join(getUploadDir(), name);
+  try {
+    if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
+  } catch (err) {
+    console.warn('Notice: upload subdirectory creation skipped:', err.message);
+  }
+  return directory;
+};
+
+export const getPrivateUploadDir = () => ensureUploadSubdirectory('private');
+export const getPublicUploadDir = () => ensureUploadSubdirectory('public');
+
 export const UPLOAD_DIR = getUploadDir();
