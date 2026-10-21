@@ -77,6 +77,8 @@ FRONTEND_URL=http://localhost:5173
 - URL của Frontend để CORS cho phép request
 - Development: `http://localhost:5173`
 - Production: `https://your-frontend-domain.com`
+- Production chỉ cho phép các origin được khai báo chính xác. Nếu cần thêm origin frontend (ví dụ deployment preview), khai báo danh sách phân tách bằng dấu phẩy trong `FRONTEND_ORIGINS`.
+- Khi Frontend và Backend dùng hai site khác nhau, refresh cookie được gửi bằng `SameSite=None; Secure`; chỉ khai báo các frontend origin đáng tin cậy.
 
 ---
 

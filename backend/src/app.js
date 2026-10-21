@@ -34,20 +34,28 @@ dotenv.config({ path: join(__dirname, '../.env') });
 
 const app = express();
 
-const allowedOrigins = [
+const normalizeOrigin = (value) => {
+    const trimmed = value.trim();
+    try {
+        return new URL(trimmed).origin;
+    } catch {
+        return trimmed.replace(/\/+$/, '');
+    }
+};
+
+const allowedOrigins = new Set([
     process.env.FRONTEND_URL,
+    ...(process.env.FRONTEND_ORIGINS || '').split(','),
     'https://frontend-ru4l.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000',
-].filter(Boolean);
+].filter((origin) => typeof origin === 'string' && origin.trim()).map(normalizeOrigin));
 
 const corsOptions = {
     origin: function(origin, callback) {
         if (!origin) return callback(null, true);
         if (process.env.NODE_ENV !== 'production') return callback(null, true);
 
-        // Allow configured origins or any *.vercel.app domain
-        if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+        // Credentialed cross-site cookies require an explicit trusted origin.
+        if (allowedOrigins.has(normalizeOrigin(origin))) {
             callback(null, true);
         } else {
             callback(new Error(`Not allowed by CORS: ${origin}`));

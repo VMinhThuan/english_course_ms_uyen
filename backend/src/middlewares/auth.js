@@ -13,16 +13,30 @@ const sendFailure = (res, failure) => res.status(failure.statusCode).json({
   message: failure.message,
 });
 
-export const clearRefreshTokenCookie = (res) => {
-  const options = {
-    path: '/',
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+const refreshCookieOptions = (path) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    path,
+    secure: isProduction,
+    // Production frontend and API may be on separate Vercel sites. Browsers
+    // require SameSite=None; Secure for credentialed cross-site requests.
+    sameSite: isProduction ? 'none' : 'strict',
   };
-  res.clearCookie('refreshToken', options);
+};
+
+export const setRefreshTokenCookie = (res, token) => {
+  res.cookie('refreshToken', token, {
+    ...refreshCookieOptions('/'),
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+};
+
+export const clearRefreshTokenCookie = (res) => {
+  res.clearCookie('refreshToken', refreshCookieOptions('/'));
   // Older cookies were set without a Path on /api/v1/auth/login, so browsers
   // may have scoped them to /api/v1/auth instead of /.
-  res.clearCookie('refreshToken', { ...options, path: '/api/v1/auth' });
+  res.clearCookie('refreshToken', refreshCookieOptions('/api/v1/auth'));
 };
 
 export const authenticateRequest = async (req) => {

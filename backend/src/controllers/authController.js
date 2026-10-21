@@ -4,6 +4,7 @@ import { generateAccessToken, generateRefreshToken } from '../utils/generateToke
 import { jwtConfig } from '../configs/jwt.js';
 import {
     clearRefreshTokenCookie,
+    setRefreshTokenCookie,
 } from '../middlewares/auth.js';
 import {
     getRevokedSessionError,
@@ -159,13 +160,10 @@ export const login = async(req, res, next) => {
         const accessToken = generateAccessToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
 
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            path: '/',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
+        // Remove cookies from both the current and legacy paths before setting
+        // the canonical cookie, preventing an older token from shadowing it.
+        clearRefreshTokenCookie(res);
+        setRefreshTokenCookie(res, refreshToken);
 
         res.json({
             status: 'success',
@@ -194,6 +192,7 @@ export const refreshToken = async(req, res, next) => {
         const refreshToken = req.cookies.refreshToken;
 
         if (!refreshToken) {
+            clearRefreshTokenCookie(res);
             return res.status(401).json({
                 status: 'error',
                 message: 'No refresh token provided',
@@ -249,6 +248,15 @@ export const refreshToken = async(req, res, next) => {
             },
         });
     } catch (error) {
+        const invalidRefreshToken = [
+            'JsonWebTokenError',
+            'TokenExpiredError',
+            'NotBeforeError',
+        ].includes(error.name);
+
+        if (!invalidRefreshToken) return next(error);
+
+        clearRefreshTokenCookie(res);
         return res.status(401).json({
             status: 'error',
             message: 'Invalid refresh token',
