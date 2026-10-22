@@ -4,7 +4,9 @@ import Material from '../models/Material.js';
 import Lesson from '../models/Lesson.js';
 import Course from '../models/Course.js';
 import Enrollment from '../models/Enrollment.js';
+import mammoth from 'mammoth';
 import { getStudentStatusError } from '../security/accountAccessPolicy.js';
+import { sanitizeLessonHtml } from '../security/lessonHtml.js';
 import {
   evaluateMaterialAccess,
   isPathWithinRoot,
@@ -22,6 +24,27 @@ import {
 } from '../utils/materialDownload.js';
 
 const MAX_INLINE_PDF_BYTES = 25 * 1024 * 1024;
+const MAX_INLINE_DOCUMENT_BYTES = 20 * 1024 * 1024;
+const MAX_INLINE_MEDIA_BYTES = 50 * 1024 * 1024;
+const DOCX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const INLINE_PREVIEW_TYPES = new Set([
+  'application/pdf',
+  DOCX_CONTENT_TYPE,
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/avif',
+  'image/bmp',
+  'audio/mpeg',
+  'audio/mp4',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/ogg',
+  'audio/webm',
+  'audio/aac',
+  'audio/flac',
+]);
 
 const sendError = (res, statusCode, code, message) =>
   res.status(statusCode).json({ status: 'error', code, message });
@@ -404,6 +427,7 @@ const getAuthorizedMaterialFile = async (req, res, { preview = false } = {}) => 
       lesson: material.lesson,
       course,
       enrolled,
+      allowPreview: preview,
     });
     if (!decision.allowed) {
       sendError(res, decision.statusCode, decision.code, decision.message);
@@ -458,24 +482,34 @@ const getAuthorizedMaterialFile = async (req, res, { preview = false } = {}) => 
       fileType: material.fileType,
     });
     if (preview) {
-      if (metadata.contentType !== 'application/pdf') {
-        sendError(res, 415, 'MATERIAL_PREVIEW_UNSUPPORTED', 'Chỉ hỗ trợ xem trước tệp PDF hợp lệ.');
+      if (!INLINE_PREVIEW_TYPES.has(metadata.contentType)) {
+        sendError(res, 415, 'MATERIAL_PREVIEW_UNSUPPORTED', 'Định dạng này chưa hỗ trợ xem trực tiếp. Hãy tải tệp xuống để xem.');
         return null;
       }
-      if (fileStat.size > MAX_INLINE_PDF_BYTES) {
-        sendError(res, 413, 'MATERIAL_PREVIEW_TOO_LARGE', 'Tệp quá lớn để xem trước trên trình duyệt. Hãy tải tệp xuống để xem.');
+      const maxBytes = metadata.contentType === 'application/pdf'
+        ? MAX_INLINE_PDF_BYTES
+        : metadata.contentType === DOCX_CONTENT_TYPE
+          ? MAX_INLINE_DOCUMENT_BYTES
+          : MAX_INLINE_MEDIA_BYTES;
+      if (fileStat.size > maxBytes) {
+        sendError(res, 413, 'MATERIAL_PREVIEW_TOO_LARGE', 'Tệp quá lớn để xem trực tiếp trên trình duyệt. Hãy tải tệp xuống để xem.');
         return null;
       }
-      const handle = await fs.open(filePath, 'r');
-      try {
-        const signature = Buffer.alloc(5);
-        const { bytesRead } = await handle.read(signature, 0, signature.length, 0);
-        if (bytesRead !== 5 || signature.toString('ascii') !== '%PDF-') {
-          sendError(res, 415, 'MATERIAL_PREVIEW_UNSUPPORTED', 'Tệp này không phải PDF hợp lệ.');
-          return null;
+      if (metadata.contentType === 'application/pdf' || metadata.contentType === DOCX_CONTENT_TYPE) {
+        const handle = await fs.open(filePath, 'r');
+        try {
+          const signature = Buffer.alloc(5);
+          const { bytesRead } = await handle.read(signature, 0, signature.length, 0);
+          const validSignature = metadata.contentType === 'application/pdf'
+            ? bytesRead === 5 && signature.toString('ascii') === '%PDF-'
+            : bytesRead >= 2 && signature[0] === 0x50 && signature[1] === 0x4b;
+          if (!validSignature) {
+            sendError(res, 415, 'MATERIAL_PREVIEW_UNSUPPORTED', 'Tệp không đúng định dạng hoặc bị hỏng.');
+            return null;
+          }
+        } finally {
+          await handle.close();
         }
-      } finally {
-        await handle.close();
       }
     }
 
@@ -486,7 +520,7 @@ const streamMaterialResponse = (file, res, disposition, next) =>
   streamMaterialFile(file.filePath, res, {
     'Cache-Control': 'private, no-store',
     'X-Content-Type-Options': 'nosniff',
-    'Content-Type': disposition === 'inline' ? 'application/pdf' : file.contentType,
+    'Content-Type': file.contentType,
     ...(disposition === 'inline' ? { 'Content-Length': file.fileStat.size } : {}),
     'Content-Disposition': disposition === 'inline'
       ? buildInlineContentDisposition(file.filename)
@@ -509,7 +543,7 @@ export const downloadMaterial = async (req, res, next) => {
   }
 };
 
-// @desc    Secure, bounded PDF preview. It uses the same access policy as downloads.
+// @desc    Secure, bounded inline preview for PDFs, images, and audio.
 // @route   GET /api/v1/materials/:id/preview
 // @access  Private
 export const previewMaterial = async (req, res, next) => {
@@ -517,6 +551,35 @@ export const previewMaterial = async (req, res, next) => {
     const file = await getAuthorizedMaterialFile(req, res, { preview: true });
     if (!file) return;
     return streamMaterialResponse(file, res, 'inline', next);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// @desc    Convert a DOCX material to sanitized HTML for an inline lesson preview.
+// @route   GET /api/v1/materials/:id/render
+// @access  Private
+export const renderMaterial = async (req, res, next) => {
+  try {
+    const file = await getAuthorizedMaterialFile(req, res, { preview: true });
+    if (!file) return;
+    if (file.contentType !== DOCX_CONTENT_TYPE) {
+      return sendError(res, 415, 'MATERIAL_RENDER_UNSUPPORTED', 'Chỉ hỗ trợ render tài liệu DOCX.');
+    }
+
+    const buffer = await fs.readFile(file.filePath);
+    const converted = await mammoth.convertToHtml({ buffer });
+    const html = sanitizeLessonHtml(converted.value || '');
+    if (!html.trim()) {
+      return sendError(res, 422, 'MATERIAL_RENDER_EMPTY', 'Tài liệu DOCX không có nội dung để hiển thị.');
+    }
+
+    res.set({
+      'Cache-Control': 'private, no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; img-src https:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    });
+    return res.json({ status: 'success', data: { html } });
   } catch (error) {
     return next(error);
   }

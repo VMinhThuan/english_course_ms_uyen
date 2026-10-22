@@ -1,175 +1,163 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { vocabularyApi } from '../api/vocabularyApi.js';
+import { TOEIC_VOCABULARY_BOOKS } from '../constants/toeicVocabularyBooks.js';
+import { loadToeicVocabularyBooks } from '../utils/loadToeicVocabularyChapters.js';
 import './Vocabulary.css';
 
-const PAGE_SIZE = 48;
+const normalizeText = (value = '') => String(value)
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/đ/g, 'd')
+  .toLocaleLowerCase('vi');
 
 export default function StudentVocabularyPage() {
   const [params, setParams] = useSearchParams();
-  const [words, setWords] = useState([]);
-  const [topics, setTopics] = useState([]);
+  const [books, setBooks] = useState(() => TOEIC_VOCABULARY_BOOKS.map((book) => ({ ...book, course: null, chapters: [] })));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState('word_asc');
-  const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({ page: 1, limit: PAGE_SIZE, total: 0, pages: 1 });
-  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const requestId = useRef(0);
-  const topic = params.get('topic') || '';
+  const requestedBookKey = params.get('book') || TOEIC_VOCABULARY_BOOKS[0].key;
+  const selectedBookKey = TOEIC_VOCABULARY_BOOKS.some((book) => book.key === requestedBookKey)
+    ? requestedBookKey
+    : TOEIC_VOCABULARY_BOOKS[0].key;
+  const selectedBook = books.find((book) => book.key === selectedBookKey) || books[0];
 
-  const load = useCallback(async () => {
+  useEffect(() => {
+    let live = true;
     const currentRequest = ++requestId.current;
-    setLoading(true);
-    setError('');
-    try {
-      const response = await vocabularyApi.getStudentVocabulary({
-        ...(topic ? { topic } : {}),
-        ...(search.trim() ? { search: search.trim() } : {}),
-        page,
-        limit: PAGE_SIZE,
-        sort,
-      });
-      if (currentRequest !== requestId.current) return;
-      setWords(response.data?.vocabulary || []);
-      setTopics(response.data?.topics || []);
-      setPagination(response.data?.pagination || { page, limit: PAGE_SIZE, total: 0, pages: 1 });
-    } catch (requestError) {
-      if (currentRequest !== requestId.current) return;
-      setWords([]);
-      setError(requestError.response?.data?.message || 'Không thể tải danh sách từ vựng. Vui lòng thử lại.');
-    } finally {
-      if (currentRequest === requestId.current) setLoading(false);
+
+    async function loadBooks() {
+      setLoading(true);
+      setError('');
+      try {
+        const loadedBooks = await loadToeicVocabularyBooks(TOEIC_VOCABULARY_BOOKS);
+
+        if (live && currentRequest === requestId.current) setBooks(loadedBooks);
+      } catch (loadError) {
+        if (live && currentRequest === requestId.current) {
+          setError(loadError.response?.data?.message || 'Không thể tải các bộ từ vựng. Vui lòng thử lại.');
+        }
+      } finally {
+        if (live && currentRequest === requestId.current) setLoading(false);
+      }
     }
-  }, [page, search, sort, topic]);
 
-  useEffect(() => {
-    const timer = window.setTimeout(load, search.trim() ? 250 : 0);
-    return () => window.clearTimeout(timer);
-  }, [load, search]);
+    loadBooks();
+    return () => { live = false; };
+  }, [reloadKey]);
 
-  useEffect(() => {
-    const updateVisibility = () => setShowBackToTop(window.scrollY > 500);
-    updateVisibility();
-    window.addEventListener('scroll', updateVisibility, { passive: true });
-    return () => window.removeEventListener('scroll', updateVisibility);
-  }, []);
+  const visibleChapters = useMemo(() => {
+    const chapters = selectedBook?.chapters || [];
+    const query = normalizeText(search.trim());
+    if (!query) return chapters;
 
-  const chooseTopic = (nextTopic) => {
-    setPage(1);
-    setParams(nextTopic ? { topic: nextTopic } : {});
+    return chapters.filter((chapter) => {
+      const chapterText = normalizeText(`${chapter.chapterTitle} ${chapter.chapterSubtitle}`);
+      return chapterText.includes(query) || chapter.words.some((word) =>
+        normalizeText(`${word.word} ${word.meaning} ${word.partOfSpeech} ${word.pronunciation}`).includes(query),
+      );
+    });
+  }, [search, selectedBook]);
+
+  const totalWords = selectedBook?.chapters.reduce((count, chapter) => count + chapter.words.length, 0) || 0;
+  const visibleWordCount = visibleChapters.reduce((count, chapter) => count + chapter.words.length, 0);
+
+  const chooseBook = (book) => {
+    setSearch('');
+    setParams({ book: book.key });
   };
 
-  const changeSearch = (value) => {
-    setPage(1);
-    setSearch(value);
-  };
-
-  const changeSort = (value) => {
-    setPage(1);
-    setSort(value);
-  };
-
-  const scrollToTop = () => {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      window.scrollTo(0, 0);
-      return;
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const getFlashcardUrl = (chapter = null) => {
+    const flashcardParams = new URLSearchParams({
+      book: selectedBook.key,
+      topic: selectedBook.topic,
+    });
+    if (chapter?._id) flashcardParams.set('startLessonId', String(chapter._id));
+    return `/student/flashcards?${flashcardParams.toString()}`;
   };
 
   return (
-    <div className="vocab-page">
+    <div className="vocab-page vocab-books-page">
       <header className="vocab-header">
         <div>
           <p>VOCABULARY</p>
-          <h1>Từ vựng theo bài học</h1>
-          <span>Tra cứu nghĩa và ví dụ, sau đó học bằng flashcard.</span>
+          <h1>Từ vựng theo chapter</h1>
+          <span>Chọn một chapter để lật thẻ và xem toàn bộ từ vựng trong đó.</span>
         </div>
-        {pagination.total > 0 && (
-          <Link className="vocab-primary" to={`/student/flashcards${topic ? `?topic=${encodeURIComponent(topic)}` : ''}`}>
+        {selectedBook?.chapters.length > 0 && (
+          <Link className="vocab-primary" to={getFlashcardUrl()}>
             Học bằng Flashcard →
           </Link>
         )}
       </header>
 
-      <nav className="topic-tabs" aria-label="Lọc từ vựng theo chủ đề">
-        <button type="button" className={!topic ? 'active' : ''} aria-pressed={!topic} onClick={() => chooseTopic('')}>
-          Tất cả
-        </button>
-        {topics.map((item) => (
-          <button key={item} type="button" className={item === topic ? 'active' : ''} aria-pressed={item === topic} onClick={() => chooseTopic(item)}>
-            {item}
+      <nav className="topic-tabs vocab-book-tabs" aria-label="Chọn bộ từ vựng TOEIC">
+        {books.map((book) => (
+          <button
+            key={book.key}
+            type="button"
+            className={book.key === selectedBookKey ? 'active' : ''}
+            aria-pressed={book.key === selectedBookKey}
+            onClick={() => chooseBook(book)}
+          >
+            {book.title}
           </button>
         ))}
       </nav>
 
-      <section className="vocab-toolbar" aria-label="Tìm và sắp xếp từ vựng">
+      <section className="vocab-toolbar vocab-chapter-toolbar" aria-label="Tìm chapter hoặc từ vựng">
         <label className="vocab-search">
-          <span>Tìm từ tiếng Anh hoặc nghĩa tiếng Việt</span>
+          <span>Tìm chapter hoặc từ vựng</span>
           <input
             type="search"
             value={search}
-            onChange={(event) => changeSearch(event.target.value)}
-            placeholder="Ví dụ: appointment hoặc cuộc hẹn"
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Ví dụ: Chapter 1 hoặc appointment"
             maxLength={80}
           />
         </label>
         {search && (
-          <button className="vocab-clear-search" type="button" onClick={() => changeSearch('')}>
+          <button className="vocab-clear-search" type="button" onClick={() => setSearch('')}>
             Xóa tìm kiếm
           </button>
         )}
-        <label className="vocab-sort">
-          <span>Sắp xếp</span>
-          <select value={sort} onChange={(event) => changeSort(event.target.value)}>
-            <option value="word_asc">Từ A–Z</option>
-            <option value="word_desc">Từ Z–A</option>
-          </select>
-        </label>
       </section>
 
-      {error && <div className="vocab-error" role="alert">{error}<button type="button" onClick={load}>Thử lại</button></div>}
+      {error && <div className="vocab-error" role="alert">{error}<button type="button" onClick={() => setReloadKey((current) => current + 1)}>Thử lại</button></div>}
       {loading ? (
-        <div className="vocab-state" role="status">Đang tải từ vựng...</div>
-      ) : words.length ? (
-        <>
-          <div className="vocab-result-summary" aria-live="polite">
-            {search.trim() ? `Tìm thấy ${pagination.total} từ phù hợp` : `${pagination.total} từ vựng`}
-          </div>
-          <section className="vocab-list" aria-label="Danh sách từ vựng">
-            {words.map((word, index) => (
-              <article key={word._id} className="vocab-entry">
-                <span className="vocab-number">{(page - 1) * PAGE_SIZE + index + 1}</span>
-                <div className="vocab-entry__content">
-                  <h2>{word.word} {word.partOfSpeech && <em>({word.partOfSpeech})</em>}</h2>
-                  {word.pronunciation && <span className="vocab-pronunciation">{word.pronunciation}</span>}
-                  <h3>{word.meaning}</h3>
-                  {(word.exampleEnglish || word.example) && <p className="vocab-en">{word.exampleEnglish || word.example}</p>}
-                  {word.exampleVietnamese && <p className="vocab-vi">{word.exampleVietnamese}</p>}
-                </div>
-              </article>
-            ))}
-          </section>
-          {pagination.pages > 1 && (
-            <nav className="vocab-pagination" aria-label="Phân trang từ vựng">
-              <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))}>← Trang trước</button>
-              <span>Trang {page} / {pagination.pages}</span>
-              <button type="button" disabled={page >= pagination.pages || loading} onClick={() => setPage((current) => Math.min(pagination.pages, current + 1))}>Trang sau →</button>
-            </nav>
-          )}
-        </>
+        <div className="vocab-state" role="status">Đang tải các chapter từ vựng...</div>
+      ) : selectedBook?.chapters.length ? (
+          <>
+            <div className="vocab-result-summary" aria-live="polite">
+              {visibleChapters.length} chapter · {search.trim() ? visibleWordCount : totalWords} từ vựng
+            </div>
+            {visibleChapters.length ? (
+              <section className="chapter-grid" aria-label={`Chapter trong ${selectedBook.title}`}>
+                {visibleChapters.map((chapter) => (
+                  <Link
+                    key={chapter._id}
+                    className="chapter-card"
+                    to={getFlashcardUrl(chapter)}
+                    aria-label={`Mở flashcard ${chapter.chapterTitle}, gồm ${chapter.words.length} từ`}
+                  >
+                    <span className="chapter-card__eyebrow">{chapter.chapterTitle}</span>
+                    <h2>{chapter.chapterTitle}</h2>
+                    {chapter.chapterSubtitle && <p className="chapter-card__subtitle">{chapter.chapterSubtitle}</p>}
+                    <span className="chapter-card__count">{chapter.words.length} từ vựng</span>
+                    <span className="chapter-card__hint">Mở flashcard →</span>
+                  </Link>
+                ))}
+              </section>
+            ) : (
+              <div className="vocab-state" role="status">Không tìm thấy chapter hoặc từ vựng phù hợp.</div>
+            )}
+          </>
       ) : (
         <div className="vocab-state" role="status">
-          {search.trim() ? 'Không tìm thấy từ vựng phù hợp.' : topic ? 'Chưa có từ vựng trong chủ đề này.' : 'Chưa có từ vựng.'}
+          Bộ từ vựng này chưa có chapter chứa từ vựng.
         </div>
-      )}
-
-      {showBackToTop && (
-        <button type="button" className="vocab-back-to-top" onClick={scrollToTop} aria-label="Cuộn về đầu trang">
-          ↑ <span>Về đầu trang</span>
-        </button>
       )}
     </div>
   );

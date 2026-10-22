@@ -1,11 +1,11 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { lessonApi } from '../api/lessonApi.js';
 import { materialApi } from '../api/materialApi.js';
 import { progressApi } from '../api/progressApi.js';
 import { getSafeLessonMediaUrl, sanitizeLessonHtml } from '../utils/sanitizeLessonHtml.js';
 import { isDownloadErrorBlob, readDownloadErrorMessage, resolveMaterialFilename } from '../utils/materialDownload.js';
-import PdfDocumentPreview from '../components/PdfDocumentPreview.jsx';
+import LessonMaterialPreview from '../components/LessonMaterialPreview.jsx';
 import './CourseLearning.css';
 
 const LESSON_DIFFICULTY_LABELS = {
@@ -27,12 +27,6 @@ const fileKind = (type = '') =>
 
 const fileSize = (size) =>
   size ? `${Math.max(1, Math.round(size / 1024))} KB` : '';
-
-const isPdfMaterial = (material) => {
-  const mime = String(material?.fileType || '').split(';', 1)[0].trim().toLowerCase();
-  const name = material?.originalName || material?.filename || material?.title || '';
-  return mime === 'application/pdf' || /\.pdf$/i.test(name);
-};
 
 function getEmbedVideo(url) {
   const safeUrl = getSafeLessonMediaUrl(url);
@@ -66,7 +60,6 @@ function getEmbedVideo(url) {
 
 export default function LessonPage() {
   const { courseId, lessonId } = useParams();
-  const navigate = useNavigate();
 
   const [lesson, setLesson] = useState(null);
   const [courseLessons, setCourseLessons] = useState([]);
@@ -77,9 +70,7 @@ export default function LessonPage() {
   const [completed, setCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState(null);
-  const [pdfPreview, setPdfPreview] = useState(null);
-  const [previewLoadingId, setPreviewLoadingId] = useState('');
-  const previewRequest = useRef(0);
+  const [lessonVocabularyFlipped, setLessonVocabularyFlipped] = useState(false);
 
   useEffect(() => {
     let isLive = true;
@@ -88,9 +79,7 @@ export default function LessonPage() {
       setLoading(true);
       setError('');
       setNotice(null);
-      setPdfPreview(null);
-      setPreviewLoadingId('');
-      previewRequest.current += 1;
+      setLessonVocabularyFlipped(false);
       try {
         const [lessonRes, courseLessonsRes, accessRes] = await Promise.all([
           lessonApi.getLessonById(lessonId),
@@ -118,7 +107,6 @@ export default function LessonPage() {
     loadData();
     return () => {
       isLive = false;
-      previewRequest.current += 1;
     };
   }, [courseId, lessonId]);
 
@@ -180,34 +168,6 @@ export default function LessonPage() {
     }
   };
 
-  const handlePdfPreview = async (material) => {
-    if (pdfPreview?.materialId === material._id) {
-      setPdfPreview(null);
-      return;
-    }
-
-    const requestId = ++previewRequest.current;
-    setPreviewLoadingId(material._id);
-    setNotice(null);
-    setPdfPreview(null);
-    try {
-      const response = await materialApi.previewMaterial(material._id);
-      if (requestId !== previewRequest.current) return;
-      const contentType = String(response.headers?.['content-type'] || response.data?.type || '').split(';', 1)[0].trim().toLowerCase();
-      if (contentType !== 'application/pdf') throw new Error('Máy chủ không trả về tệp PDF để xem trước.');
-      const signatureBytes = new Uint8Array(await response.data.slice(0, 5).arrayBuffer());
-      const signature = String.fromCharCode(...signatureBytes);
-      if (signature !== '%PDF-') throw new Error('Tệp này không phải PDF hợp lệ.');
-      setPdfPreview({ materialId: material._id, title: material.title, file: response.data });
-    } catch (e) {
-      if (requestId !== previewRequest.current) return;
-      const responseMessage = await readDownloadErrorMessage(e.response?.data);
-      setNotice({ type: 'error', text: responseMessage || e.message || 'Không thể xem trước tài liệu PDF.' });
-    } finally {
-      if (requestId === previewRequest.current) setPreviewLoadingId('');
-    }
-  };
-
   if (loading) {
     return (
       <main className="learning-page">
@@ -228,7 +188,6 @@ export default function LessonPage() {
   }
 
   const embedVideo = getEmbedVideo(lesson.videoUrl);
-
   return (
     <main className="learning-page lesson-learning">
       {/* Top Breadcrumb & Navigation */}
@@ -303,41 +262,66 @@ export default function LessonPage() {
       {/* Vocabulary Section */}
       {vocabulary.length > 0 && (
         <section className="material-section" style={{ marginTop: '2rem' }}>
-          <div className="section-title">
-            <h2>Từ vựng trọng tâm trong bài</h2>
-            <span>{vocabulary.length} từ</span>
+          <div className="section-title lesson-vocabulary-title">
+            <h2>Flashcard từ vựng bài học</h2>
+            <span>{vocabulary.length} từ · 1 thẻ</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
-            {vocabulary.map((v) => (
-              <div
-                key={v._id}
-                style={{
-                  padding: '1rem',
-                  borderRadius: '12px',
-                  border: '1px solid var(--brand-border-light)',
-                  background: 'var(--brand-surface)',
-                  boxShadow: 'var(--shadow-subtle)',
+          <div className={`lesson-inline-flashcard${lessonVocabularyFlipped ? ' is-flipped' : ''}`}>
+            <div className="lesson-inline-flashcard__inner">
+              <section
+                className="lesson-inline-flashcard__face lesson-inline-flashcard__front"
+                role="button"
+                tabIndex={lessonVocabularyFlipped ? -1 : 0}
+                aria-hidden={lessonVocabularyFlipped}
+                aria-pressed={lessonVocabularyFlipped}
+                aria-label={`Lật flashcard ${lesson.title}`}
+                onClick={() => setLessonVocabularyFlipped(true)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setLessonVocabularyFlipped(true);
+                  }
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.25rem' }}>
-                  <strong style={{ fontSize: '1.1rem', color: 'var(--brand-coffee)' }}>{v.word}</strong>
-                  {v.partOfSpeech && <em style={{ fontSize: '0.8rem', color: 'var(--brand-muted)' }}>({v.partOfSpeech})</em>}
-                </div>
-                {v.pronunciation && (
-                  <div style={{ fontSize: '0.85rem', color: 'var(--brand-muted)', marginBottom: '0.5rem' }}>
-                    {v.pronunciation}
+                <span className="lesson-inline-flashcard__eyebrow">FLASHCARD · BÀI HỌC</span>
+                <h3>{lesson.title}</h3>
+                {lesson.description && <p>{lesson.description}</p>}
+                <span className="lesson-inline-flashcard__count">{vocabulary.length} từ vựng</span>
+                <span className="lesson-inline-flashcard__flip-hint">Nhấn vào thẻ để xem toàn bộ từ →</span>
+              </section>
+              <section className="lesson-inline-flashcard__face lesson-inline-flashcard__back" aria-hidden={!lessonVocabularyFlipped}>
+                <header>
+                  <div>
+                    <span>TOÀN BỘ TỪ VỰNG</span>
+                    <h3>{lesson.title}</h3>
                   </div>
-                )}
-                <div style={{ fontSize: '0.9rem', color: 'var(--brand-text)', fontWeight: 600, marginBottom: '0.5rem' }}>
-                  {v.meaning}
-                </div>
-                {(v.exampleEnglish || v.example) && (
-                  <p style={{ fontSize: '0.85rem', color: 'var(--brand-muted)', fontStyle: 'italic', margin: 0 }}>
-                    "{v.exampleEnglish || v.example}"
-                  </p>
-                )}
-              </div>
-            ))}
+                  <div className="lesson-inline-flashcard__back-actions">
+                    <strong>{vocabulary.length} từ</strong>
+                    <button type="button" disabled={!lessonVocabularyFlipped} onClick={() => setLessonVocabularyFlipped(false)}>Mặt trước</button>
+                  </div>
+                </header>
+                <ol className="lesson-inline-flashcard__word-list">
+                  {vocabulary.map((word, index) => (
+                    <li key={word._id || `${word.word}-${index}`}>
+                      <div className="lesson-inline-flashcard__term">
+                        <span>{index + 1}</span>
+                        <div>
+                          <h4>{word.word} {word.partOfSpeech && <em>({word.partOfSpeech})</em>}</h4>
+                          {word.pronunciation && <small>{word.pronunciation}</small>}
+                        </div>
+                        <p>{word.meaning}</p>
+                      </div>
+                      {(word.exampleEnglish || word.example || word.exampleVietnamese) && (
+                        <div className="lesson-inline-flashcard__examples">
+                          {(word.exampleEnglish || word.example) && <p><b>EN</b> {word.exampleEnglish || word.example}</p>}
+                          {word.exampleVietnamese && <p><b>VI</b> {word.exampleVietnamese}</p>}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            </div>
           </div>
         </section>
       )}
@@ -362,32 +346,13 @@ export default function LessonPage() {
                 </div>
                 {m.allowDownload && (
                   <div className="material-actions">
-                    {isPdfMaterial(m) && !(m.fileUrl && /^https:\/\//i.test(m.fileUrl)) && (
-                      <button
-                        type="button"
-                        className="material-preview-button"
-                        disabled={previewLoadingId === m._id}
-                        onClick={() => handlePdfPreview(m)}
-                        aria-expanded={pdfPreview?.materialId === m._id}
-                      >
-                        {previewLoadingId === m._id ? 'Đang tải PDF...' : pdfPreview?.materialId === m._id ? 'Đóng bản xem' : 'Xem PDF'}
-                      </button>
-                    )}
                     <button type="button" className="material-download-button" onClick={() => handleDownload(m)}>
                       {m.fileUrl && /^https:\/\//i.test(m.fileUrl) ? 'Mở tài liệu' : '⬇️ Tải xuống'}
                     </button>
                   </div>
                 )}
               </div>
-              {pdfPreview?.materialId === m._id && (
-                <div className="material-pdf-preview">
-                  <div className="material-pdf-preview__header">
-                    <strong>{pdfPreview.title}</strong>
-                    <button type="button" onClick={() => setPdfPreview(null)} aria-label="Đóng bản xem PDF">Đóng</button>
-                  </div>
-                  <PdfDocumentPreview file={pdfPreview.file} title={pdfPreview.title} />
-                </div>
-              )}
+              <LessonMaterialPreview material={m} />
             </article>
           ))
         ) : (

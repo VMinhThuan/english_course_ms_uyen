@@ -21,6 +21,11 @@ export const materialApi = {
     return response;
   },
 
+  renderMaterial: async (materialId) => {
+    const response = await axiosInstance.get(`/materials/${materialId}/render`);
+    return response.data;
+  },
+
   // Admin APIs
   getAdminMaterials: async (params = {}) => {
     const response = await axiosInstance.get('/admin/materials', { params });

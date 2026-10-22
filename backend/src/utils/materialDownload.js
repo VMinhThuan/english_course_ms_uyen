@@ -14,9 +14,17 @@ const MIME_EXTENSION = Object.freeze({
   'audio/mpeg': '.mp3',
   'audio/mp4': '.m4a',
   'audio/wav': '.wav',
+  'audio/x-wav': '.wav',
+  'audio/ogg': '.ogg',
+  'audio/webm': '.webm',
+  'audio/aac': '.aac',
+  'audio/flac': '.flac',
   'image/jpeg': '.jpg',
   'image/png': '.png',
   'image/webp': '.webp',
+  'image/gif': '.gif',
+  'image/avif': '.avif',
+  'image/bmp': '.bmp',
 });
 const KNOWN_EXTENSIONS = new Set(Object.values(MIME_EXTENSION));
 

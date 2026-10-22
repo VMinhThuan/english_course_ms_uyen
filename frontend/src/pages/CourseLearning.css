@@ -122,3 +122,72 @@
 @media(max-width:600px) { .lesson-footer-nav { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }.lesson-footer-nav > a,.lesson-footer-nav > button { min-height:42px; padding:0 5px; font-size:10px; line-height:1.25; }.lesson-footer-nav > .lesson-footer-nav__previous { justify-self:stretch; }.lesson-footer-nav > .lesson-footer-nav__next { justify-self:stretch; } }
 @media(max-width:760px) { .material-row { gap:11px; }.material-row > div:first-of-type { flex:1 1 calc(100% - 62px); }.material-actions { width:100%; justify-content:flex-start; padding-left:58px; }.material-actions button { flex:1 1 auto; }.material-pdf-preview { margin-left:0; }.pdf-document-preview { min-height:320px; max-height:65vh; }.pdf-document-preview__canvas-wrap { min-height:260px; padding:10px; } }
 @media(prefers-reduced-motion:reduce) { .material-actions button { scroll-behavior:auto; } }
+.lesson-vocabulary-toolbar { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+.lesson-vocabulary-toolbar .section-title { flex:1 1 260px; margin:0; }
+.lesson-vocabulary-flashcard { flex:0 0 auto; }
+.lesson-vocabulary-flashcard-summary { display:flex; align-items:center; gap:14px; padding:17px 18px; border:1px solid var(--brand-border-light); border-radius:12px; background:var(--brand-surface); box-shadow:var(--shadow-subtle); }
+.lesson-vocabulary-flashcard-summary__mark { display:grid; width:42px; height:42px; flex:none; place-items:center; border-radius:10px; background:var(--brand-yellow-soft); color:var(--brand-coffee); font:700 17px var(--font-serif); }
+.lesson-vocabulary-flashcard-summary > div { min-width:0; flex:1; }
+.lesson-vocabulary-flashcard-summary strong { display:block; color:var(--brand-coffee); font-size:14px; }
+.lesson-vocabulary-flashcard-summary p { margin:4px 0 0; color:var(--brand-muted); font-size:12px; line-height:1.5; }
+.lesson-vocabulary-flashcard-summary__count { flex:none; color:var(--brand-muted); font-size:12px; font-weight:800; }
+.lesson-vocabulary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:14px; }
+.lesson-vocabulary-card { display:block; min-width:0; padding:17px; border:1px solid var(--brand-border-light); border-radius:12px; background:var(--brand-surface); box-shadow:var(--shadow-subtle); color:inherit; text-decoration:none; transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease; }
+.lesson-vocabulary-card:hover { border-color:var(--brand-brown-sec); box-shadow:0 9px 22px rgb(75 64 53 / 11%); transform:translateY(-2px); }
+.lesson-vocabulary-card:focus-visible { outline:3px solid var(--brand-focus-ring); outline-offset:3px; }
+.lesson-vocabulary-card__term { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px; }
+.lesson-vocabulary-card__term strong { color:var(--brand-coffee); font-size:17px; }
+.lesson-vocabulary-card__term em,.lesson-vocabulary-card__pronunciation { color:var(--brand-muted); font-size:12px; }
+.lesson-vocabulary-card__pronunciation { margin-bottom:8px; }
+.lesson-vocabulary-card__meaning { margin-bottom:8px; color:var(--brand-text); font-size:14px; font-weight:700; line-height:1.5; }
+.lesson-vocabulary-card__example { margin:0; color:var(--brand-muted); font-size:12px; font-style:italic; line-height:1.5; }
+.lesson-vocabulary-card__hint { display:block; margin-top:14px; color:var(--brand-coffee); font-size:11px; font-weight:800; }
+@media(max-width:600px) { .lesson-vocabulary-toolbar { align-items:stretch; flex-direction:column; }.lesson-vocabulary-flashcard { width:100%; box-sizing:border-box; }.lesson-vocabulary-flashcard-summary { align-items:flex-start; flex-wrap:wrap; }.lesson-vocabulary-flashcard-summary__count { width:100%; padding-left:56px; } }
+
+/* Inline lesson flashcard and automatically rendered materials. */
+.lesson-vocabulary-title { margin-bottom:16px; }
+.lesson-vocabulary-title .section-title { margin:0; }
+.lesson-inline-flashcard { height:min(72vh,760px); min-height:520px; perspective:1200px; }
+.lesson-inline-flashcard__inner { position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .45s ease; }
+.lesson-inline-flashcard.is-flipped .lesson-inline-flashcard__inner { transform:rotateY(180deg); }
+.lesson-inline-flashcard__face { position:absolute; inset:0; display:flex; min-width:0; flex-direction:column; border:1px solid var(--brand-border); border-radius:18px; box-shadow:0 12px 30px rgb(75 64 53 / 10%); backface-visibility:hidden; }
+.lesson-inline-flashcard__front { align-items:center; justify-content:center; gap:15px; overflow:hidden; padding:36px; background:var(--brand-surface); color:inherit; cursor:pointer; text-align:center; }
+.lesson-inline-flashcard__front:focus-visible { outline:3px solid var(--brand-focus-ring); outline-offset:3px; }
+.lesson-inline-flashcard__eyebrow { color:var(--brand-coffee); font-size:11px; font-weight:800; letter-spacing:.14em; }
+.lesson-inline-flashcard__front h3 { max-width:800px; margin:0; color:var(--brand-text); font:600 clamp(30px,5vw,48px) var(--font-serif); overflow-wrap:anywhere; }
+.lesson-inline-flashcard__front > p { max-width:700px; margin:0; color:var(--brand-muted); line-height:1.6; }
+.lesson-inline-flashcard__count { display:inline-flex; min-height:34px; align-items:center; padding:0 14px; border-radius:999px; background:var(--brand-yellow-soft); color:var(--brand-warning); font-size:12px; font-weight:800; }
+.lesson-inline-flashcard__flip-hint { display:inline-flex; min-height:40px; align-items:center; padding:0 14px; border:1px solid var(--brand-yellow); border-radius:9px; background:var(--brand-yellow); color:var(--brand-text); font:800 12px var(--font-sans); }
+.lesson-inline-flashcard__back-actions button:focus-visible { outline:3px solid var(--brand-focus-ring); outline-offset:2px; }
+.lesson-inline-flashcard__back { transform:rotateY(180deg); gap:12px; overflow:hidden; padding:22px 26px; background:var(--brand-coffee); color:#fff; }
+.lesson-inline-flashcard__back > header { display:flex; flex:none; align-items:center; justify-content:space-between; gap:14px; padding-bottom:13px; border-bottom:1px solid rgb(255 255 255 / 20%); }
+.lesson-inline-flashcard__back > header span { color:#E4D4BE; font-size:10px; font-weight:800; letter-spacing:.12em; }
+.lesson-inline-flashcard__back > header h3 { margin:4px 0 0; color:var(--brand-yellow); font:600 24px var(--font-serif); overflow-wrap:anywhere; }
+.lesson-inline-flashcard__back-actions { display:flex; flex:none; align-items:center; gap:8px; }
+.lesson-inline-flashcard__back-actions strong { border:1px solid rgb(255 255 255 / 25%); border-radius:999px; padding:7px 10px; color:#fff; font-size:11px; white-space:nowrap; }
+.lesson-inline-flashcard__back-actions button { min-height:34px; border-color:rgb(255 255 255 / 30%); background:transparent; color:#fff; }
+.lesson-inline-flashcard__word-list { min-height:0; flex:1; overflow:auto; overscroll-behavior:contain; margin:0; padding:0 8px 0 0; list-style:none; scrollbar-color:#C8B7A5 transparent; }
+.lesson-inline-flashcard__word-list li { padding:13px 0; border-bottom:1px solid rgb(255 255 255 / 16%); }
+.lesson-inline-flashcard__term { display:grid; grid-template-columns:28px minmax(130px,1fr) minmax(140px,1.2fr); align-items:start; gap:10px; }
+.lesson-inline-flashcard__term > span { color:var(--brand-yellow); font:600 16px var(--font-serif); }
+.lesson-inline-flashcard__term h4 { margin:0; color:#fff; font-size:15px; line-height:1.35; overflow-wrap:anywhere; }
+.lesson-inline-flashcard__term h4 em { color:#E4D4BE; font-size:11px; font-weight:500; }
+.lesson-inline-flashcard__term small { display:block; margin-top:4px; color:#E4D4BE; font-size:11px; }
+.lesson-inline-flashcard__term > p { margin:0; color:#fff; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+.lesson-inline-flashcard__examples { margin:7px 0 0 38px; color:#E4D4BE; }
+.lesson-inline-flashcard__examples p { margin:3px 0 0; font-size:11px; line-height:1.45; overflow-wrap:anywhere; }
+.lesson-inline-flashcard__examples b { margin-right:5px; color:var(--brand-yellow); font-size:9px; letter-spacing:.08em; }
+.lesson-material-preview { margin:0 0 18px 58px; overflow:hidden; border:1px solid var(--brand-border); border-radius:12px; background:var(--brand-bg-sub); }
+.lesson-material-preview__status,.lesson-material-preview__error { margin:0; padding:16px; color:var(--brand-muted); font-size:13px; line-height:1.5; }
+.lesson-material-preview__error { color:var(--brand-danger); }
+.lesson-material-preview__image { display:block; width:100%; max-height:min(72vh,760px); object-fit:contain; background:#f4f1eb; }
+.lesson-material-preview__audio { display:block; width:calc(100% - 32px); margin:16px; }
+.lesson-material-preview__pdf-frame { display:block; width:100%; height:min(72vh,760px); min-height:420px; border:0; background:#f3f0eb; }
+.lesson-material-preview__docx { max-height:min(72vh,760px); overflow:auto; padding:24px clamp(16px,4vw,42px); background:#fff; color:var(--brand-text); line-height:1.7; }
+.lesson-material-preview__docx h1,.lesson-material-preview__docx h2,.lesson-material-preview__docx h3 { color:var(--brand-coffee); font-family:var(--font-serif); }
+.lesson-material-preview__docx table { width:100%; border-collapse:collapse; }
+.lesson-material-preview__docx th,.lesson-material-preview__docx td { padding:8px; border:1px solid var(--brand-border); text-align:left; }
+.lesson-material-preview__docx img { max-width:100%; height:auto; }
+@media(max-width:760px) { .lesson-inline-flashcard { min-height:500px; }.lesson-inline-flashcard__back { padding:18px; }.lesson-inline-flashcard__term { grid-template-columns:24px minmax(0,1fr); }.lesson-inline-flashcard__term > p { grid-column:2; }.lesson-inline-flashcard__examples { margin-left:34px; }.lesson-material-preview { margin-left:0; }.lesson-material-preview__pdf-frame { min-height:320px; } }
+@media(max-width:600px) { .lesson-inline-flashcard { height:68vh; min-height:460px; }.lesson-inline-flashcard__front { padding:24px 16px; }.lesson-inline-flashcard__back { padding:15px; }.lesson-inline-flashcard__back > header { align-items:flex-start; }.lesson-inline-flashcard__back > header h3 { font-size:19px; }.lesson-inline-flashcard__back-actions { flex-direction:column; align-items:flex-end; }.lesson-inline-flashcard__back-actions button { padding:0 9px; font-size:10px; } }
+@media(prefers-reduced-motion:reduce) { .lesson-inline-flashcard__inner { transition:none; } }

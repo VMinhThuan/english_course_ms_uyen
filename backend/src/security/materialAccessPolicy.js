@@ -3,7 +3,7 @@ import { getStudentStatusError } from './accountAccessPolicy.js';
 
 const denial = (statusCode, code, message) => ({ allowed: false, statusCode, code, message });
 
-export const evaluateMaterialAccess = ({ user, material, lesson, course, enrolled = false }) => {
+export const evaluateMaterialAccess = ({ user, material, lesson, course, enrolled = false, allowPreview = false }) => {
   if (!user) return denial(401, 'UNAUTHORIZED', 'Unauthorized');
   if (!material || !lesson) return denial(404, 'MATERIAL_NOT_FOUND', 'Material not found');
 
@@ -27,7 +27,7 @@ export const evaluateMaterialAccess = ({ user, material, lesson, course, enrolle
   if (!enrolled) {
     return denial(403, 'COURSE_ENROLLMENT_REQUIRED', 'Bạn cần đăng ký khóa học để truy cập tài liệu này.');
   }
-  if (!material.allowDownload) {
+  if (!material.allowDownload && !allowPreview) {
     return denial(403, 'MATERIAL_DOWNLOAD_NOT_ALLOWED', 'Tài liệu này chưa được phép tải xuống.');
   }
   return { allowed: true };

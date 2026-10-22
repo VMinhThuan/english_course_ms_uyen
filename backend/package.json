@@ -12,7 +12,8 @@
         "test:phase3": "node --test tests/phase3AttemptReporting.test.js tests/phase3Admin.integration.test.js",
         "test:phase4": "node --test tests/phase4Learning.integration.test.js",
         "seed": "node src/scripts/seedData.js",
-        "seed:demo": "node src/scripts/seedDemoData.js"
+        "seed:demo": "node src/scripts/seedDemoData.js",
+        "seed:lesson-preview-demo": "node src/scripts/seedLessonMaterialPreviewDemo.js"
     },
     "keywords": [
         "english",

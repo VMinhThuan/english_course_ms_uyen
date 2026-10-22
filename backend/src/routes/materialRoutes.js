@@ -8,6 +8,7 @@ import {
   getStudentMaterialsByLesson,
   downloadMaterial,
   previewMaterial,
+  renderMaterial,
 } from '../controllers/materialController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
 import { getPrivateUploadDir } from '../utils/uploadConfig.js';
@@ -31,6 +32,7 @@ const upload = createUpload({
 router.get('/lesson/:lessonId', verifyToken, getStudentMaterialsByLesson);
 router.get('/:id/download', verifyToken, downloadMaterial);
 router.get('/:id/preview', verifyToken, previewMaterial);
+router.get('/:id/render', verifyToken, renderMaterial);
 
 // Admin / Teacher routes
 router.post('/admin', verifyToken, checkRole('teacher', 'admin'), upload.single('file'), createMaterial);
