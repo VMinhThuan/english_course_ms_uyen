@@ -3,6 +3,8 @@ import {
   createToeicTest,
   getAdminToeicTests,
   getAdminToeicTestById,
+  getEligibleToeicPart5BankQuestions,
+  addToeicPart5BankQuestions,
   updateToeicTest,
   upsertQuestionGroup,
   duplicateToeicTest,
@@ -52,6 +54,9 @@ adminRouter.get('/toeic-tests', getAdminToeicTests);
 adminRouter.post('/toeic-tests', createToeicTest);
 adminRouter.post('/toeic-tests/template', createToeicTest);
 adminRouter.get('/toeic-tests/:id', getAdminToeicTestById);
+// The general TOEIC builder remains Admin/Teacher; this new bank picker is Admin-only.
+adminRouter.get('/toeic-tests/:id/question-bank/part5', checkRole('admin'), getEligibleToeicPart5BankQuestions);
+adminRouter.post('/toeic-tests/:id/question-bank/part5/selections', checkRole('admin'), addToeicPart5BankQuestions);
 adminRouter.put('/toeic-tests/:id', updateToeicTest);
 adminRouter.post('/toeic-tests/:id/groups', upsertQuestionGroup);
 adminRouter.post('/toeic-tests/:id/duplicate', duplicateToeicTest);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toeicApi } from '../../api/toeicApi.js';
 import { mediaApi } from '../../api/mediaApi.js';
@@ -7,12 +7,15 @@ import UiButton from '../../components/ui/UiButton.jsx';
 import StatusBadge from '../../components/ui/StatusBadge.jsx';
 import { extractToeicPdfText } from '../../utils/toeicPdfOcr.js';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
+import useAuthStore from '../../store/authStore.js';
 import './AdminStudentsPage.css';
+import './AdminToeicPart5BankPicker.css';
 
 export default function AdminToeicBuilderPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id;
+  const currentUser = useAuthStore((state) => state.user);
 
   const [activeTab, setActiveTab] = useState('overview');
   const [assessment, setAssessment] = useState(null);
@@ -21,6 +24,20 @@ export default function AdminToeicBuilderPage() {
   const [publishing, setPublishing] = useState(false);
   const [mediaUploading, setMediaUploading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
+  const [bankPickerOpen, setBankPickerOpen] = useState(false);
+  const [bankPickerLoading, setBankPickerLoading] = useState(false);
+  const [bankPickerSaving, setBankPickerSaving] = useState(false);
+  const [bankPickerError, setBankPickerError] = useState('');
+  const [bankPickerSearch, setBankPickerSearch] = useState('');
+  const [bankPickerPage, setBankPickerPage] = useState(1);
+  const [bankPickerData, setBankPickerData] = useState({ questions: [], pagination: { total: 0, page: 1, pages: 1, limit: 10 } });
+  const [bankPickerSelectedIds, setBankPickerSelectedIds] = useState([]);
+  const [bankPickerResults, setBankPickerResults] = useState([]);
+  const [bankPickerGroupId, setBankPickerGroupId] = useState('');
+  const bankPickerRequestRef = useRef(null);
+  const bankPickerDialogRef = useRef(null);
+  const bankPickerSavingRef = useRef(false);
+  bankPickerSavingRef.current = bankPickerSaving;
 
   // Form states for Overview / Settings
   const [title, setTitle] = useState('');
@@ -108,6 +125,102 @@ export default function AdminToeicBuilderPage() {
       setFeedback({ type: 'error', text: err.response?.data?.message || 'Không thể tải chi tiết đề thi' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!bankPickerOpen || !id || currentUser?.role !== 'admin') return undefined;
+    let active = true;
+    const timer = setTimeout(async () => {
+      try {
+        setBankPickerLoading(true);
+        setBankPickerError('');
+        const response = await toeicApi.getEligiblePart5BankQuestions(id, {
+          search: bankPickerSearch,
+          page: bankPickerPage,
+          limit: 10,
+        });
+        if (active && response.status === 'success') setBankPickerData(response.data);
+      } catch (error) {
+        if (active) setBankPickerError(error.response?.data?.message || 'Không thể tải câu hỏi Part 5.');
+      } finally {
+        if (active) setBankPickerLoading(false);
+      }
+    }, 160);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [bankPickerOpen, bankPickerSearch, bankPickerPage, currentUser?.role, id]);
+
+  useEffect(() => {
+    if (!bankPickerOpen) return undefined;
+    const priorFocus = document.activeElement;
+    const handleDialogKeys = (event) => {
+      if (event.key === 'Escape' && !bankPickerSavingRef.current) setBankPickerOpen(false);
+      if (event.key !== 'Tab') return;
+      const focusable = bankPickerDialogRef.current?.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])');
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleDialogKeys);
+    return () => {
+      document.removeEventListener('keydown', handleDialogKeys);
+      priorFocus?.focus?.();
+    };
+  }, [bankPickerOpen]);
+
+  const handleOpenPart5BankPicker = () => {
+    setBankPickerSelectedIds([]);
+    setBankPickerResults([]);
+    setBankPickerSearch('');
+    setBankPickerPage(1);
+    setBankPickerGroupId('');
+    setBankPickerError('');
+    bankPickerRequestRef.current = null;
+    setBankPickerOpen(true);
+  };
+
+  const handleConfirmPart5BankSelection = async () => {
+    if (!bankPickerSelectedIds.length || !id) return;
+    const signature = JSON.stringify({ groupId: bankPickerGroupId || null, questionIds: bankPickerSelectedIds });
+    if (!bankPickerRequestRef.current || bankPickerRequestRef.current.signature !== signature) {
+      bankPickerRequestRef.current = { signature, key: crypto.randomUUID() };
+    }
+
+    try {
+      setBankPickerSaving(true);
+      setBankPickerError('');
+      const response = await toeicApi.addPart5BankQuestions(id, bankPickerSelectedIds, {
+        groupId: bankPickerGroupId || undefined,
+        idempotencyKey: bankPickerRequestRef.current.key,
+      });
+      if (response.status === 'success' && response.data?.assessment) {
+        setAssessment(response.data.assessment);
+        const outcomes = response.data.results || [];
+        const added = outcomes.filter((item) => ['ADDED', 'RECOVERED'].includes(item.status)).length;
+        setBankPickerResults(outcomes);
+        setBankPickerSelectedIds([]);
+        const addedSources = new Set(outcomes.filter((item) => ['ADDED', 'RECOVERED', 'ALREADY_IN_ASSESSMENT'].includes(item.status)).map((item) => item.sourceQuestionId));
+        setBankPickerData((current) => ({
+          ...current,
+          questions: current.questions.map((question) => addedSources.has(question._id) ? { ...question, alreadyInAssessment: true } : question),
+        }));
+        bankPickerRequestRef.current = null;
+        setFeedback({ type: added > 0 ? 'success' : 'error', text: added > 0 ? `Đã thêm ${added} câu Part 5 vào đề.` : 'Không có câu nào được thêm.' });
+      }
+    } catch (error) {
+      setBankPickerError(error.response?.data?.message || 'Không thể thêm câu hỏi. Hãy thử lại; request có thể được phục hồi bằng cùng mã thao tác.');
+    } finally {
+      setBankPickerSaving(false);
     }
   };
 
@@ -827,7 +940,7 @@ export default function AdminToeicBuilderPage() {
       {/* TAB 2: PART 1 TO 7 BUILDER */}
       {activeTab.startsWith('part_') && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
+
           {/* Part Header & Existing Groups List */}
           <div style={{ background: 'var(--brand-surface)', borderRadius: '16px', border: '1px solid var(--brand-border)', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid var(--brand-border-light)', paddingBottom: '0.75rem' }}>
@@ -848,10 +961,16 @@ export default function AdminToeicBuilderPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => resetGroupEditor(activePartNumber)}
-                style={{
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                {activePartNumber === 5 && currentUser?.role === 'admin' && assessment?.status === 'draft' && (
+                  <button type="button" className="p5-bank-open-button" onClick={handleOpenPart5BankPicker}>
+                    <span aria-hidden="true">＋</span> Chọn câu từ Ngân hàng Part 5
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => resetGroupEditor(activePartNumber)}
+                  style={{
                   background: 'var(--brand-yellow)',
                   color: 'var(--brand-text)',
                   padding: '0.5rem 1rem',
@@ -860,11 +979,16 @@ export default function AdminToeicBuilderPage() {
                   fontWeight: 700,
                   fontSize: '0.85rem',
                   cursor: 'pointer',
-                }}
-              >
-                + Thêm Nhóm Mới
-              </button>
+                  }}
+                >
+                  + Thêm Nhóm Mới
+                </button>
+              </div>
             </div>
+
+            {activePartNumber === 5 && currentUser?.role === 'admin' && assessment?.status !== 'draft' && (
+              <div className="p5-bank-locked-note" role="status">Assessment không ở trạng thái Draft; không thể thêm câu từ Question Bank.</div>
+            )}
 
             {/* List of Existing Groups in Current Part */}
             {currentPartGroups.length === 0 ? (
@@ -940,6 +1064,111 @@ export default function AdminToeicBuilderPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {bankPickerOpen && activePartNumber === 5 && (
+              <div className="p5-bank-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setBankPickerOpen(false); }}>
+                <section ref={bankPickerDialogRef} className="p5-bank-dialog" role="dialog" aria-modal="true" aria-labelledby="p5-bank-title">
+                  <header className="p5-bank-dialog__header">
+                    <div>
+                      <span className="p5-bank-eyebrow">TOEIC · PART 05</span>
+                      <h3 id="p5-bank-title">Chọn câu từ Ngân hàng Part 5</h3>
+                      <p>Câu được sao chép độc lập vào đề nháp; chỉnh sửa đề sẽ không thay đổi câu nguồn.</p>
+                    </div>
+                    <button type="button" className="p5-bank-close" aria-label="Đóng hộp chọn" onClick={() => setBankPickerOpen(false)}>×</button>
+                  </header>
+
+                  <div className="p5-bank-toolbar">
+                    <label className="p5-bank-search">
+                      <span>Tìm nội dung câu hỏi</span>
+                      <input
+                        type="search"
+                        value={bankPickerSearch}
+                        onChange={(event) => { setBankPickerSearch(event.target.value); setBankPickerPage(1); }}
+                        placeholder="Từ khóa tiếng Anh..."
+                        autoFocus
+                      />
+                    </label>
+                    <label className="p5-bank-target">
+                      <span>Thêm vào nhóm</span>
+                      <select value={bankPickerGroupId} onChange={(event) => setBankPickerGroupId(event.target.value)}>
+                        <option value="">Tạo nhóm Part 5 mới</option>
+                        {currentPartGroups.map((group, index) => (
+                          <option key={group._id} value={group._id}>{group.title || `Nhóm Part 5 ${index + 1}`} · {group.questionIds?.length || 0} câu</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="p5-bank-selection-summary" aria-live="polite">
+                    <span>{bankPickerData.pagination?.total || 0} câu đủ điều kiện</span>
+                    <strong>{bankPickerSelectedIds.length} đã chọn</strong>
+                  </div>
+
+                  {bankPickerError && <div className="p5-bank-error" role="alert">{bankPickerError}</div>}
+                  {bankPickerResults.length > 0 && (
+                    <div className="p5-bank-results" aria-live="polite">
+                      <strong>Kết quả xử lý</strong>
+                      {bankPickerResults.map((result, index) => (
+                        <div key={`${result.sourceQuestionId}-${index}`} className={['ADDED', 'RECOVERED'].includes(result.status) ? 'is-added' : 'is-skipped'}>
+                          <span>{result.status === 'ADDED' ? 'Đã thêm' : result.status === 'RECOVERED' ? 'Đã phục hồi' : result.status === 'ALREADY_IN_ASSESSMENT' ? 'Đã có trong đề' : result.status === 'DUPLICATE_REQUEST' ? 'ID trùng trong thao tác' : 'Bị bỏ qua'}</span>
+                          <span>{result.issues?.map((issue) => issue.message).join(' ') || result.code}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {bankPickerLoading ? (
+                    <div className="p5-bank-empty" role="status">Đang tải các câu đã được duyệt...</div>
+                  ) : bankPickerData.questions.length === 0 ? (
+                    <div className="p5-bank-empty">Không có câu Part 5 đủ điều kiện cho tìm kiếm này.</div>
+                  ) : (
+                    <div className="p5-bank-list">
+                      {bankPickerData.questions.map((question) => {
+                        const selected = bankPickerSelectedIds.includes(question._id);
+                        const correctAnswer = question.correctAnswers?.[0];
+                        return (
+                          <article key={question._id} className={`p5-bank-card${question.alreadyInAssessment ? ' is-added' : selected ? ' is-selected' : ''}`}>
+                            <label className="p5-bank-card__select">
+                              <input
+                                type="checkbox"
+                                checked={selected || !!question.alreadyInAssessment}
+                                disabled={!!question.alreadyInAssessment}
+                                onChange={(event) => setBankPickerSelectedIds((current) => event.target.checked
+                                  ? [...current, question._id]
+                                  : current.filter((questionId) => questionId !== question._id))}
+                              />
+                              <span>{question.alreadyInAssessment ? 'Đã có trong đề' : 'Chọn câu này'}</span>
+                            </label>
+                            <p className="p5-bank-card__stem">{question.questionText}</p>
+                            <div className="p5-bank-options">
+                              {(question.options || []).map((option) => (
+                                <div key={option.id} className={option.id === correctAnswer ? 'is-correct' : ''}>
+                                  <b>{option.id}</b><span>{option.text}</span>{option.id === correctAnswer && <em>Đúng</em>}
+                                </div>
+                              ))}
+                            </div>
+                            <p className="p5-bank-explanation"><b>Giải thích</b>{question.explanation}</p>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <footer className="p5-bank-dialog__footer">
+                    <div className="p5-bank-pages">
+                      <button type="button" disabled={bankPickerPage <= 1 || bankPickerLoading} onClick={() => setBankPickerPage((page) => Math.max(1, page - 1))}>Trước</button>
+                      <span>Trang {bankPickerData.pagination?.page || 1} / {bankPickerData.pagination?.pages || 1}</span>
+                      <button type="button" disabled={bankPickerPage >= (bankPickerData.pagination?.pages || 1) || bankPickerLoading} onClick={() => setBankPickerPage((page) => page + 1)}>Sau</button>
+                    </div>
+                    <div className="p5-bank-actions">
+                      <button type="button" className="p5-bank-cancel" onClick={() => setBankPickerOpen(false)}>Đóng</button>
+                      <button type="button" className="p5-bank-confirm" disabled={!bankPickerSelectedIds.length || bankPickerSaving} onClick={handleConfirmPart5BankSelection}>
+                        {bankPickerSaving ? 'Đang thêm...' : `Thêm ${bankPickerSelectedIds.length} câu vào đề`}
+                      </button>
+                    </div>
+                  </footer>
+                </section>
               </div>
             )}
           </div>

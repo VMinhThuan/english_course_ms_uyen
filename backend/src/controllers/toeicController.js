@@ -4,6 +4,23 @@ import Assessment from '../models/Assessment.js';
 import QuestionGroup from '../models/QuestionGroup.js';
 import Question from '../models/Question.js';
 import Attempt from '../models/Attempt.js';
+import {
+  hasActiveQuestionBankSelectionLock,
+  listEligiblePart5Questions,
+  selectPart5Questions,
+} from '../services/toeicPart5BankSelection.js';
+
+const rejectDuringQuestionBankSelection = async (assessmentId, res) => {
+  if (await hasActiveQuestionBankSelectionLock(assessmentId)) {
+    res.status(409).json({
+      status: 'error',
+      code: 'QUESTION_BANK_SELECTION_BUSY',
+      message: 'Đang xử lý lựa chọn câu hỏi Part 5. Hãy thử lại sau.',
+    });
+    return true;
+  }
+  return false;
+};
 import { DEFAULT_TOEIC_PARTS } from '../utils/toeicHelper.js';
 import { parseToeicPdf } from '../utils/toeicPdfParser.js';
 import { MAX_TOEIC_IMPORT_BYTES } from '../utils/uploadValidation.js';
@@ -190,6 +207,58 @@ export const getAdminToeicTestById = async (req, res, next) => {
   }
 };
 
+// @route   GET /api/v1/admin/toeic-tests/:id/question-bank/part5
+// @access  Private (Admin)
+export const getEligibleToeicPart5BankQuestions = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!/^[a-f\d]{24}$/i.test(id)) {
+      return res.status(404).json({ status: 'error', code: 'ASSESSMENT_NOT_FOUND', message: 'Không tìm thấy TOEIC Assessment.' });
+    }
+    const assessment = await Assessment.findById(id).select('examFormat status');
+    if (!assessment || assessment.examFormat !== 'toeic') {
+      return res.status(404).json({ status: 'error', code: 'ASSESSMENT_NOT_FOUND', message: 'Không tìm thấy TOEIC Assessment.' });
+    }
+    if (assessment.status !== 'draft') {
+      return res.status(409).json({ status: 'error', code: 'ASSESSMENT_NOT_EDITABLE', message: 'Chỉ có thể chọn câu cho TOEIC Assessment đang ở trạng thái Draft.' });
+    }
+
+    const data = await listEligiblePart5Questions({
+      assessmentId: id,
+      search: req.query.search,
+      page: req.query.page,
+      limit: req.query.limit,
+    });
+    return res.json({ status: 'success', data });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// @route   POST /api/v1/admin/toeic-tests/:id/question-bank/part5/selections
+// @access  Private (Admin)
+export const addToeicPart5BankQuestions = async (req, res, next) => {
+  try {
+    const result = await selectPart5Questions({
+      assessmentId: req.params.id,
+      groupId: req.body?.groupId,
+      questionIds: req.body?.questionIds,
+      idempotencyKey: req.get('Idempotency-Key'),
+      actorId: req.user._id,
+    });
+    if (result.error) {
+      return res.status(result.httpStatus).json({ status: 'error', ...result.error });
+    }
+    return res.status(result.httpStatus).json({
+      status: 'success',
+      message: 'Đã xử lý lựa chọn câu hỏi Part 5.',
+      data: result.data,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // @desc    Admin update TOEIC test settings & parts
 // @route   PUT /api/v1/admin/toeic-tests/:id
 // @access  Private (Admin)
@@ -214,6 +283,7 @@ export const updateToeicTest = async (req, res, next) => {
         message: 'Không tìm thấy đề thi TOEIC',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     if (title !== undefined) assessment.title = title.trim();
     if (description !== undefined) assessment.description = description;
@@ -269,6 +339,7 @@ export const upsertQuestionGroup = async (req, res, next) => {
         message: 'Không tìm thấy đề thi TOEIC',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     let group;
     if (groupId) {
@@ -391,6 +462,7 @@ export const upsertQuestionGroup = async (req, res, next) => {
 export const duplicateToeicTest = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     const source = await Assessment.findById(id).populate({
       path: 'questionGroups',
@@ -490,12 +562,20 @@ export const publishToeicTest = async (req, res, next) => {
     const assessment = await Assessment.findById(id).populate({
       path: 'questionGroups',
       populate: { path: 'questionIds', model: 'Question' },
-    });
+    }).select('+bankSelectionLockToken +bankSelectionLockExpiresAt');
 
     if (!assessment || assessment.examFormat !== 'toeic') {
       return res.status(404).json({
         status: 'error',
         message: 'Không tìm thấy đề thi TOEIC',
+      });
+    }
+
+    if (assessment.bankSelectionLockToken && assessment.bankSelectionLockExpiresAt > new Date()) {
+      return res.status(409).json({
+        status: 'error',
+        code: 'QUESTION_BANK_SELECTION_BUSY',
+        message: 'Đang xử lý lựa chọn câu hỏi Part 5. Hãy thử xuất bản lại sau.',
       });
     }
 
@@ -546,6 +626,7 @@ export const unpublishToeicTest = async (req, res, next) => {
         message: 'Không tìm thấy đề thi TOEIC',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
     assessment.status = 'draft';
     await assessment.save();
     res.json({
@@ -571,6 +652,7 @@ export const deleteQuestionGroupFromTest = async (req, res, next) => {
         message: 'Không tìm thấy đề thi TOEIC',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     const group = await QuestionGroup.findById(groupId);
     if (!group || group.assessment.toString() !== id.toString()) {
@@ -622,6 +704,7 @@ export const deleteQuestionFromTest = async (req, res, next) => {
         message: 'Không tìm thấy đề thi TOEIC',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     const question = await Question.findById(questionId);
     if (!question) {
@@ -675,6 +758,7 @@ export const deleteToeicTest = async (req, res, next) => {
         message: 'Không tìm thấy đề thi TOEIC',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     const attemptCount = await Attempt.countDocuments({ assessment: id });
     if (attemptCount > 0) {
@@ -725,6 +809,7 @@ export const importToeicCsv = async (req, res, next) => {
         message: 'Không tìm thấy đề thi TOEIC',
       });
     }
+    if (!previewOnly && await rejectDuringQuestionBankSelection(id, res)) return;
 
     const lines = csvContent.split(/\r?\n/).filter((l) => l.trim().length > 0);
     if (lines.length <= 1) {
@@ -959,6 +1044,7 @@ export const importToeicPdf = async (req, res, next) => {
     const targetAssessmentId = req.params ? req.params.id : null;
     const { title, toeicMode = 'full_test', durationMinutes = 120 } = req.body;
     const previewOnly = req.body.previewOnly === true || req.body.previewOnly === 'true';
+    if (targetAssessmentId && !previewOnly && await rejectDuringQuestionBankSelection(targetAssessmentId, res)) return;
     const ocrText = typeof req.body.ocrText === 'string' ? req.body.ocrText : '';
     const ocrPageCount = parseInt(req.body.ocrPageCount, 10) || 0;
     const imagePageNumbers = String(req.body.imagePageNumbers || '')

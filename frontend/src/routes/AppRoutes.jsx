@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore.js';
 
@@ -83,6 +84,10 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   return children;
 };
 
+
+
+const AdminToeicPart5ImportPage = lazy(() => import('../pages/admin/AdminToeicPart5ImportPage.jsx'));
+
 function AppRoutes() {
   return (
     <Routes>
@@ -166,6 +171,7 @@ function AppRoutes() {
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyPage />} />
         <Route path="questions" element={<AdminQuestionsPage />} />
+        <Route path="questions/import-part5" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div role="status">Đang tải trang…</div>}><AdminToeicPart5ImportPage /></Suspense></ProtectedRoute>} />
         <Route path="assessments" element={<AdminAssessmentsPage />} />
         <Route path="toeic-tests" element={<AdminToeicListPage />} />
         <Route path="toeic-tests/new" element={<AdminToeicBuilderPage />} />

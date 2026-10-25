@@ -2,6 +2,7 @@ import path from 'path';
 import { getStudentStatusError } from './accountAccessPolicy.js';
 
 const denial = (statusCode, code, message) => ({ allowed: false, statusCode, code, message });
+const referenceId = (value) => String(value?._id || value || '');
 
 export const evaluateMaterialAccess = ({ user, material, lesson, course, enrolled = false, allowPreview = false }) => {
   if (!user) return denial(401, 'UNAUTHORIZED', 'Unauthorized');
@@ -21,7 +22,12 @@ export const evaluateMaterialAccess = ({ user, material, lesson, course, enrolle
 
   const stateError = getStudentStatusError(user);
   if (stateError) return denial(stateError.statusCode, stateError.code, stateError.message);
-  if (material.status !== 'published' || lesson.status !== 'published') {
+  const lessonCourseId = referenceId(lesson.course);
+  const materialCourseId = referenceId(material.course);
+  if (!lessonCourseId || !materialCourseId || lessonCourseId !== materialCourseId) {
+    return denial(404, 'MATERIAL_NOT_FOUND', 'Material not found');
+  }
+  if (material.status !== 'published' || lesson.status !== 'published' || !course || course.isPublished !== true) {
     return denial(404, 'MATERIAL_NOT_FOUND', 'Material not found');
   }
   if (!enrolled) {

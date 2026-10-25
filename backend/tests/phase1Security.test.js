@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
+import { gzipSync } from 'node:zlib';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -150,16 +151,26 @@ test('access and refresh tokens issued during or before a suspension are invalid
   assert.equal(isTokenIssuedBeforeSuspension({ role: 'student', suspendedAt: 'invalid' }, suspendedSecond), true);
 });
 
-test('material access requires enrollment, publication, active account, and download permission', () => {
+test('material access separates preview from download and enforces student publication scope', () => {
   const user = { _id: 'student-1', role: 'student', status: 'active', isActive: true };
-  const material = { status: 'published', allowDownload: true };
-  const lesson = { status: 'published' };
-  const course = { teacher: 'teacher-1' };
+  const material = { status: 'published', allowDownload: true, course: 'course-1' };
+  const lesson = { status: 'published', course: 'course-1' };
+  const course = { _id: 'course-1', teacher: 'teacher-1', isPublished: true };
 
   assert.deepEqual(evaluateMaterialAccess({ user, material, lesson, course, enrolled: true }), { allowed: true });
   assert.equal(evaluateMaterialAccess({ user, material, lesson, course, enrolled: false }).code, 'COURSE_ENROLLMENT_REQUIRED');
   assert.equal(evaluateMaterialAccess({ user, material: { ...material, allowDownload: false }, lesson, course, enrolled: true }).code, 'MATERIAL_DOWNLOAD_NOT_ALLOWED');
+  assert.deepEqual(evaluateMaterialAccess({
+    user, material: { ...material, allowDownload: false }, lesson, course, enrolled: true, allowPreview: true,
+  }), { allowed: true });
   assert.equal(evaluateMaterialAccess({ user, material: { ...material, status: 'hidden' }, lesson, course, enrolled: true }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material, lesson, course: { ...course, isPublished: false }, enrolled: true }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material, lesson, course: { _id: 'course-1' }, enrolled: true }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material: { ...material, course: undefined }, lesson, course, enrolled: true }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material, lesson: { status: 'published' }, course, enrolled: true }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({
+    user, material: { ...material, course: 'another-course' }, lesson, course, enrolled: true,
+  }).statusCode, 404);
   assert.equal(evaluateMaterialAccess({ user: { ...user, status: 'suspended', isActive: false }, material, lesson, course, enrolled: true }).code, 'ACCOUNT_SUSPENDED');
 });
 
@@ -174,10 +185,10 @@ test('direct private upload URL enforces authentication, enrollment, publication
   const reference = {
     material: {
       title: 'Lesson handout', status: 'published', allowDownload: true,
-      fileUrl: '/uploads/private/lesson.pdf',
+      fileUrl: '/uploads/private/lesson.pdf', course: 'course-1',
     },
     lesson: { status: 'published', course: 'course-1' },
-    course: { _id: 'course-1', teacher: 'teacher-1' },
+    course: { _id: 'course-1', teacher: 'teacher-1', isPublished: true },
   };
   const handler = createProtectedUploadHandler({
     privateOnly: true,
@@ -327,6 +338,46 @@ test('lesson HTML sanitizer preserves supported rich text and strips active cont
   assert.ok(!unsafe.includes('onclick'));
   assert.ok(!unsafe.includes('onerror'));
   assert.ok(!unsafe.includes('iframe'));
+
+  const uriSchemeRegression = sanitizeLessonHtml(
+    '<form action="javascript:alert(1)"><button formaction="javascript:alert(2)">Submit</button></form>' +
+    '<object data="javascript:alert(3)"></object><video poster="javascript:alert(4)"></video>' +
+    '<meta http-equiv="refresh" content="0;url=javascript:alert(5)">' +
+    '<svg><animate attributeName="href" values="javascript:alert(6)"></animate></svg>' +
+    '<noscript><img src="x" onerror="alert(7)"></noscript>'
+  );
+  assert.doesNotMatch(uriSchemeRegression, /javascript:|formaction|http-equiv|<svg|<animate|onerror|alert\(/i);
+});
+
+test('Express JSON middleware rejects trailing bytes after a compressed body without crashing the server', async (t) => {
+  const app = express();
+  app.use(express.json({ limit: '1mb' }));
+  app.get('/health', (_req, res) => res.status(200).send('ok'));
+  app.post('/json', (req, res) => res.json({ received: req.body }));
+  app.use((_error, _req, res, _next) => res.status(400).end());
+
+  const server = app.listen(0, '127.0.0.1');
+  await new Promise((resolve, reject) => {
+    server.once('listening', resolve);
+    server.once('error', reject);
+  });
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  const compressedBodyWithTrailingBytes = Buffer.concat([
+    gzipSync(Buffer.from('{"valid":true}')),
+    Buffer.from('trailing bytes'),
+  ]);
+  const malformed = await fetch(`${baseUrl}/json`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' },
+    body: compressedBodyWithTrailingBytes,
+  });
+  assert.equal(malformed.status, 400);
+
+  const health = await fetch(`${baseUrl}/health`);
+  assert.equal(health.status, 200);
+  assert.equal(await health.text(), 'ok');
 });
 
 test('lesson HTML sanitizer handles malformed, empty, and non-string legacy values', () => {

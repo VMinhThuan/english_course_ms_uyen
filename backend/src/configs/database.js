@@ -2,6 +2,14 @@ import mongoose from 'mongoose';
 
 let cachedConnection = null;
 
+export const getDatabaseConnectionOptions = (env = process.env) => ({
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 5000,
+    bufferCommands: false,
+    autoIndex: ['development', 'test'].includes(String(env.NODE_ENV || '').toLowerCase())
+      && String(env.MONGOOSE_AUTO_INDEX || '').toLowerCase() === 'true',
+});
+
 const connectDB = async () => {
     // If already connected, reuse existing connection
     if (mongoose.connection.readyState === 1) {
@@ -21,11 +29,7 @@ const connectDB = async () => {
     }
 
     try {
-        const conn = await mongoose.connect(mongoURI, {
-            serverSelectionTimeoutMS: 5000,
-            connectTimeoutMS: 5000,
-            bufferCommands: false,
-        });
+        const conn = await mongoose.connect(mongoURI, getDatabaseConnectionOptions());
         cachedConnection = conn;
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
         return conn;

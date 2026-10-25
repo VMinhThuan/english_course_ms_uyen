@@ -116,6 +116,16 @@ const assessmentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    // Short lease serializes Part 5 bank-selection writes without requiring
+    // MongoDB replica-set transactions. Hidden from API serialization.
+    bankSelectionLockToken: {
+      type: String,
+      select: false,
+    },
+    bankSelectionLockExpiresAt: {
+      type: Date,
+      select: false,
+    },
   },
 
   {

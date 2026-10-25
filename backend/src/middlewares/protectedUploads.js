@@ -40,8 +40,8 @@ const findReference = (Model, fieldPath, url) => {
 
 const getFileReference = async (url) => {
   const material = await findReference(Material, 'fileUrl', url)
-    .populate({ path: 'lesson', populate: { path: 'course', select: 'teacher title status' } })
-    .populate({ path: 'course', select: 'teacher' });
+    .populate({ path: 'lesson', populate: { path: 'course', select: 'teacher title status isPublished' } })
+    .populate({ path: 'course', select: 'teacher isPublished' });
   if (material) {
     const lesson = material.lesson;
     const course = lesson?.course || material.course;
@@ -51,7 +51,10 @@ const getFileReference = async (url) => {
   const lesson = await findReference(Lesson, 'attachments.url', url).populate('course');
   if (!lesson) return null;
   return {
-    material: { status: 'published', allowDownload: true, fileUrl: url },
+    material: {
+      status: 'published', allowDownload: true, fileUrl: url,
+      course: lesson.course?._id || lesson.course,
+    },
     lesson,
     course: lesson.course,
   };

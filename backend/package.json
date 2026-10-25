@@ -1,46 +1,53 @@
 {
-    "name": "english-course-backend",
-    "version": "1.0.0",
-    "description": "Backend API for English Course Online",
-    "main": "src/server.js",
-    "type": "module",
-    "scripts": {
-        "start": "node src/server.js",
-        "dev": "node --watch src/server.js",
-        "test:phase1": "node --test tests/phase1Security.test.js",
-        "test:phase2": "node --test tests/phase2ExamEngine.test.js tests/phase2MaterialDownload.test.js tests/phase2FrontendDownload.test.js",
-        "test:phase3": "node --test tests/phase3AttemptReporting.test.js tests/phase3Admin.integration.test.js",
-        "test:phase4": "node --test tests/phase4Learning.integration.test.js",
-        "seed": "node src/scripts/seedData.js",
-        "seed:demo": "node src/scripts/seedDemoData.js",
-        "seed:lesson-preview-demo": "node src/scripts/seedLessonMaterialPreviewDemo.js"
-    },
-    "keywords": [
-        "english",
-        "course",
-        "api"
-    ],
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-        "bcryptjs": "^2.4.3",
-        "cookie-parser": "^1.4.6",
-        "cors": "^2.8.5",
-        "dotenv": "^16.3.1",
-        "express": "^4.18.2",
-        "express-validator": "^7.0.1",
-        "jsonwebtoken": "^9.0.2",
-        "mammoth": "^1.13.0",
-        "mongoose": "^8.0.3",
-        "multer": "^1.4.5-lts.1",
-        "pdf-parse": "^2.4.5",
-        "pdfkit": "^0.20.2",
-        "sanitize-html": "2.17.4"
-    },
-    "devDependencies": {
-        "mongodb-memory-server": "^11.3.0"
-    },
-    "engines": {
-        "node": "22.x"
-    }
+  "name": "english-course-backend",
+  "version": "1.0.0",
+  "description": "Backend API for English Course Online",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test:phase1": "node --test tests/phase1Security.test.js",
+    "test:phase2": "node --test tests/phase2ExamEngine.test.js tests/phase2MaterialDownload.test.js tests/phase2FrontendDownload.test.js",
+    "test:phase3": "node --test tests/phase3AttemptReporting.test.js tests/phase3Admin.integration.test.js",
+    "test:phase4": "node --test tests/phase4Learning.integration.test.js",
+    "seed": "node src/scripts/seedData.js",
+    "seed:demo": "node src/scripts/seedDemoData.js",
+    "seed:lesson-preview-demo": "node src/scripts/seedLessonMaterialPreviewDemo.js",
+    "test:phase2-import": "node --test tests/phase2ToeicPart5Import.test.js",
+    "test:phase5": "node --test tests/phase5ToeicPart1.test.js tests/phase5Cors.test.js"
+  },
+  "keywords": [
+    "english",
+    "course",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.13.0",
+    "mongoose": "^8.0.3",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.20.2",
+    "sanitize-html": "2.18.1",
+    "saxes": "^6.0.0",
+    "yauzl": "^3.4.0"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "overrides": {
+    "body-parser": "1.20.9"
+  }
 }

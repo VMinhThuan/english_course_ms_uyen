@@ -23,6 +23,7 @@ import questionRoutes from './routes/questionRoutes.js';
 import assessmentRoutes from './routes/assessmentRoutes.js';
 import attemptRoutes from './routes/attemptRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import questionImportRoutes from './routes/questionImportRoutes.js';
 import { adminToeicRoutes, studentToeicRoutes } from './routes/toeicRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
 
@@ -62,9 +63,9 @@ const corsOptions = {
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    exposedHeaders: ['Authorization', 'Content-Disposition'],
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Range', 'If-Range', 'Idempotency-Key'],
+    exposedHeaders: ['Authorization', 'Content-Disposition', 'Accept-Ranges', 'Content-Range', 'Content-Length'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
 };
@@ -137,6 +138,7 @@ app.use('/api/v1/tests', testRoutes);
 app.use('/api/v1/questions', questionRoutes);
 app.use('/api/v1/assessments', assessmentRoutes);
 app.use('/api/v1/attempts', attemptRoutes);
+app.use('/api/v1/admin/question-import-batches', questionImportRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/admin', adminToeicRoutes);
 app.use('/api/v1/admin/media', mediaRoutes);

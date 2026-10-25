@@ -41,12 +41,48 @@ const validateQuestionPayload = ({ type, options, correctAnswers }) => {
   return null;
 };
 
+const isToeicPart5 = (toeicPart) => toeicPart !== null && toeicPart !== undefined && toeicPart !== '' && Number(toeicPart) === 5;
+
+const validatePart5QuestionPayload = ({ questionText, type, options, correctAnswers, explanation }) => {
+  if (typeof questionText !== 'string' || !questionText.trim()) {
+    return 'Part 5 question text is required';
+  }
+
+  if (type !== 'single_choice') {
+    return 'TOEIC Part 5 questions must use single_choice type';
+  }
+
+  if (!Array.isArray(options) || options.length !== 4) {
+    return 'TOEIC Part 5 questions require exactly 4 options (A, B, C, D)';
+  }
+
+  const optionIds = options.map((option) => option?.id);
+  const expectedIds = new Set(['A', 'B', 'C', 'D']);
+  if (optionIds.some((id) => !expectedIds.has(id)) || new Set(optionIds).size !== 4) {
+    return 'TOEIC Part 5 option IDs must be exactly A, B, C, and D';
+  }
+
+  if (options.some((option) => typeof option?.text !== 'string' || !option.text.trim())) {
+    return 'TOEIC Part 5 option text is required for A, B, C, and D';
+  }
+
+  if (!Array.isArray(correctAnswers) || correctAnswers.length !== 1 || !optionIds.includes(correctAnswers[0])) {
+    return 'TOEIC Part 5 questions require exactly 1 correct answer matching an option ID';
+  }
+
+  if (typeof explanation !== 'string' || !explanation.trim()) {
+    return 'TOEIC Part 5 explanation is required';
+  }
+
+  return null;
+};
+
 // @desc    Admin create question
 // @route   POST /api/v1/admin/questions
 // @access  Private (Admin/Teacher)
 export const createQuestion = async (req, res, next) => {
   try {
-    const { questionText, type, explanation, options, correctAnswers, score, lesson, topic, status } = req.body;
+    const { questionText, type, explanation, options, correctAnswers, score, lesson, topic, status, toeicPart } = req.body;
 
     if (!questionText) {
       return res.status(400).json({
@@ -55,7 +91,9 @@ export const createQuestion = async (req, res, next) => {
       });
     }
 
-    const validationErr = validateQuestionPayload({ type, options, correctAnswers });
+    const validationErr = isToeicPart5(toeicPart)
+      ? validatePart5QuestionPayload({ questionText, type, options, correctAnswers, explanation })
+      : validateQuestionPayload({ type, options, correctAnswers });
     if (validationErr) {
       return res.status(400).json({
         status: 'error',
@@ -83,6 +121,7 @@ export const createQuestion = async (req, res, next) => {
       lesson: lesson || null,
       topic: topic || 'General',
       status: status || 'draft',
+      ...(toeicPart !== undefined ? { toeicPart } : {}),
       createdBy: req.user._id,
     });
 
@@ -103,13 +142,23 @@ export const createQuestion = async (req, res, next) => {
 // @access  Private (Admin/Teacher)
 export const getQuestions = async (req, res, next) => {
   try {
-    const { search, lesson, topic, type, status, page = 1, limit = 50 } = req.query;
+    const { search, lesson, topic, type, status, toeicPart, page = 1, limit = 50 } = req.query;
 
     const filter = {};
     if (lesson) filter.lesson = lesson;
     if (topic) filter.topic = topic;
     if (type) filter.type = type;
     if (status) filter.status = status;
+    if (toeicPart !== undefined && toeicPart !== '') {
+      const parsedToeicPart = Number(toeicPart);
+      if (!Number.isInteger(parsedToeicPart) || parsedToeicPart < 1 || parsedToeicPart > 7) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'toeicPart must be an integer from 1 to 7',
+        });
+      }
+      filter.toeicPart = parsedToeicPart;
+    }
     if (search) {
       filter.questionText = { $regex: search, $options: 'i' };
     }
@@ -174,7 +223,7 @@ export const getQuestionById = async (req, res, next) => {
 export const updateQuestion = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const question = await Question.findById(id);
+    const question = await Question.findById(id).select('+importBatchId');
 
     if (!question) {
       return res.status(404).json({
@@ -183,13 +232,49 @@ export const updateQuestion = async (req, res, next) => {
       });
     }
 
+    const updateBody = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+    const operatorKeys = Object.keys(updateBody).filter((field) => field.startsWith('$'));
+    const requestedStatus = updateBody.status ?? updateBody.$set?.status ?? updateBody.$max?.status;
+
+    if (question.importBatchId && req.user.role === 'teacher' && requestedStatus === 'published') {
+      return res.status(403).json({
+        status: 'error',
+        code: 'ADMIN_REVIEW_REQUIRED',
+        message: 'An Admin must review imported Questions before publishing them.',
+      });
+    }
+    if (question.importBatchId && req.user.role === 'teacher' && operatorKeys.length > 0) {
+      return res.status(400).json({
+        status: 'error',
+        code: 'IMPORTED_QUESTION_FIELD_UPDATES_ONLY',
+        message: 'Use ordinary field assignments to update an imported Question.',
+      });
+    }
+
+    const effectiveValue = (field) => {
+      if (Object.prototype.hasOwnProperty.call(updateBody, field)) return updateBody[field];
+      if (Object.prototype.hasOwnProperty.call(updateBody.$set || {}, field)) return updateBody.$set[field];
+      if (Object.prototype.hasOwnProperty.call(updateBody.$unset || {}, field)) return undefined;
+      return question[field];
+    };
     const payload = {
-      type: req.body.type || question.type,
-      options: req.body.options || question.options,
-      correctAnswers: req.body.correctAnswers || question.correctAnswers,
+      questionText: effectiveValue('questionText'),
+      type: effectiveValue('type'),
+      options: effectiveValue('options'),
+      correctAnswers: effectiveValue('correctAnswers'),
+      explanation: effectiveValue('explanation'),
+      toeicPart: effectiveValue('toeicPart'),
     };
 
-    const validationErr = validateQuestionPayload(payload);
+    const validationErr = isToeicPart5(payload.toeicPart)
+      ? operatorKeys.some((field) => !['$set', '$unset'].includes(field))
+        ? 'TOEIC Part 5 updates must assign or unset fields directly.'
+        : validatePart5QuestionPayload(payload)
+      : validateQuestionPayload({
+        type: payload.type || question.type,
+        options: payload.options || question.options,
+        correctAnswers: payload.correctAnswers || question.correctAnswers,
+      });
     if (validationErr) {
       return res.status(400).json({
         status: 'error',
@@ -197,7 +282,26 @@ export const updateQuestion = async (req, res, next) => {
       });
     }
 
-    const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, {
+    const safeUpdate = { ...updateBody };
+    for (const [field, value] of Object.entries(safeUpdate)) {
+      if (field.startsWith('import')) {
+        delete safeUpdate[field];
+        continue;
+      }
+      if (field.startsWith('$') && value && typeof value === 'object' && !Array.isArray(value)) {
+        const filtered = Object.fromEntries(Object.entries(value).filter(([path, destination]) => {
+          const sourcePath = path.split('.')[0];
+          const destinationPath = field === '$rename' && typeof destination === 'string'
+            ? destination.split('.')[0]
+            : '';
+          return !sourcePath.startsWith('import') && !destinationPath.startsWith('import');
+        }));
+        if (Object.keys(filtered).length > 0) safeUpdate[field] = filtered;
+        else delete safeUpdate[field];
+      }
+    }
+
+    const updatedQuestion = await Question.findByIdAndUpdate(id, safeUpdate, {
       new: true,
       runValidators: true,
     });

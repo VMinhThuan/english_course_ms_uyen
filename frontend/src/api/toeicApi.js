@@ -29,6 +29,20 @@ export const toeicApi = {
     return response.data;
   },
 
+  getEligiblePart5BankQuestions: async (testId, params = {}) => {
+    const response = await axiosInstance.get(`/admin/toeic-tests/${testId}/question-bank/part5`, { params });
+    return response.data;
+  },
+
+  addPart5BankQuestions: async (testId, questionIds, { groupId, idempotencyKey } = {}) => {
+    const response = await axiosInstance.post(
+      `/admin/toeic-tests/${testId}/question-bank/part5/selections`,
+      { questionIds, ...(groupId ? { groupId } : {}) },
+      { headers: { 'Idempotency-Key': idempotencyKey } },
+    );
+    return response.data;
+  },
+
   duplicateToeicTest: async (id) => {
     const response = await axiosInstance.post(`/admin/toeic-tests/${id}/duplicate`);
     return response.data;

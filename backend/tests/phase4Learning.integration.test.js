@@ -10,6 +10,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import lessonRoutes from '../src/routes/lessonRoutes.js';
 import materialRoutes from '../src/routes/materialRoutes.js';
 import vocabularyRoutes from '../src/routes/vocabularyRoutes.js';
+import { protectPrivateUpload } from '../src/middlewares/protectedUploads.js';
 import User from '../src/models/User.js';
 import Course from '../src/models/Course.js';
 import Lesson from '../src/models/Lesson.js';
@@ -27,9 +28,13 @@ let baseUrl;
 let teacher;
 let student;
 let unEnrolledStudent;
+let admin;
+let suspendedStudent;
 let teacherToken;
 let studentToken;
 let unEnrolledToken;
+let adminToken;
+let suspendedToken;
 let course;
 let lesson;
 let enrolledPdf;
@@ -39,6 +44,9 @@ let oversizedPdf;
 let nonPdfMaterial;
 let hiddenMaterial;
 let unpublishedLessonMaterial;
+let unpublishedCourseMaterial;
+let mismatchedCourseMaterial;
+let unresolvedCourseMaterial;
 let externalPdf;
 const ownedFiles = [];
 const fixtureDirectory = path.join(getPrivateUploadDir(), `phase4-${unique}`);
@@ -59,6 +67,7 @@ try {
   app.use('/api/v1/lessons', lessonRoutes);
   app.use('/api/v1/materials', materialRoutes);
   app.use('/api/v1/vocabulary', vocabularyRoutes);
+  app.use('/uploads/private', protectPrivateUpload);
   app.use((error, _req, res, _next) => res.status(500).json({ status: 'error', message: 'Internal test error' }));
   httpServer = app.listen(0, '127.0.0.1');
   await new Promise((resolve, reject) => {
@@ -76,9 +85,18 @@ try {
   unEnrolledStudent = await User.create({
     email: `phase4-outsider-${unique}@example.test`, password: 'student-password', role: 'student', status: 'active', isActive: true,
   });
+  admin = await User.create({
+    email: `phase4-admin-${unique}@example.test`, password: 'admin-password', role: 'admin', status: 'active', isActive: true,
+  });
+  suspendedStudent = await User.create({
+    email: `phase4-suspended-${unique}@example.test`, password: 'student-password', role: 'student', status: 'suspended', isActive: false,
+    suspendedAt: new Date(),
+  });
   teacherToken = jwt.sign({ userId: teacher._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
   studentToken = jwt.sign({ userId: student._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
   unEnrolledToken = jwt.sign({ userId: unEnrolledStudent._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
+  adminToken = jwt.sign({ userId: admin._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
+  suspendedToken = jwt.sign({ userId: suspendedStudent._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
   course = await Course.create({
     title: `Phase 4 Learning ${unique.slice(0, 8)}`, description: 'Isolated Phase 4 test course', teacher: teacher._id,
@@ -88,6 +106,7 @@ try {
     title: 'Vocabulary lesson', content: 'Lesson body', course: course._id, status: 'published', topic: 'Work', order: 1,
   });
   await Enrollment.create({ student: student._id, course: course._id });
+  await Enrollment.create({ student: suspendedStudent._id, course: course._id });
 
   await fs.mkdir(fixtureDirectory, { recursive: true });
   const pdfPath = path.join(fixtureDirectory, 'authorized.pdf');
@@ -119,6 +138,31 @@ try {
     title: 'Hidden lesson PDF', originalName: 'hidden.pdf', fileType: 'application/pdf', status: 'published', allowDownload: true,
     lesson: unpublishedLesson._id, course: course._id, filePath: pdfPath, fileUrl: `/uploads/private/${path.basename(pdfPath)}`,
   });
+  const unpublishedCourse = await Course.create({
+    title: `Phase 4 Unpublished ${unique.slice(0, 8)}`, description: 'Unpublished test course', teacher: teacher._id,
+    level: 'Beginner', englishType: 'TOEIC', isPublished: false,
+  });
+  const unpublishedCourseLesson = await Lesson.create({
+    title: 'Published lesson in unpublished course', course: unpublishedCourse._id, status: 'published',
+  });
+  unpublishedCourseMaterial = await Material.create({
+    title: 'Unpublished course PDF', originalName: 'unpublished-course.pdf', fileType: 'application/pdf', status: 'published', allowDownload: true,
+    lesson: unpublishedCourseLesson._id, course: unpublishedCourse._id, filePath: pdfPath,
+    fileUrl: '/uploads/private/unpublished-course.pdf',
+  });
+  await Enrollment.create({ student: student._id, course: unpublishedCourse._id });
+  const otherCourse = await Course.create({
+    title: `Phase 4 Other ${unique.slice(0, 8)}`, description: 'Mismatched relation test course', teacher: teacher._id,
+    level: 'Beginner', englishType: 'TOEIC', isPublished: true,
+  });
+  mismatchedCourseMaterial = await Material.create({
+    title: 'Mismatched course PDF', originalName: 'mismatched.pdf', fileType: 'application/pdf', status: 'published', allowDownload: true,
+    lesson: lesson._id, course: otherCourse._id, filePath: pdfPath, fileUrl: '/uploads/private/mismatched-course.pdf',
+  });
+  unresolvedCourseMaterial = await Material.create({
+    title: 'Unresolved course PDF', originalName: 'unresolved-course.pdf', fileType: 'application/pdf', status: 'published', allowDownload: true,
+    lesson: lesson._id, course: new mongoose.Types.ObjectId(), filePath: pdfPath, fileUrl: '/uploads/private/unresolved-course.pdf',
+  });
   externalPdf = await createMaterial({ filePath: '', fileUrl: 'https://example.test/material.pdf' });
 } catch (error) {
   setupError = error;
@@ -129,12 +173,13 @@ try {
   await fs.rmdir(fixtureDirectory).catch(() => {});
 }
 
-const request = async (route, { method = 'GET', token, body } = {}) => {
+const request = async (route, { method = 'GET', token, body, headers = {} } = {}) => {
   const response = await fetch(`${baseUrl}${route}`, {
     method,
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...headers,
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
@@ -183,7 +228,7 @@ test('Phase 4 isolated learning API integration', {
     assert.equal((await Lesson.findById(legacy._id).lean()).difficulty, undefined);
   });
 
-  await t.test('PDF preview enforces enrollment and allowDownload, is inline/no-store, and download remains attachment', async () => {
+  await t.test('PDF preview and download have independent permissions across API and direct private URLs', async () => {
     const unauthenticated = await request(`/api/v1/materials/${enrolledPdf._id}/preview`);
     assert.equal(unauthenticated.status, 401);
 
@@ -201,17 +246,80 @@ test('Phase 4 isolated learning API integration', {
     assert.ok(Buffer.from(await allowedPreview.arrayBuffer()).subarray(0, 5).equals(Buffer.from('%PDF-')));
     assert.match(allowedPreview.headers.get('content-disposition') || '', /filename\*=UTF-8''.*\.pdf/i);
 
+    const previewHead = await request(`/api/v1/materials/${enrolledPdf._id}/preview`, { method: 'HEAD', token: studentToken });
+    assert.equal(previewHead.status, 200);
+    assert.match(previewHead.headers.get('content-type') || '', /^application\/pdf(?:;|$)/i);
+    assert.equal((await previewHead.arrayBuffer()).byteLength, 0);
+
+    const previewRange = await request(`/api/v1/materials/${enrolledPdf._id}/preview`, {
+      token: studentToken, headers: { Range: 'bytes=0-4' },
+    });
+    assert.equal(previewRange.status, 206);
+    assert.equal(previewRange.headers.get('content-range'), `bytes 0-4/${Buffer.byteLength('%PDF-1.7\nPhase 4 preview fixture\n%%EOF', 'ascii')}`);
+    assert.match(previewRange.headers.get('content-disposition') || '', /^inline;/i);
+    assert.ok(Buffer.from(await previewRange.arrayBuffer()).equals(Buffer.from('%PDF-', 'ascii')));
+
     const downloadResponse = await request(`/api/v1/materials/${enrolledPdf._id}/download`, { token: studentToken });
     assert.equal(downloadResponse.status, 200);
     assert.match(downloadResponse.headers.get('content-disposition') || '', /^attachment;/i);
+    assert.match(downloadResponse.headers.get('content-type') || '', /^application\/pdf(?:;|$)/i);
     assert.match(downloadResponse.headers.get('content-disposition') || '', /filename\*=UTF-8''.*\.pdf/i);
     assert.ok(Buffer.from(await downloadResponse.arrayBuffer()).equals(Buffer.from('%PDF-1.7\nPhase 4 preview fixture\n%%EOF', 'ascii')));
 
     const disabledPreview = await request(`/api/v1/materials/${downloadDisabledPdf._id}/preview`, { token: studentToken });
-    assert.equal(disabledPreview.status, 403);
-    assert.equal((await disabledPreview.json()).code, 'MATERIAL_DOWNLOAD_NOT_ALLOWED');
+    assert.equal(disabledPreview.status, 200);
+    assert.match(disabledPreview.headers.get('content-disposition') || '', /^inline;/i);
+    assert.match(disabledPreview.headers.get('content-type') || '', /^application\/pdf(?:;|$)/i);
+    assert.match(disabledPreview.headers.get('cache-control') || '', /no-store/i);
+    assert.ok(Buffer.from(await disabledPreview.arrayBuffer()).subarray(0, 5).equals(Buffer.from('%PDF-')));
+    const disabledPreviewHead = await request(`/api/v1/materials/${downloadDisabledPdf._id}/preview`, { method: 'HEAD', token: studentToken });
+    assert.equal(disabledPreviewHead.status, 200);
+    assert.equal((await disabledPreviewHead.arrayBuffer()).byteLength, 0);
+    const disabledPreviewRange = await request(`/api/v1/materials/${downloadDisabledPdf._id}/preview`, {
+      token: studentToken, headers: { Range: 'bytes=0-4' },
+    });
+    assert.equal(disabledPreviewRange.status, 206);
+    assert.match(disabledPreviewRange.headers.get('content-disposition') || '', /^inline;/i);
+    assert.ok(Buffer.from(await disabledPreviewRange.arrayBuffer()).equals(Buffer.from('%PDF-', 'ascii')));
+
     const disabledDownload = await request(`/api/v1/materials/${downloadDisabledPdf._id}/download`, { token: studentToken });
     assert.equal(disabledDownload.status, 403);
+    assert.equal((await disabledDownload.json()).code, 'MATERIAL_DOWNLOAD_NOT_ALLOWED');
+    const disabledDownloadHead = await request(`/api/v1/materials/${downloadDisabledPdf._id}/download`, { method: 'HEAD', token: studentToken });
+    assert.equal(disabledDownloadHead.status, 403);
+    const disabledDownloadRange = await request(`/api/v1/materials/${downloadDisabledPdf._id}/download`, {
+      token: studentToken, headers: { Range: 'bytes=0-4' },
+    });
+    assert.equal(disabledDownloadRange.status, 403);
+
+    const directAnonymous = await request(downloadDisabledPdf.fileUrl);
+    assert.equal(directAnonymous.status, 401);
+    const directDisabled = await request(downloadDisabledPdf.fileUrl, { token: studentToken });
+    assert.equal(directDisabled.status, 403);
+    const directDisabledHead = await request(downloadDisabledPdf.fileUrl, { method: 'HEAD', token: studentToken });
+    assert.equal(directDisabledHead.status, 403);
+    const directDisabledRange = await request(downloadDisabledPdf.fileUrl, {
+      token: studentToken, headers: { Range: 'bytes=0-4' },
+    });
+    assert.equal(directDisabledRange.status, 403);
+
+    for (const token of [teacherToken, adminToken]) {
+      const privilegedPreview = await request(`/api/v1/materials/${downloadDisabledPdf._id}/preview`, { token });
+      assert.equal(privilegedPreview.status, 200);
+      assert.match(privilegedPreview.headers.get('content-disposition') || '', /^inline;/i);
+      await privilegedPreview.arrayBuffer();
+      const privilegedDownload = await request(`/api/v1/materials/${downloadDisabledPdf._id}/download`, { token });
+      assert.equal(privilegedDownload.status, 200);
+      assert.match(privilegedDownload.headers.get('content-disposition') || '', /^attachment;/i);
+      await privilegedDownload.arrayBuffer();
+    }
+
+    const suspendedPreview = await request(`/api/v1/materials/${enrolledPdf._id}/preview`, { token: suspendedToken });
+    assert.equal(suspendedPreview.status, 403);
+    assert.equal((await suspendedPreview.json()).code, 'ACCOUNT_SUSPENDED');
+    const suspendedDownload = await request(`/api/v1/materials/${enrolledPdf._id}/download`, { token: suspendedToken });
+    assert.equal(suspendedDownload.status, 403);
+    assert.equal((await suspendedDownload.json()).code, 'ACCOUNT_SUSPENDED');
 
     const corruptResponse = await request(`/api/v1/materials/${corruptPdf._id}/preview`, { token: studentToken });
     assert.equal(corruptResponse.status, 415);
@@ -226,8 +334,24 @@ test('Phase 4 isolated learning API integration', {
 
     const hiddenResponse = await request(`/api/v1/materials/${hiddenMaterial._id}/preview`, { token: studentToken });
     assert.equal(hiddenResponse.status, 404);
+    const hiddenDownload = await request(`/api/v1/materials/${hiddenMaterial._id}/download`, { token: studentToken });
+    assert.equal(hiddenDownload.status, 404);
     const unpublishedLessonResponse = await request(`/api/v1/materials/${unpublishedLessonMaterial._id}/preview`, { token: studentToken });
     assert.equal(unpublishedLessonResponse.status, 404);
+    const unpublishedLessonDownload = await request(`/api/v1/materials/${unpublishedLessonMaterial._id}/download`, { token: studentToken });
+    assert.equal(unpublishedLessonDownload.status, 404);
+    const unpublishedCoursePreview = await request(`/api/v1/materials/${unpublishedCourseMaterial._id}/preview`, { token: studentToken });
+    assert.equal(unpublishedCoursePreview.status, 404);
+    const unpublishedCourseDownload = await request(`/api/v1/materials/${unpublishedCourseMaterial._id}/download`, { token: studentToken });
+    assert.equal(unpublishedCourseDownload.status, 404);
+    const mismatchedCoursePreview = await request(`/api/v1/materials/${mismatchedCourseMaterial._id}/preview`, { token: studentToken });
+    assert.equal(mismatchedCoursePreview.status, 404);
+    const mismatchedCourseDownload = await request(`/api/v1/materials/${mismatchedCourseMaterial._id}/download`, { token: studentToken });
+    assert.equal(mismatchedCourseDownload.status, 404);
+    const unresolvedCoursePreview = await request(`/api/v1/materials/${unresolvedCourseMaterial._id}/preview`, { token: studentToken });
+    assert.equal(unresolvedCoursePreview.status, 404);
+    const unresolvedCourseDownload = await request(`/api/v1/materials/${unresolvedCourseMaterial._id}/download`, { token: studentToken });
+    assert.equal(unresolvedCourseDownload.status, 404);
 
     const externalPreview = await request(`/api/v1/materials/${externalPdf._id}/preview`, { token: studentToken });
     assert.equal(externalPreview.status, 415);

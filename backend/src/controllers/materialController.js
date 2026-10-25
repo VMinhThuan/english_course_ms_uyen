@@ -112,8 +112,8 @@ const findLessonForMaterial = async (lessonId) =>
 
 const loadMaterialWithParents = (id) =>
   Material.findById(id)
-    .populate({ path: 'lesson', populate: { path: 'course', select: 'teacher title status' } })
-    .populate({ path: 'course', select: 'teacher title status' });
+    .populate({ path: 'lesson', populate: { path: 'course', select: 'teacher title status isPublished' } })
+    .populate({ path: 'course', select: 'teacher title status isPublished' });
 
 const canManageCourse = (user, course) =>
   user?.role === 'admin' || isTeacherOwner(user, course);
@@ -379,13 +379,13 @@ export const deleteMaterial = async (req, res, next) => {
 export const getStudentMaterialsByLesson = async (req, res, next) => {
   try {
     const lesson = await Lesson.findById(req.params.lessonId)
-      .populate({ path: 'course', select: 'teacher title status' });
+      .populate({ path: 'course', select: 'teacher title status isPublished' });
     if (!lesson) return sendError(res, 404, 'LESSON_NOT_FOUND', 'Lesson not found.');
 
     if (req.user.role === 'student') {
       const statusError = getStudentStatusError(req.user);
       if (statusError) return sendError(res, statusError.statusCode, statusError.code, statusError.message);
-      if (lesson.status !== 'published') return sendError(res, 404, 'LESSON_NOT_FOUND', 'Lesson not found.');
+      if (lesson.status !== 'published' || !lesson.course || lesson.course.isPublished !== true) return sendError(res, 404, 'LESSON_NOT_FOUND', 'Lesson not found.');
       const enrolled = Boolean(await Enrollment.exists({
         student: req.user._id,
         course: lesson.course?._id || lesson.course,
@@ -397,7 +397,7 @@ export const getStudentMaterialsByLesson = async (req, res, next) => {
       return sendError(res, 403, 'FORBIDDEN', 'Access denied.');
     }
 
-    const materials = await Material.find({ lesson: lesson._id, status: 'published' })
+    const materials = await Material.find({ lesson: lesson._id, course: lesson.course?._id || lesson.course, status: 'published' })
       .select('-filePath -__v')
       .sort({ createdAt: -1 });
     const responseMaterials = req.user.role === 'student'

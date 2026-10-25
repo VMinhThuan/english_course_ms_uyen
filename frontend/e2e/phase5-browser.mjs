@@ -12,7 +12,9 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '../..');
 const backendRoot = path.join(projectRoot, 'backend');
 const frontendRoot = path.join(projectRoot, 'frontend');
-const evidenceDir = path.join(projectRoot, 'docs/audits/toeic-phase5/evidence');
+const evidenceDir = process.env.PHASE5_EVIDENCE_DIR
+  ? path.resolve(process.env.PHASE5_EVIDENCE_DIR)
+  : path.join(projectRoot, 'docs/audits/toeic-phase5/evidence');
 const backendRequire = createRequire(path.join(backendRoot, 'package.json'));
 const frontendRequire = createRequire(path.join(frontendRoot, 'package.json'));
 const { MongoMemoryServer } = backendRequire('mongodb-memory-server');
@@ -22,6 +24,7 @@ const PDFDocument = backendRequire('pdfkit');
 
 const results = [];
 const apiResponses = [];
+let lastPage = null;
 const environment = {
   database: 'MongoMemoryServer on 127.0.0.1, random database name',
   browser: process.env.PHASE5_HEADLESS === 'false' ? 'Chrome via Playwright, headed' : 'Chrome via Playwright, headless',
@@ -142,25 +145,56 @@ async function newContext(viewport = { width: 1440, height: 1000 }) {
     }
   });
   const page = await context.newPage();
+  lastPage = page;
   addPageTelemetry(page);
   return { context, page };
 }
 
+async function captureFailureDiagnostics(id) {
+  if (!lastPage || lastPage.isClosed()) return {};
+  const diagnostic = await lastPage.evaluate(() => {
+    const visible = (element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+    };
+    const label = (element) => (element.getAttribute('aria-label') || element.innerText || element.getAttribute('title') || '').trim().replace(/\s+/g, ' ').slice(0, 140);
+    return {
+      pathname: location.pathname,
+      title: document.title,
+      viewport: { width: innerWidth, height: innerHeight },
+      headings: [...document.querySelectorAll('h1,h2,h3')].filter(visible).map(label).filter(Boolean).slice(0, 12),
+      visibleButtons: [...document.querySelectorAll('button,[role="button"]')].filter(visible).map(label).filter(Boolean).slice(0, 20),
+      visibleLinks: [...document.querySelectorAll('a[href]')].filter(visible).map(label).filter(Boolean).slice(0, 16),
+      alerts: [...document.querySelectorAll('[role="alert"],.auth-global-error,.vocab-error')].filter(visible).map(label).filter(Boolean).slice(0, 8),
+      dialogs: [...document.querySelectorAll('[role="dialog"],.bottom-sheet-content')].filter(visible).length,
+    };
+  });
+  const screenshot = `${id.toLowerCase()}-failure.png`;
+  await lastPage.screenshot({ path: path.join(evidenceDir, screenshot), fullPage: true, animations: 'disabled' });
+  const jsonName = `${id.toLowerCase()}-failure-ui.json`;
+  await fs.writeFile(path.join(evidenceDir, jsonName), `${JSON.stringify(diagnostic, null, 2)}\n`, 'utf8');
+  return { diagnostic_screenshot: screenshot, diagnostic_ui: jsonName };
+}
+
 async function runCase(id, title, action) {
   const startedAt = Date.now();
+  const apiStart = apiResponses.length;
   try {
     const details = await action();
     if (details && typeof details === 'object' && details.status === 'BLOCKED') {
-      results.push({ test_case_id: id, title, status: 'BLOCKED', duration_ms: Date.now() - startedAt, actual_result: details.actual_result || 'The environment could not verify the expected result.' });
+      results.push({ test_case_id: id, title, status: 'BLOCKED', duration_ms: Date.now() - startedAt, actual_result: details.actual_result || 'The environment could not verify the expected result.', api_responses: apiResponses.slice(apiStart) });
       console.log(`[phase5-e2e] ${id}: BLOCKED (${Date.now() - startedAt}ms)`);
     } else {
-      results.push({ test_case_id: id, title, status: 'PASS', duration_ms: Date.now() - startedAt, actual_result: details || 'Expected result observed.' });
+      results.push({ test_case_id: id, title, status: 'PASS', duration_ms: Date.now() - startedAt, actual_result: details || 'Expected result observed.', api_responses: apiResponses.slice(apiStart) });
       console.log(`[phase5-e2e] ${id}: PASS (${Date.now() - startedAt}ms)`);
     }
   } catch (error) {
     const message = String(error?.message || 'Assertion failed').split('\n')[0].slice(0, 180);
     const location = String(error?.stack || '').split('\n').find((line) => line.includes('phase5-browser.mjs'))?.trim();
-    results.push({ test_case_id: id, title, status: 'FAIL', duration_ms: Date.now() - startedAt, actual_result: `${message}${location ? ` (${location.slice(0, 160)})` : ''}` });
+    let diagnostics = {};
+    try { diagnostics = await captureFailureDiagnostics(id); } catch (diagnosticError) { diagnostics = { diagnostic_error: String(diagnosticError?.message || 'Could not capture browser state').split('\n')[0].slice(0, 120) }; }
+    results.push({ test_case_id: id, title, status: 'FAIL', duration_ms: Date.now() - startedAt, actual_result: `${message}${location ? ` (${location.slice(0, 160)})` : ''}`, api_responses: apiResponses.slice(apiStart), ...diagnostics });
     console.log(`[phase5-e2e] ${id}: FAIL (${Date.now() - startedAt}ms) ${message}`);
   }
 }
@@ -225,13 +259,13 @@ async function seedFixtures() {
     description: 'Synthetic lesson content used only in the isolated test database.',
     content: '<h2>Reading practice</h2><p>Students review a short notice and answer questions.</p><script>window.__phase5_xss = true</script><img src="x" onerror="window.__phase5_xss = true">',
     course: course._id,
-    topic: 'Workplace notices',
+    topic: 'Unit 1',
     difficulty: 'beginner',
     status: 'published',
     order: 1,
     duration: 15,
   });
-  const nextLesson = await Lesson.create({ title: 'Phase 5 Follow-up Lesson', description: 'Second synthetic lesson for navigation.', content: '<p>Follow-up reading.</p>', course: course._id, topic: 'Follow-up', difficulty: 'intermediate', status: 'published', order: 2, duration: 20 });
+  const nextLesson = await Lesson.create({ title: 'Phase 5 Follow-up Lesson', description: 'Second synthetic lesson for navigation.', content: '<p>Follow-up reading.</p>', course: course._id, topic: 'Unit 1', difficulty: 'intermediate', status: 'published', order: 2, duration: 20 });
   progress('Created lesson fixtures');
   progress('Creating enrollment fixture');
   await Enrollment.create({ student: student._id, course: course._id, progress: 40, completedLessons: [] });
@@ -250,8 +284,8 @@ async function seedFixtures() {
   progress('Created material fixtures');
 
   await Vocabulary.create([
-    { word: 'accommodate', meaning: 'đáp ứng; cung cấp chỗ ở', partOfSpeech: 'verb', pronunciation: '/əˈkɑːmədeɪt/', exampleEnglish: 'The room can accommodate twelve guests.', exampleVietnamese: 'Căn phòng có thể đáp ứng chỗ cho mười hai khách.', lesson: lesson._id, course: course._id, topic: 'Workplace notices', order: 1, status: 'published' },
-    { word: 'appointment', meaning: 'cuộc hẹn', partOfSpeech: 'noun', exampleEnglish: 'Please confirm your appointment.', exampleVietnamese: 'Vui lòng xác nhận cuộc hẹn.', lesson: lesson._id, course: course._id, topic: 'Workplace notices', order: 2, status: 'published' },
+    { word: 'accommodate', meaning: 'đáp ứng; cung cấp chỗ ở', partOfSpeech: 'verb', pronunciation: '/əˈkɑːmədeɪt/', exampleEnglish: 'The room can accommodate twelve guests.', exampleVietnamese: 'Căn phòng có thể đáp ứng chỗ cho mười hai khách.', lesson: lesson._id, course: course._id, topic: 'Unit 1', order: 1, status: 'published' },
+    { word: 'appointment', meaning: 'cuộc hẹn', partOfSpeech: 'noun', exampleEnglish: 'Please confirm your appointment.', exampleVietnamese: 'Vui lòng xác nhận cuộc hẹn.', lesson: nextLesson._id, course: course._id, topic: 'Unit 1', order: 2, status: 'published' },
   ]);
   progress('Created vocabulary fixtures');
 
@@ -433,7 +467,7 @@ async function main() {
   };
   try {
     progress('Launching isolated Chrome browser context');
-    browser = await chromium.launch({ headless: process.env.PHASE5_HEADLESS !== 'false', channel: 'chrome' });
+    browser = await chromium.launch({ headless: process.env.PHASE5_HEADLESS !== 'false' });
 
     await runCase('AUTH_04', 'Unauthenticated protected-route redirect', async () => {
       const { context, page } = await newContext();
@@ -523,7 +557,7 @@ async function main() {
 
     await runCase('LESS_02', 'Lesson content and HTML sanitization', async () => {
       await studentSession.page.goto(`${uiUrl}/student/courses/${fixtures.course._id}/lessons/${fixtures.lesson._id}`, { waitUntil: 'domcontentloaded' });
-      await studentSession.page.getByRole('heading', { name: 'Phase 5 Reading Lesson' }).waitFor({ timeout: 12000 });
+      await studentSession.page.getByRole('heading', { name: 'Phase 5 Reading Lesson', level: 1 }).waitFor({ timeout: 12000 });
       await studentSession.page.getByText('Reading practice').waitFor({ timeout: 10000 });
       const sanitization = await studentSession.page.locator('.lesson-content').evaluate((element) => ({ scripts: element.querySelectorAll('script').length, eventHandlers: element.querySelectorAll('[onerror], [onclick], [onload]').length }));
       assert.equal(sanitization.scripts, 0);
@@ -536,17 +570,18 @@ async function main() {
     await runCase('LESS_03', 'Revisit lesson and preserve navigation', async () => {
       await fixtures.LearningProgress.updateOne({ student: fixtures.student._id, lesson: fixtures.lesson._id }, { $set: { status: 'completed', progress: 100 } });
       await studentSession.page.reload({ waitUntil: 'domcontentloaded' });
-      await studentSession.page.getByRole('heading', { name: 'Phase 5 Reading Lesson' }).waitFor({ timeout: 12000 });
+      await studentSession.page.getByRole('heading', { name: 'Phase 5 Reading Lesson', level: 1 }).waitFor({ timeout: 12000 });
       await studentSession.page.getByRole('link', { name: 'Bài tiếp theo: Phase 5 Follow-up Lesson' }).waitFor({ timeout: 10000 });
       return 'The same published lesson reloaded with the next-lesson action present.';
     });
 
     await runCase('DOC_01', 'Preview authorized PDF material', async () => {
-      await studentSession.page.getByRole('button', { name: 'Xem PDF' }).click();
-      const canvas = studentSession.page.getByTestId('pdf-preview-canvas');
+      await studentSession.page.goto(`${uiUrl}/student/courses/${fixtures.course._id}/lessons/${fixtures.lesson._id}`, { waitUntil: 'domcontentloaded' });
+      const pdfRow = studentSession.page.locator('.lesson-material-item').filter({ hasText: 'Phase 5 practice.pdf' });
+      const canvas = pdfRow.getByTestId('pdf-preview-canvas');
       await canvas.waitFor({ timeout: 10000 });
       await studentSession.page.waitForFunction(() => document.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '1', null, { timeout: 10000 });
-      await studentSession.page.getByRole('status').getByText('Trang 1 / 3').waitFor({ timeout: 5000 });
+      await pdfRow.getByRole('status').getByText('Trang 1 / 3').waitFor({ timeout: 5000 });
       const firstPage = await canvas.evaluate((element) => {
         const context = element.getContext('2d');
         const pixels = context.getImageData(0, 0, element.width, element.height).data;
@@ -558,12 +593,12 @@ async function main() {
       });
       assert.ok(firstPage.width > 0 && firstPage.height > 0);
       assert.ok(firstPage.nonWhitePixels > 25, `PDF page canvas should contain rendered content: ${JSON.stringify(firstPage)}`);
-      await studentSession.page.getByRole('button', { name: 'Trang tiếp theo' }).click();
+      await pdfRow.getByRole('button', { name: 'Trang tiếp theo' }).click();
       await studentSession.page.waitForFunction(() => document.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '2', null, { timeout: 10000 });
-      await studentSession.page.getByRole('status').getByText('Trang 2 / 3').waitFor({ timeout: 5000 });
-      await studentSession.page.getByRole('button', { name: 'Trang trước' }).click();
+      await pdfRow.getByRole('status').getByText('Trang 2 / 3').waitFor({ timeout: 5000 });
+      await pdfRow.getByRole('button', { name: 'Trang trước' }).click();
       await studentSession.page.waitForFunction(() => document.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '1', null, { timeout: 10000 });
-      await studentSession.page.locator('.material-pdf-preview').screenshot({ path: path.join(evidenceDir, 'lesson-pdf-preview.png') });
+      await pdfRow.locator('.pdf-document-preview').screenshot({ path: path.join(evidenceDir, 'lesson-pdf-preview.png') });
       return `PDF.js rendered page 1 with nonblank canvas pixels (${firstPage.width}×${firstPage.height}); navigation rendered page 2 of 3 and returned to page 1.`;
     });
 
@@ -582,51 +617,66 @@ async function main() {
       return `Browser downloaded the exact authorized three-page PDF fixture (${downloadedBytes.length} bytes, SHA-256 matched).`;
     });
 
-    await runCase('VOC_01', 'Vocabulary detail and flashcard interaction', async () => {
+    await runCase('VOC_01', 'Vocabulary chapter and flashcard interaction', async () => {
       await studentSession.page.goto(`${uiUrl}/student/vocabulary`, { waitUntil: 'domcontentloaded' });
-      await studentSession.page.getByRole('heading', { name: 'Từ vựng theo bài học' }).waitFor({ timeout: 10000 });
-      await studentSession.page.getByRole('heading', { name: /accommodate/ }).waitFor({ timeout: 10000 });
-      await studentSession.page.getByText('/əˈkɑːmədeɪt/', { exact: true }).waitFor({ timeout: 5000 });
-      await studentSession.page.getByText('đáp ứng; cung cấp chỗ ở', { exact: true }).waitFor({ timeout: 5000 });
-      await studentSession.page.getByText('The room can accommodate twelve guests.', { exact: true }).waitFor({ timeout: 5000 });
-      await studentSession.page.getByRole('link', { name: /Học bằng Flashcard/ }).click();
-      await studentSession.page.locator('.flashcard .flash-front').getByText('accommodate', { exact: true }).waitFor({ timeout: 10000 });
-      await studentSession.page.getByRole('button', { name: 'Đánh dấu từ để xem lại' }).click();
-      await studentSession.page.getByRole('button', { name: 'Lật flashcard' }).click();
-      await studentSession.page.getByRole('heading', { name: /đáp ứng/ }).waitFor({ timeout: 5000 });
-      await studentSession.page.getByRole('button', { name: 'Từ vựng tiếp theo' }).click();
-      await studentSession.page.locator('.flashcard .flash-front').getByText('appointment', { exact: true }).waitFor({ timeout: 5000 });
-      await studentSession.page.getByRole('button', { name: 'Từ vựng trước' }).click();
-      await studentSession.page.locator('.flashcard .flash-front').getByText('accommodate', { exact: true }).waitFor({ timeout: 5000 });
+      await studentSession.page.getByRole('heading', { name: 'Từ vựng theo chapter', level: 1 }).waitFor({ timeout: 10000 });
+      const chapterCards = studentSession.page.locator('.chapter-card');
+      await chapterCards.first().waitFor({ timeout: 10000 });
+      assert.equal(await chapterCards.count(), 2, 'The Unit 1 book should show both fixture chapters.');
+      await chapterCards.first().click();
+      const chapterFlashcard = studentSession.page.locator('.chapter-flashcard');
+      await chapterFlashcard.waitFor({ timeout: 10000 });
+      await studentSession.page.getByRole('button', { name: /Lưu chapter/ }).click();
+      await studentSession.page.getByRole('button', { name: /Đã lưu chapter/ }).waitFor({ timeout: 5000 });
+      await chapterFlashcard.click();
+      const wordList = studentSession.page.locator('.chapter-flash-word-list');
+      await wordList.locator('.chapter-flash-word-term h3').filter({ hasText: /^accommodate/ }).waitFor({ timeout: 5000 });
+      await wordList.getByText('/əˈkɑːmədeɪt/', { exact: true }).waitFor({ timeout: 5000 });
+      await wordList.getByText('đáp ứng; cung cấp chỗ ở', { exact: true }).waitFor({ timeout: 5000 });
+      await wordList.locator('.chapter-flash-word-examples p').filter({ hasText: 'The room can accommodate twelve guests.' }).waitFor({ timeout: 5000 });
+      await studentSession.page.getByRole('button', { name: 'Chapter tiếp theo' }).click();
+      await studentSession.page.locator('.chapter-flash-word-list .chapter-flash-word-term h3').filter({ hasText: /^appointment/ }).waitFor({ timeout: 5000 });
       await studentSession.page.screenshot({ path: path.join(evidenceDir, 'flashcard-desktop.png'), fullPage: true });
-      return 'Vocabulary list, flashcard flip and bookmark controls rendered for seeded entries.';
+      return 'Chapter list, chapter bookmark, flip-to-word-list content and next-chapter navigation rendered for the two Unit 1 fixtures.';
     });
 
     await runCase('VOC_02', 'Search vocabulary by keyword', async () => {
       await studentSession.page.goto(`${uiUrl}/student/vocabulary`, { waitUntil: 'domcontentloaded' });
-      const searchBox = studentSession.page.getByRole('searchbox', { name: 'Tìm từ tiếng Anh hoặc nghĩa tiếng Việt' });
+      const searchBox = studentSession.page.getByRole('searchbox', { name: 'Tìm chapter hoặc từ vựng' });
       await searchBox.fill('APPOINTMENT');
-      await studentSession.page.getByText('Tìm thấy 1 từ phù hợp').waitFor({ timeout: 5000 });
-      await studentSession.page.getByRole('heading', { name: /appointment/ }).waitFor({ timeout: 5000 });
-      assert.equal(await studentSession.page.getByRole('heading', { name: /accommodate/ }).count(), 0);
+      await studentSession.page.waitForFunction(() => document.querySelectorAll('.chapter-card').length === 1 && document.querySelector('.chapter-card')?.getAttribute('aria-label')?.includes('1 từ'));
+      assert.match(await studentSession.page.locator('.chapter-card').getAttribute('aria-label'), /1 từ/);
       await searchBox.fill('CUOC HEN');
-      await studentSession.page.getByText('Tìm thấy 1 từ phù hợp').waitFor({ timeout: 5000 });
-      await studentSession.page.getByRole('heading', { name: /appointment/ }).waitFor({ timeout: 5000 });
-      return 'Search matched uppercase English and accent-insensitive Vietnamese meaning, and hid the nonmatching word.';
+      await studentSession.page.waitForFunction(() => document.querySelectorAll('.chapter-card').length === 1 && document.querySelector('.chapter-card')?.getAttribute('aria-label')?.includes('1 từ'));
+      assert.match(await studentSession.page.locator('.chapter-card').getAttribute('aria-label'), /1 từ/);
+      return 'Search matched uppercase English and accent-insensitive Vietnamese meaning; each query narrowed the book to the single chapter containing the matching word.';
     });
 
     await runCase('DOC_03', 'Deny download when material policy forbids it', async () => {
       await studentSession.page.goto(`${uiUrl}/student/courses/${fixtures.course._id}/lessons/${fixtures.lesson._id}`, { waitUntil: 'domcontentloaded' });
       const restrictedRow = studentSession.page.locator('.lesson-material-item').filter({ hasText: 'Phase 5 restricted.pdf' });
       await restrictedRow.waitFor({ timeout: 10000 });
-      assert.equal(await restrictedRow.getByRole('button').count(), 0);
+      const restrictedCanvas = restrictedRow.getByTestId('pdf-preview-canvas');
+      await restrictedCanvas.waitFor({ timeout: 10000 });
+      await studentSession.page.waitForFunction(() => {
+        const canvas = [...document.querySelectorAll('[data-testid="pdf-preview-canvas"]')]
+          .find((element) => element.closest('.lesson-material-item')?.textContent?.includes('Phase 5 restricted.pdf'));
+        return canvas?.dataset.renderedPage === '1';
+      }, null, { timeout: 10000 });
+      assert.equal(await restrictedRow.getByRole('button', { name: /Tải xuống/ }).count(), 0);
       const token = await studentSession.page.evaluate(() => localStorage.getItem('accessToken'));
+      const preview = await fetch(`${apiUrl}/api/v1/materials/${fixtures.restricted._id}/preview`, { headers: { Authorization: `Bearer ${token}` } });
+      assert.equal(preview.status, 200);
+      assert.match(preview.headers.get('content-type') || '', /^application\/pdf(?:;|$)/i);
+      assert.match(preview.headers.get('content-disposition') || '', /^inline;/i);
+      await preview.arrayBuffer();
       const response = await fetch(`${apiUrl}/api/v1/materials/${fixtures.restricted._id}/download`, { headers: { Authorization: `Bearer ${token}` } });
       assert.equal(response.status, 403);
-      return 'The restricted material row exposed no preview/download button and the authenticated direct download endpoint returned HTTP 403.';
+      return 'The authorized Student rendered the restricted PDF inline, the row exposed no Download button, Preview returned HTTP 200 and Download returned HTTP 403.';
     });
 
     await runCase('EXAM_01', 'Assessment start, autosave, refresh and scoring', async () => {
+      lastPage = studentSession.page;
       await studentSession.page.goto(`${uiUrl}/student/assessments`, { waitUntil: 'domcontentloaded' });
       await studentSession.page.getByRole('heading', { name: 'Bài tập & đề thi' }).waitFor({ timeout: 10000 });
       const assessmentCard = studentSession.page.locator('.assessment-card').filter({ hasText: 'Phase 5 Standard Reading Check' });
@@ -650,6 +700,7 @@ async function main() {
       await studentSession.page.locator('.test-title-box').getByText(/Đã lưu/).waitFor({ timeout: 7000 });
       await studentSession.page.screenshot({ path: path.join(evidenceDir, 'assessment-desktop-before-refresh.png'), fullPage: true });
       await studentSession.page.reload({ waitUntil: 'domcontentloaded' });
+      await studentSession.page.getByRole('button', { name: 'Tiếp tục làm bài' }).click();
       await studentSession.page.locator('.test-screen--active').waitFor({ timeout: 12000 });
       assert.equal(await studentSession.page.locator('.question-card').nth(0).locator('input[type="radio"]').nth(1).isChecked(), true);
       assert.equal(await studentSession.page.locator('.question-card').nth(1).locator('input[type="radio"]').nth(0).isChecked(), true);
@@ -699,6 +750,7 @@ async function main() {
 
     await runCase('EXAM_05', 'Result includes score, counts, duration and pass classification', async () => {
       const resultPage = studentSession.page;
+      lastPage = resultPage;
       await resultPage.getByRole('heading', { name: 'Kết Quả Bài Kiểm Tra' }).waitFor({ timeout: 5000 });
       await resultPage.getByText('Điểm: 2 / 2', { exact: true }).waitFor({ timeout: 5000 });
       await resultPage.getByText('2', { exact: true }).first().waitFor({ timeout: 5000 });
@@ -731,6 +783,7 @@ async function main() {
     });
 
     await runCase('DASH_04', 'Dashboard shows completed assessment result', async () => {
+      lastPage = studentSession.page;
       await studentSession.page.goto(`${uiUrl}/student/dashboard`, { waitUntil: 'domcontentloaded' });
       await studentSession.page.getByRole('heading', { name: 'Kết Quả Làm Bài Gần Đây' }).waitFor({ timeout: 10000 });
       const resultRow = studentSession.page.locator('.result-item').filter({ hasText: 'Phase 5 Standard Reading Check' });
@@ -780,6 +833,7 @@ async function main() {
     });
 
     await runCase('HIST_01', 'History lists the submitted assessment and result', async () => {
+      lastPage = studentSession.page;
       await studentSession.page.goto(`${uiUrl}/student/history`, { waitUntil: 'domcontentloaded' });
       await studentSession.page.getByRole('heading', { name: 'Lịch sử làm bài' }).waitFor({ timeout: 10000 });
       const historyRows = studentSession.page.locator('.history-table tbody tr');
@@ -803,6 +857,10 @@ async function main() {
     });
 
     await runCase('AUTH_06', 'Logout clears browser session', async () => {
+      lastPage = studentSession.page;
+      const activeAttemptDialog = studentSession.page.getByRole('alertdialog');
+      const deferActiveAttempts = activeAttemptDialog.getByRole('button', { name: 'Để sau' });
+      if (await deferActiveAttempts.isVisible().catch(() => false)) await deferActiveAttempts.click();
       await studentSession.page.getByRole('button', { name: 'Đăng xuất' }).click();
       await studentSession.page.waitForURL((url) => url.pathname === '/login', { timeout: 10000 });
       assert.equal(await studentSession.page.evaluate(() => localStorage.getItem('accessToken')), null);
@@ -1030,6 +1088,8 @@ async function main() {
       const { context, page } = await newContext({ width: 390, height: 844 });
       await login(page, uiUrl, 'phase5.student', 'SyntheticPhase5!2026', '/student/dashboard');
       await page.goto(`${uiUrl}/student/tests/${fixtures.assessment._id}`, { waitUntil: 'domcontentloaded' });
+      const resumeAttempt = page.getByRole('button', { name: 'Tiếp tục làm bài' });
+      if (await resumeAttempt.isVisible().catch(() => false)) await resumeAttempt.click();
       await page.locator('.test-screen--active').waitFor({ timeout: 12000 });
       const trigger = page.getByRole('button', { name: /Danh Sách Câu/ });
       await trigger.waitFor({ timeout: 5000 });

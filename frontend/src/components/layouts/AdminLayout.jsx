@@ -5,6 +5,7 @@ import './AdminLayout.css';
 
 export default function AdminLayout() {
   const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.role === 'admin';
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,14 +20,14 @@ export default function AdminLayout() {
     else if (path.includes('lessons')) pageTitle = 'Quản lý Bài học';
     else if (path.includes('materials')) pageTitle = 'Quản lý Tài liệu';
     else if (path.includes('vocabulary')) pageTitle = 'Quản lý Từ vựng';
-    else if (path.includes('questions')) pageTitle = 'Ngân hàng Câu hỏi';
+    else if (path.includes('questions')) pageTitle = isAdmin ? 'Ngân hàng Part 5' : 'Ngân hàng Câu hỏi';
     else if (path.includes('assessments')) pageTitle = 'Quản lý Bài tập';
     else if (path.includes('toeic')) pageTitle = 'Quản lý Đề thi TOEIC';
     else if (path.includes('results')) pageTitle = 'Kết quả Làm bài';
     else if (path.includes('statistics')) pageTitle = 'Thống kê Hệ thống';
 
     document.title = `${pageTitle} | Ms Uyen`;
-  }, [location]);
+  }, [isAdmin, location]);
 
   useEffect(() => {
     if (isMobileOpen) {
@@ -176,7 +177,7 @@ export default function AdminLayout() {
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            <span>Ngân Hàng Câu Hỏi</span>
+            <span>{isAdmin ? 'Ngân hàng Part 5' : 'Ngân hàng câu hỏi'}</span>
           </NavLink>
 
           <NavLink

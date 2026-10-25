@@ -3,6 +3,17 @@ import Question from '../models/Question.js';
 import Lesson from '../models/Lesson.js';
 import Course from '../models/Course.js';
 import Attempt from '../models/Attempt.js';
+import { hasActiveQuestionBankSelectionLock } from '../services/toeicPart5BankSelection.js';
+
+const rejectDuringQuestionBankSelection = async (assessmentId, res) => {
+  if (!await hasActiveQuestionBankSelectionLock(assessmentId)) return false;
+  res.status(409).json({
+    status: 'error',
+    code: 'QUESTION_BANK_SELECTION_BUSY',
+    message: 'Đang xử lý lựa chọn câu hỏi Part 5. Hãy thử lại sau.',
+  });
+  return true;
+};
 
 // Helper to normalize questions input
 const formatAssessmentQuestions = async (rawQuestions) => {
@@ -204,6 +215,7 @@ export const updateAssessment = async (req, res, next) => {
         message: 'Assessment not found',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     const updates = { ...req.body };
 
@@ -272,6 +284,7 @@ export const updateAssessmentStatus = async (req, res, next) => {
         message: 'Assessment not found',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     // Publish Validation (Requirement 7 & TEST BJ)
     if (status === 'published') {
@@ -349,6 +362,7 @@ export const deleteAssessment = async (req, res, next) => {
         message: 'Assessment not found',
       });
     }
+    if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     // Safety Requirement 6 & TEST BD: Cannot delete assessment with student attempts
     const existingAttempts = await Attempt.countDocuments({ assessment: id });

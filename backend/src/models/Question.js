@@ -66,11 +66,56 @@ const questionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    // Set only by the TOEIC Part 5 importer. The sparse unique index provides
+    // an atomic cross-batch claim without requiring a migration of old Questions.
+    importStemOptionsFingerprint: {
+      type: String,
+      select: false,
+    },
+    importFingerprintVersion: {
+      type: Number,
+      select: false,
+    },
+    importBatchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'QuestionImportBatch',
+      select: false,
+    },
+    importRowNumber: {
+      type: Number,
+      select: false,
+    },
+    // Part 5 bank selections create assessment-scoped copies. These fields
+    // preserve provenance without linking a bank Question into a TOEIC group.
+    bankSourceQuestionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Question',
+      select: false,
+    },
+    bankTargetAssessmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Assessment',
+      select: false,
+    },
+    bankSourceSelectionBatchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'QuestionBankSelectionBatch',
+      select: false,
+    },
   },
 
   {
     timestamps: true,
   }
+);
+
+questionSchema.index(
+  { importStemOptionsFingerprint: 1 },
+  { unique: true, sparse: true, name: 'uniq_question_import_stem_options_fingerprint' }
+);
+questionSchema.index(
+  { bankTargetAssessmentId: 1, bankSourceQuestionId: 1 },
+  { unique: true, sparse: true, name: 'uniq_question_bank_source_per_assessment' }
 );
 
 const Question = mongoose.model('Question', questionSchema);
