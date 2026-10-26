@@ -101,6 +101,9 @@ export default function VocabularyImportWorkspace({ api = vocabularyImportApi, i
   const [candidateBusy, setCandidateBusy] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
   const [reviewBusy, setReviewBusy] = useState(false);
+  const [reviewSelectedIds, setReviewSelectedIds] = useState(() => new Set());
+  const [bulkReviewMode, setBulkReviewMode] = useState('');
+  const [bulkReviewBusy, setBulkReviewBusy] = useState(false);
   const [editorError, setEditorError] = useState('');
   const [serverConflict, setServerConflict] = useState(null);
   const [selectedIds, setSelectedIds] = useState(() => new Set());
@@ -165,6 +168,8 @@ export default function VocabularyImportWorkspace({ api = vocabularyImportApi, i
       if (confirmBlocked) {
         setSelectedIds(new Set());
         setSelectedDuplicateIds(new Set());
+        setReviewSelectedIds(new Set());
+        setBulkReviewMode('');
         setConfirmMessage('Đã tải lại batch. Hãy chọn lại candidate chưa tạo Draft sau khi kiểm tra trạng thái mới.');
       }
       setConfirmUncertain(false);
@@ -241,6 +246,8 @@ export default function VocabularyImportWorkspace({ api = vocabularyImportApi, i
       setAuditHistory([]);
       setSelectedIds(new Set());
       setSelectedDuplicateIds(new Set());
+      setReviewSelectedIds(new Set());
+      setBulkReviewMode('');
       setSearch('');
       setStatusFilter('');
       setValidationFilter('');
@@ -287,6 +294,8 @@ export default function VocabularyImportWorkspace({ api = vocabularyImportApi, i
       setAuditHistory([]);
       setSelectedIds(new Set());
       setSelectedDuplicateIds(new Set());
+       setReviewSelectedIds(new Set());
+       setBulkReviewMode('');
       setSearch('');
       setStatusFilter('');
       setValidationFilter('');
@@ -455,6 +464,66 @@ export default function VocabularyImportWorkspace({ api = vocabularyImportApi, i
     }
   };
 
+  const isReviewSelectable = (candidate) => candidate.validationStatus === 'VALIDATION_PASSED'
+    && ['NEEDS_REVIEW', 'EDITED'].includes(candidate.reviewStatus)
+    && candidate.importStatus !== 'IMPORTED_AS_DRAFT';
+
+  const toggleReviewSelection = (candidate) => {
+    if (!isReviewSelectable(candidate)) return;
+    const id = String(candidate._id);
+    setReviewSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleCurrentReviewPage = () => {
+    const reviewableIds = candidateItems.filter(isReviewSelectable).map((candidate) => String(candidate._id));
+    if (!reviewableIds.length) return;
+    setReviewSelectedIds((current) => {
+      const allSelected = reviewableIds.every((id) => current.has(id));
+      const next = new Set(current);
+      reviewableIds.forEach((id) => (allSelected ? next.delete(id) : next.add(id)));
+      return next;
+    });
+  };
+
+  const approveCandidatesInBulk = async () => {
+    if (!batch?._id || !bulkReviewMode) return;
+    const selected = [...reviewSelectedIds];
+    if (bulkReviewMode === 'selected' && !selected.length) return;
+    setBulkReviewBusy(true);
+    setEditorError('');
+    try {
+      const result = await api.bulkReviewCandidates(batch._id, {
+        ...(bulkReviewMode === 'all' ? { approveAll: true } : { candidateIds: selected }),
+        duplicateDecision: 'KEEP_SEPARATE',
+      });
+      setBulkReviewMode('');
+      setReviewSelectedIds((current) => {
+        const next = new Set(current);
+        if (bulkReviewMode === 'selected') selected.forEach((id) => next.delete(id));
+        else next.clear();
+        return next;
+      });
+      if (activeCandidate && (bulkReviewMode === 'all' || selected.includes(String(activeCandidate._id)))) {
+        setActiveCandidate(null);
+        setEditor(null);
+        setEditorInitial(null);
+        setAuditHistory([]);
+      }
+      await refreshBatch(batch._id);
+      const skipped = result.skippedCount ? ` ${result.skippedCount} candidate đã đổi trạng thái nên không được duyệt.` : '';
+      setNotice(`Đã duyệt ${result.approvedCount || 0} candidate hợp lệ. Duplicate được ghi nhận KEEP_SEPARATE.${skipped}`);
+    } catch (error) {
+      setEditorError(errorText(error, 'Không thể duyệt hàng loạt. Hãy tải lại batch trước khi thử lại.'));
+    } finally {
+      setBulkReviewBusy(false);
+    }
+  };
+
   const toggleCandidateSelection = (candidate) => {
     if (candidate.reviewStatus !== 'REVIEW_APPROVED' || candidate.validationStatus !== 'VALIDATION_PASSED') return;
     const id = String(candidate._id);
@@ -532,6 +601,8 @@ export default function VocabularyImportWorkspace({ api = vocabularyImportApi, i
     setPage(1);
     setSelectedIds(new Set());
     setSelectedDuplicateIds(new Set());
+    setReviewSelectedIds(new Set());
+    setBulkReviewMode('');
     setConfirmResults([]);
     setConfirmErrors([]);
     setConfirmUncertain(false);
@@ -681,12 +752,13 @@ export default function VocabularyImportWorkspace({ api = vocabularyImportApi, i
           )}
           {step === 'review' && (
             <section className="vwi-workspace" aria-labelledby="vwi-review-title">
-              <div className="vwi-section-heading"><div><p className="vwi-eyebrow">Editorial review · từng candidate</p><h2 id="vwi-review-title">Kiểm tra nội dung & quyết định</h2></div><button type="button" className="vwi-button vwi-button--secondary" onClick={() => stepTo('confirm')}>Chuẩn bị Confirm <span aria-hidden="true">→</span></button></div>
+               <div className="vwi-section-heading"><div><p className="vwi-eyebrow">Editorial review · chọn một phần hoặc duyệt toàn bộ</p><h2 id="vwi-review-title">Kiểm tra nội dung & quyết định</h2></div><div className="vwi-review-bulk-actions"><button type="button" className="vwi-button vwi-button--quiet vwi-button--small" disabled={listBusy || !candidateItems.some(isReviewSelectable)} onClick={toggleCurrentReviewPage}>Chọn / bỏ chọn trang</button><button type="button" className="vwi-button vwi-button--secondary vwi-button--small" disabled={!reviewSelectedIds.size || bulkReviewBusy} onClick={() => setBulkReviewMode('selected')}>Duyệt {reviewSelectedIds.size} đã chọn</button><button type="button" className="vwi-button vwi-button--primary vwi-button--small" disabled={bulkReviewBusy || !(batch.counts?.needsReview ?? 0)} onClick={() => setBulkReviewMode('all')}>Duyệt toàn bộ hợp lệ</button><button type="button" className="vwi-button vwi-button--secondary" onClick={() => stepTo('confirm')}>Chuẩn bị Confirm <span aria-hidden="true">→</span></button></div></div>
               <CandidateFilters search={search} setSearch={setSearch} statusFilter={statusFilter} setStatusFilter={setStatusFilter} validationFilter={validationFilter} setValidationFilter={setValidationFilter} reviewFilter={reviewFilter} setReviewFilter={setReviewFilter} resetPage={() => setPage(1)} />
               <div className="vwi-review-layout">
                 <CandidateList
                   items={candidateItems} busy={listBusy || batchBusy} error={listError} onRetry={() => batch?._id && loadCandidates(batch._id)}
                   pagination={pagination} page={page} setPage={setPage} onOpen={openCandidate} activeId={activeCandidate?._id}
+                   selectable selectionMode="review" onToggle={toggleReviewSelection} selectedIds={reviewSelectedIds}
                 />
                 <div className="vwi-editor-stage">
                   {candidateBusy && <div className="vwi-loading-state" role="status">Đang mở candidate và audit…</div>}
@@ -751,6 +823,15 @@ export default function VocabularyImportWorkspace({ api = vocabularyImportApi, i
         <div className="vwi-dialog__actions"><button type="button" className="vwi-button vwi-button--secondary" onClick={() => setConfirmOpen(false)}>Quay lại</button><button type="button" className="vwi-button vwi-button--primary" onClick={confirmDraft} disabled={confirmBusy}>Confirm bản nháp</button></div>
       </Dialog>
 
+      <Dialog open={Boolean(bulkReviewMode)} title={bulkReviewMode === 'all' ? 'Duyệt toàn bộ candidate hợp lệ?' : 'Duyệt candidate đã chọn?'} labelledBy="vwi-bulk-review-dialog-title" onClose={() => !bulkReviewBusy && setBulkReviewMode('')} className="vwi-dialog--confirm">
+        <div className="vwi-confirm-dialog-copy">
+          <p><strong>{bulkReviewMode === 'all' ? 'Tất cả candidate hợp lệ còn chờ review trong batch' : `${reviewSelectedIds.size} candidate đã chọn`}</strong> sẽ được duyệt trong một thao tác.</p>
+          <p>Candidate lỗi dữ liệu, đã bị từ chối hoặc đã tạo Draft sẽ không bị thay đổi.</p>
+          <p>Candidate có dấu hiệu trùng sẽ được ghi nhận rõ là <strong>KEEP_SEPARATE</strong>; thao tác này không gộp từ trùng và không publish nội dung.</p>
+        </div>
+        <div className="vwi-dialog__actions"><button type="button" className="vwi-button vwi-button--secondary" disabled={bulkReviewBusy} onClick={() => setBulkReviewMode('')}>Hủy</button><button type="button" className="vwi-button vwi-button--primary" onClick={approveCandidatesInBulk} disabled={bulkReviewBusy}>{bulkReviewBusy ? 'Đang duyệt…' : 'Xác nhận duyệt'}</button></div>
+      </Dialog>
+
       <Dialog open={discardOpen} title="Bỏ thay đổi chưa lưu?" labelledBy="vwi-discard-dialog-title" onClose={() => { setDiscardOpen(false); pendingNavigation.current = null; }} className="vwi-dialog--confirm">
         <p className="vwi-confirm-dialog-copy">Nội dung bạn vừa nhập chưa được lưu. Chọn bỏ thay đổi để tiếp tục, hoặc ở lại chỉnh sửa.</p>
         <div className="vwi-dialog__actions"><button type="button" className="vwi-button vwi-button--secondary" onClick={() => { setDiscardOpen(false); pendingNavigation.current = null; }}>Ở lại chỉnh sửa</button><button type="button" className="vwi-button vwi-button--danger" onClick={continueAfterDiscard}>Bỏ thay đổi</button></div>
@@ -799,7 +880,7 @@ function CandidateFilters({ search, setSearch, statusFilter, setStatusFilter, va
   );
 }
 
-function CandidateList({ items, busy, error, onRetry, pagination, page, setPage, onOpen, activeId, selectable = false, onToggle, selectedIds = new Set() }) {
+function CandidateList({ items, busy, error, onRetry, pagination, page, setPage, onOpen, activeId, selectable = false, selectionMode = 'confirm', onToggle, selectedIds = new Set() }) {
   return (
     <section className="vwi-candidate-list" aria-label="Danh sách Chapter candidate" aria-busy={busy}>
       <div className="vwi-candidate-list__heading"><div><strong>{pagination.total} candidate</strong><span>Hiển thị {items.length} · tối đa {PAGE_SIZE} mỗi trang</span></div><div className="vwi-pagination"><button type="button" className="vwi-icon-button" aria-label="Trang trước" disabled={page <= 1 || busy} onClick={() => setPage((value) => Math.max(1, value - 1))}>←</button><span>Trang {pagination.page || page} / {pagination.pages || 1}</span><button type="button" className="vwi-icon-button" aria-label="Trang sau" disabled={page >= (pagination.pages || 1) || busy} onClick={() => setPage((value) => Math.min(pagination.pages || 1, value + 1))}>→</button></div></div>
@@ -807,11 +888,13 @@ function CandidateList({ items, busy, error, onRetry, pagination, page, setPage,
       {busy && <div className="vwi-loading-state" role="status">Đang tải danh sách candidate…</div>}
       {!busy && !error && items.length === 0 && <div className="vwi-empty-state"><strong>Không có candidate phù hợp</strong><p>Thay bộ lọc hoặc kiểm tra lại trạng thái của batch.</p></div>}
       {!busy && items.length > 0 && <div className="vwi-candidate-rows">{items.map((candidate) => {
-        const eligible = candidate.reviewStatus === 'REVIEW_APPROVED' && candidate.validationStatus === 'VALIDATION_PASSED';
+        const eligible = selectionMode === 'review'
+          ? candidate.validationStatus === 'VALIDATION_PASSED' && ['NEEDS_REVIEW', 'EDITED'].includes(candidate.reviewStatus) && candidate.importStatus !== 'IMPORTED_AS_DRAFT'
+          : candidate.reviewStatus === 'REVIEW_APPROVED' && candidate.validationStatus === 'VALIDATION_PASSED' && candidate.importStatus !== 'IMPORTED_AS_DRAFT';
         const selected = selectedIds.has(String(candidate._id));
         return (
           <article className={`vwi-candidate-row${String(candidate._id) === String(activeId) ? ' is-active' : ''}`} key={String(candidate._id)}>
-            {selectable && <label className="vwi-candidate-check"><input type="checkbox" checked={selected} disabled={!eligible || candidate.importStatus === 'IMPORTED_AS_DRAFT'} onChange={() => onToggle(candidate)} /><span className="vwi-visually-hidden">Chọn {candidateFileName(candidate)} để Confirm</span></label>}
+            {selectable && <label className="vwi-candidate-check"><input type="checkbox" checked={selected} disabled={!eligible} onChange={() => onToggle(candidate)} /><span className="vwi-visually-hidden">Chọn {candidateFileName(candidate)} để {selectionMode === 'review' ? 'duyệt' : 'Confirm'}</span></label>}
             <button type="button" className="vwi-candidate-open" onClick={() => onOpen(candidate._id)}>
               <span className="vwi-candidate-index">{String(candidateOrdinal(candidate)).padStart(2, '0')}</span>
               <span className="vwi-candidate-copy"><strong>{effectiveValues(candidate).word || 'Chưa có từ'}</strong><small>{candidateFileName(candidate)} · {candidateLocator(candidate)}</small><span className="vwi-row-badges"><Badge value={candidate.validationStatus} /><Badge value={candidate.reviewStatus} /><Badge value={candidate.importStatus} />{candidateHasDuplicate(candidate) && <Badge value="NEEDS_REVIEW" label="Có dấu hiệu trùng" />}</span></span>

@@ -136,3 +136,5 @@
   .student-create-modal .modal-actions { flex-direction: column-reverse; }
   .student-create-modal .modal-actions button { width: 100%; min-height: 44px; }
 }
+.admin-toast { top: 50%; right: auto; bottom: auto; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+@media (max-width: 767px) { .admin-toast { right: auto; bottom: auto; left: 50%; width: calc(100vw - 36px); } }

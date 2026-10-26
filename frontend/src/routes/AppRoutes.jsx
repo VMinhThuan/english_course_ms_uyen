@@ -32,8 +32,6 @@ import StudentVocabularyPage from '../pages/StudentVocabularyPage.jsx';
 import FlashcardPage from '../pages/FlashcardPage.jsx';
 import StudentVocabularyCatalogPage from '../features/vocabulary-catalog/StudentVocabularyCatalogPage.jsx';
 import VocabularyCatalogWorkspace from '../features/vocabulary-catalog/VocabularyCatalogWorkspace.jsx';
-import VocabularyImportWorkspace from '../features/vocabulary-import/VocabularyImportWorkspace.jsx';
-import VocabularyPublicationWorkspace from '../features/vocabulary-catalog/VocabularyPublicationWorkspace.jsx';
 
 // Admin Pages
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage.jsx';
@@ -92,6 +90,11 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 
 
 const AdminToeicPart5ImportPage = lazy(() => import('../pages/admin/AdminToeicPart5ImportPage.jsx'));
+
+function AdminVocabularyLanding() {
+  const role = useAuthStore((state) => state.user?.role);
+  return role === 'admin' ? <Navigate to="/admin/vocabulary/catalog" replace /> : <AdminVocabularyPage />;
+}
 
 function AppRoutes() {
   return (
@@ -176,10 +179,10 @@ function AppRoutes() {
         <Route path="students/:id" element={<AdminStudentDetailPage />} />
         <Route path="lessons" element={<AdminLessonsPage />} />
         <Route path="materials" element={<AdminMaterialsPage />} />
-        <Route path="vocabulary" element={<AdminVocabularyPage />} />
+        <Route path="vocabulary" element={<AdminVocabularyLanding />} />
         <Route path="vocabulary/catalog" element={<ProtectedRoute requiredRole="admin"><VocabularyCatalogWorkspace /></ProtectedRoute>} />
-        <Route path="vocabulary/import" element={<ProtectedRoute requiredRole="admin"><VocabularyImportWorkspace /></ProtectedRoute>} />
-        <Route path="vocabulary/publication" element={<ProtectedRoute requiredRole="admin"><VocabularyPublicationWorkspace /></ProtectedRoute>} />
+        <Route path="vocabulary/import" element={<Navigate to="/admin/vocabulary/catalog" replace />} />
+        <Route path="vocabulary/publication" element={<Navigate to="/admin/vocabulary/catalog" replace />} />
         <Route path="questions" element={<AdminQuestionsPage />} />
         <Route path="questions/import-part5" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div role="status">Đang tải trang…</div>}><AdminToeicPart5ImportPage /></Suspense></ProtectedRoute>} />
         <Route path="assessments" element={<AdminAssessmentsPage />} />

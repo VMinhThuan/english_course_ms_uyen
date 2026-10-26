@@ -99,6 +99,11 @@ export function createVocabularyImportApi({
         method: 'POST', body: JSON.stringify(payload),
       });
     },
+    bulkReviewCandidates(batchId, payload) {
+      return request(`/${encodeURIComponent(batchId)}/candidates/review`, {
+        method: 'POST', body: JSON.stringify(payload),
+      });
+    },
     confirmBatch(batchId, payload) {
       return request(`/${encodeURIComponent(batchId)}/confirm`, {
         method: 'POST', body: JSON.stringify(payload),

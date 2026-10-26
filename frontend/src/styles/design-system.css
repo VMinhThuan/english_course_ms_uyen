@@ -92,7 +92,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ds-filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--brand-border); border-radius: var(--radius-md); background: var(--brand-surface); box-shadow:var(--shadow-subtle); }
 .ds-input, .ds-select { min-height: 42px; min-width: 0; border: 1px solid var(--brand-border); border-radius: var(--radius-sm); background: var(--surface-input); color: var(--brand-text); padding: 0 13px; font-size: 13px; }
 .ds-input:focus, .ds-select:focus { border-color: var(--brand-brown-sec); box-shadow: 0 0 0 3px rgba(128,107,88,.12); outline: 0; }
-.ds-toast { position: fixed; right: 22px; bottom: 22px; z-index: 2100; max-width: min(420px,calc(100vw - 36px)); border: 1px solid var(--brand-border); border-radius: var(--radius-md); background: var(--brand-coffee); color: #FFF; padding: 13px 16px; font-size: 13px; font-weight: 700; box-shadow: 0 16px 32px rgba(61,51,42,.24); }
+.ds-toast { position: fixed; top: 50%; left: 50%; z-index: 2100; width: min(420px,calc(100vw - 36px)); max-width: none; border: 1px solid var(--brand-border); border-radius: var(--radius-md); background: var(--brand-coffee); color: #FFF; padding: 13px 16px; font-size: 13px; font-weight: 700; box-shadow: 0 16px 32px rgba(61,51,42,.24); text-align: center; transform: translate(-50%,-50%); }
 .ds-empty-state, .ds-loading-state, .ds-error-state { display: grid; min-height: 132px; place-items: center; padding: 26px; border: 1px dashed var(--brand-border); border-radius: var(--radius-md); color: var(--brand-muted); font-size: 14px; text-align: center; }
 .ds-error-state { border-color: var(--brand-danger-border); background: var(--brand-danger-bg); color: var(--brand-danger); }
 .ds-progress { height: 8px; overflow: hidden; border-radius: var(--radius-pill); background: var(--brand-bg-sub); }.ds-progress > span { display: block; height: 100%; border-radius: inherit; background: var(--brand-yellow); transition: width .35s ease; }
@@ -155,7 +155,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     max-width: 100%;
   }
   .ds-table-action, .ds-table-action-header { min-width: 148px; }
-  .ds-toast { right: 18px; bottom: 18px; left: 18px; max-width: none; text-align: center; }
+  .ds-toast { width: calc(100vw - 36px); }
 }
 
 /* Shared modal primitives. */

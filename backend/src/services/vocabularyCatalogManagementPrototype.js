@@ -370,6 +370,52 @@ export async function listManagedVocabularyChapters(tagId, { search = '', status
   };
 }
 
+/** Lists membership occurrences for the selected Tag without changing their Chapter ownership. */
+export async function listManagedTagVocabulary(tagId, { search = '', page = 1, limit = 50 } = {}) {
+  assertVocabularyPrototypeDatabase();
+  const tagObjectId = requireObjectId(tagId, 'tagId');
+  await loadTag(tagObjectId);
+  const pagination = parsePage(page, limit);
+  if (typeof search !== 'string' || search.length > 80) throw new VocabularyCatalogManagementError('INVALID_SEARCH', 'Search must be at most 80 characters.');
+  const pipeline = [
+    { $match: { tagId: tagObjectId } },
+    { $lookup: { from: ChapterVocabulary.collection.name, localField: '_id', foreignField: 'chapterId', as: 'membership' } },
+    { $unwind: '$membership' },
+    { $lookup: { from: Vocabulary.collection.name, localField: 'membership.vocabularyId', foreignField: '_id', as: 'vocabulary' } },
+    { $unwind: '$vocabulary' },
+    { $match: {
+      'vocabulary.catalogOnly': true,
+      'vocabulary.catalogStatus': { $ne: 'archived' },
+      ...(search.trim() ? { $or: [
+        { 'vocabulary.word': { $regex: escapeRegex(search.trim()), $options: 'i' } },
+        { 'vocabulary.meaning': { $regex: escapeRegex(search.trim()), $options: 'i' } },
+      ] } : {}),
+    } },
+    { $sort: { sortOrder: 1, chapterNumber: 1, 'membership.sortOrder': 1, _id: 1 } },
+    { $facet: {
+      items: [
+        { $skip: pagination.skip },
+        { $limit: pagination.limit },
+        { $project: {
+          _id: '$membership._id',
+          chapter: { _id: '$_id', title: '$title', chapterNumber: '$chapterNumber', status: '$status' },
+          vocabulary: { _id: '$vocabulary._id', word: '$vocabulary.word', meaning: '$vocabulary.meaning', partOfSpeech: '$vocabulary.partOfSpeech', catalogStatus: '$vocabulary.catalogStatus' },
+        } },
+      ],
+      total: [{ $count: 'count' }],
+    } },
+  ];
+  const [result = { items: [], total: [] }] = await VocabularyChapter.aggregate(pipeline);
+  return {
+    items: result.items.map((item) => ({
+      _id: String(item._id),
+      chapter: { ...item.chapter, _id: String(item.chapter._id) },
+      vocabulary: { ...item.vocabulary, _id: String(item.vocabulary._id) },
+    })),
+    pagination: { page: pagination.page, limit: pagination.limit, total: result.total[0]?.count || 0, pages: Math.ceil((result.total[0]?.count || 0) / pagination.limit) || 1 },
+  };
+}
+
 export async function getManagedVocabularyChapter(chapterId) {
   assertVocabularyPrototypeDatabase();
   const chapter = await loadChapter(chapterId);

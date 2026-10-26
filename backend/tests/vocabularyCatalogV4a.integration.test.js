@@ -207,6 +207,11 @@ test('Phase V4A Tag, Chapter, membership, import mapping and publication contrac
     const listB = await json(`/admin/vocabulary-catalog/chapters/${chapters[1]._id}/memberships`);
     assert.deepEqual(listA.payload.data.items.map((item) => item.vocabulary.word), ['gamma', 'beta', 'alpha']);
     assert.equal(String(listB.payload.data.items[0]._id), String(secondChapterMember._id));
+    const wordsByTag = await json(`/admin/vocabulary-catalog/tags/${tagId}/vocabulary?search=alpha&page=1&limit=20`);
+    assert.equal(wordsByTag.status, 200, JSON.stringify(wordsByTag.payload));
+    assert.equal(wordsByTag.payload.data.pagination.total, 2, 'one Vocabulary may remain visible through both Chapter memberships');
+    assert.equal(wordsByTag.payload.data.items.every((item) => item.vocabulary.word === 'alpha'), true);
+    assert.deepEqual(wordsByTag.payload.data.items.map((item) => item.chapter.title).sort(), ['Card A', 'Card B']);
     const after = await Vocabulary.find({ _id: { $in: words.map((word) => word._id) } }).sort({ word: 1 }).lean();
     assert.deepEqual(after.map((word) => ({ id: String(word._id), word: word.word, meaning: word.meaning, senses: word.catalogSenses })), before.sort((a, b) => a.word.localeCompare(b.word)));
     assert.deepEqual(listA.payload.data.items.map((item) => item.sortOrder), [10, 20, 30]);

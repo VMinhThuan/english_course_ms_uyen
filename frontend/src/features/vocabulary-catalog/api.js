@@ -73,6 +73,7 @@ export function createVocabularyCatalogApi({
     updateTag(tagId, body) { return catalog(`/tags/${encodeURIComponent(tagId)}`, { method: 'PATCH', body }); },
     archiveTag(tagId, body) { return catalog(`/tags/${encodeURIComponent(tagId)}/archive`, { method: 'POST', body }); },
     listChapters(tagId, query) { return catalog(`/tags/${encodeURIComponent(tagId)}/chapters`, { query }); },
+    listTagVocabulary(tagId, query) { return catalog(`/tags/${encodeURIComponent(tagId)}/vocabulary`, { query }); },
     createChapter(tagId, body) { return catalog(`/tags/${encodeURIComponent(tagId)}/chapters`, { method: 'POST', body }); },
     getChapter(chapterId) { return catalog(`/chapters/${encodeURIComponent(chapterId)}`); },
     updateChapter(chapterId, body) { return catalog(`/chapters/${encodeURIComponent(chapterId)}`, { method: 'PATCH', body }); },

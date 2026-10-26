@@ -11,6 +11,7 @@ import {
   listCatalogVocabularyOptions,
   listChapterMemberships,
   listManagedVocabularyChapters,
+  listManagedTagVocabulary,
   listVocabularyTags,
   reorderChapterMemberships,
   updateManagedVocabularyChapter,
@@ -67,6 +68,10 @@ export function createVocabularyCatalogManagementPrototypeRouter({ authenticateA
 
   router.get('/tags/:tagId/chapters', asyncRoute(async (req, res) => {
     const result = await listManagedVocabularyChapters(req.params.tagId, req.query);
+    return res.json({ status: 'success', data: result });
+  }));
+  router.get('/tags/:tagId/vocabulary', asyncRoute(async (req, res) => {
+    const result = await listManagedTagVocabulary(req.params.tagId, req.query);
     return res.json({ status: 'success', data: result });
   }));
   router.post('/tags/:tagId/chapters', asyncRoute(async (req, res) => {

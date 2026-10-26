@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { vocabularyImportApi } from '../vocabulary-import/api.js';
 import VocabularyImportWorkspace from '../vocabulary-import/VocabularyImportWorkspace.jsx';
+import VocabularyPublicationWorkspace from './VocabularyPublicationWorkspace.jsx';
 import { vocabularyCatalogApi, VocabularyCatalogApiError } from './api.js';
 import {
   CATALOG_PAGE_SIZE, formatDate, mapCounts, MEMBERSHIP_PAGE_SIZE, moveId, safeSlug, STATUS_LABELS,
@@ -78,6 +79,12 @@ export default function VocabularyCatalogWorkspace({ api = vocabularyCatalogApi,
   const [membershipPage, setMembershipPage] = useState(1);
   const [membershipBusy, setMembershipBusy] = useState(false);
   const [membershipError, setMembershipError] = useState('');
+  const [tagVocabularyItems, setTagVocabularyItems] = useState([]);
+  const [tagVocabularyPagination, setTagVocabularyPagination] = useState({ page: 1, limit: MEMBERSHIP_PAGE_SIZE, total: 0, pages: 1 });
+  const [tagVocabularySearch, setTagVocabularySearch] = useState('');
+  const [tagVocabularyPage, setTagVocabularyPage] = useState(1);
+  const [tagVocabularyBusy, setTagVocabularyBusy] = useState(false);
+  const [tagVocabularyError, setTagVocabularyError] = useState('');
   const [tagDialog, setTagDialog] = useState(null);
   const [tagForm, setTagForm] = useState(blankTag());
   const [tagFormOriginal, setTagFormOriginal] = useState(blankTag());
@@ -162,6 +169,21 @@ export default function VocabularyCatalogWorkspace({ api = vocabularyCatalogApi,
     finally { setMembershipBusy(false); }
   }, [api, membershipPage, membershipSearch, selectedChapterId]);
 
+  const loadTagVocabulary = useCallback(async () => {
+    if (!selectedTagId) {
+      setTagVocabularyItems([]);
+      setTagVocabularyPagination({ page: 1, limit: MEMBERSHIP_PAGE_SIZE, total: 0, pages: 1 });
+      return;
+    }
+    setTagVocabularyBusy(true); setTagVocabularyError('');
+    try {
+      const result = await api.listTagVocabulary(selectedTagId, { search: tagVocabularySearch, page: tagVocabularyPage, limit: MEMBERSHIP_PAGE_SIZE });
+      setTagVocabularyItems(result.items || []);
+      setTagVocabularyPagination(result.pagination || { page: 1, limit: MEMBERSHIP_PAGE_SIZE, total: 0, pages: 1 });
+    } catch (error) { setTagVocabularyError(errorText(error, 'Không thể tải danh sách Vocabulary của Tag.')); }
+    finally { setTagVocabularyBusy(false); }
+  }, [api, selectedTagId, tagVocabularyPage, tagVocabularySearch]);
+
   const loadBatches = useCallback(async () => {
     setBatchBusy(true); setBatchError('');
     try {
@@ -174,6 +196,7 @@ export default function VocabularyCatalogWorkspace({ api = vocabularyCatalogApi,
   useEffect(() => { loadTags(); }, [loadTags]);
   useEffect(() => { loadChapters(); }, [loadChapters]);
   useEffect(() => { loadMemberships(); }, [loadMemberships]);
+  useEffect(() => { loadTagVocabulary(); }, [loadTagVocabulary]);
   useEffect(() => { if (view === 'batches') loadBatches(); }, [loadBatches, view]);
 
   const guard = (action) => {
@@ -318,22 +341,24 @@ export default function VocabularyCatalogWorkspace({ api = vocabularyCatalogApi,
     finally { setMappingSaving(false); }
   };
 
-  if (view === 'review') return <div className="vcm-page vcm-review-shell">
-    <div className="vcm-review-back"><button className="vcm-button vcm-button--quiet" type="button" onClick={() => setView('batches')}>← Lịch sử Import Batch</button><Status value="DRAFT" /></div>
-    <VocabularyImportWorkspace api={importApi} initialBatchId={reviewBatchId} autoOpenBatch key={reviewBatchId} />
+  if (view === 'import' || view === 'review' || view === 'publication') return <div className="vcm-page vcm-review-shell">
+    <div className="vcm-review-back"><button className="vcm-button vcm-button--quiet" type="button" onClick={() => setView(view === 'review' ? 'batches' : 'tags')}>← Quản lý từ vựng</button><Status value={view === 'publication' ? 'PENDING_PO' : 'DRAFT'} /></div>
+    {view === 'publication' ? <VocabularyPublicationWorkspace /> : <VocabularyImportWorkspace api={importApi} initialBatchId={reviewBatchId} autoOpenBatch={view === 'review'} key={reviewBatchId || 'new-import'} />}
   </div>;
 
   return <main className="vcm-page">
     <header className="vcm-hero">
-      <div><span className="vcm-kicker">Admin catalog · Phase V4A</span><h1>Quản lý Tag & Chapter</h1>
-        <p>Gom các Chapter thành bộ từ vựng có thứ tự. Mỗi Chapter là một card; nội dung vẫn ở Draft cho đến khi chính sách xuất bản được duyệt.</p></div>
+      <div><span className="vcm-kicker">Admin vocabulary workspace</span><h1>Quản lý từ vựng</h1>
+        <p>Quản lý Tag, Chapter, danh sách từ, Import DOCX mới và xuất bản trong một workspace. Nội dung chỉ thành Draft hoặc Published qua quy trình đã kiểm duyệt.</p></div>
       <div className="vcm-hero-stamp"><span>CATALOG</span><strong>{tagPagination.total.toString().padStart(2, '0')}</strong><small>nhóm nguồn</small></div>
     </header>
     {notice && <div className="vcm-notice" role="status"><span>{notice}</span><button type="button" aria-label="Ẩn thông báo" onClick={() => setNotice('')}>×</button></div>}
     {globalError && <div className="vcm-error" role="alert"><span>{globalError}</span><button type="button" onClick={() => setGlobalError('')}>Đóng</button></div>}
-    <nav className="vcm-tabs" aria-label="Quản lý Vocabulary Catalog">
-      <button type="button" className={view === 'tags' ? 'is-active' : ''} aria-current={view === 'tags' ? 'page' : undefined} onClick={() => guard(() => setView('tags'))}><span className="vcm-tab-mark">A</span><span><strong>Tag & Chapter</strong><small>Quản lý Catalog</small></span></button>
+    <nav className="vcm-tabs" aria-label="Quản lý Vocabulary">
+      <button type="button" className={view === 'tags' ? 'is-active' : ''} aria-current={view === 'tags' ? 'page' : undefined} onClick={() => guard(() => setView('tags'))}><span className="vcm-tab-mark">A</span><span><strong>Tag, Chapter & từ</strong><small>Danh sách theo Tag hiện tại</small></span></button>
+      <button type="button" className={view === 'import' ? 'is-active' : ''} aria-current={view === 'import' ? 'page' : undefined} onClick={() => guard(() => setView('import'))}><span className="vcm-tab-mark">↓</span><span><strong>Nhập DOCX mới</strong><small>Parser V2 · Review · Draft</small></span></button>
       <button type="button" className={view === 'batches' ? 'is-active' : ''} aria-current={view === 'batches' ? 'page' : undefined} onClick={() => guard(() => setView('batches'))}><span className="vcm-tab-mark">↗</span><span><strong>Import history</strong><small>Batch và ánh xạ nguồn</small></span></button>
+      <button type="button" className={view === 'publication' ? 'is-active' : ''} aria-current={view === 'publication' ? 'page' : undefined} onClick={() => guard(() => setView('publication'))}><span className="vcm-tab-mark">✓</span><span><strong>Xuất bản</strong><small>Review & Publish có audit</small></span></button>
       <span className="vcm-policy"><i aria-hidden="true" /> Chính sách publish: PENDING_PO</span>
     </nav>
 
@@ -343,7 +368,7 @@ export default function VocabularyCatalogWorkspace({ api = vocabularyCatalogApi,
         <div className="vcm-filter-stack"><label className="vcm-search"><span className="sr-only">Tìm Tag</span><input value={tagSearch} placeholder="Tìm tên hoặc slug" onChange={(event) => { setTagSearch(event.target.value); setTagPage(1); }} /></label>
           <label className="sr-only" htmlFor="vcm-tag-status">Lọc trạng thái Tag</label><select id="vcm-tag-status" value={tagStatus} onChange={(event) => { setTagStatus(event.target.value); setTagPage(1); }}><option value="">Tất cả trạng thái</option><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></div>
         {tagBusy ? <div className="vcm-state" role="status">Đang tải Tag…</div> : tagError ? <div className="vcm-error" role="alert"><span>{tagError}</span><button type="button" onClick={loadTags}>Thử lại</button></div> : tagItems.length === 0 ? <div className="vcm-empty"><span className="vcm-empty-mark">＋</span><strong>Chưa có Tag phù hợp</strong><small>Tạo Tag Draft để gom các Chapter theo nguồn.</small></div> : <div className="vcm-tag-list">
-          {tagItems.map((tag, index) => <button type="button" key={idOf(tag)} className={`vcm-tag-row${selectedTagId === idOf(tag) ? ' is-selected' : ''}`} aria-pressed={selectedTagId === idOf(tag)} onClick={() => { setSelectedTagId(idOf(tag)); setSelectedChapterId(''); setChapterPage(1); }}>
+          {tagItems.map((tag, index) => <button type="button" key={idOf(tag)} className={`vcm-tag-row${selectedTagId === idOf(tag) ? ' is-selected' : ''}`} aria-pressed={selectedTagId === idOf(tag)} onClick={() => { setSelectedTagId(idOf(tag)); setSelectedChapterId(''); setChapterPage(1); setTagVocabularyPage(1); setTagVocabularySearch(''); }}>
             <span className="vcm-tag-index">{String((tagPage - 1) * CATALOG_PAGE_SIZE + index + 1).padStart(2, '0')}</span><span className="vcm-tag-copy"><strong>{tag.name}</strong><small>{tag.slug}</small></span><span className="vcm-tag-count"><b>{tag.chapterCount}</b><small>chapters</small></span>
           </button>)}
         </div>}
@@ -357,6 +382,13 @@ export default function VocabularyCatalogWorkspace({ api = vocabularyCatalogApi,
             <div className="vcm-tag-metrics"><span><b>{selectedTag.chapterCount}</b> Chapter</span><span><b>{selectedTag.vocabularyCount}</b> membership Vocabulary</span><span><b>{selectedTag.sortOrder}</b> thứ tự Tag</span></div>
             <div className="vcm-tag-actions"><button className="vcm-button vcm-button--secondary" type="button" onClick={() => openTagEditor(selectedTag)}>Sửa Tag</button><button className="vcm-button vcm-button--danger" type="button" disabled={selectedTag.status === 'archived'} onClick={() => archiveTag(selectedTag)}>Lưu trữ Tag</button></div>
           </section>
+           <section className="vcm-tag-vocabulary" aria-labelledby="vcm-tag-vocabulary-title">
+             <div className="vcm-section-head"><div><span className="vcm-kicker">Vocabulary theo Tag hiện tại</span><h2 id="vcm-tag-vocabulary-title">Danh sách từ <small>{tagVocabularyPagination.total}</small></h2><p>Một từ có thể xuất hiện ở nhiều Chapter; mỗi dòng giữ nguyên Chapter membership.</p></div><button className="vcm-button vcm-button--secondary vcm-button--small" type="button" onClick={loadTagVocabulary} disabled={tagVocabularyBusy}>{tagVocabularyBusy ? 'Đang tải…' : 'Làm mới'}</button></div>
+             <div className="vcm-filter-row vcm-membership-filter"><label className="vcm-search"><span className="sr-only">Tìm Vocabulary trong Tag</span><input value={tagVocabularySearch} placeholder="Tìm từ hoặc nghĩa trong Tag" onChange={(event) => { setTagVocabularySearch(event.target.value); setTagVocabularyPage(1); }} /></label><span className="vcm-count-note">Chỉ đọc danh sách; nội dung từ không bị sửa tại đây.</span></div>
+             {tagVocabularyError && <div className="vcm-error" role="alert"><span>{tagVocabularyError}</span><button type="button" onClick={loadTagVocabulary}>Thử lại</button></div>}
+             {tagVocabularyBusy ? <div className="vcm-state" role="status">Đang tải Vocabulary theo Tag…</div> : tagVocabularyItems.length === 0 ? <div className="vcm-empty vcm-empty--compact"><strong>Tag này chưa có Vocabulary</strong><small>Import hoặc thêm Vocabulary vào một Chapter thuộc Tag để thấy danh sách ở đây.</small></div> : <ol className="vcm-membership-list vcm-tag-vocabulary-list">{tagVocabularyItems.map((item, index) => <li key={idOf(item)}><span className="vcm-membership-order">{String((tagVocabularyPage - 1) * MEMBERSHIP_PAGE_SIZE + index + 1).padStart(2, '0')}</span><span className="vcm-membership-copy"><strong>{item.vocabulary.word}</strong><small>{item.vocabulary.meaning} · {item.vocabulary.partOfSpeech || 'Chưa có POS'}</small></span><span className="vcm-tag-vocabulary-chapter">{item.chapter.chapterNumber ? `Chapter ${item.chapter.chapterNumber}` : 'Chapter'} · {item.chapter.title}</span><Status value={item.vocabulary.catalogStatus} /></li>)}</ol>}
+             <Pager pagination={tagVocabularyPagination} onPage={setTagVocabularyPage} />
+           </section>
           <section className="vcm-chapters-section">
             <div className="vcm-section-head"><div><span className="vcm-kicker">Thứ tự học · mỗi card là một Chapter</span><h2>Chapters <small>{chapterPagination.total}</small></h2></div><button className="vcm-button vcm-button--primary" type="button" disabled={selectedTag.status === 'archived'} onClick={() => openChapterEditor()}>+ Tạo Chapter</button></div>
             <div className="vcm-filter-row"><label className="vcm-search"><span className="sr-only">Tìm Chapter</span><input value={chapterSearch} placeholder="Tìm tên Chapter" onChange={(event) => { setChapterSearch(event.target.value); setChapterPage(1); }} /></label>

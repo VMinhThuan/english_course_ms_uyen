@@ -15,6 +15,7 @@ import {
   getVocabularyImportBatch,
   getVocabularyImportCandidate,
   listVocabularyImportCandidates,
+  approveVocabularyImportCandidates,
   reviewVocabularyImportCandidate,
 } from '../services/vocabularyImportWorkflowPrototype.js';
 import {
@@ -178,6 +179,15 @@ export function createVocabularyImportPrototypeRouter({ authenticateAdmin, requi
       body: req.body,
     });
     return res.json({ status: 'success', data: candidate });
+  }));
+
+  router.post('/:batchId/candidates/review', asyncRoute(async (req, res) => {
+    const result = await approveVocabularyImportCandidates({
+      batchId: req.params.batchId,
+      actorId: req.user._id || req.user.id,
+      body: req.body,
+    });
+    return res.json({ status: 'success', data: result });
   }));
 
   router.post('/:batchId/confirm', asyncRoute(async (req, res) => {

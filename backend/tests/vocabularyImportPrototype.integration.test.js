@@ -420,4 +420,39 @@ test('V3A prototype upload, review, audit, source revision and concurrent Draft 
     assert.equal(await VocabularyImportCandidate.countDocuments({ batchId: uploaded.body.data.batch._id }), 4);
     assert.equal(await Vocabulary.countDocuments({ catalogOnly: true }), 2, 'upload preview must never create Catalog Vocabulary');
   });
+
+  await t.test('bulk review approves an explicit selection or all valid candidates while preserving KEEP_SEPARATE audit evidence', async () => {
+    const uploaded = await readJson(await postFile(syntheticDocx({ thirdWord: 'bulk review item' }), { filename: 'Bulk review.docx' }));
+    assert.equal(uploaded.status, 201, JSON.stringify(uploaded.body));
+    const bulkBatchId = String(uploaded.body.data.batch._id);
+    const [selectionCandidate] = uploaded.body.data.candidates;
+
+    const missingDuplicateDecision = await readJson(await jsonRequest(
+      `/admin/vocabulary-import-batches/${bulkBatchId}/candidates/review`,
+      { method: 'POST', body: { candidateIds: [selectionCandidate._id] } },
+    ));
+    assert.equal(missingDuplicateDecision.status, 409);
+    assert.equal(missingDuplicateDecision.body.code, 'DUPLICATE_DECISION_REQUIRED');
+
+    const selected = await readJson(await jsonRequest(
+      `/admin/vocabulary-import-batches/${bulkBatchId}/candidates/review`,
+      { method: 'POST', body: { candidateIds: [selectionCandidate._id], duplicateDecision: 'KEEP_SEPARATE' } },
+    ));
+    assert.equal(selected.status, 200, JSON.stringify(selected.body));
+    assert.equal(selected.body.data.approvedCount, 1);
+    assert.equal(selected.body.data.skippedCount, 0);
+    const selectedAudit = await VocabularyImportAudit.findOne({ candidateId: selectionCandidate._id, action: 'REVIEW_DECISION' }).lean();
+    assert.equal(selectedAudit.duplicateDecision, 'KEEP_SEPARATE');
+    assert.equal(selectedAudit.details.bulk, true);
+
+    const all = await readJson(await jsonRequest(
+      `/admin/vocabulary-import-batches/${bulkBatchId}/candidates/review`,
+      { method: 'POST', body: { approveAll: true, duplicateDecision: 'KEEP_SEPARATE' } },
+    ));
+    assert.equal(all.status, 200, JSON.stringify(all.body));
+    assert.equal(all.body.data.approvedCount, 1);
+    const refreshed = await readJson(await jsonRequest(`/admin/vocabulary-import-batches/${bulkBatchId}`));
+    assert.equal(refreshed.body.data.counts.approved, 2);
+    assert.equal(refreshed.body.data.counts.needsReview, 0);
+  });
 });

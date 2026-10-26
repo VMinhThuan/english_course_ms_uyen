@@ -734,6 +734,93 @@ export async function reviewVocabularyImportCandidate({ batchId, candidateId, ac
   });
 }
 
+function validateBulkReviewPayload(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) fail('INVALID_PAYLOAD', 'Bulk review payload must be an object.');
+  const allowed = new Set(['candidateIds', 'approveAll', 'duplicateDecision']);
+  if (Object.keys(body).some((key) => !allowed.has(key))) fail('MASS_ASSIGNMENT_REJECTED', 'Bulk review payload contains unsupported fields.');
+
+  const approveAll = body.approveAll === true;
+  if (!approveAll && !Array.isArray(body.candidateIds)) {
+    fail('CANDIDATE_SELECTION_REQUIRED', 'Select one or more candidates, or explicitly request approveAll.');
+  }
+  if (approveAll && body.candidateIds !== undefined) {
+    fail('INVALID_BULK_SELECTION', 'approveAll cannot be combined with candidateIds.');
+  }
+  if (!approveAll && (!body.candidateIds.length || body.candidateIds.length > 2500)) {
+    fail('INVALID_BULK_SELECTION', 'candidateIds must contain between 1 and 2500 candidates.');
+  }
+  const candidateIds = approveAll ? [] : body.candidateIds.map((id) => String(requireObjectId(id, 'candidateId')));
+  if (!approveAll && new Set(candidateIds).size !== candidateIds.length) fail('INVALID_BULK_SELECTION', 'candidateIds must not contain duplicates.');
+  if (body.duplicateDecision !== 'KEEP_SEPARATE') {
+    fail('DUPLICATE_DECISION_REQUIRED', 'Bulk approval requires explicit KEEP_SEPARATE for every duplicate annotation.', 409);
+  }
+  return { approveAll, candidateIds };
+}
+
+/**
+ * Approves a deliberate selection, or every currently valid reviewable candidate in a batch.
+ * This never imports or publishes content. Duplicate candidates are recorded as KEEP_SEPARATE
+ * so the bulk action cannot silently merge editorial source occurrences.
+ */
+export async function approveVocabularyImportCandidates({ batchId, actorId, body }) {
+  assertPrototypeDatabase();
+  const batchObjectId = requireObjectId(batchId, 'batchId');
+  const actor = requireActorId(actorId);
+  const selection = validateBulkReviewPayload(body);
+
+  return withTransaction(async (session) => {
+    const batch = await VocabularyImportBatch.findById(batchObjectId).session(session);
+    if (!batch) fail('BATCH_NOT_FOUND', 'Vocabulary Import Batch was not found.', 404);
+
+    const filter = {
+      batchId: batchObjectId,
+      validationStatus: 'VALIDATION_PASSED',
+      reviewStatus: { $in: ['NEEDS_REVIEW', 'EDITED'] },
+      importStatus: { $ne: 'IMPORTED_AS_DRAFT' },
+      ...(selection.approveAll ? {} : { _id: { $in: selection.candidateIds.map((id) => new mongoose.Types.ObjectId(id)) } }),
+    };
+    const candidates = await VocabularyImportCandidate.find(filter).session(session);
+    if (!candidates.length) {
+      return { batch: batchResponse(batch), approvedCount: 0, skippedCount: selection.approveAll ? 0 : selection.candidateIds.length };
+    }
+
+    const reviewedAt = new Date();
+    const audits = [];
+    for (const candidate of candidates) {
+      const version = candidate.__v || 0;
+      const contentHash = vocabularyContentHash(candidateEditorialSnapshot(candidate));
+      candidate.reviewStatus = 'REVIEW_APPROVED';
+      candidate.reviewedBy = actor;
+      candidate.reviewedAt = reviewedAt;
+      candidate.reviewedVersion = version;
+      candidate.reviewedContentHash = contentHash;
+      candidate.rejectionReason = '';
+      candidate.duplicateDecision = 'KEEP_SEPARATE';
+      candidate.publicationStatus = 'NOT_ELIGIBLE';
+      await candidate.save({ session });
+      audits.push({
+        batchId: batch._id,
+        candidateId: candidate._id,
+        sourceIdentity: candidate.sourceIdentity,
+        actorId: actor,
+        action: 'REVIEW_DECISION',
+        decision: 'APPROVE',
+        duplicateDecision: 'KEEP_SEPARATE',
+        reason: 'Bulk approval',
+        occurredAt: reviewedAt,
+        details: { reviewedVersion: version, contentHash, bulk: true },
+      });
+    }
+    await VocabularyImportAudit.create(audits, { session });
+    await summarizeBatch(batch, session);
+    return {
+      batch: batchResponse(batch),
+      approvedCount: candidates.length,
+      skippedCount: selection.approveAll ? 0 : selection.candidateIds.length - candidates.length,
+    };
+  });
+}
+
 function catalogSenseValues(values) {
   return values.senses.map((sense) => ({
     partOfSpeech: Array.isArray(sense.partOfSpeech) ? sense.partOfSpeech : [],
