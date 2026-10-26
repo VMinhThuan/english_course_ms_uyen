@@ -361,7 +361,7 @@ async function runToeicTests() {
     // TEST TL: Autosave answer persists
     // ------------------------------------------------------------------------
     try {
-      res = await fetch(`${API_BASE}/attempts/${activeAttemptId}/answers`, {
+      res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/answers`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student1Token}` },
         body: JSON.stringify({
@@ -401,7 +401,7 @@ async function runToeicTests() {
     // TEST TN: Revision prevents stale overwrite
     // ------------------------------------------------------------------------
     try {
-      res = await fetch(`${API_BASE}/attempts/${activeAttemptId}/answers`, {
+      res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/answers`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student1Token}` },
         body: JSON.stringify({
@@ -423,7 +423,7 @@ async function runToeicTests() {
     // TEST TO: Student cannot edit another student's Attempt
     // ------------------------------------------------------------------------
     try {
-      res = await fetch(`${API_BASE}/attempts/${activeAttemptId}/answers`, {
+      res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/answers`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student2Token}` },
         body: JSON.stringify({
@@ -445,7 +445,7 @@ async function runToeicTests() {
     // ------------------------------------------------------------------------
     try {
       const fakeQId = new mongoose.Types.ObjectId().toString();
-      res = await fetch(`${API_BASE}/attempts/${activeAttemptId}/answers`, {
+      res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/answers`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student1Token}` },
         body: JSON.stringify({
@@ -471,7 +471,7 @@ async function runToeicTests() {
     // TEST TQ: Fake score ignored
     // ------------------------------------------------------------------------
     try {
-      res = await fetch(`${API_BASE}/attempts/${activeAttemptId}/answers`, {
+      res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/answers`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student1Token}` },
         body: JSON.stringify({
@@ -495,7 +495,7 @@ async function runToeicTests() {
     // ------------------------------------------------------------------------
     try {
       const fakeDeadline = new Date(Date.now() + 864000000).toISOString();
-      res = await fetch(`${API_BASE}/attempts/${activeAttemptId}/answers`, {
+      res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/answers`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student1Token}` },
         body: JSON.stringify({
@@ -535,7 +535,7 @@ async function runToeicTests() {
     // TEST TT: Flagged question persists
     // ------------------------------------------------------------------------
     try {
-      res = await fetch(`${API_BASE}/attempts/${activeAttemptId}/answers`, {
+      res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/answers`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student1Token}` },
         body: JSON.stringify({
@@ -560,7 +560,8 @@ async function runToeicTests() {
     try {
       res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/submit`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${student1Token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student1Token}` },
+        body: JSON.stringify({ revision: 6 }),
       });
       data = await res.json();
       const statusVal = data.data?.attempt?.status || data.data?.result?.status;
@@ -596,7 +597,7 @@ async function runToeicTests() {
     // TEST TW: Expired Attempt cannot accept late answers
     // ------------------------------------------------------------------------
     try {
-      res = await fetch(`${API_BASE}/attempts/${activeAttemptId}/answers`, {
+      res = await fetch(`${API_BASE}/toeic/attempts/${activeAttemptId}/answers`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student1Token}` },
         body: JSON.stringify({
@@ -611,6 +612,37 @@ async function runToeicTests() {
       }
     } catch (err) {
       logFail('TEST TW', err.message);
+    }
+
+    // ------------------------------------------------------------------------
+    // TEST TW2: Submit is finalized automatically when the server deadline has passed
+    // ------------------------------------------------------------------------
+    try {
+      res = await fetch(`${API_BASE}/toeic/tests/${createdTestId}/start`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${student2Token}` },
+      });
+      data = await res.json();
+      const expiredAttemptId = data.data?.attemptId || data.data?.attempt?._id;
+      if (!expiredAttemptId) throw new Error(`Could not start expiry fixture: ${JSON.stringify(data)}`);
+      await Attempt.findByIdAndUpdate(expiredAttemptId, {
+        deadlineAt: new Date(Date.now() - 1000),
+      });
+      res = await fetch(`${API_BASE}/toeic/attempts/${expiredAttemptId}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${student2Token}` },
+        body: JSON.stringify({}),
+      });
+      data = await res.json();
+      const expiredStatus = data.data?.result?.status || data.data?.attempt?.status;
+      const expiredFlag = data.data?.result?.isExpired ?? data.data?.attempt?.isExpired;
+      if (res.status === 200 && expiredStatus === 'completed' && expiredFlag === true) {
+        logPass('TEST TW2', 'Expired attempt auto-finalized and scored by server');
+      } else {
+        logFail('TEST TW2', JSON.stringify(data));
+      }
+    } catch (err) {
+      logFail('TEST TW2', err.message);
     }
 
     // ------------------------------------------------------------------------
@@ -793,7 +825,7 @@ async function runToeicTests() {
     // TEST UH: Student history contains TOEIC Attempt
     // ------------------------------------------------------------------------
     try {
-      res = await fetch(`${API_BASE}/attempts/history`, {
+      res = await fetch(`${API_BASE}/toeic/history`, {
         headers: { Authorization: `Bearer ${student1Token}` },
       });
       data = await res.json();
@@ -811,7 +843,7 @@ async function runToeicTests() {
     // TEST UI: Admin results contains TOEIC Attempt
     // ------------------------------------------------------------------------
     try {
-      res = await fetch(`${API_BASE}/attempts/admin/results`, {
+      res = await fetch(`${API_BASE}/attempts/admin/results?assessmentId=${createdTestId}`, {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
       data = await res.json();

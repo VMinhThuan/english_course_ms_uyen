@@ -3,4 +3,6 @@ node_modules/
 .DS_Store
 *.log
 uploads/
-
+data/toeic-translation-state.json
+data/toeic-translation-failures.jsonl
+data/backups/

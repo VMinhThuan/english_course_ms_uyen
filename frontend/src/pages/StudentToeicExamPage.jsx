@@ -184,6 +184,10 @@ export default function StudentToeicExamPage() {
     autoSubmitStartedRef.current = true;
     try {
       setSubmitting(true);
+      // Ensure the last debounced answer write reaches the server before an
+      // expired attempt is finalized. The backend intentionally ignores a
+      // late client answer payload and scores the persisted answer map.
+      await autosaveQueueRef.current.catch(() => undefined);
       const res = await toeicApi.submitToeicAttempt(attemptId, userAnswers, revisionRef.current);
       if (res.status === 'success') {
         navigate(`/student/toeic/results/${attemptId}`);
@@ -588,10 +592,6 @@ export default function StudentToeicExamPage() {
                               Nghe bằng giọng đọc trình duyệt (TTS)
                             </button>
                             <small style={{ color: 'var(--brand-muted)' }}>Nguồn không có file audio MP3.</small>
-                            <details style={{ flexBasis: '100%' }}>
-                              <summary style={{ cursor: 'pointer', color: 'var(--brand-coffee)', fontWeight: 700 }}>Xem transcript</summary>
-                              <p style={{ whiteSpace: 'pre-wrap', color: 'var(--brand-text)', lineHeight: 1.5, margin: '0.6rem 0 0' }}>{group.transcript || group.audioText}</p>
-                            </details>
                           </div>
                         )}
 
@@ -888,7 +888,6 @@ export default function StudentToeicExamPage() {
             return (
               <label
                 key={optId}
-                onClick={() => handleSelectOption(qId, optId)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

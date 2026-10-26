@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
 import StatusBadge from '../components/ui/StatusBadge.jsx';
 import AssessmentQuestionReviewCard from '../components/assessment/AssessmentQuestionReviewCard.jsx';
+import { resolveMediaUrl } from '../utils/mediaUrl.js';
 import '../styles/assessment-screens.css';
 
 export default function StudentToeicResultPage() {
@@ -65,6 +66,14 @@ export default function StudentToeicResultPage() {
   const reviewList = attempt.answersReview && attempt.answersReview.length > 0
     ? attempt.answersReview
     : Array.isArray(attempt.answers) ? attempt.answers : [];
+  const groupByQuestionId = new Map();
+  (attempt.groupSnapshots || []).forEach((group) => {
+    (group.questionIds || []).forEach((questionId) => {
+      const id = typeof questionId === 'object' ? (questionId.questionId || questionId._id) : questionId;
+      if (id) groupByQuestionId.set(String(id), group);
+    });
+  });
+  const renderedGroupIds = new Set();
 
   return (
     <div className="toeic-result-screen toeic-result-screen--report">
@@ -201,15 +210,40 @@ export default function StudentToeicResultPage() {
               const questionKey = q._id
                 || (typeof item.questionId === 'string' ? item.questionId : item.questionId?._id)
                 || idx;
+              const group = groupByQuestionId.get(String(questionKey));
+              const showGroupContext = group && !renderedGroupIds.has(String(group.groupId || group._id));
+              if (showGroupContext) renderedGroupIds.add(String(group.groupId || group._id));
 
               return (
-                <AssessmentQuestionReviewCard
-                  key={questionKey}
-                  question={reviewQuestion}
-                  questionNumber={qNum}
-                  showCorrectAnswer={showAnswers}
-                  variant="options"
-                />
+                <div key={questionKey}>
+                  {showGroupContext && (
+                    <div style={{ marginBottom: '0.75rem', padding: '1rem', borderRadius: '10px', background: 'var(--brand-bg-sub)', border: '1px solid var(--brand-border)' }}>
+                      {group.audioUrl && <audio controls src={resolveMediaUrl(group.audioUrl)} preload="metadata" style={{ width: '100%', marginBottom: group.transcript || group.audioText ? '0.75rem' : 0 }} />}
+                      {(group.transcript || group.audioText) && (
+                        <details>
+                          <summary style={{ cursor: 'pointer', color: 'var(--brand-coffee)', fontWeight: 700 }}>Xem transcript</summary>
+                          <p style={{ whiteSpace: 'pre-wrap', color: 'var(--brand-text)', lineHeight: 1.5, margin: '0.6rem 0 0' }}>{group.transcript || group.audioText}</p>
+                        </details>
+                      )}
+                      {(group.passages || []).map((passage, passageIndex) => (
+                        <div key={passageIndex} style={{ marginTop: '0.75rem', color: 'var(--brand-text)', lineHeight: 1.6 }}>
+                          {passage.title && <strong>{passage.title}</strong>}
+                          {passage.content && <div style={{ whiteSpace: 'pre-wrap' }}>{passage.content}</div>}
+                          {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => (
+                            <img key={`${imageUrl}-${imageIndex}`} src={resolveMediaUrl(imageUrl)} alt={`Passage ${passageIndex + 1}`} className="toeic-stimulus-image" style={{ marginTop: '0.5rem' }} />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {q.imageUrl && <img src={resolveMediaUrl(q.imageUrl)} alt={q.imageAlt || `Câu ${qNum}`} className="toeic-stimulus-image" style={{ marginBottom: '0.75rem' }} />}
+                  <AssessmentQuestionReviewCard
+                    question={reviewQuestion}
+                    questionNumber={qNum}
+                    showCorrectAnswer={showAnswers}
+                    variant="options"
+                  />
+                </div>
               );
             })}
           </div>

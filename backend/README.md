@@ -60,3 +60,23 @@ Base URL: `http://localhost:5000/api/v1`
 - `POST /tests/:testId/submit` - Nộp bài test (Student)
 - `GET /tests/:testId/result` - Xem kết quả test
 
+## TOEIC explanation translation
+
+Run a read-only inventory first:
+
+```bash
+npm run toeic:explanations:translate -- --json
+```
+
+The apply mode requires an OpenAI-compatible translation provider. Configure
+`TOEIC_TRANSLATION_API_KEY` and optionally `TOEIC_TRANSLATION_API_URL`,
+`TOEIC_TRANSLATION_MODEL`, and `TOEIC_TRANSLATION_STATE_FILE`, then run:
+
+```bash
+npm run toeic:explanations:translate -- --apply --yes
+```
+
+Apply mode creates a JSON backup before the first database update, updates the
+source questions and linked bank/full-test copies, and records confirmed
+translations in a resumable state file. It never changes options, correct
+answers, question IDs, groups, or assessments.

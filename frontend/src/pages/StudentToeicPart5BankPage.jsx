@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
 import PageHeader from '../components/ui/PageHeader.jsx';
+import { studentExplanationText, studentTopicLabel } from '../utils/studentContentLanguage.js';
 import './StudentToeicPart5BankPage.css';
 
 const STORAGE_KEY = 'toeic_part5_student_practice_v1';
@@ -312,13 +313,14 @@ export default function StudentToeicPart5BankPage() {
             const isChecked = studyMode === 'REVIEW' || !!qState.isChecked;
             const correctAnswers = Array.isArray(q.correctAnswers) ? q.correctAnswers : [];
             const showExp = studyMode === 'REVIEW' || !!qState.showExp;
+            const explanation = studentExplanationText(q.explanation);
 
             return (
               <article key={q._id} className="toeic-p5-card" data-testid={`p5-question-card-${q._id}`}>
                 <div className="toeic-p5-card-header">
                   <div className="toeic-p5-card-tags">
                     <span className="toeic-p5-number-badge">Câu #{questionNumber}</span>
-                    <span className="toeic-p5-topic-badge">{q.topic || 'TOEIC Part 5'}</span>
+                    <span className="toeic-p5-topic-badge">{studentTopicLabel(q.topic)}</span>
                     <span style={{ fontSize: '0.8rem', color: 'var(--brand-muted)' }}>1 điểm</span>
                   </div>
 
@@ -394,7 +396,7 @@ export default function StudentToeicPart5BankPage() {
                       </button>
                     )}
 
-                    {(isChecked || studyMode === 'REVIEW') && q.explanation && (
+                    {(isChecked || studyMode === 'REVIEW') && explanation && (
                       <button
                         type="button"
                         className="toeic-p5-btn-toggle-exp"
@@ -417,13 +419,13 @@ export default function StudentToeicPart5BankPage() {
                 </div>
 
                 {/* Detailed Explanation Box */}
-                {showExp && q.explanation && (
+                {showExp && explanation && (
                   <div className="toeic-p5-explanation-box">
                     <div className="toeic-p5-exp-title">
                       <span>💡 Lời giải thích chi tiết:</span>
                     </div>
                     <div className="toeic-p5-exp-content">
-                      {q.explanation}
+                      {explanation}
                     </div>
                   </div>
                 )}

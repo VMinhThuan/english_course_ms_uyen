@@ -36,6 +36,11 @@ import {
   isTerminalAttempt,
   resolveAttemptEngine,
 } from '../utils/attemptLifecycle.js';
+import {
+  studentExplanationText,
+  studentTopicLabel,
+  studentTranslationText,
+} from '../utils/studentContentLanguage.js';
 
 // Helper to sanitize questions for student DTO
 const sanitizeQuestionForStudent = (q) => ({
@@ -55,16 +60,16 @@ const sanitizeQuestionForStudent = (q) => ({
       }))
     : [],
   score: q.score || 1,
-  translation: q.translation || '',
-  answerTranslation: q.answerTranslation || '',
+  translation: studentTranslationText(q.translation),
+  answerTranslation: studentTranslationText(q.answerTranslation),
   audioText: q.audioText || '',
-  audioTranslation: q.audioTranslation || '',
+  audioTranslation: studentTranslationText(q.audioTranslation),
   audioSource: q.audioSource || '',
   audioUrl: q.audioUrl || '',
   imageUrl: q.imageUrl || '',
   imageAlt: q.imageAlt || '',
   difficulty: q.difficulty || '',
-  category: q.category || '',
+  category: studentTopicLabel(q.category),
   tags: Array.isArray(q.tags) ? q.tags : [],
 });
 
@@ -2188,16 +2193,16 @@ export const getStudentToeicAttempt = async (req, res, next) => {
       let isCorrect = false;
       if (isCompleted) {
         if (qSnap.type === 'single_choice') {
-          const chosenTexts = (qSnap.options || [])
-            .filter((o) => selectedOptionIds.includes(o.id) || selectedOptionIds.includes(o._id?.toString()) || selectedOptionIds.includes(o.text))
-            .map((o) => o.text);
+          if (selectedOptionIds.length === 1) {
+            const selectedValue = selectedOptionIds[0];
+            const chosenTexts = (qSnap.options || [])
+              .filter((o) => selectedValue === o.id || selectedValue === o._id?.toString() || selectedValue === o.text)
+              .map((o) => o.text);
 
-          isCorrect = selectedOptionIds.some(
-            (val) =>
-              (qSnap.correctAnswers || []).includes(val) ||
-              (qSnap.correctOptionIds || []).includes(val) ||
-              chosenTexts.some((txt) => (qSnap.correctAnswers || []).includes(txt))
-          );
+            isCorrect = (qSnap.correctAnswers || []).includes(selectedValue)
+              || (qSnap.correctOptionIds || []).includes(selectedValue)
+              || chosenTexts.some((txt) => (qSnap.correctAnswers || []).includes(txt));
+          }
         } else if (qSnap.type === 'multiple_choice') {
           const submittedSet = new Set(selectedOptionIds);
           const correctSet = new Set(qSnap.correctAnswers || []);
@@ -2213,7 +2218,7 @@ export const getStudentToeicAttempt = async (req, res, next) => {
       if (isCompleted && showCorrect) {
         qObj.correctAnswers = qSnap.correctAnswers;
         qObj.correctOptionIds = qSnap.correctOptionIds;
-        qObj.explanation = qSnap.explanation;
+        qObj.explanation = studentExplanationText(qSnap.explanation);
       }
 
       return {
@@ -2351,10 +2356,18 @@ export const getStudentToeicPart5Bank = async (req, res, next) => {
       .limit(limitNum)
       .lean();
 
+    const studentQuestions = questions.map((question) => ({
+      ...question,
+      explanation: studentExplanationText(question.explanation),
+      translation: studentTranslationText(question.translation),
+      answerTranslation: studentTranslationText(question.answerTranslation),
+      topic: studentTopicLabel(question.topic),
+    }));
+
     res.json({
       status: 'success',
       data: {
-        questions,
+        questions: studentQuestions,
         pagination: {
           total,
           page: pageNum,

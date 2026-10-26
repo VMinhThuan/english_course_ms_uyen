@@ -20,6 +20,19 @@ export const resolveAttemptEngine = (attempt, assessment) => {
 const answerIsEmpty = (answer) =>
   answer === undefined || answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0);
 
+const normalizeToeicAnswer = (snapshot, answer) => {
+  if (!snapshot) return answer;
+  if (snapshot.type !== 'single_choice' && snapshot.type !== 'multiple_choice') return answer;
+  const submitted = Array.isArray(answer) ? answer : [answer];
+  const allowed = new Set((snapshot.options || []).flatMap((option) => [
+    option?.id,
+    option?._id?.toString?.(),
+    option?.text,
+  ].filter((value) => value !== undefined && value !== null).map(String)));
+  const values = [...new Set(submitted.map((value) => String(value)).filter((value) => allowed.has(value)))];
+  return values;
+};
+
 const isStandardCorrect = (snapshot, answer) => {
   if (snapshot.type === 'single_choice') {
     return typeof answer === 'string' && (snapshot.correctAnswers || []).includes(answer);
@@ -41,14 +54,17 @@ const isStandardCorrect = (snapshot, answer) => {
 const isToeicCorrect = (snapshot, answer) => {
   const values = Array.isArray(answer) ? answer : [answer];
   if (snapshot.type === 'single_choice') {
+    // A single-choice answer is only correct when exactly one option was
+    // submitted. Do not award credit for a malformed payload containing the
+    // correct option plus one or more distractors.
+    if (values.length !== 1) return false;
+    const value = values[0];
     const chosenTexts = (snapshot.options || [])
-      .filter((option) => values.includes(option.id) || values.includes(option._id?.toString()) || values.includes(option.text))
+      .filter((option) => value === option.id || value === option._id?.toString() || value === option.text)
       .map((option) => option.text);
-    return values.some((value) =>
-      (snapshot.correctAnswers || []).includes(value)
+    return (snapshot.correctAnswers || []).includes(value)
       || (snapshot.correctOptionIds || []).includes(value)
-      || chosenTexts.some((text) => (snapshot.correctAnswers || []).includes(text))
-    );
+      || chosenTexts.some((text) => (snapshot.correctAnswers || []).includes(text));
   }
   if (snapshot.type === 'multiple_choice') {
     const submitted = new Set(values);
@@ -188,8 +204,14 @@ export const finalizeAttempt = async ({
     proposedAnswers = answers;
   }
   const allowedQuestionIds = new Set((attempt.questionSnapshots || []).map((question) => String(question.questionId)));
+  const snapshotsById = new Map((attempt.questionSnapshots || []).map((snapshot) => [String(snapshot.questionId), snapshot]));
   const acceptedAnswers = Object.fromEntries(
-    Object.entries(proposedAnswers).filter(([questionId]) => allowedQuestionIds.has(String(questionId)))
+    Object.entries(proposedAnswers)
+      .filter(([questionId]) => allowedQuestionIds.has(String(questionId)))
+      .map(([questionId, answer]) => [
+        questionId,
+        engine === 'toeic' ? normalizeToeicAnswer(snapshotsById.get(String(questionId)), answer) : answer,
+      ])
   );
   const finalAnswers = expired
     ? (attempt.answers || {})
@@ -256,8 +278,14 @@ export const compareAndSwapAttemptAnswers = async ({
     answersMap = answers;
   }
   const knownQuestionIds = new Set((attempt.questionSnapshots || []).map((question) => String(question.questionId)));
+  const snapshotsById = new Map((attempt.questionSnapshots || []).map((snapshot) => [String(snapshot.questionId), snapshot]));
   const acceptedAnswers = Object.fromEntries(
-    Object.entries(answersMap).filter(([questionId]) => knownQuestionIds.has(String(questionId)))
+    Object.entries(answersMap)
+      .filter(([questionId]) => knownQuestionIds.has(String(questionId)))
+      .map(([questionId, answer]) => [
+        questionId,
+        engine === 'toeic' ? normalizeToeicAnswer(snapshotsById.get(String(questionId)), answer) : answer,
+      ])
   );
   const mergedAnswers = { ...(attempt.answers || {}), ...acceptedAnswers };
   const acceptedFlags = Array.isArray(flaggedQuestionIds)
