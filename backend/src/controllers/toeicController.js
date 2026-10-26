@@ -24,6 +24,7 @@ const rejectDuringQuestionBankSelection = async (assessmentId, res) => {
 import { DEFAULT_TOEIC_PARTS } from '../utils/toeicHelper.js';
 import { parseToeicPdf } from '../utils/toeicPdfParser.js';
 import { MAX_TOEIC_IMPORT_BYTES } from '../utils/uploadValidation.js';
+import { normalizeToeicCrawlerExport, ToeicCrawlerImportError } from '../services/toeicCrawlerImport.js';
 import {
   compareAndSwapAttemptAnswers,
   finalizeAttempt,
@@ -783,6 +784,120 @@ export const deleteToeicTest = async (req, res, next) => {
       message: 'Xóa đề thi TOEIC thành công',
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Admin import one schema-v5 test file exported by the approved TOEIC crawler
+// @route   POST /api/v1/admin/toeic-tests/import-crawler-export
+// @access  Private (Admin)
+export const importToeicCrawlerExport = async (req, res, next) => {
+  const createdQuestionIds = [];
+  const createdGroupIds = [];
+  let createdAssessmentId = null;
+  try {
+    const normalized = normalizeToeicCrawlerExport(req.body?.exportPayload);
+    let assessment = await Assessment.findOne({
+      crawlerSourceSystem: normalized.sourceSystem,
+      crawlerSourceId: normalized.sourceId,
+    }).select('+crawlerSourceSystem +crawlerSourceId +crawlerContentHash');
+
+    if (assessment?.status !== 'draft') {
+      return res.status(409).json({
+        status: 'error',
+        code: 'TOEIC_CRAWLER_IMPORT_REQUIRES_DRAFT',
+        message: 'Đề đã được xuất bản hoặc ẩn; hãy chuyển về bản nháp trước khi nhập lại dữ liệu nguồn.',
+      });
+    }
+    if (assessment?.crawlerContentHash === normalized.contentHash) {
+      return res.json({
+        status: 'success',
+        message: 'Dữ liệu nguồn không thay đổi; không cần nhập lại.',
+        data: { testId: assessment._id, status: assessment.status, unchanged: true, questionCount: normalized.questionCount },
+      });
+    }
+
+    if (!assessment) {
+      assessment = await Assessment.create({
+        title: normalized.title,
+        description: normalized.description,
+        type: 'exam',
+        examFormat: 'toeic',
+        toeicMode: normalized.questionCount >= 180 ? 'full_test' : 'practice',
+        durationMinutes: normalized.questionCount >= 180 ? 120 : 45,
+        toeicConfig: {
+          totalQuestions: normalized.questionCount,
+          durationMinutes: normalized.questionCount >= 180 ? 120 : 45,
+          listeningQuestionCount: normalized.groups.filter((group) => group.partNumber <= 4).reduce((total, group) => total + group.questions.length, 0),
+          readingQuestionCount: normalized.groups.filter((group) => group.partNumber >= 5).reduce((total, group) => total + group.questions.length, 0),
+        },
+        parts: normalized.parts,
+        status: 'draft',
+        createdBy: req.user._id,
+        crawlerSourceSystem: normalized.sourceSystem,
+        crawlerSourceId: normalized.sourceId,
+        crawlerContentHash: normalized.contentHash,
+      });
+      createdAssessmentId = assessment._id;
+    } else {
+      const oldQuestionIds = assessment.questions.map((item) => item.question);
+      await QuestionGroup.deleteMany({ assessment: assessment._id });
+      if (oldQuestionIds.length) await Question.deleteMany({ _id: { $in: oldQuestionIds } });
+      assessment.title = normalized.title;
+      assessment.description = normalized.description;
+      assessment.parts = normalized.parts;
+      assessment.questions = [];
+      assessment.questionGroups = [];
+      assessment.status = 'draft';
+      assessment.crawlerContentHash = normalized.contentHash;
+    }
+
+    for (const groupData of normalized.groups) {
+      const group = await QuestionGroup.create({
+        assessment: assessment._id,
+        partNumber: groupData.partNumber,
+        type: groupData.type,
+        title: groupData.title,
+        instructions: groupData.instructions,
+        imageUrl: groupData.imageUrl,
+        audioUrl: groupData.audioUrl,
+        passages: groupData.passages,
+        order: groupData.order,
+        crawlerSourceId: groupData.crawlerSourceId,
+      });
+      createdGroupIds.push(group._id);
+      const questionIds = [];
+      for (const questionData of groupData.questions) {
+        const question = await Question.create({
+          ...questionData,
+          type: 'single_choice',
+          score: 1,
+          status: 'draft',
+          questionGroup: group._id,
+          createdBy: req.user._id,
+        });
+        createdQuestionIds.push(question._id);
+        questionIds.push(question._id);
+        assessment.questions.push({ question: question._id, score: 1 });
+      }
+      group.questionIds = questionIds;
+      await group.save();
+      assessment.questionGroups.push(group._id);
+    }
+    await assessment.save();
+    createdAssessmentId = null;
+    res.status(201).json({
+      status: 'success',
+      message: `Đã nhập ${normalized.questionCount} câu hỏi thành bản nháp. Hãy kiểm tra trước khi xuất bản.`,
+      data: { testId: assessment._id, status: assessment.status, questionCount: normalized.questionCount, unchanged: false },
+    });
+  } catch (error) {
+    if (createdQuestionIds.length) await Question.deleteMany({ _id: { $in: createdQuestionIds } }).catch(() => {});
+    if (createdGroupIds.length) await QuestionGroup.deleteMany({ _id: { $in: createdGroupIds } }).catch(() => {});
+    if (createdAssessmentId) await Assessment.findByIdAndDelete(createdAssessmentId).catch(() => {});
+    if (error instanceof ToeicCrawlerImportError) {
+      return res.status(400).json({ status: 'error', code: error.code, message: error.message });
+    }
     next(error);
   }
 };

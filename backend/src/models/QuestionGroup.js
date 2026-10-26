@@ -67,6 +67,10 @@ const questionGroupSchema = new mongoose.Schema(
       ref: 'QuestionBankSelectionBatch',
       select: false,
     },
+    crawlerSourceId: {
+      type: String,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -74,6 +78,10 @@ const questionGroupSchema = new mongoose.Schema(
 );
 
 questionGroupSchema.index({ assessment: 1, partNumber: 1, order: 1 });
+questionGroupSchema.index(
+  { assessment: 1, crawlerSourceId: 1 },
+  { unique: true, sparse: true, name: 'uniq_toeic_crawler_group_per_assessment' }
+);
 questionGroupSchema.index(
   { bankSelectionBatchId: 1 },
   { unique: true, sparse: true, name: 'uniq_question_group_bank_selection_batch' }
