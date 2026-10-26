@@ -510,6 +510,12 @@ export default function StudentToeicExamPage() {
                                 src={resolveMediaUrl(imageUrl)}
                                 alt={`Passage visual ${imageIndex + 1}`}
                                 className="toeic-stimulus-image"
+                                onError={(e) => {
+                                  if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                    e.currentTarget.dataset.fallbackTried = 'true';
+                                    e.currentTarget.src = imageUrl;
+                                  }
+                                }}
                               />
                               {group.imagePageNumbers?.[imageIndex] && (
                                 <small style={{ display: 'block', textAlign: 'center', color: 'var(--brand-muted)' }}>
@@ -549,6 +555,12 @@ export default function StudentToeicExamPage() {
                                         src={resolveMediaUrl(imageUrl)}
                                         alt={`Passage ${pas.title || pIdx + 1}, trang ${imageIndex + 1}`}
                                         className="toeic-stimulus-image"
+                                        onError={(e) => {
+                                          if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                            e.currentTarget.dataset.fallbackTried = 'true';
+                                            e.currentTarget.src = imageUrl;
+                                          }
+                                        }}
                                       />
                                     ))}
                                   </div>
@@ -557,7 +569,17 @@ export default function StudentToeicExamPage() {
                                 )}
                                 {pas.imageUrl && group.partNumber !== 7 && (
                                   <div style={{ marginTop: '0.75rem' }}>
-                                    <img src={resolveMediaUrl(pas.imageUrl)} alt={`Passage illustration ${pIdx + 1}`} className="toeic-stimulus-image" />
+                                    <img
+                                      src={resolveMediaUrl(pas.imageUrl)}
+                                      alt={`Passage illustration ${pIdx + 1}`}
+                                      className="toeic-stimulus-image"
+                                      onError={(e) => {
+                                        if (pas.imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                          e.currentTarget.dataset.fallbackTried = 'true';
+                                          e.currentTarget.src = pas.imageUrl;
+                                        }
+                                      }}
+                                    />
                                   </div>
                                 )}
                               </div>
@@ -602,6 +624,12 @@ export default function StudentToeicExamPage() {
                               src={resolveMediaUrl(imageUrl)}
                               alt={`Question stimulus ${imageIndex + 1}`}
                               className="toeic-stimulus-image"
+                              onError={(e) => {
+                                if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                  e.currentTarget.dataset.fallbackTried = 'true';
+                                  e.currentTarget.src = imageUrl;
+                                }
+                              }}
                             />
                             {group.imagePageNumbers?.[imageIndex] && (
                               <small style={{ color: 'var(--brand-muted)' }}>Ảnh từ trang {group.imagePageNumbers[imageIndex]} của đề PDF</small>
