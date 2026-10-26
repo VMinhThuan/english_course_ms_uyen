@@ -20,6 +20,7 @@ export function toCatalogFlashcardWord(word = {}) {
     _id: text(word._id, 100),
     word: text(word.word, 300),
     partOfSpeech: partsOfSpeech.length ? partsOfSpeech.join(', ') : text(word.partOfSpeech, 300),
+    pronunciation: text(word.pronunciation, 300),
     meaning: text(word.meaning),
     exampleEnglish: text(word.exampleEnglish || word.example, 2000),
     exampleVietnamese: text(word.exampleVietnamese, 2000),
