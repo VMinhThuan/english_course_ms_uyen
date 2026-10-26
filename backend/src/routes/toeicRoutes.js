@@ -15,6 +15,7 @@ import {
   deleteQuestionFromTest,
   importToeicCsv,
   importToeicPdf,
+  importToeicCrawlerExport,
   getStudentToeicTests,
   getStudentToeicTestOverview,
   startToeicAttempt,
@@ -70,6 +71,7 @@ const pdfImportUpload = pdfUpload.fields([
   { name: 'pageImages', maxCount: 100 },
 ]);
 adminRouter.post('/toeic-tests/import-pdf', pdfImportUpload, importToeicPdf);
+adminRouter.post('/toeic-tests/import-crawler-export', checkRole('admin'), importToeicCrawlerExport);
 adminRouter.post('/toeic-tests/:id/import-pdf', pdfImportUpload, importToeicPdf);
 adminRouter.post('/toeic-tests/:id/import-csv', importToeicCsv);
 adminRouter.post('/toeic-tests/:id/import-preview', (req, res, next) => {

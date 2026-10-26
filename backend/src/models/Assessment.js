@@ -116,6 +116,20 @@ const assessmentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    // Provenance for imports produced by the approved TOEIC crawler exporter.
+    // Kept separate from display fields so re-importing the same source is idempotent.
+    crawlerSourceSystem: {
+      type: String,
+      select: false,
+    },
+    crawlerSourceId: {
+      type: String,
+      select: false,
+    },
+    crawlerContentHash: {
+      type: String,
+      select: false,
+    },
     // Short lease serializes Part 5 bank-selection writes without requiring
     // MongoDB replica-set transactions. Hidden from API serialization.
     bankSelectionLockToken: {
@@ -142,6 +156,11 @@ assessmentSchema.pre('save', function (next) {
   }
   next();
 });
+
+assessmentSchema.index(
+  { crawlerSourceSystem: 1, crawlerSourceId: 1 },
+  { unique: true, sparse: true, name: 'uniq_toeic_crawler_source' }
+);
 
 const Assessment = mongoose.model('Assessment', assessmentSchema);
 

@@ -102,6 +102,10 @@ const questionSchema = new mongoose.Schema(
       ref: 'QuestionBankSelectionBatch',
       select: false,
     },
+    crawlerSourceId: {
+      type: String,
+      select: false,
+    },
   },
 
   {
@@ -112,6 +116,10 @@ const questionSchema = new mongoose.Schema(
 questionSchema.index(
   { importStemOptionsFingerprint: 1 },
   { unique: true, sparse: true, name: 'uniq_question_import_stem_options_fingerprint' }
+);
+questionSchema.index(
+  { questionGroup: 1, crawlerSourceId: 1 },
+  { unique: true, sparse: true, name: 'uniq_toeic_crawler_question_per_group' }
 );
 questionSchema.index(
   { bankTargetAssessmentId: 1, bankSourceQuestionId: 1 },

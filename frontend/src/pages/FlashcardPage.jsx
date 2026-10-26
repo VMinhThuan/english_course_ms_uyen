@@ -96,15 +96,40 @@ export default function FlashcardPage() {
           if (startChapterId && !chapters.some((chapter) => chapter._id === startChapterId)) {
             throw new Error('Chapter này không còn khả dụng. Hãy quay lại danh sách để chọn Chapter đã mở.');
           }
-          nextCards = chapters.map((chapter) => ({
-            catalogChapterId: chapter._id,
-            catalogTagId,
-            catalogTagName: chapter.tagName,
-            chapterTitle: chapter.title,
-            chapterSubtitle: chapter.description,
-            vocabularyCount: chapter.vocabularyCount,
-            words: [],
-          }));
+          if (startChapterId) {
+            const chapter = chapters.find((item) => item._id === startChapterId);
+            const words = await loadAllChapterWords(chapter._id);
+            nextCards = words.length
+              ? words.map((word) => ({
+                catalogChapterId: chapter._id,
+                catalogTagId,
+                catalogTagName: chapter.tagName,
+                chapterTitle: chapter.title,
+                chapterSubtitle: chapter.description,
+                vocabularyCount: words.length,
+                word,
+                words: [word],
+              }))
+              : [{
+                catalogChapterId: chapter._id,
+                catalogTagId,
+                catalogTagName: chapter.tagName,
+                chapterTitle: chapter.title,
+                chapterSubtitle: chapter.description,
+                vocabularyCount: 0,
+                words: [],
+              }];
+          } else {
+            nextCards = chapters.map((chapter) => ({
+              catalogChapterId: chapter._id,
+              catalogTagId,
+              catalogTagName: chapter.tagName,
+              chapterTitle: chapter.title,
+              chapterSubtitle: chapter.description,
+              vocabularyCount: chapter.vocabularyCount,
+              words: [],
+            }));
+          }
         } else if (lessonId) {
           const response = await lessonApi.getLessonById(lessonId);
           const data = response.data?.data || response.data;
@@ -184,12 +209,16 @@ export default function FlashcardPage() {
   const markedCount = cards.filter((item) => bookmarked.has(chapterKey(item))).length;
   const activeCatalogChapterId = isCatalogContext ? card?.catalogChapterId || '' : '';
   const visibleWords = isCatalogContext
-    ? (catalogWordsChapterId === activeCatalogChapterId ? catalogWords : [])
+    ? card?.word
+      ? [card.word]
+      : (catalogWordsChapterId === activeCatalogChapterId ? catalogWords : [])
     : card?.words || [];
-  const visibleWordCount = isCatalogContext ? card?.vocabularyCount ?? visibleWords.length : visibleWords.length;
+  const visibleWordCount = isCatalogContext
+    ? card?.vocabularyCount ?? visibleWords.length
+    : visibleWords.length;
 
   useEffect(() => {
-    if (!isCatalogContext || !activeCatalogChapterId) return undefined;
+    if (!isCatalogContext || !activeCatalogChapterId || startChapterId) return undefined;
     let live = true;
     setCatalogWords([]);
     setCatalogWordsChapterId('');
@@ -276,6 +305,82 @@ export default function FlashcardPage() {
         </section>
       ) : (
         <>
+          {isCatalogContext && card.word ? (
+            <div
+              role="button"
+              tabIndex="0"
+              className={`flashcard chapter-flashcard ${flipped ? 'flipped' : ''}`}
+              onClick={() => setFlipped((value) => !value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setFlipped((value) => !value);
+                } else if (event.key === 'ArrowLeft') {
+                  event.preventDefault();
+                  moveCard(-1);
+                } else if (event.key === 'ArrowRight') {
+                  event.preventDefault();
+                  moveCard(1);
+                }
+              }}
+              aria-label={`Lật flashcard từ ${card.word.word}`}
+              aria-pressed={flipped}
+            >
+              <div className="flash-front chapter-flash-front">
+                <span className="chapter-flash-kicker">{card.catalogTagName} · {card.chapterTitle}</span>
+                <h2>{card.word.word}</h2>
+                {card.word.partOfSpeech && <p>{card.word.partOfSpeech}</p>}
+                <span className="chapter-flash-word-count">Từ {index + 1} / {visibleCards.length}</span>
+                <i>Nhấn để xem nghĩa và ví dụ</i>
+              </div>
+              <div className="flash-back chapter-flash-back">
+                <header className="chapter-flash-back-head">
+                  <div>
+                    <span>{card.chapterTitle}</span>
+                    <h2>{card.word.word}</h2>
+                  </div>
+                  <strong>{index + 1} / {visibleCards.length}</strong>
+                </header>
+                <div className="chapter-flash-word-list chapter-flash-word-list--single">
+                  <div className="chapter-flash-word-term">
+                    <span>{index + 1}</span>
+                    <div>
+                      <h3>{card.word.word} {card.word.partOfSpeech && <em>({card.word.partOfSpeech})</em>}</h3>
+                      {card.word.pronunciation && <small>{card.word.pronunciation}</small>}
+                    </div>
+                    {!card.word.catalogSenses?.length && <p>{card.word.meaning}</p>}
+                  </div>
+                  {card.word.catalogSenses?.length ? (
+                    <div className="chapter-flash-catalog-senses">
+                      {card.word.catalogSenses.map((sense, senseIndex) => (
+                        <section className="chapter-flash-catalog-sense" key={`${card.word._id}-sense-${senseIndex}`}>
+                          <div className="chapter-flash-catalog-sense-heading">
+                            <span>{sense.partOfSpeech.join(' · ') || 'Nghĩa'}</span>
+                            <p>{sense.meaning}</p>
+                          </div>
+                          {sense.usagePattern && <p className="chapter-flash-catalog-usage">Cách dùng: {sense.usagePattern}</p>}
+                          {sense.examples.map((example, exampleIndex) => (
+                            <div className="chapter-flash-word-examples" key={`${card.word._id}-${senseIndex}-${exampleIndex}`}>
+                              {example.english && <p><b>EN</b> {example.english}</p>}
+                              {example.vietnamese && <p><b>VI</b> {example.vietnamese}</p>}
+                            </div>
+                          ))}
+                          {sense.notes.map((note, noteIndex) => <p className="chapter-flash-catalog-note" key={`${card.word._id}-sense-note-${senseIndex}-${noteIndex}`}>{note}</p>)}
+                        </section>
+                      ))}
+                      {card.word.catalogNotes.map((note, noteIndex) => <p className="chapter-flash-catalog-note chapter-flash-catalog-note--chapter" key={`${card.word._id}-chapter-note-${noteIndex}`}>Ghi chú: {note}</p>)}
+                    </div>
+                  ) : (card.word.exampleEnglish || card.word.example || card.word.exampleVietnamese) && (
+                    <div className="chapter-flash-word-examples">
+                      {(card.word.exampleEnglish || card.word.example) && <p><b>EN</b> {card.word.exampleEnglish || card.word.example}</p>}
+                      {card.word.exampleVietnamese && <p><b>VI</b> {card.word.exampleVietnamese}</p>}
+                    </div>
+                  )}
+                </div>
+                <span className="chapter-flash-back-hint">Nhấn để quay lại mặt trước</span>
+              </div>
+            </div>
+          ) : (
           <div
             role="button"
             tabIndex="0"
@@ -357,11 +462,12 @@ export default function FlashcardPage() {
               <span className="chapter-flash-back-hint">Nhấn ngoài danh sách để quay lại mặt trước</span>
             </div>
           </div>
+          )}
 
           <nav className="flash-nav" aria-label="Điều hướng chapter flashcard">
-            <button type="button" disabled={index === 0} onClick={() => moveCard(-1)} aria-label="Chapter trước">← Trước</button>
-              <span>{card.chapterTitle} · {visibleWords.length} từ vựng</span>
-            <button type="button" disabled={index >= visibleCards.length - 1} onClick={() => moveCard(1)} aria-label="Chapter tiếp theo">Tiếp theo →</button>
+            <button type="button" disabled={index === 0} onClick={() => moveCard(-1)} aria-label={card.word ? 'Từ trước' : 'Chapter trước'}>← {card.word ? 'Từ trước' : 'Trước'}</button>
+              <span>{card.word ? `${index + 1} / ${visibleCards.length}` : `${card.chapterTitle} · ${visibleWords.length} từ vựng`}</span>
+            <button type="button" disabled={index >= visibleCards.length - 1} onClick={() => moveCard(1)} aria-label={card.word ? 'Từ tiếp theo' : 'Chapter tiếp theo'}>{card.word ? 'Từ tiếp theo' : 'Tiếp theo'} →</button>
           </nav>
         </>
       )}
