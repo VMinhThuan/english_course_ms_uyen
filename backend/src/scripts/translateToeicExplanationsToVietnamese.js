@@ -233,6 +233,121 @@ async function createBackup(inventory, backupDir) {
   return filePath;
 }
 
+async function exportTranslationBatches(inventory, outputDir, batchSize) {
+  const unique = new Map();
+  for (const unit of inventory.units) {
+    const existing = unique.get(unit.translationId);
+    if (existing) existing.occurrences.push({ questionId: unit.questionId, field: unit.field, index: unit.index, key: unit.key });
+    else unique.set(unit.translationId, {
+      translationId: unit.translationId,
+      sourceHash: unit.sourceHash,
+      sourceText: unit.sourceText,
+      occurrences: [{ questionId: unit.questionId, field: unit.field, index: unit.index, key: unit.key }],
+    });
+  }
+  const entries = [...unique.values()];
+  await fs.mkdir(outputDir, { recursive: true });
+  const batches = [];
+  for (let index = 0; index < entries.length; index += batchSize) {
+    const batchNumber = Math.floor(index / batchSize) + 1;
+    const fileName = `batch-${String(batchNumber).padStart(4, '0')}.json`;
+    const filePath = path.join(outputDir, fileName);
+    const batch = { version: 1, batchNumber, totalBatches: Math.ceil(entries.length / batchSize), entries: entries.slice(index, index + batchSize) };
+    await writeJson(filePath, batch);
+    batches.push({ batchNumber, fileName, entryCount: batch.entries.length });
+  }
+  const manifest = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    assessmentId: idString(inventory.assessment._id),
+    sourceQuestionCount: inventory.sourceQuestions.length,
+    copyCount: inventory.copies.length,
+    uniqueEntryCount: entries.length,
+    batchSize,
+    batches,
+  };
+  await writeJson(path.join(outputDir, 'manifest.json'), manifest);
+  return manifest;
+}
+
+async function loadManualTranslationResults(resultsDir, inventory, exportDir) {
+  const expected = new Map();
+  for (const unit of inventory.units) {
+    if (!expected.has(unit.translationId)) {
+      expected.set(unit.translationId, unit);
+    }
+  }
+  // Keep already-applied entries verifiable on resume: the live inventory no
+  // longer includes them once their Chinese source has been replaced. The
+  // immutable exported batches remain the source of truth for their hashes.
+  try {
+    const exportedNames = (await fs.readdir(exportDir, { withFileTypes: true }))
+      .filter((entry) => entry.isFile() && /^batch-\d+\.json$/i.test(entry.name))
+      .map((entry) => entry.name);
+    for (const name of exportedNames) {
+      const payload = JSON.parse(await fs.readFile(path.join(exportDir, name), 'utf8'));
+      for (const entry of payload.entries || []) {
+        if (!expected.has(entry.translationId)) expected.set(entry.translationId, {
+          translationId: entry.translationId,
+          sourceHash: entry.sourceHash,
+          sourceText: entry.sourceText,
+        });
+      }
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+  const names = (await fs.readdir(resultsDir, { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && /^batch-\d+\.json$/i.test(entry.name))
+    .map((entry) => entry.name)
+    .sort();
+  const translatedById = new Map();
+  const errors = [];
+  for (const name of names) {
+    const filePath = path.join(resultsDir, name);
+    let payload;
+    try {
+      payload = JSON.parse(await fs.readFile(filePath, 'utf8'));
+    } catch (error) {
+      errors.push({ file: name, code: 'RESULT_FILE_INVALID_JSON', message: error.message });
+      continue;
+    }
+    if (!Array.isArray(payload?.translations)) {
+      errors.push({ file: name, code: 'RESULT_FILE_MISSING_TRANSLATIONS' });
+      continue;
+    }
+    for (const item of payload.translations) {
+      const translationId = String(item?.translationId || '');
+      const expectedItem = expected.get(translationId);
+      if (!expectedItem) {
+        errors.push({ file: name, translationId, code: 'RESULT_ID_NOT_IN_EXPORT' });
+        continue;
+      }
+      if (String(item?.sourceHash || '') !== expectedItem.sourceHash) {
+        errors.push({ file: name, translationId, code: 'RESULT_SOURCE_HASH_MISMATCH' });
+        continue;
+      }
+      try {
+        const validated = validateTranslation(expectedItem.sourceText, item.translatedText);
+        const previous = translatedById.get(translationId);
+        if (previous && previous !== validated) {
+          errors.push({ file: name, translationId, code: 'RESULT_DUPLICATE_CONFLICT' });
+          continue;
+        }
+        translatedById.set(translationId, validated);
+      } catch (error) {
+        errors.push({ file: name, translationId, code: error.message });
+      }
+    }
+  }
+  return {
+    translatedById,
+    expectedCount: expected.size,
+    resultFileCount: names.length,
+    errors,
+  };
+}
+
 async function applyTranslations(inventory, translatedById, state, stateFile) {
   const updates = new Map();
   for (const question of [...inventory.sourceQuestions, ...inventory.copies]) {
@@ -278,8 +393,8 @@ async function main() {
   const apply = args.has('apply');
   const jsonOutput = args.has('json');
   if (args.has('help')) {
-    console.log('Usage: npm run toeic:explanations:translate -- [--json] [--apply --yes] [--limit N] [--batch-size N]');
-    console.log('Required for apply: TOEIC_TRANSLATION_API_KEY. Optional: TOEIC_TRANSLATION_API_URL, TOEIC_TRANSLATION_MODEL, TOEIC_TRANSLATION_STATE_FILE.');
+    console.log('Usage: npm run toeic:explanations:translate -- [--json] [--export-batches DIR] [--apply-results DIR --yes] [--apply --yes] [--limit N] [--batch-size N]');
+    console.log('Manual mode reads Codex-created batch-*.json files with translations[]. No API key or external provider is used.');
     return;
   }
   const config = providerConfig(args);
@@ -287,6 +402,58 @@ async function main() {
   try {
     const inventory = await buildInventory(assessmentId);
     const report = summarize(inventory);
+    if (args.has('export-batches')) {
+      const outputDir = path.resolve(String(args.get('export-batches') === true ? 'data/toeic-translation-batches' : args.get('export-batches')));
+      const manifest = await exportTranslationBatches(inventory, outputDir, batchSize);
+      report.status = 'exported';
+      report.batchDirectory = outputDir;
+      report.manifest = manifest;
+      console.log(JSON.stringify(report, null, 2));
+      return;
+    }
+    if (args.has('apply-results')) {
+      report.mode = 'apply-results';
+      const resultsDir = path.resolve(String(args.get('apply-results') === true
+        ? 'data/toeic-translation-results'
+        : args.get('apply-results')));
+      const exportDir = path.resolve(String(args.get('export-dir') || 'data/toeic-translation-batches'));
+      if (!args.has('yes')) throw new Error('APPLY_RESULTS_REQUIRES_--yes');
+      const loaded = await loadManualTranslationResults(resultsDir, inventory, exportDir);
+      report.resultsDirectory = resultsDir;
+      report.exportDirectory = exportDir;
+      report.resultFileCount = loaded.resultFileCount;
+      report.translatedUniqueEntryCount = loaded.translatedById.size;
+      report.pendingUniqueEntryCount = Math.max(0, loaded.expectedCount - loaded.translatedById.size);
+      report.resultErrors = loaded.errors;
+      if (loaded.errors.length) {
+        report.status = 'blocked';
+        report.code = 'INVALID_TRANSLATION_RESULTS';
+        report.message = 'One or more result entries failed validation; no database changes were made.';
+        console.log(JSON.stringify(report, null, 2));
+        process.exitCode = 2;
+        return;
+      }
+      if (!loaded.translatedById.size) {
+        report.status = 'blocked';
+        report.code = 'NO_TRANSLATION_RESULTS';
+        report.message = 'No validated translation result files were found; no database changes were made.';
+        console.log(JSON.stringify(report, null, 2));
+        process.exitCode = 2;
+        return;
+      }
+      const state = await readJson(stateFile, { version: 1, entries: {} });
+      const backupPath = await createBackup(inventory, String(args.get('backup-dir') || path.resolve('data/backups')));
+      const updatedCount = await applyTranslations(inventory, loaded.translatedById, state, stateFile);
+      report.status = loaded.translatedById.size === loaded.expectedCount ? 'success' : 'partial';
+      report.backupPath = backupPath;
+      report.updatedQuestionCount = updatedCount;
+      report.stateFile = stateFile;
+      report.message = report.status === 'partial'
+        ? 'Validated batches were applied; remaining batches are still pending.'
+        : 'All exported translation entries were applied.';
+      console.log(JSON.stringify(report, null, 2));
+      return;
+    }
     report.mode = apply ? 'apply' : 'dry-run';
     report.provider = { name: config.provider, endpoint: config.endpoint, model: config.model, configured: Boolean(config.apiKey) };
     report.sample = inventory.units.slice(0, 5).map((unit) => ({ key: unit.key, field: unit.field, sourceText: unit.sourceText }));
