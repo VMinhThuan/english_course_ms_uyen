@@ -1,11 +1,8 @@
-import { Link, useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 import { courseApi } from '../api/courseApi.js';
 import { lessonApi } from '../api/lessonApi.js';
-import { enrollmentApi } from '../api/enrollmentApi.js';
 import useAuthStore from '../store/authStore.js';
-import ProgressBar from '../components/ui/ProgressBar.jsx';
-import EnrollmentConfirmationModal from '../components/learning/EnrollmentConfirmationModal.jsx';
 import './CourseLearning.css';
 
 const LESSON_DIFFICULTY_LABELS = {
@@ -18,24 +15,13 @@ export default function CourseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const userRole = useAuthStore((state) => state.user?.role);
   const studentShell = location.pathname.startsWith('/student/courses/');
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
-  const [enrollment, setEnrollment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showEnrollmentModal, setShowEnrollmentModal] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get('enroll') !== '1') return;
-    setShowEnrollmentModal(true);
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete('enroll');
-    setSearchParams(nextParams, { replace: true });
-  }, [searchParams, setSearchParams]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -55,25 +41,12 @@ export default function CourseDetailPage() {
         setLessons([]);
       }
 
-      // 3. If authenticated, check enrollment status
-      if (isAuthenticated) {
-        try {
-          const myRes = await enrollmentApi.getMyCourses();
-          const enrollments = myRes.data?.enrollments || [];
-          const match = enrollments.find(
-            (item) => String(item.course?._id || item.course) === String(courseData._id)
-          );
-          setEnrollment(match || null);
-        } catch (enrollErr) {
-          console.warn('Could not check enrollment status:', enrollErr);
-        }
-      }
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể tải thông tin khóa học. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
-  }, [id, isAuthenticated]);
+  }, [id]);
 
   useEffect(() => {
     load();
@@ -99,23 +72,20 @@ export default function CourseDetailPage() {
     );
   }
 
-  const isEnrolled = !!enrollment;
   const courseListPath = studentShell ? '/student/courses' : '/courses';
   const showStudentSwitcher = studentShell || userRole === 'student';
-  const progress = Number(enrollment?.progress || 0);
   const totalDuration = lessons.reduce((acc, l) => acc + (Number(l.duration) || 0), 0);
-  const nextLesson = lessons.find((l) => true);
+  const nextLesson = lessons[0];
 
   return (
     <main className="learning-page course-detail-page">
       {showStudentSwitcher && (
         <nav className="course-view-switch" aria-label="Chuyển danh sách khóa học">
-          <Link to="/student/my-courses" aria-current={isEnrolled ? 'page' : undefined}>Khóa học của tôi</Link>
-          <Link to="/student/courses" aria-current={!isEnrolled ? 'page' : undefined}>Tất cả khóa học</Link>
+          <Link to="/student/courses" aria-current="page">Bài học</Link>
         </nav>
       )}
-      <Link className="learning-back" to={studentShell ? '/student/my-courses' : courseListPath}>
-        ← {studentShell ? 'Khóa học của tôi' : 'Tất cả khóa học'}
+      <Link className="learning-back" to={courseListPath}>
+        ← {studentShell ? 'Bài học' : 'Tất cả khóa học'}
       </Link>
 
       {/* Hero Section */}
@@ -144,47 +114,30 @@ export default function CourseDetailPage() {
           </div>
         </div>
 
-        {/* Enrollment / Action Card */}
+        {/* Learning action */}
         <div className="course-action-card">
-          {isEnrolled ? (
-            <div className="course-progress">
-              <span>Tiến độ học tập của bạn</span>
-              <div className="progress-score-wrap">
-                <strong>{progress}%</strong>
-                <span className="progress-label">{progress === 100 ? 'Đã hoàn thành' : 'Đang học'}</span>
-              </div>
-              <ProgressBar value={progress} />
+          <div className="course-enroll-card">
+            <div className="price-tag-wrap">
+              <span className="price-label">Quyền truy cập:</span>
+              <span className="price-amount">Dành cho học viên đã được duyệt</span>
+            </div>
+            {isAuthenticated ? (
               <Link
                 className="learning-primary"
-                to={nextLesson ? `/student/courses/${course._id}/lessons/${nextLesson._id}` : '/student/my-courses'}
+                to={nextLesson ? `/student/courses/${course._id}/lessons/${nextLesson._id}` : '/student/courses'}
               >
-                Tiếp tục học ngay →
+                {nextLesson ? 'Bắt đầu học ngay →' : 'Xem bài học →'}
               </Link>
-            </div>
-          ) : (
-            <div className="course-enroll-card">
-              <div className="price-tag-wrap">
-                <span className="price-label">Học phí trọn khóa:</span>
-                <span className="price-amount">
-                  {Number(course.price) === 0 ? 'Miễn phí' : `${Number(course.price).toLocaleString()} VNĐ`}
-                </span>
-              </div>
-
-              {isAuthenticated ? (
-                <button className="learning-primary" type="button" onClick={() => setShowEnrollmentModal(true)}>
-                  ⚡ Đăng ký học ngay
-                </button>
-              ) : (
-                <button
-                  className="learning-primary"
-                  onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/student/courses/${course._id}?enroll=1`)}`)}
-                >
-                  🔑 Đăng nhập để đăng ký
-                </button>
-              )}
-              <small className="enroll-note">✓ Truy cập trọn đời bài giảng và tài liệu</small>
-            </div>
-          )}
+            ) : (
+              <button
+                className="learning-primary"
+                onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/student/courses/${course._id}`)}`)}
+              >
+                🔑 Đăng nhập để học
+              </button>
+            )}
+            <small className="enroll-note">✓ Không cần đăng ký riêng từng khóa học</small>
+          </div>
         </div>
       </section>
 
@@ -217,7 +170,7 @@ export default function CourseDetailPage() {
               </div>
 
               <div className="lesson-action-col">
-                {isEnrolled ? (
+                {isAuthenticated ? (
                   <Link
                     to={`/student/courses/${course._id}/lessons/${lesson._id}`}
                     className="btn-open-lesson"
@@ -225,9 +178,9 @@ export default function CourseDetailPage() {
                     Vào học bài →
                   </Link>
                 ) : (
-                  <span className="lesson-lock" title="Đăng ký khóa học để mở khóa bài giảng này">
-                    🔒 Cần đăng ký
-                  </span>
+                  <Link className="lesson-lock" to={`/login?redirect=${encodeURIComponent(`/student/courses/${course._id}/lessons/${lesson._id}`)}`}>
+                    🔑 Đăng nhập để học
+                  </Link>
                 )}
               </div>
             </article>
@@ -239,15 +192,6 @@ export default function CourseDetailPage() {
           </div>
         )}
       </section>
-      <EnrollmentConfirmationModal
-        course={course}
-        open={showEnrollmentModal}
-        onClose={() => setShowEnrollmentModal(false)}
-        onEnrolled={(createdEnrollment) => {
-          setEnrollment(createdEnrollment || { course: course._id, progress: 0 });
-          setShowEnrollmentModal(false);
-        }}
-      />
     </main>
   );
 }

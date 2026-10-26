@@ -25,7 +25,6 @@ export default function StudentLayout() {
     let pageTitle = 'Học viên';
     if (path.includes('dashboard')) pageTitle = 'Trang chủ';
     else if (path.includes('/courses/')) pageTitle = path.includes('/lessons/') ? 'Bài học' : 'Khóa học';
-    else if (path === '/student/courses') pageTitle = 'Tất cả khóa học';
     else if (path === '/student/courses') pageTitle = 'Bài học';
     else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
     else if (path.includes('/tests/')) pageTitle = 'Đang làm bài kiểm tra';
