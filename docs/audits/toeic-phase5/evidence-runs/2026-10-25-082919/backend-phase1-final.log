@@ -1,0 +1,128 @@
+
+> english-course-backend@1.0.0 test:phase1
+> node --test tests/phase1Security.test.js
+
+TAP version 13
+# Subtest: student status policy blocks suspended, inactive, pending, and rejected accounts
+ok 1 - student status policy blocks suspended, inactive, pending, and rejected accounts
+  ---
+  duration_ms: 2.2226
+  type: 'test'
+  ...
+# Subtest: protected middleware rechecks account state for an already-issued access token
+ok 2 - protected middleware rechecks account state for an already-issued access token
+  ---
+  duration_ms: 12.0366
+  type: 'test'
+  ...
+# Subtest: refresh rejects inactive student states and clears both refresh-cookie paths
+ok 3 - refresh rejects inactive student states and clears both refresh-cookie paths
+  ---
+  duration_ms: 6.4444
+  type: 'test'
+  ...
+# Subtest: access and refresh tokens issued during or before a suspension are invalidated after reactivation
+ok 4 - access and refresh tokens issued during or before a suspension are invalidated after reactivation
+  ---
+  duration_ms: 0.3085
+  type: 'test'
+  ...
+# Subtest: material access requires enrollment, publication, active account, and download permission
+ok 5 - material access requires enrollment, publication, active account, and download permission
+  ---
+  duration_ms: 0.569
+  type: 'test'
+  ...
+# Subtest: direct private upload URL enforces authentication, enrollment, publication, and download rights
+ok 6 - direct private upload URL enforces authentication, enrollment, publication, and download rights
+  ---
+  duration_ms: 25.1744
+  type: 'test'
+  ...
+# Subtest: unreferenced public images remain static and unknown private files remain unavailable
+ok 7 - unreferenced public images remain static and unknown private files remain unavailable
+  ---
+  duration_ms: 10.3952
+  type: 'test'
+  ...
+# Subtest: admins and owning teachers keep existing management access without granting another teacher access
+ok 8 - admins and owning teachers keep existing management access without granting another teacher access
+  ---
+  duration_ms: 0.4416
+  type: 'test'
+  ...
+# Subtest: upload URL normalization and path containment reject traversal
+ok 9 - upload URL normalization and path containment reject traversal
+  ---
+  duration_ms: 0.5247
+  type: 'test'
+  ...
+# Subtest: external material links accept HTTPS without credentials only
+ok 10 - external material links accept HTTPS without credentials only
+  ---
+  duration_ms: 0.494
+  type: 'test'
+  ...
+# Subtest: lesson HTML sanitizer preserves supported rich text and strips active content
+ok 11 - lesson HTML sanitizer preserves supported rich text and strips active content
+  ---
+  duration_ms: 7.4204
+  type: 'test'
+  ...
+# Subtest: Express JSON middleware rejects trailing bytes after a compressed body without crashing the server
+ok 12 - Express JSON middleware rejects trailing bytes after a compressed body without crashing the server
+  ---
+  duration_ms: 109.4205
+  type: 'test'
+  ...
+# Subtest: lesson HTML sanitizer handles malformed, empty, and non-string legacy values
+ok 13 - lesson HTML sanitizer handles malformed, empty, and non-string legacy values
+  ---
+  duration_ms: 0.7069
+  type: 'test'
+  ...
+# Subtest: lesson media URL sanitizer allows safe HTTPS and local uploads only
+ok 14 - lesson media URL sanitizer allows safe HTTPS and local uploads only
+  ---
+  duration_ms: 0.3804
+  type: 'test'
+  ...
+# Subtest: public lesson discovery sanitizes legacy HTML and hides private attachment URLs
+ok 15 - public lesson discovery sanitizes legacy HTML and hides private attachment URLs
+  ---
+  duration_ms: 0.688
+  type: 'test'
+  ...
+# Subtest: legacy test API sanitizes populated lesson content and hides student attachment URLs
+ok 16 - legacy test API sanitizes populated lesson content and hides student attachment URLs
+  ---
+  duration_ms: 1.1027
+  type: 'test'
+  ...
+# Subtest: upload validation checks route allowlists, declared MIME, signatures, and stable size policy
+ok 17 - upload validation checks route allowlists, declared MIME, signatures, and stable size policy
+  ---
+  duration_ms: 0.7863
+  type: 'test'
+  ...
+# Subtest: multipart upload middleware returns stable errors and cleans rejected or failed files
+ok 18 - multipart upload middleware returns stable errors and cleans rejected or failed files
+  ---
+  duration_ms: 151.3212
+  type: 'test'
+  ...
+# Subtest: upload names ignore client path components and preserve only a safe extension
+ok 19 - upload names ignore client path components and preserve only a safe extension
+  ---
+  duration_ms: 0.4545
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1479.5289

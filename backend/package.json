@@ -16,6 +16,7 @@
     "seed:lesson-preview-demo": "node src/scripts/seedLessonMaterialPreviewDemo.js",
     "test:phase2-import": "node --test tests/phase2ToeicPart5Import.test.js",
     "test:phase5": "node --test tests/phase5ToeicPart1.test.js tests/phase5Cors.test.js",
+    "test:part1-dictation": "node --test tests/part1Dictation.integration.test.js",
     "test:vocabulary-parser-v2": "node --test tests/docxVocabularyParserV2.test.js",
     "accept:vocabulary-parser-v2": "node tests/runDocxVocabularyParserV2Acceptance.js",
     "test:vocabulary-catalog-v1": "node --test tests/vocabularyCatalogV1.integration.test.js",

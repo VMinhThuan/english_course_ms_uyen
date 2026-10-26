@@ -1,0 +1,1 @@
+{"status":"passed","database":"disposable loopback MongoMemoryServer","checks":["real Admin auth guard","real eligible list endpoint","real selection endpoint","real Question clone/provenance","Assessment and QuestionGroup references","source Question unchanged","browser renders server response"]}

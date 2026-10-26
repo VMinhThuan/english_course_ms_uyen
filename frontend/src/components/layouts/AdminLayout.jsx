@@ -169,12 +169,12 @@ export default function AdminLayout() {
 
           {isAdmin && <>
             <NavLink
-              to="/admin/lessons?scope=toeic-part1"
+              to="/admin/part1-dictations"
               className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
               onClick={closeMobileMenu}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-              <span>TOEIC Part 1 Lessons</span>
+              <span>TOEIC Part 1 · Chép chính tả</span>
             </NavLink>
           </>}
 

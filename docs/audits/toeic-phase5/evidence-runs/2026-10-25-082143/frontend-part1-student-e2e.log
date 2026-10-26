@@ -1,0 +1,10 @@
+
+> english-course-frontend@1.0.0 test:toeic-part1:student:e2e
+> node e2e/toeic-part1-student.mjs
+
+PASS core learner flow: separate TOEIC entry, filtered Courses and published Lessons, locked enrollment CTA, six ordered rows, hidden transcript defaults, stream ticket expiry refresh, Lesson navigation, explicit completion, mobile width, and Assessment route separation.
+Screenshot: C:\Users\LEGION\AppData\Local\Temp\toeic-part1-student-mobile.png
+PASS controlled access-denial flow: revoked ticket permission is surfaced without retry loop; denied Lesson detail never requests audio.
+PASS error/empty and compatibility flow: list retry succeeds, empty state renders, and a legacy Lesson continues through the existing LessonPage.
+PASS controlled audio failure flow: one automatic refresh then a recoverable error state.
+All TOEIC Part 1 student browser checks passed. API, ticket expiry, access denial, and media responses in this script are controlled mocks; no production content or real object storage was used.

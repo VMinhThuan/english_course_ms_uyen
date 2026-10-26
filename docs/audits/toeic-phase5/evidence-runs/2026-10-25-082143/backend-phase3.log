@@ -1,0 +1,93 @@
+
+> english-course-backend@1.0.0 test:phase3
+> node --test tests/phase3AttemptReporting.test.js tests/phase3Admin.integration.test.js
+
+TAP version 13
+# Subtest: Phase 3 isolated MongoDB/API integration
+    # Subtest: Phase 2 real Mongo routes: Standard/TOEIC submit, expiry, CAS, engine checks, limits, legacy, and history reads
+    ok 1 - Phase 2 real Mongo routes: Standard/TOEIC submit, expiry, CAS, engine checks, limits, legacy, and history reads
+      ---
+      duration_ms: 382.2079
+      type: 'test'
+      ...
+    # Subtest: admin and teacher can create active students; account is safe and immediately login-ready
+    ok 2 - admin and teacher can create active students; account is safe and immediately login-ready
+      ---
+      duration_ms: 348.3403
+      type: 'test'
+      ...
+    # Subtest: validation, RBAC, duplicate races, and mass assignment are guarded
+    ok 3 - validation, RBAC, duplicate races, and mass assignment are guarded
+      ---
+      duration_ms: 307.0847
+      type: 'test'
+      ...
+    # Subtest: Vietnamese accent-insensitive student search is literal, paginated, and composes with filters
+    ok 4 - Vietnamese accent-insensitive student search is literal, paginated, and composes with filters
+      ---
+      duration_ms: 26.7018
+      type: 'test'
+      ...
+    # Subtest: student progress is enrollment-scoped and excludes hidden or unpublished lessons
+    ok 5 - student progress is enrollment-scoped and excludes hidden or unpublished lessons
+      ---
+      duration_ms: 52.6707
+      type: 'test'
+      ...
+    # Subtest: report handles Standard, TOEIC, zero scores, legacy records, expired attempts, stable ranking, and pagination
+    ok 6 - report handles Standard, TOEIC, zero scores, legacy records, expired attempts, stable ranking, and pagination
+      ---
+      duration_ms: 101.1998
+      type: 'test'
+      ...
+    # Subtest: report reads stay read-only and coherent during submit/expiry races and pagination inserts
+    ok 7 - report reads stay read-only and coherent during submit/expiry races and pagination inserts
+      ---
+      duration_ms: 90.5003
+      type: 'test'
+      ...
+    1..7
+ok 1 - Phase 3 isolated MongoDB/API integration
+  ---
+  duration_ms: 1311.3156
+  type: 'test'
+  ...
+# Subtest: isolated MongoDB fixture server and test connection are closed
+ok 2 - isolated MongoDB fixture server and test connection are closed
+  ---
+  duration_ms: 93.3695
+  type: 'test'
+  ...
+# Subtest: report interpretation recognizes zero as a scored Standard result
+ok 3 - report interpretation recognizes zero as a scored Standard result
+  ---
+  duration_ms: 1.5826
+  type: 'test'
+  ...
+# Subtest: report interpretation uses TOEIC completed terminal status and resolves a legacy engine
+ok 4 - report interpretation uses TOEIC completed terminal status and resolves a legacy engine
+  ---
+  duration_ms: 0.164
+  type: 'test'
+  ...
+# Subtest: expired in-progress and unverified terminal attempts do not become score zero
+ok 5 - expired in-progress and unverified terminal attempts do not become score zero
+  ---
+  duration_ms: 0.202
+  type: 'test'
+  ...
+# Subtest: history/report builders use stable sort, bounded pages, and no answer fields in projection
+ok 6 - history/report builders use stable sort, bounded pages, and no answer fields in projection
+  ---
+  duration_ms: 1.1476
+  type: 'test'
+  ...
+1..6
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3560.7125

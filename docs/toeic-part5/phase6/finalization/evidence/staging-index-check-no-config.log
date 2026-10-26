@@ -1,0 +1,4 @@
+Read-only index inventory. Requires --read-only, STAGING_MONGODB_URI, and STAGING_DATABASE_NAME.
+Preconditions are missing; no database connection was attempted.
+Example: set STAGING_MONGODB_URI and STAGING_DATABASE_NAME, then run node src/scripts/checkToeicPart5IndexesStaging.js --read-only
+This script only lists collections and indexes. It never creates indexes or changes database data.

@@ -1,0 +1,19 @@
+{
+  "result": "PASS",
+  "checks": [
+    "Admin Part 5 label and forced query scope",
+    "reset/search/status/pagination scope",
+    "defensive hiding of other and unclassified Parts",
+    "four-option create and field validation",
+    "same-ID update and per-question publish status",
+    "legacy warning without answer inference",
+    "Import route and Draft destination contract",
+    "Teacher generic CRUD and Student route guard",
+    "mobile no-overflow check"
+  ],
+  "adminQuestionRequests": 9,
+  "viewport": {
+    "scrollWidth": 390,
+    "clientWidth": 390
+  }
+}

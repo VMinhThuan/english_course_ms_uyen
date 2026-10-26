@@ -1,0 +1,112 @@
+{
+  "status": "PASS",
+  "browser": "Playwright Chromium desktop and 390px mobile viewport",
+  "backend": "full Express app and real routes; actual Admin/Student login; MongoMemoryServer bound to loopback",
+  "actualWorkbook": {
+    "sheet": "TOEIC",
+    "rows": 75,
+    "valid": 68,
+    "invalid": 7,
+    "missingAnswerRows": [
+      61,
+      65,
+      68,
+      71,
+      72,
+      73,
+      74
+    ],
+    "confirmed": false,
+    "questionsCreated": 0
+  },
+  "syntheticWorkflow": {
+    "previewRows": 3,
+    "editedRows": [
+      4
+    ],
+    "importedQuestions": 2,
+    "publishedQuestions": 2,
+    "primaryAssessmentCopies": 2,
+    "secondAssessmentReuseCopies": 1,
+    "secondAssessmentCrashRecoveryCopies": 1
+  },
+  "browserRecovery": {
+    "importLostResponseReload": "reloaded batch shows committed rows as already imported",
+    "pickerSameKeyRetry": "same key replayed committed selection without duplicates",
+    "pickerBrowserContextClose": "reopened Assessment shows the committed copy exactly once"
+  },
+  "assessmentIntegrity": {
+    "groupQuestions": 2,
+    "assessmentQuestionReferences": 2,
+    "totalScore": 2,
+    "attemptStatus": "completed",
+    "score": 1,
+    "maxScore": 2,
+    "correct": 1,
+    "incorrect": 1,
+    "snapshotPreservedAfterCopyEdit": true,
+    "sourceDeletionDidNotCascade": true
+  },
+  "security": {
+    "teacherGenericReadStatus": 200,
+    "teacherImportedDraftPublishStatus": 403,
+    "teacherPickerStatus": 403,
+    "studentBankStatus": 403,
+    "studentImportStatus": 403,
+    "unpublishedAssessmentDirectAccessStatus": 404
+  },
+  "indexesVerified": 15,
+  "apiResponses": 53,
+  "apiRouteStatusEvidence": {
+    "adminLogin": [
+      200
+    ],
+    "workbookAndSyntheticPreviews": [
+      201,
+      201
+    ],
+    "rowRevalidation": [
+      200
+    ],
+    "importConfirms": [],
+    "assessmentCreates": [
+      201,
+      201
+    ],
+    "pickerReads": [
+      200,
+      200
+    ],
+    "pickerSelections": [
+      200,
+      200
+    ],
+    "corsPreflightForSelection": [],
+    "assessmentPublish": [
+      200
+    ],
+    "studentAttemptStart": [
+      201
+    ],
+    "studentAttemptReads": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "studentAutosaves": [
+      200
+    ],
+    "studentSubmits": [
+      200
+    ]
+  },
+  "browserErrors": 0,
+  "isolatedDatabase": "p5_fullflow_5e004fe93374471ca97af78c24410c11",
+  "evidence": [
+    "docs\\toeic-part5\\phase6\\stabilization\\evidence\\full-workflow\\full-workflow-student-result-mobile.png",
+    "docs\\toeic-part5\\phase6\\stabilization\\evidence\\full-workflow\\full-workflow-assessment-builder.png"
+  ]
+}

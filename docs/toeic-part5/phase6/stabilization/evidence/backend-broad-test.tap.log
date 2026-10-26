@@ -1,0 +1,562 @@
+TAP version 13
+# Subtest: student status policy blocks suspended, inactive, pending, and rejected accounts
+ok 1 - student status policy blocks suspended, inactive, pending, and rejected accounts
+  ---
+  duration_ms: 2.8105
+  type: 'test'
+  ...
+# Subtest: protected middleware rechecks account state for an already-issued access token
+ok 2 - protected middleware rechecks account state for an already-issued access token
+  ---
+  duration_ms: 25.5728
+  type: 'test'
+  ...
+# Subtest: refresh rejects inactive student states and clears both refresh-cookie paths
+ok 3 - refresh rejects inactive student states and clears both refresh-cookie paths
+  ---
+  duration_ms: 7.4554
+  type: 'test'
+  ...
+# Subtest: access and refresh tokens issued during or before a suspension are invalidated after reactivation
+ok 4 - access and refresh tokens issued during or before a suspension are invalidated after reactivation
+  ---
+  duration_ms: 0.3697
+  type: 'test'
+  ...
+# Subtest: material access requires enrollment, publication, active account, and download permission
+ok 5 - material access requires enrollment, publication, active account, and download permission
+  ---
+  duration_ms: 0.7326
+  type: 'test'
+  ...
+# Subtest: direct private upload URL enforces authentication, enrollment, publication, and download rights
+ok 6 - direct private upload URL enforces authentication, enrollment, publication, and download rights
+  ---
+  duration_ms: 65.081
+  type: 'test'
+  ...
+# Subtest: unreferenced public images remain static and unknown private files remain unavailable
+ok 7 - unreferenced public images remain static and unknown private files remain unavailable
+  ---
+  duration_ms: 82.9119
+  type: 'test'
+  ...
+# Subtest: admins and owning teachers keep existing management access without granting another teacher access
+ok 8 - admins and owning teachers keep existing management access without granting another teacher access
+  ---
+  duration_ms: 0.6137
+  type: 'test'
+  ...
+# Subtest: upload URL normalization and path containment reject traversal
+ok 9 - upload URL normalization and path containment reject traversal
+  ---
+  duration_ms: 0.9339
+  type: 'test'
+  ...
+# Subtest: external material links accept HTTPS without credentials only
+ok 10 - external material links accept HTTPS without credentials only
+  ---
+  duration_ms: 1.0423
+  type: 'test'
+  ...
+# Subtest: lesson HTML sanitizer preserves supported rich text and strips active content
+ok 11 - lesson HTML sanitizer preserves supported rich text and strips active content
+  ---
+  duration_ms: 11.2987
+  type: 'test'
+  ...
+# Subtest: Express JSON middleware rejects trailing bytes after a compressed body without crashing the server
+ok 12 - Express JSON middleware rejects trailing bytes after a compressed body without crashing the server
+  ---
+  duration_ms: 163.0418
+  type: 'test'
+  ...
+# Subtest: lesson HTML sanitizer handles malformed, empty, and non-string legacy values
+ok 13 - lesson HTML sanitizer handles malformed, empty, and non-string legacy values
+  ---
+  duration_ms: 0.678
+  type: 'test'
+  ...
+# Subtest: lesson media URL sanitizer allows safe HTTPS and local uploads only
+ok 14 - lesson media URL sanitizer allows safe HTTPS and local uploads only
+  ---
+  duration_ms: 0.4357
+  type: 'test'
+  ...
+# Subtest: public lesson discovery sanitizes legacy HTML and hides private attachment URLs
+ok 15 - public lesson discovery sanitizes legacy HTML and hides private attachment URLs
+  ---
+  duration_ms: 0.8353
+  type: 'test'
+  ...
+# Subtest: legacy test API sanitizes populated lesson content and hides student attachment URLs
+ok 16 - legacy test API sanitizes populated lesson content and hides student attachment URLs
+  ---
+  duration_ms: 1.0545
+  type: 'test'
+  ...
+# Subtest: upload validation checks route allowlists, declared MIME, signatures, and stable size policy
+ok 17 - upload validation checks route allowlists, declared MIME, signatures, and stable size policy
+  ---
+  duration_ms: 0.9427
+  type: 'test'
+  ...
+# Subtest: multipart upload middleware returns stable errors and cleans rejected or failed files
+ok 18 - multipart upload middleware returns stable errors and cleans rejected or failed files
+  ---
+  duration_ms: 589.4305
+  type: 'test'
+  ...
+# Subtest: upload names ignore client path components and preserve only a safe extension
+ok 19 - upload names ignore client path components and preserve only a safe extension
+  ---
+  duration_ms: 1.815
+  type: 'test'
+  ...
+# Subtest: Phase 1 Part 5 Question Bank API on an isolated MongoDB database
+    # Subtest: role gates and valid Part 5 create/update CRUD
+    ok 1 - role gates and valid Part 5 create/update CRUD
+      ---
+      duration_ms: 280.7711
+      type: 'test'
+      ...
+    # Subtest: Part 5 validation rejects invalid structure and answer keys
+    ok 2 - Part 5 validation rejects invalid structure and answer keys
+      ---
+      duration_ms: 117.4544
+      type: 'test'
+      ...
+    # Subtest: Part filter composes with search, status, and pagination
+    ok 3 - Part filter composes with search, status, and pagination
+      ---
+      duration_ms: 69.5805
+      type: 'test'
+      ...
+    # Subtest: missing or non-5 Part retains generic Question behavior
+    ok 4 - missing or non-5 Part retains generic Question behavior
+      ---
+      duration_ms: 75.0852
+      type: 'test'
+      ...
+    # Subtest: bank create does not rewrite Assessment references and student attempt DTO hides answer keys
+    ok 5 - bank create does not rewrite Assessment references and student attempt DTO hides answer keys
+      ---
+      duration_ms: 77.7132
+      type: 'test'
+      ...
+    1..5
+ok 20 - Phase 1 Part 5 Question Bank API on an isolated MongoDB database
+  ---
+  duration_ms: 623.367
+  type: 'test'
+  ...
+# Subtest: standard score preserves exact multiple-choice and normalized typed-answer scoring
+ok 21 - standard score preserves exact multiple-choice and normalized typed-answer scoring
+  ---
+  duration_ms: 8.3366
+  type: 'test'
+  ...
+# Subtest: TOEIC score preserves listening, reading, and part breakdown fields
+ok 22 - TOEIC score preserves listening, reading, and part breakdown fields
+  ---
+  duration_ms: 1.4246
+  type: 'test'
+  ...
+# Subtest: legacy attempts resolve from assessment format and conflicting stored engine fails closed
+ok 23 - legacy attempts resolve from assessment format and conflicting stored engine fails closed
+  ---
+  duration_ms: 0.4362
+  type: 'test'
+  ...
+# Subtest: expired finalization ignores late payload and atomically stores the persisted answer snapshot
+ok 24 - expired finalization ignores late payload and atomically stores the persisted answer snapshot
+  ---
+  duration_ms: 2.3286
+  type: 'test'
+  ...
+# Subtest: active finalization rejects a stale revision without writing
+ok 25 - active finalization rejects a stale revision without writing
+  ---
+  duration_ms: 0.511
+  type: 'test'
+  ...
+# Subtest: five concurrent finalizers produce one terminal write and one stable result
+ok 26 - five concurrent finalizers produce one terminal write and one stable result
+  ---
+  duration_ms: 1.5291
+  type: 'test'
+  ...
+# Subtest: two tabs using the same revision cannot overwrite the first accepted autosave
+ok 27 - two tabs using the same revision cannot overwrite the first accepted autosave
+  ---
+  duration_ms: 1.0788
+  type: 'test'
+  ...
+# Subtest: legacy attempt without stored revision can be finalized through the revision-1 compatibility filter
+ok 28 - legacy attempt without stored revision can be finalized through the revision-1 compatibility filter
+  ---
+  duration_ms: 0.6966
+  type: 'test'
+  ...
+# Subtest: frontend prefers UTF-8 Content-Disposition filename without dropping Unicode or suffix
+ok 29 - frontend prefers UTF-8 Content-Disposition filename without dropping Unicode or suffix
+  ---
+  duration_ms: 1.9239
+  type: 'test'
+  ...
+# Subtest: frontend fallback adds supported MIME extension and preserves multiple dots
+ok 30 - frontend fallback adds supported MIME extension and preserves multiple dots
+  ---
+  duration_ms: 0.8882
+  type: 'test'
+  ...
+# Subtest: JSON error blobs are not treated as downloadable files
+ok 31 - JSON error blobs are not treated as downloadable files
+  ---
+  duration_ms: 2.1496
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Lesson_01.pdf
+ok 32 - download metadata preserves Lesson_01.pdf
+  ---
+  duration_ms: 2.7392
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Bài tập TOEIC.docx
+ok 33 - download metadata preserves Bài tập TOEIC.docx
+  ---
+  duration_ms: 0.8765
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Bang_diem.xlsx
+ok 34 - download metadata preserves Bang_diem.xlsx
+  ---
+  duration_ms: 0.54
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Slide.Part1.pptx
+ok 35 - download metadata preserves Slide.Part1.pptx
+  ---
+  duration_ms: 0.2144
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Audio_Listening.mp3
+ok 36 - download metadata preserves Audio_Listening.mp3
+  ---
+  duration_ms: 0.3592
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Hình ảnh bài học.png
+ok 37 - download metadata preserves Hình ảnh bài học.png
+  ---
+  duration_ms: 0.168
+  type: 'test'
+  ...
+# Subtest: download metadata uses supported MIME extension for extensionless and mismatched legacy metadata
+ok 38 - download metadata uses supported MIME extension for extensionless and mismatched legacy metadata
+  ---
+  duration_ms: 0.3447
+  type: 'test'
+  ...
+# Subtest: filename and UTF-8 Content-Disposition remove path/header controls
+ok 39 - filename and UTF-8 Content-Disposition remove path/header controls
+  ---
+  duration_ms: 1.5672
+  type: 'test'
+  ...
+# Subtest: streamed download bytes match fixture bytes exactly
+ok 40 - streamed download bytes match fixture bytes exactly
+  ---
+  duration_ms: 499.7544
+  type: 'test'
+  ...
+# Subtest: Phase 2 TOEIC Part 5 XLSX import engine
+    # Subtest: parser reads actual OOXML structure and rejects unsafe or ambiguous inputs
+    ok 1 - parser reads actual OOXML structure and rejects unsafe or ambiguous inputs
+      ---
+      duration_ms: 98.2744
+      type: 'test'
+      ...
+    # Subtest: Admin preview, row edits, safe confirm, retry, concurrency, and legacy compatibility
+    ok 2 - Admin preview, row edits, safe confirm, retry, concurrency, and legacy compatibility
+      ---
+      duration_ms: 1616.2304
+      type: 'test'
+      ...
+    # Subtest: duplicate classification handles bank matches, normalized exact matches, and conflicting content
+    ok 3 - duplicate classification handles bank matches, normalized exact matches, and conflicting content
+      ---
+      duration_ms: 420.5148
+      type: 'test'
+      ...
+    # Subtest: partial confirmation leaves unresolved rows editable
+    ok 4 - partial confirmation leaves unresolved rows editable
+      ---
+      duration_ms: 256.3361
+      type: 'test'
+      ...
+    # Subtest: a failure after Question creation is recoverable without a second Question
+    ok 5 - a failure after Question creation is recoverable without a second Question
+      ---
+      duration_ms: 300.8507
+      type: 'test'
+      ...
+    1..5
+ok 41 - Phase 2 TOEIC Part 5 XLSX import engine
+  ---
+  duration_ms: 2695.8955
+  type: 'test'
+  ...
+# Subtest: Phase 3 isolated MongoDB/API integration
+    # Subtest: Phase 2 real Mongo routes: Standard/TOEIC submit, expiry, CAS, engine checks, limits, legacy, and history reads
+    ok 1 - Phase 2 real Mongo routes: Standard/TOEIC submit, expiry, CAS, engine checks, limits, legacy, and history reads
+      ---
+      duration_ms: 870.0849
+      type: 'test'
+      ...
+    # Subtest: admin and teacher can create active students; account is safe and immediately login-ready
+    ok 2 - admin and teacher can create active students; account is safe and immediately login-ready
+      ---
+      duration_ms: 470.5144
+      type: 'test'
+      ...
+    # Subtest: validation, RBAC, duplicate races, and mass assignment are guarded
+    ok 3 - validation, RBAC, duplicate races, and mass assignment are guarded
+      ---
+      duration_ms: 518.4953
+      type: 'test'
+      ...
+    # Subtest: Vietnamese accent-insensitive student search is literal, paginated, and composes with filters
+    ok 4 - Vietnamese accent-insensitive student search is literal, paginated, and composes with filters
+      ---
+      duration_ms: 41.4892
+      type: 'test'
+      ...
+    # Subtest: student progress is enrollment-scoped and excludes hidden or unpublished lessons
+    ok 5 - student progress is enrollment-scoped and excludes hidden or unpublished lessons
+      ---
+      duration_ms: 90.9265
+      type: 'test'
+      ...
+    # Subtest: report handles Standard, TOEIC, zero scores, legacy records, expired attempts, stable ranking, and pagination
+    ok 6 - report handles Standard, TOEIC, zero scores, legacy records, expired attempts, stable ranking, and pagination
+      ---
+      duration_ms: 123.2746
+      type: 'test'
+      ...
+    # Subtest: report reads stay read-only and coherent during submit/expiry races and pagination inserts
+    ok 7 - report reads stay read-only and coherent during submit/expiry races and pagination inserts
+      ---
+      duration_ms: 121.5777
+      type: 'test'
+      ...
+    1..7
+ok 42 - Phase 3 isolated MongoDB/API integration
+  ---
+  duration_ms: 2241.4938
+  type: 'test'
+  ...
+# Subtest: isolated MongoDB fixture server and test connection are closed
+ok 43 - isolated MongoDB fixture server and test connection are closed
+  ---
+  duration_ms: 121.8985
+  type: 'test'
+  ...
+# Subtest: report interpretation recognizes zero as a scored Standard result
+ok 44 - report interpretation recognizes zero as a scored Standard result
+  ---
+  duration_ms: 2.7639
+  type: 'test'
+  ...
+# Subtest: report interpretation uses TOEIC completed terminal status and resolves a legacy engine
+ok 45 - report interpretation uses TOEIC completed terminal status and resolves a legacy engine
+  ---
+  duration_ms: 0.605
+  type: 'test'
+  ...
+# Subtest: expired in-progress and unverified terminal attempts do not become score zero
+ok 46 - expired in-progress and unverified terminal attempts do not become score zero
+  ---
+  duration_ms: 0.3872
+  type: 'test'
+  ...
+# Subtest: history/report builders use stable sort, bounded pages, and no answer fields in projection
+ok 47 - history/report builders use stable sort, bounded pages, and no answer fields in projection
+  ---
+  duration_ms: 2.2872
+  type: 'test'
+  ...
+# Subtest: Phase 4 isolated learning API integration
+    # Subtest: lesson difficulty accepts the supported optional enum and preserves legacy unset values
+    ok 1 - lesson difficulty accepts the supported optional enum and preserves legacy unset values
+      ---
+      duration_ms: 188.8335
+      type: 'test'
+      ...
+    # Subtest: PDF preview enforces enrollment and allowDownload, is inline/no-store, and download remains attachment
+    not ok 2 - PDF preview enforces enrollment and allowDownload, is inline/no-store, and download remains attachment
+      ---
+      duration_ms: 134.7946
+      type: 'test'
+      location: 'D:\\SideProject\\english_course_ms_uyen\\backend\\tests\\phase4Learning.integration.test.js:186:11'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///D:/SideProject/english_course_ms_uyen/backend/tests/phase4Learning.integration.test.js:211:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///D:/SideProject/english_course_ms_uyen/backend/tests/phase4Learning.integration.test.js:186:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: student vocabulary search is accent-insensitive, topic-filtered, stable, and paginated
+    ok 3 - student vocabulary search is accent-insensitive, topic-filtered, stable, and paginated
+      ---
+      duration_ms: 139.5471
+      type: 'test'
+      ...
+    1..3
+not ok 48 - Phase 4 isolated learning API integration
+  ---
+  duration_ms: 466.3536
+  type: 'test'
+  location: 'D:\\SideProject\\english_course_ms_uyen\\backend\\tests\\phase4Learning.integration.test.js:144:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: Phase 4 isolated API cleanup
+ok 49 - Phase 4 isolated API cleanup
+  ---
+  duration_ms: 198.2774
+  type: 'test'
+  ...
+# Subtest: production CORS permits the configured frontend with credentials and Range preflight
+ok 50 - production CORS permits the configured frontend with credentials and Range preflight
+  ---
+  duration_ms: 102.1126
+  type: 'test'
+  ...
+# Subtest: production CORS permits the Idempotency-Key header used by the Part 5 picker
+ok 51 - production CORS permits the Idempotency-Key header used by the Part 5 picker
+  ---
+  duration_ms: 18.8471
+  type: 'test'
+  ...
+# Subtest: TOEIC Part 1 draft and publication validation is field-aware and non-breaking
+    # Subtest: legacy Lesson has no required Part 1 data and incomplete draft is permitted
+    ok 1 - legacy Lesson has no required Part 1 data and incomplete draft is permitted
+      ---
+      duration_ms: 21.2838
+      type: 'test'
+      ...
+    # Subtest: pure validation permits draft incompleteness but rejects duplicate or invalid orders at publish
+    ok 2 - pure validation permits draft incompleteness but rejects duplicate or invalid orders at publish
+      ---
+      duration_ms: 2.1441
+      type: 'test'
+      ...
+    # Subtest: audio stream accepts standards-based single byte ranges and rejects invalid ranges
+    ok 3 - audio stream accepts standards-based single byte ranges and rejects invalid ranges
+      ---
+      duration_ms: 1.0745
+      type: 'test'
+      ...
+    # Subtest: staff can edit sentences independently, but publishing requires six valid sentences and same-lesson audio
+    ok 4 - staff can edit sentences independently, but publishing requires six valid sentences and same-lesson audio
+      ---
+      duration_ms: 476.762
+      type: 'test'
+      ...
+    # Subtest: outline hides transcript and lesson body; detail, audio, and progress enforce enrollment
+    ok 5 - outline hides transcript and lesson body; detail, audio, and progress enforce enrollment
+      ---
+      duration_ms: 2410.4152
+      type: 'test'
+      ...
+    # Subtest: upload intent fails closed when private object storage is not configured
+    ok 6 - upload intent fails closed when private object storage is not configured
+      ---
+      duration_ms: 66.4297
+      type: 'test'
+      ...
+    1..6
+ok 52 - TOEIC Part 1 draft and publication validation is field-aware and non-breaking
+  ---
+  duration_ms: 2982.1867
+  type: 'test'
+  ...
+# Subtest: Phase 5 Part 5 bank selection integration on an isolated MongoDB database
+    # Subtest: Admin-only eligible list enforces content quality, search and pagination
+    ok 1 - Admin-only eligible list enforces content quality, search and pagination
+      ---
+      duration_ms: 415.4591
+      type: 'test'
+      ...
+    # Subtest: selection clones valid sources and keeps group, assessment and attempt snapshots independent
+    ok 2 - selection clones valid sources and keeps group, assessment and attempt snapshots independent
+      ---
+      duration_ms: 582.7903
+      type: 'test'
+      ...
+    # Subtest: confirm revalidates legacy invalid, non-published and other-Part questions row by row
+    ok 3 - confirm revalidates legacy invalid, non-published and other-Part questions row by row
+      ---
+      duration_ms: 141.169
+      type: 'test'
+      ...
+    # Subtest: published assessments, invalid groups and mismatched idempotency replays fail without writes
+    ok 4 - published assessments, invalid groups and mismatched idempotency replays fail without writes
+      ---
+      duration_ms: 184.7982
+      type: 'test'
+      ...
+    # Subtest: existing Builder writes and publish are blocked during the selection lock lease
+    ok 5 - existing Builder writes and publish are blocked during the selection lock lease
+      ---
+      duration_ms: 100.4961
+      type: 'test'
+      ...
+    # Subtest: concurrent confirms cannot create duplicate source copies or group references
+    ok 6 - concurrent confirms cannot create duplicate source copies or group references
+      ---
+      duration_ms: 169.2196
+      type: 'test'
+      ...
+    # Subtest: a retry with a new key recovers a clone left between group and assessment writes
+    ok 7 - a retry with a new key recovers a clone left between group and assessment writes
+      ---
+      duration_ms: 128.0971
+      type: 'test'
+      ...
+    1..7
+ok 53 - Phase 5 Part 5 bank selection integration on an isolated MongoDB database
+  ---
+  duration_ms: 1727.7536
+  type: 'test'
+  ...
+# {"status":"PASS","database":"phase6_indexes_b6ea6865766946618e3f020c93aa9365","bind":"127.0.0.1 MongoMemoryServer","modelsInitialized":["Question","QuestionImportBatch","QuestionImportRow","QuestionBankSelectionBatch","QuestionGroup","Assessment"],"indexesEnumerated":18,"namedConstraintsAsserted":6,"duplicateKeyRejections":6,"concurrentUniqueKeyWinners":1}
+# Subtest: Phase 6A.1 index definitions and unique constraints on an isolated MongoDB database
+ok 54 - Phase 6A.1 index definitions and unique constraints on an isolated MongoDB database
+  ---
+  duration_ms: 1975.0718
+  type: 'test'
+  ...
+1..54
+# tests 87
+# suites 0
+# pass 85
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8142.5249

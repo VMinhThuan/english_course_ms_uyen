@@ -1,0 +1,8 @@
+
+> english-course-frontend@1.0.0 test:toeic-part1:e2e
+> node e2e/toeic-part1-admin.mjs
+
+PASS controlled admin flow: draft creation, six rows, PATCH by sentence ID, client publish gate, unsaved navigation, storage-unavailable state, mobile render.
+Screenshot: C:\Users\LEGION\AppData\Local\Temp\toeic-part1-admin-mobile.png
+PASS controlled preview/status flow: transcript remains visible on ticket denial, server validation is shown, Published state follows API success.
+All TOEIC Part 1 admin browser checks passed. API and storage behavior in this script are controlled mocks; no real object storage was used.

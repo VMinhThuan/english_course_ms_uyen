@@ -1,0 +1,117 @@
+
+> english-course-frontend@1.0.0 build
+> vite build
+
+vite v6.4.4 building for production...
+transforming...
+✓ 266 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.77 kB │ gzip:   0.46 kB
+dist/assets/img-1-Tm6Wb9Iu.jpg                            30.96 kB
+dist/assets/img-5-DtbywMEQ.jpg                            46.63 kB
+dist/assets/background_1-z8sN3gbP.jpg                     57.55 kB
+dist/assets/img-3-BQzOI_Fn.jpg                            64.16 kB
+dist/assets/img-4-BI64wcjA.jpg                            84.24 kB
+dist/assets/worker.min-32WLk7pY.js                       111.31 kB
+dist/assets/bg_2-z2EL0IhR.jpg                            143.69 kB
+dist/assets/img-6-BcY-E5Mt.jpg                           149.33 kB
+dist/assets/background-COXF_V4L.jpg                      374.46 kB
+dist/assets/pdf.worker.min-CjEcRF4W.mjs                1,264.34 kB
+dist/assets/bg_3-DtrZi6_f.jpg                          1,559.26 kB
+dist/assets/banner-BX-u-eSF.png                        2,265.99 kB
+dist/assets/img-2-C1Y37x5K.png                         3,507.97 kB
+dist/assets/StudentHistoryPage-DYjJTwTl.css                0.42 kB │ gzip:   0.24 kB
+dist/assets/CreateLessonPage-BKufRQ2w.css                  1.82 kB │ gzip:   0.67 kB
+dist/assets/CourseDetailPage-Dx7ubEaq.css                  1.99 kB │ gzip:   0.69 kB
+dist/assets/StudentProfilePage-C0Com6MG.css                2.05 kB │ gzip:   0.74 kB
+dist/assets/AdminResultsPage-CcS4swPf.css                  2.58 kB │ gzip:   0.74 kB
+dist/assets/StudentAssessmentsPage-BIYYeg3D.css            2.62 kB │ gzip:   0.79 kB
+dist/assets/AssessmentAdmin-CUaVKYan.css                   3.37 kB │ gzip:   1.11 kB
+dist/assets/MyCoursesPage-BPAtfP4V.css                     4.28 kB │ gzip:   1.30 kB
+dist/assets/StudentToeicPart1LibraryPage-BzLRWmOW.css      5.36 kB │ gzip:   1.41 kB
+dist/assets/AdminQuestionsPage-DQHPjaiW.css                5.60 kB │ gzip:   1.57 kB
+dist/assets/StudentToeic-CDothBn8.css                      5.67 kB │ gzip:   1.46 kB
+dist/assets/AdminToeicBuilderPage-BJjl2XLY.css             5.80 kB │ gzip:   1.81 kB
+dist/assets/LessonPage-CGkAJycH.css                        6.72 kB │ gzip:   1.61 kB
+dist/assets/StudentDashboardPage-S92kFEvi.css              7.66 kB │ gzip:   1.89 kB
+dist/assets/AdminVocabularyPage-DkKHgIEs.css               9.14 kB │ gzip:   2.24 kB
+dist/assets/CheckoutPage-aX5PuIp3.css                      9.69 kB │ gzip:   2.24 kB
+dist/assets/TestPage-DCqeK6A-.css                         10.65 kB │ gzip:   2.53 kB
+dist/assets/AuthLayout-WxiJwdR0.css                       12.00 kB │ gzip:   3.00 kB
+dist/assets/Vocabulary-C1nF4APj.css                       14.86 kB │ gzip:   3.46 kB
+dist/assets/ToeicPart1LessonEditor-DXKr555p.css           16.41 kB │ gzip:   3.41 kB
+dist/assets/assessment-screens-DmOypD4n.css               18.53 kB │ gzip:   3.26 kB
+dist/assets/AdminToeicPart5ImportPage-CuhM4KXQ.css        19.87 kB │ gzip:   4.15 kB
+dist/assets/AdminStudentsPage-CkqVQpLy.css                21.46 kB │ gzip:   4.09 kB
+dist/assets/index-DN09y2lu.css                            23.35 kB │ gzip:   5.22 kB
+dist/assets/HomePage-CwdLf-MW.css                         29.57 kB │ gzip:   5.57 kB
+dist/assets/CourseLearning-CnLYSXez.css                   30.26 kB │ gzip:   5.67 kB
+dist/assets/worker.min-AaQKRu4P.js                         0.06 kB │ gzip:   0.08 kB
+dist/assets/pdf.worker.min-CdXBBzB4.js                     0.07 kB │ gzip:   0.09 kB
+dist/assets/EnrollCoursePage-plGvQlEg.js                   0.18 kB │ gzip:   0.17 kB
+dist/assets/enrollmentApi-5M546_uf.js                      0.21 kB │ gzip:   0.16 kB
+dist/assets/mediaApi-ptTEyFO5.js                           0.23 kB │ gzip:   0.20 kB
+dist/assets/mediaUrl-wFpkeid1.js                           0.24 kB │ gzip:   0.21 kB
+dist/assets/UiButton-DDQusIYL.js                           0.28 kB │ gzip:   0.22 kB
+dist/assets/DataTable-BXgSfsIo.js                          0.34 kB │ gzip:   0.21 kB
+dist/assets/ProgressBar-C4U5aGIz.js                        0.37 kB │ gzip:   0.27 kB
+dist/assets/progressApi-1_AzxB3R.js                        0.43 kB │ gzip:   0.25 kB
+dist/assets/PageHeader-FvaipAMc.js                         0.62 kB │ gzip:   0.33 kB
+dist/assets/courseApi-0KC9M_AZ.js                          0.74 kB │ gzip:   0.29 kB
+dist/assets/vocabularyApi-CUPT-RM5.js                      0.83 kB │ gzip:   0.32 kB
+dist/assets/adminApi-CVEzZnZ8.js                           0.84 kB │ gzip:   0.28 kB
+dist/assets/StatusBadge-jVGv4Uj1.js                        0.85 kB │ gzip:   0.54 kB
+dist/assets/toeicPart1Student-C7v1JL9i.js                  1.03 kB │ gzip:   0.57 kB
+dist/assets/materialApi-zG3nZ2SD.js                        1.21 kB │ gzip:   0.43 kB
+dist/assets/lessonApi-lQQH1xYe.js                          1.39 kB │ gzip:   0.53 kB
+dist/assets/AccountStatusPage-D23q_89b.js                  1.58 kB │ gzip:   0.83 kB
+dist/assets/AdminStatisticsPage-LqQRRLTu.js                1.79 kB │ gzip:   0.97 kB
+dist/assets/materialDownload-Bfh8LC_y.js                   1.83 kB │ gzip:   0.91 kB
+dist/assets/AdminDashboardPage-Ove6-paQ.js                 2.41 kB │ gzip:   1.10 kB
+dist/assets/Vocabulary-BDDpKC8F.js                         2.89 kB │ gzip:   1.18 kB
+dist/assets/MyCoursesPage-BdUBf_p-.js                      3.09 kB │ gzip:   1.22 kB
+dist/assets/toeicApi-BftMAxos.js                           3.19 kB │ gzip:   0.95 kB
+dist/assets/AuthLayout-CnnAkF21.js                         3.34 kB │ gzip:   1.30 kB
+dist/assets/StudentHistoryPage-ClKhF1f6.js                 3.45 kB │ gzip:   1.44 kB
+dist/assets/CourseListPage-INhVGMbv.js                     3.45 kB │ gzip:   1.39 kB
+dist/assets/LoginPage-BINypQuo.js                          3.66 kB │ gzip:   1.64 kB
+dist/assets/StudentAssessmentsPage-OXdOxOLH.js             3.91 kB │ gzip:   1.73 kB
+dist/assets/toeicPart1EditorUtils-NFi9NuPN.js              3.94 kB │ gzip:   1.91 kB
+dist/assets/StudentVocabularyPage-DH4dN_aI.js              4.06 kB │ gzip:   1.76 kB
+dist/assets/StudentToeicLibraryPage-BqSY2G7L.js            4.52 kB │ gzip:   1.98 kB
+dist/assets/StudentProfilePage-BqDj-8v9.js                 4.71 kB │ gzip:   1.59 kB
+dist/assets/AssessmentQuestionReviewCard-DKVtHHq2.js       4.75 kB │ gzip:   1.45 kB
+dist/assets/StudentToeicPart1LibraryPage-CfGTZ13P.js       5.10 kB │ gzip:   1.99 kB
+dist/assets/StudentToeicOverviewPage-BAzRLJXp.js           5.19 kB │ gzip:   2.14 kB
+dist/assets/StudentResultDetailPage-nt7WfO8q.js            5.38 kB │ gzip:   1.93 kB
+dist/assets/RegisterPage-C-EZ-SmS.js                       5.83 kB │ gzip:   1.90 kB
+dist/assets/FlashcardPage--Ovgy4O9.js                      7.08 kB │ gzip:   2.72 kB
+dist/assets/CreateLessonPage-BARdJiXy.js                   8.22 kB │ gzip:   2.92 kB
+dist/assets/StudentToeicResultPage-DOhN6evF.js             8.49 kB │ gzip:   2.68 kB
+dist/assets/CourseDetailPage-BS_zCJU7.js                   9.08 kB │ gzip:   3.37 kB
+dist/assets/StudentDashboardPage-D1TzRyL1.js              10.49 kB │ gzip:   2.93 kB
+dist/assets/AdminToeicPreviewPage-BTVPCGH3.js             11.20 kB │ gzip:   3.41 kB
+dist/assets/AdminAssessmentsPage-C7adsjz4.js              11.23 kB │ gzip:   3.59 kB
+dist/assets/AdminStudentsPage-D509eY0O.js                 12.53 kB │ gzip:   4.37 kB
+dist/assets/AdminResultsPage-yi-dhNjs.js                  13.03 kB │ gzip:   3.94 kB
+dist/assets/CheckoutPage-ChatMtav.js                      14.77 kB │ gzip:   4.64 kB
+dist/assets/AdminStudentDetailPage-pgBMoNuY.js            15.77 kB │ gzip:   4.52 kB
+dist/assets/index-D8vPXOJ8.js                             15.89 kB │ gzip:   6.87 kB
+dist/assets/toeicPdfOcr-DSFEKIbV.js                       16.85 kB │ gzip:   6.02 kB
+dist/assets/AdminMaterialsPage-BzOKw-YX.js                17.51 kB │ gzip:   4.92 kB
+dist/assets/AdminCoursesPage-o50KQ5Fo.js                  17.60 kB │ gzip:   4.72 kB
+dist/assets/AdminLessonsPage-BpCxzGT1.js                  22.10 kB │ gzip:   5.74 kB
+dist/assets/StudentToeicExamPage-BZDjAQeX.js              22.54 kB │ gzip:   6.67 kB
+dist/assets/AdminVocabularyPage-Dyq56Zi-.js               24.58 kB │ gzip:   7.06 kB
+dist/assets/TestPage-CLNdgrXI.js                          25.88 kB │ gzip:   8.22 kB
+dist/assets/AdminToeicPart5ImportPage-bZueDoL5.js         26.64 kB │ gzip:   8.28 kB
+dist/assets/AdminQuestionsPage-gyT_kxLs.js                27.15 kB │ gzip:   7.32 kB
+dist/assets/ToeicPart1LessonEditor-BfheNcH7.js            27.39 kB │ gzip:   8.52 kB
+dist/assets/AdminToeicListPage-MJweRmzH.js                33.83 kB │ gzip:   8.07 kB
+dist/assets/HomePage-D2o304lh.js                          34.45 kB │ gzip:   7.88 kB
+dist/assets/LessonPage-CRrNitK8.js                        57.80 kB │ gzip:  21.00 kB
+dist/assets/AdminToeicBuilderPage-Dqzm-gQw.js             61.15 kB │ gzip:  14.44 kB
+dist/assets/index-DyJDohnz.js                            278.13 kB │ gzip:  90.66 kB
+dist/assets/pdf-BtCWNl9F.js                              483.74 kB │ gzip: 144.80 kB
+✓ built in 3.48s

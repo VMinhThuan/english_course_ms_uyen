@@ -1,0 +1,134 @@
+
+> english-course-backend@1.0.0 test:phase2
+> node --test tests/phase2ExamEngine.test.js tests/phase2MaterialDownload.test.js tests/phase2FrontendDownload.test.js
+
+TAP version 13
+# Subtest: standard score preserves exact multiple-choice and normalized typed-answer scoring
+ok 1 - standard score preserves exact multiple-choice and normalized typed-answer scoring
+  ---
+  duration_ms: 4.1261
+  type: 'test'
+  ...
+# Subtest: TOEIC score preserves listening, reading, and part breakdown fields
+ok 2 - TOEIC score preserves listening, reading, and part breakdown fields
+  ---
+  duration_ms: 0.853
+  type: 'test'
+  ...
+# Subtest: legacy attempts resolve from assessment format and conflicting stored engine fails closed
+ok 3 - legacy attempts resolve from assessment format and conflicting stored engine fails closed
+  ---
+  duration_ms: 0.3417
+  type: 'test'
+  ...
+# Subtest: expired finalization ignores late payload and atomically stores the persisted answer snapshot
+ok 4 - expired finalization ignores late payload and atomically stores the persisted answer snapshot
+  ---
+  duration_ms: 2.2403
+  type: 'test'
+  ...
+# Subtest: active finalization rejects a stale revision without writing
+ok 5 - active finalization rejects a stale revision without writing
+  ---
+  duration_ms: 0.491
+  type: 'test'
+  ...
+# Subtest: five concurrent finalizers produce one terminal write and one stable result
+ok 6 - five concurrent finalizers produce one terminal write and one stable result
+  ---
+  duration_ms: 1.1203
+  type: 'test'
+  ...
+# Subtest: two tabs using the same revision cannot overwrite the first accepted autosave
+ok 7 - two tabs using the same revision cannot overwrite the first accepted autosave
+  ---
+  duration_ms: 1.105
+  type: 'test'
+  ...
+# Subtest: legacy attempt without stored revision can be finalized through the revision-1 compatibility filter
+ok 8 - legacy attempt without stored revision can be finalized through the revision-1 compatibility filter
+  ---
+  duration_ms: 0.7538
+  type: 'test'
+  ...
+# Subtest: frontend prefers UTF-8 Content-Disposition filename without dropping Unicode or suffix
+ok 9 - frontend prefers UTF-8 Content-Disposition filename without dropping Unicode or suffix
+  ---
+  duration_ms: 1.8759
+  type: 'test'
+  ...
+# Subtest: frontend fallback adds supported MIME extension and preserves multiple dots
+ok 10 - frontend fallback adds supported MIME extension and preserves multiple dots
+  ---
+  duration_ms: 0.4949
+  type: 'test'
+  ...
+# Subtest: JSON error blobs are not treated as downloadable files
+ok 11 - JSON error blobs are not treated as downloadable files
+  ---
+  duration_ms: 58.9259
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Lesson_01.pdf
+ok 12 - download metadata preserves Lesson_01.pdf
+  ---
+  duration_ms: 2.3466
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Bài tập TOEIC.docx
+ok 13 - download metadata preserves Bài tập TOEIC.docx
+  ---
+  duration_ms: 0.4238
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Bang_diem.xlsx
+ok 14 - download metadata preserves Bang_diem.xlsx
+  ---
+  duration_ms: 0.2327
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Slide.Part1.pptx
+ok 15 - download metadata preserves Slide.Part1.pptx
+  ---
+  duration_ms: 0.1757
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Audio_Listening.mp3
+ok 16 - download metadata preserves Audio_Listening.mp3
+  ---
+  duration_ms: 0.2543
+  type: 'test'
+  ...
+# Subtest: download metadata preserves Hình ảnh bài học.png
+ok 17 - download metadata preserves Hình ảnh bài học.png
+  ---
+  duration_ms: 0.1352
+  type: 'test'
+  ...
+# Subtest: download metadata uses supported MIME extension for extensionless and mismatched legacy metadata
+ok 18 - download metadata uses supported MIME extension for extensionless and mismatched legacy metadata
+  ---
+  duration_ms: 0.2504
+  type: 'test'
+  ...
+# Subtest: filename and UTF-8 Content-Disposition remove path/header controls
+ok 19 - filename and UTF-8 Content-Disposition remove path/header controls
+  ---
+  duration_ms: 0.5173
+  type: 'test'
+  ...
+# Subtest: streamed download bytes match fixture bytes exactly
+ok 20 - streamed download bytes match fixture bytes exactly
+  ---
+  duration_ms: 132.4377
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 610.2171

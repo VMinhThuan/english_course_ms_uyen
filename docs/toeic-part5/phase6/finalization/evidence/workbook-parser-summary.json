@@ -1,0 +1,79 @@
+{
+  "source": "local-assets/toeic-part5/toeic.xlsx",
+  "sha256": "cb2b4691d322b57aa3e980337767ac2ef3c320891b15158f8b96ed78fd059bc4",
+  "sheetName": "TOEIC",
+  "headerRowNumber": 1,
+  "physicalDataRows": 75,
+  "statusCounts": {
+    "VALID": 68,
+    "INVALID": 7,
+    "NEEDS_REVIEW": 0,
+    "DUPLICATE": 0
+  },
+  "invalidRows": [
+    {
+      "rowNumber": 61,
+      "codes": [
+        "MISSING_ANSWER"
+      ]
+    },
+    {
+      "rowNumber": 65,
+      "codes": [
+        "MISSING_ANSWER"
+      ]
+    },
+    {
+      "rowNumber": 68,
+      "codes": [
+        "MISSING_ANSWER"
+      ]
+    },
+    {
+      "rowNumber": 71,
+      "codes": [
+        "MISSING_ANSWER"
+      ]
+    },
+    {
+      "rowNumber": 72,
+      "codes": [
+        "MISSING_ANSWER"
+      ]
+    },
+    {
+      "rowNumber": 73,
+      "codes": [
+        "MISSING_ANSWER"
+      ]
+    },
+    {
+      "rowNumber": 74,
+      "codes": [
+        "MISSING_ANSWER"
+      ]
+    }
+  ],
+  "missingFields": {
+    "questionText": [],
+    "optionA": [],
+    "optionB": [],
+    "optionC": [],
+    "optionD": [],
+    "correctAnswer": [
+      61,
+      65,
+      68,
+      71,
+      72,
+      73,
+      74
+    ],
+    "explanation": []
+  },
+  "rowsWithFormulaFields": [],
+  "exactDuplicateGroups": 0,
+  "sameStemAndOptionsGroups": 0,
+  "allValidRowsHave4OptionsAnd1Answer": true,
+  "allInvalidRowsHaveOnlyMissingAnswer": true
+}

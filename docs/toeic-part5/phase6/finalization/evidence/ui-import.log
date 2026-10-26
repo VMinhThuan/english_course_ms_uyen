@@ -1,0 +1,208 @@
+{
+  "status": "PASS",
+  "uploadCount": 5,
+  "getBatchCount": 11,
+  "patchCount": 1,
+  "confirmCount": 2,
+  "mobileWidths": {
+    "scroll": 390,
+    "client": 390
+  },
+  "results": [
+    {
+      "kind": "mock-preview",
+      "rows": 75,
+      "statuses": {
+        "valid": 62,
+        "invalid": 7,
+        "needsReview": 3,
+        "duplicate": 3
+      }
+    },
+    {
+      "kind": "confirm",
+      "rowNumbers": [
+        2,
+        3,
+        5,
+        7,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        66,
+        67,
+        69,
+        70,
+        75,
+        76
+      ]
+    },
+    {
+      "kind": "confirm",
+      "rowNumbers": [
+        12
+      ]
+    },
+    {
+      "kind": "upload-http-responses",
+      "newBatch": 201,
+      "reusedBatch": 200,
+      "invalidFile": 400,
+      "tooLarge": 413,
+      "multipartBoundary": true,
+      "dragAndDrop": true
+    },
+    {
+      "kind": "processing-202",
+      "recoveredAfterPolling": true
+    },
+    {
+      "kind": "bank-list",
+      "query": {
+        "toeicPart": "5",
+        "page": "1",
+        "limit": "20"
+      }
+    },
+    {
+      "kind": "bank-list",
+      "query": {
+        "toeicPart": "5",
+        "page": "1",
+        "limit": "20",
+        "search": "grammar"
+      }
+    },
+    {
+      "kind": "bank-list",
+      "query": {
+        "toeicPart": "5",
+        "page": "1",
+        "limit": "20"
+      }
+    },
+    {
+      "kind": "bank-create",
+      "questionId": "mock-generic-question-1"
+    },
+    {
+      "kind": "bank-list",
+      "query": {
+        "toeicPart": "5",
+        "page": "1",
+        "limit": "20"
+      }
+    },
+    {
+      "kind": "bank-update",
+      "questionId": "mock-generic-question-1"
+    },
+    {
+      "kind": "bank-list",
+      "query": {
+        "toeicPart": "5",
+        "page": "1",
+        "limit": "20"
+      }
+    },
+    {
+      "kind": "bank-delete",
+      "questionId": "mock-generic-question-1"
+    },
+    {
+      "kind": "bank-list",
+      "query": {
+        "toeicPart": "5",
+        "page": "1",
+        "limit": "20"
+      }
+    },
+    {
+      "kind": "bank-list",
+      "query": {
+        "toeicPart": "5",
+        "page": "1",
+        "limit": "20",
+        "status": "draft"
+      }
+    },
+    {
+      "kind": "question-bank-regression",
+      "adminPart5ScopeAndSearch": true,
+      "part5CreateUpdateDelete": true,
+      "part5DraftDeepLink": true
+    },
+    {
+      "kind": "bank-list",
+      "query": {
+        "limit": "100"
+      }
+    },
+    {
+      "kind": "permissions",
+      "adminEntry": true,
+      "teacherEntry": false,
+      "teacherDirectRoute": "redirected",
+      "studentDirectRoute": "redirected"
+    },
+    {
+      "kind": "mobile",
+      "viewport": "390x844",
+      "widths": {
+        "scroll": 390,
+        "client": 390
+      },
+      "noHorizontalOverflow": true
+    }
+  ]
+}

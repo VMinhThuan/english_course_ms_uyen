@@ -57,6 +57,7 @@ import StudentToeicResultPage from '../pages/StudentToeicResultPage.jsx';
 import AdminToeicListPage from '../pages/admin/AdminToeicListPage.jsx';
 import AdminToeicBuilderPage from '../pages/admin/AdminToeicBuilderPage.jsx';
 import AdminToeicPreviewPage from '../pages/admin/AdminToeicPreviewPage.jsx';
+import AdminPart1DictationPage from '../pages/admin/AdminPart1DictationPage.jsx';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -178,6 +179,7 @@ function AppRoutes() {
         <Route path="students" element={<AdminStudentsPage />} />
         <Route path="students/:id" element={<AdminStudentDetailPage />} />
         <Route path="lessons" element={<AdminLessonsPage />} />
+        <Route path="part1-dictations" element={<ProtectedRoute requiredRole="admin"><AdminPart1DictationPage /></ProtectedRoute>} />
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyLanding />} />
         <Route path="vocabulary/catalog" element={<ProtectedRoute requiredRole="admin"><VocabularyCatalogWorkspace /></ProtectedRoute>} />

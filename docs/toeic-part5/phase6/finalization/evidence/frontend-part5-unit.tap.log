@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: XLSX validation accepts .xlsx through 8 MiB and rejects other extensions or oversized files
+ok 1 - XLSX validation accepts .xlsx through 8 MiB and rejects other extensions or oversized files
+  ---
+  duration_ms: 1.2717
+  type: 'test'
+  ...
+# Subtest: filters search source row, content, option and structured issue without mutating rows
+ok 2 - filters search source row, content, option and structured issue without mutating rows
+  ---
+  duration_ms: 2.4852
+  type: 'test'
+  ...
+# Subtest: selection sends only currently VALID, not-yet-imported rows in ascending order
+ok 3 - selection sends only currently VALID, not-yet-imported rows in ascending order
+  ---
+  duration_ms: 0.7129
+  type: 'test'
+  ...
+# Subtest: 75 synthetic rows can be summarized while imported count is separate from VALID count
+ok 4 - 75 synthetic rows can be summarized while imported count is separate from VALID count
+  ---
+  duration_ms: 0.9214
+  type: 'test'
+  ...
+# Subtest: Part 5 form accepts exactly four A-D options and one matching answer
+ok 5 - Part 5 form accepts exactly four A-D options and one matching answer
+  ---
+  duration_ms: 4.1565
+  type: 'test'
+  ...
+# Subtest: Part 5 form reports missing stem, options, answer, and explanation by field
+ok 6 - Part 5 form reports missing stem, options, answer, and explanation by field
+  ---
+  duration_ms: 0.7065
+  type: 'test'
+  ...
+# Subtest: legacy normalization preserves option order and never guesses an unmapped correct answer
+ok 7 - legacy normalization preserves option order and never guesses an unmapped correct answer
+  ---
+  duration_ms: 0.9792
+  type: 'test'
+  ...
+# Subtest: legacy answers are mapped only through their existing option IDs
+ok 8 - legacy answers are mapped only through their existing option IDs
+  ---
+  duration_ms: 0.2686
+  type: 'test'
+  ...
+# Subtest: Part 5 API field errors are surfaced as field errors
+ok 9 - Part 5 API field errors are surfaced as field errors
+  ---
+  duration_ms: 0.4283
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.445

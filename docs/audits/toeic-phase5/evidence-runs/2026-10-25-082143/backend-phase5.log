@@ -1,0 +1,86 @@
+
+> english-course-backend@1.0.0 test:phase5
+> node --test tests/phase5ToeicPart1.test.js tests/phase5Cors.test.js
+
+TAP version 13
+# Subtest: production CORS permits the configured frontend with credentials and Range preflight
+ok 1 - production CORS permits the configured frontend with credentials and Range preflight
+  ---
+  duration_ms: 54.3969
+  type: 'test'
+  ...
+# Subtest: TOEIC Part 1 draft and publication validation is field-aware and non-breaking
+    # Subtest: legacy Lesson has no required Part 1 data and incomplete draft is permitted
+    ok 1 - legacy Lesson has no required Part 1 data and incomplete draft is permitted
+      ---
+      duration_ms: 11.8016
+      type: 'test'
+      ...
+    # Subtest: pure validation permits draft incompleteness but rejects duplicate or invalid orders at publish
+    ok 2 - pure validation permits draft incompleteness but rejects duplicate or invalid orders at publish
+      ---
+      duration_ms: 1.1099
+      type: 'test'
+      ...
+    # Subtest: audio stream accepts standards-based single byte ranges and rejects invalid ranges
+    ok 3 - audio stream accepts standards-based single byte ranges and rejects invalid ranges
+      ---
+      duration_ms: 0.5384
+      type: 'test'
+      ...
+    # Subtest: staff can edit sentences independently, but publishing requires six valid sentences and same-lesson audio
+    ok 4 - staff can edit sentences independently, but publishing requires six valid sentences and same-lesson audio
+      ---
+      duration_ms: 213.2266
+      type: 'test'
+      ...
+    # Subtest: outline hides transcript and lesson body; detail, audio, and progress enforce enrollment
+    not ok 5 - outline hides transcript and lesson body; detail, audio, and progress enforce enrollment
+      ---
+      duration_ms: 137.8291
+      type: 'test'
+      location: 'D:\\SideProject\\english_course_ms_uyen\\backend\\tests\\phase5ToeicPart1.test.js:418:11'
+      failureType: 'testCodeFailure'
+      error: |-
+        The input did not match the regular expression /Max-Age=0/i. Input:
+        
+        'toeicPart1Audio_6add59e2ceaac1e88bcbdebb=; Path=/api/v1/materials/6add59e2ceaac1e88bcbdebb/stream; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected:
+      actual: 'toeicPart1Audio_6add59e2ceaac1e88bcbdebb=; Path=/api/v1/materials/6add59e2ceaac1e88bcbdebb/stream; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax'
+      operator: 'match'
+      stack: |-
+        TestContext.<anonymous> (file:///D:/SideProject/english_course_ms_uyen/backend/tests/phase5ToeicPart1.test.js:539:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///D:/SideProject/english_course_ms_uyen/backend/tests/phase5ToeicPart1.test.js:418:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: upload intent fails closed when private object storage is not configured
+    ok 6 - upload intent fails closed when private object storage is not configured
+      ---
+      duration_ms: 102.0057
+      type: 'test'
+      ...
+    1..6
+not ok 2 - TOEIC Part 1 draft and publication validation is field-aware and non-breaking
+  ---
+  duration_ms: 468.8694
+  type: 'test'
+  location: 'D:\\SideProject\\english_course_ms_uyen\\backend\\tests\\phase5ToeicPart1.test.js:287:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..2
+# tests 8
+# suites 0
+# pass 6
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2641.8491

@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "browser": "Playwright Chromium",
+  "backend": "Phase 2 Express routes with real MongoMemoryServer test DB",
+  "auth": "Admin session identity endpoint mocked; import endpoints use real bearer auth and real backend",
+  "syntheticWorkbook": {
+    "sheet": "TOEIC",
+    "rows": 3,
+    "expectedStatuses": {
+      "VALID": 1,
+      "DUPLICATE": 1,
+      "INVALID": 1
+    }
+  },
+  "patchedRow": 4,
+  "confirmedRows": [
+    2,
+    4
+  ],
+  "createdQuestionCount": 2,
+  "createdAsDraft": true,
+  "assessmentsCreated": 0,
+  "questionGroupsCreated": 0,
+  "browserErrors": 0,
+  "isolatedDatabase": "p5_ui_097295e9c6b4425489ee04b90aaaa98b"
+}

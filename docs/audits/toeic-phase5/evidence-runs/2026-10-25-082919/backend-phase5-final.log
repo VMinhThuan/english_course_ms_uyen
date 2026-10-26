@@ -1,0 +1,63 @@
+
+> english-course-backend@1.0.0 test:phase5
+> node --test tests/phase5ToeicPart1.test.js tests/phase5Cors.test.js
+
+TAP version 13
+# Subtest: production CORS permits the configured frontend with credentials and Range preflight
+ok 1 - production CORS permits the configured frontend with credentials and Range preflight
+  ---
+  duration_ms: 71.4363
+  type: 'test'
+  ...
+# Subtest: TOEIC Part 1 draft and publication validation is field-aware and non-breaking
+    # Subtest: legacy Lesson has no required Part 1 data and incomplete draft is permitted
+    ok 1 - legacy Lesson has no required Part 1 data and incomplete draft is permitted
+      ---
+      duration_ms: 13.4689
+      type: 'test'
+      ...
+    # Subtest: pure validation permits draft incompleteness but rejects duplicate or invalid orders at publish
+    ok 2 - pure validation permits draft incompleteness but rejects duplicate or invalid orders at publish
+      ---
+      duration_ms: 1.2338
+      type: 'test'
+      ...
+    # Subtest: audio stream accepts standards-based single byte ranges and rejects invalid ranges
+    ok 3 - audio stream accepts standards-based single byte ranges and rejects invalid ranges
+      ---
+      duration_ms: 0.6001
+      type: 'test'
+      ...
+    # Subtest: staff can edit sentences independently, but publishing requires six valid sentences and same-lesson audio
+    ok 4 - staff can edit sentences independently, but publishing requires six valid sentences and same-lesson audio
+      ---
+      duration_ms: 274.1324
+      type: 'test'
+      ...
+    # Subtest: outline hides transcript and lesson body; detail, audio, and progress enforce enrollment
+    ok 5 - outline hides transcript and lesson body; detail, audio, and progress enforce enrollment
+      ---
+      duration_ms: 2971.6483
+      type: 'test'
+      ...
+    # Subtest: upload intent fails closed when private object storage is not configured
+    ok 6 - upload intent fails closed when private object storage is not configured
+      ---
+      duration_ms: 45.6006
+      type: 'test'
+      ...
+    1..6
+ok 2 - TOEIC Part 1 draft and publication validation is field-aware and non-breaking
+  ---
+  duration_ms: 3309.2056
+  type: 'test'
+  ...
+1..2
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6717.6478

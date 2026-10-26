@@ -1,0 +1,1467 @@
+{
+  "generatedAt": "2026-10-25T14:52:45.596Z",
+  "status": "PASS",
+  "passed": 36,
+  "failed": 0,
+  "blocked": 0,
+  "results": [
+    {
+      "test_case_id": "AUTH_04",
+      "title": "Unauthenticated protected-route redirect",
+      "status": "PASS",
+      "duration_ms": 1314,
+      "actual_result": "Direct dashboard, active test, and lesson URLs each redirected an unauthenticated browser to /login."
+    },
+    {
+      "test_case_id": "AUTH_01",
+      "title": "Student login to dashboard",
+      "status": "PASS",
+      "duration_ms": 940,
+      "actual_result": "Username login issued a browser session and rendered the student dashboard."
+    },
+    {
+      "test_case_id": "DASH_01",
+      "title": "Student dashboard profile and progress",
+      "status": "PASS",
+      "duration_ms": 39,
+      "actual_result": "Dashboard loaded profile and progress sections through the local HTTP API."
+    },
+    {
+      "test_case_id": "DASH_02",
+      "title": "Dashboard lists recently updated lessons and materials",
+      "status": "PASS",
+      "duration_ms": 555,
+      "actual_result": "Dashboard displayed the recently updated published lesson and material using safe metadata without file URLs or filesystem paths."
+    },
+    {
+      "test_case_id": "DASH_03",
+      "title": "Dashboard shows uncompleted work and upcoming deadlines",
+      "status": "PASS",
+      "duration_ms": 409,
+      "actual_result": "Dashboard listed the unsubmitted homework and exam with their configured deadlines."
+    },
+    {
+      "test_case_id": "AUTH_05",
+      "title": "Student cannot open admin routes",
+      "status": "PASS",
+      "duration_ms": 121,
+      "actual_result": "Student role was redirected away from the admin route."
+    },
+    {
+      "test_case_id": "E2E_MY_COURSES",
+      "title": "Student course list shows enrolled course",
+      "status": "PASS",
+      "duration_ms": 313,
+      "actual_result": "Enrolled synthetic course was returned by the real API and rendered."
+    },
+    {
+      "test_case_id": "LESS_02",
+      "title": "Lesson content and HTML sanitization",
+      "status": "PASS",
+      "duration_ms": 648,
+      "actual_result": "Lesson rendered; embedded script and event-handler attributes were removed before insertion."
+    },
+    {
+      "test_case_id": "LESS_03",
+      "title": "Revisit lesson and preserve navigation",
+      "status": "PASS",
+      "duration_ms": 544,
+      "actual_result": "The same published lesson reloaded with the next-lesson action present."
+    },
+    {
+      "test_case_id": "DOC_01",
+      "title": "Preview authorized PDF material",
+      "status": "PASS",
+      "duration_ms": 1826,
+      "actual_result": "PDF.js rendered page 1 with nonblank canvas pixels (711×919); navigation rendered page 2 of 3 and returned to page 1."
+    },
+    {
+      "test_case_id": "DOC_02",
+      "title": "Download authorized PDF material",
+      "status": "PASS",
+      "duration_ms": 266,
+      "actual_result": "Browser downloaded the exact authorized three-page PDF fixture (2254 bytes, SHA-256 matched)."
+    },
+    {
+      "test_case_id": "VOC_01",
+      "title": "Vocabulary detail and flashcard interaction",
+      "status": "PASS",
+      "duration_ms": 785,
+      "actual_result": "The TOEIC chapter list opened one grouped flashcard, saved the chapter, and exposed both words with pronunciation, meanings and examples on its reverse."
+    },
+    {
+      "test_case_id": "VOC_02",
+      "title": "Search vocabulary by keyword",
+      "status": "PASS",
+      "duration_ms": 404,
+      "actual_result": "Search matched chapter words using case-insensitive English and accent-insensitive Vietnamese text, then showed the empty state for an unrelated query."
+    },
+    {
+      "test_case_id": "DOC_03",
+      "title": "Deny download when material policy forbids it",
+      "status": "PASS",
+      "duration_ms": 424,
+      "actual_result": "The restricted material row exposed no preview/download button and the authenticated direct download endpoint returned HTTP 403."
+    },
+    {
+      "test_case_id": "EXAM_01",
+      "title": "Assessment start, autosave, refresh and scoring",
+      "status": "PASS",
+      "duration_ms": 4634,
+      "actual_result": "Both answers persisted across refresh; submission produced 2/2 and a terminal database record."
+    },
+    {
+      "test_case_id": "EXAM_03",
+      "title": "Confirm submission lists unanswered questions",
+      "status": "PASS",
+      "duration_ms": 4403,
+      "actual_result": "Submission confirmation reported 16/20 answered and explicitly listed unanswered questions 5, 8, 12 and 19."
+    },
+    {
+      "test_case_id": "EXAM_05",
+      "title": "Result includes score, counts, duration and pass classification",
+      "status": "PASS",
+      "duration_ms": 59,
+      "actual_result": "The result view showed score/max score, correct count, elapsed time and pass classification."
+    },
+    {
+      "test_case_id": "EXAM_06",
+      "title": "Hidden-answer configuration conceals the answer key",
+      "status": "PASS",
+      "duration_ms": 2382,
+      "actual_result": "With showCorrectAnswers disabled, the submitted result did not render correct-answer labels or highlighted correct options."
+    },
+    {
+      "test_case_id": "DASH_04",
+      "title": "Dashboard shows completed assessment result",
+      "status": "PASS",
+      "duration_ms": 357,
+      "actual_result": "Dashboard showed the completed assessment title, 2/2 score, pass result and submitted date."
+    },
+    {
+      "test_case_id": "EXAM_02",
+      "title": "Countdown timer warns in red below five minutes",
+      "status": "PASS",
+      "duration_ms": 2424,
+      "actual_result": "Server deadline under three minutes rendered the warning timer in the danger color; the remaining time stayed minute-second formatted."
+    },
+    {
+      "test_case_id": "EXAM_04",
+      "title": "Assessment auto-submits when the server deadline expires",
+      "status": "PASS",
+      "duration_ms": 6598,
+      "actual_result": "Timer expiry automatically submitted the attempt; the isolated database recorded a terminal expired result."
+    },
+    {
+      "test_case_id": "HIST_01",
+      "title": "History lists the submitted assessment and result",
+      "status": "PASS",
+      "duration_ms": 497,
+      "actual_result": "History listed all 3 submitted attempts with date/time, score/max score, pass result and duration."
+    },
+    {
+      "test_case_id": "AUTH_06",
+      "title": "Logout clears browser session",
+      "status": "PASS",
+      "duration_ms": 155,
+      "actual_result": "Logout cleared the local access token and returned the browser to /login."
+    },
+    {
+      "test_case_id": "AUTH_02",
+      "title": "Invalid password is rejected on login screen",
+      "status": "PASS",
+      "duration_ms": 1090,
+      "actual_result": "Invalid password stayed on /login and displayed the expected Vietnamese error without a session token."
+    },
+    {
+      "test_case_id": "AUTH_03",
+      "title": "Suspended student is blocked at login",
+      "status": "PASS",
+      "duration_ms": 1592,
+      "actual_result": "Suspended account received an account-status page and was not issued a browser session."
+    },
+    {
+      "test_case_id": "ADM_U_01",
+      "title": "Admin creates a student through the management screen",
+      "status": "PASS",
+      "duration_ms": 2795,
+      "actual_result": "Admin UI created an active student in the isolated DB; persisted password is hashed."
+    },
+    {
+      "test_case_id": "ADM_U_03",
+      "title": "Admin student profile shows learning and exam history",
+      "status": "PASS",
+      "duration_ms": 1156,
+      "actual_result": "Admin profile showed the student lesson-progress row and the scored Standard assessment attempt."
+    },
+    {
+      "test_case_id": "ADM_U_04",
+      "title": "Admin student search ignores Vietnamese accents and case",
+      "status": "PASS",
+      "duration_ms": 1179,
+      "actual_result": "The admin list matched the same Vietnamese full name with accentless lowercase and accented uppercase queries."
+    },
+    {
+      "test_case_id": "ADM_U_02",
+      "title": "Suspension blocks an already-authenticated student",
+      "status": "PASS",
+      "duration_ms": 4359,
+      "actual_result": "Suspension revoked the active session and blocked its protected API request; admin activation then allowed a fresh login."
+    },
+    {
+      "test_case_id": "PROF_01",
+      "title": "Student changes password and signs in with the new password",
+      "status": "PASS",
+      "duration_ms": 2743,
+      "actual_result": "The current password was accepted, the new bcrypt password persisted, and the new password authenticated successfully."
+    },
+    {
+      "test_case_id": "PROF_02",
+      "title": "Wrong current password is rejected without updating the hash",
+      "status": "PASS",
+      "duration_ms": 1527,
+      "actual_result": "The incorrect current password was rejected and the previously accepted password remained valid."
+    },
+    {
+      "test_case_id": "REP_01",
+      "title": "Admin reporting returns submitted attempt",
+      "status": "PASS",
+      "duration_ms": 1570,
+      "actual_result": "Admin results screen listed the attempt saved by the student exam flow."
+    },
+    {
+      "test_case_id": "E2E_PRIVATE_FILE_DIRECT_URL",
+      "title": "Private file URL rejects unauthenticated request",
+      "status": "PASS",
+      "duration_ms": 20,
+      "actual_result": "Unauthenticated direct request was denied (HTTP 401)."
+    },
+    {
+      "test_case_id": "NON_SEC_02",
+      "title": "Passwords are hashed at rest in the test database",
+      "status": "PASS",
+      "duration_ms": 2,
+      "actual_result": "Seeded login password is stored as a bcrypt hash, not plaintext."
+    },
+    {
+      "test_case_id": "NON_RESP_01",
+      "title": "Dashboard at desktop, tablet and mobile widths",
+      "status": "PASS",
+      "duration_ms": 1497,
+      "actual_result": "No horizontal overflow at 1920px, 768px, 375px, 412px viewports."
+    },
+    {
+      "test_case_id": "E2E_MOBILE_QUESTION_SHEET",
+      "title": "Mobile question sheet opens and shows unanswered questions",
+      "status": "PASS",
+      "duration_ms": 1711,
+      "actual_result": "Mobile sheet navigated to a question and the submit modal listed both unanswered questions."
+    }
+  ],
+  "environment": {
+    "database": "MongoMemoryServer on 127.0.0.1, random database name",
+    "browser": "Chrome via Playwright, headless",
+    "externalNetwork": "Blocked by browser context route policy",
+    "apiResponses": [
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/enrollments/my-courses",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/enrollments/my-courses",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/progress/access",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/6ade1788b27e5518ad2a8693",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/6ade1788b27e5518ad2a8693",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/progress/access",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869f/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869f/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/6ade1788b27e5518ad2a8693",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/progress/access",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/progress/access",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/6ade1788b27e5518ad2a8693",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869f/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869f/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/6ade1788b27e5518ad2a8693",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/progress/access",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/6ade1788b27e5518ad2a8693",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/progress/access",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869f/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869f/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/download",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/courses",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/courses",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/courses",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/courses",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/courses",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/courses",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/vocabulary",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/6ade1788b27e5518ad2a8693",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/progress/access",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/course/6ade1788b27e5518ad2a8691",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/lessons/6ade1788b27e5518ad2a8693",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/progress/access",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869f/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869d/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/materials/6ade1788b27e5518ad2a869f/preview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/assessments/available",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/assessments/available",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a8701/start",
+        "status": 201
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/attempts/6ade1792b27e5518ad2a89cd/answers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a8701/start",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/attempts/6ade1792b27e5518ad2a89cd/submit",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/6ade1792b27e5518ad2a89cd/result",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a8708/start",
+        "status": 201
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/attempts/6ade1797b27e5518ad2a8a67/answers",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a8724/start",
+        "status": 201
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/attempts/6ade179bb27e5518ad2a8b45/answers",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/attempts/6ade179bb27e5518ad2a8b45/submit",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/6ade179bb27e5518ad2a8b45/result",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a871e/start",
+        "status": 201
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a871e/start",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a8721/start",
+        "status": 201
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a8721/start",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/attempts/6ade17a1b27e5518ad2a8c46/submit",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/6ade17a1b27e5518ad2a8c46/result",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/history",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/history",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/logout",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 401
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 403
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/admin/students",
+        "status": 201
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1787b27e5518ad2a867f",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1787b27e5518ad2a867f",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1787b27e5518ad2a867f/attempts",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1787b27e5518ad2a867f/attempts",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1787b27e5518ad2a867f/progress",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1787b27e5518ad2a867f/progress",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1788b27e5518ad2a868d",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1788b27e5518ad2a868d",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1788b27e5518ad2a868d/attempts",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1788b27e5518ad2a868d/attempts",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1788b27e5518ad2a868d/progress",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/students/6ade1788b27e5518ad2a868d/progress",
+        "status": 200
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/admin/students/6ade1788b27e5518ad2a868d/suspend",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 403
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 403
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 403
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/admin/students/6ade1788b27e5518ad2a868d/activate",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "PUT",
+        "path": "/api/v1/auth/change-password",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/logout",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "PUT",
+        "path": "/api/v1/auth/change-password",
+        "status": 400
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/report-assessments",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/report-assessments",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/results",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/attempts/active",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/progress/student-dashboard",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/auth/me",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/assessments/6ade1788b27e5518ad2a8701/start",
+        "status": 201
+      }
+    ],
+    "navigationTiming": {
+      "dom_content_loaded_ms": 174,
+      "load_ms": 212
+    },
+    "browserConsoleErrorCount": 114,
+    "browserConsoleWarningCount": 0,
+    "browserConsoleErrorCategories": {
+      "blocked_by_test_network_policy": 108,
+      "resource_load_error": 6
+    },
+    "blockedExternalRequestCount": 108,
+    "browserPageErrorCount": 0,
+    "backendErrorCount": 0,
+    "backendErrorSamples": []
+  }
+}

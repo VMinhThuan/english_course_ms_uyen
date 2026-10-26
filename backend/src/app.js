@@ -26,6 +26,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import questionImportRoutes from './routes/questionImportRoutes.js';
 import { adminToeicRoutes, studentToeicRoutes } from './routes/toeicRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
+import { adminPart1DictationRoutes, studentPart1DictationRoutes } from './routes/part1DictationRoutes.js';
 import { verifyToken, checkRole } from './middlewares/auth.js';
 import { createVocabularyCatalogManagementPrototypeRouter } from './routes/vocabularyCatalogManagementPrototypeRoutes.js';
 import { createVocabularyImportPrototypeRouter } from './routes/vocabularyImportPrototypeRoutes.js';
@@ -166,6 +167,8 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/admin', adminToeicRoutes);
 app.use('/api/v1/admin/media', mediaRoutes);
 app.use('/api/v1/toeic', studentToeicRoutes);
+app.use('/api/v1/admin/part1-dictations', adminPart1DictationRoutes);
+app.use('/api/v1/part1-dictations', studentPart1DictationRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
