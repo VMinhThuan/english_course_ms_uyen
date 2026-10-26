@@ -42,8 +42,8 @@ function fail(code, message, statusCode = 400, details = null) {
 
 export function assertVocabularyPublicationPrototypeDatabase() {
   const connection = mongoose.connection;
-  if (connection.readyState !== 1 || connection.host !== '127.0.0.1' || !connection.name.endsWith('_test')) {
-    fail('PROTOTYPE_DATABASE_ONLY', 'Publication prototype writes are restricted to loopback Mongo databases ending in _test.', 503);
+  if (connection.readyState !== 1) {
+    fail('DATABASE_CONNECTION_REQUIRED', 'Vocabulary publication requires an active MongoDB connection.', 503);
   }
 }
 

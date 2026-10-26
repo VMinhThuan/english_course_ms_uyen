@@ -369,7 +369,7 @@ export default function LessonPage() {
                   </div>
                 )}
               </div>
-              {m.allowDownload && hasAttachedMaterialFile(m) && <LessonMaterialPreview material={m} />}
+              {hasAttachedMaterialFile(m) && <LessonMaterialPreview material={m} />}
             </article>
           ))
         ) : (

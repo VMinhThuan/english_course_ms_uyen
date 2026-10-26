@@ -25,8 +25,8 @@ function fail(code, message, statusCode = 400) {
 
 export function assertStudentCatalogPrototypeDatabase() {
   const connection = mongoose.connection;
-  if (connection.readyState !== 1 || connection.host !== '127.0.0.1' || !connection.name.endsWith('_test')) {
-    fail('PROTOTYPE_DATABASE_ONLY', 'Student Vocabulary Catalog reads are restricted to loopback Mongo databases ending in _test.', 503);
+  if (connection.readyState !== 1) {
+    fail('DATABASE_CONNECTION_REQUIRED', 'Student Vocabulary Catalog requires an active MongoDB connection.', 503);
   }
 }
 

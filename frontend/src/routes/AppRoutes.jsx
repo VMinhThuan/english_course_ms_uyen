@@ -30,6 +30,10 @@ import StudentResultDetailPage from '../pages/StudentResultDetailPage.jsx';
 import StudentProfilePage from '../pages/StudentProfilePage.jsx';
 import StudentVocabularyPage from '../pages/StudentVocabularyPage.jsx';
 import FlashcardPage from '../pages/FlashcardPage.jsx';
+import StudentVocabularyCatalogPage from '../features/vocabulary-catalog/StudentVocabularyCatalogPage.jsx';
+import VocabularyCatalogWorkspace from '../features/vocabulary-catalog/VocabularyCatalogWorkspace.jsx';
+import VocabularyImportWorkspace from '../features/vocabulary-import/VocabularyImportWorkspace.jsx';
+import VocabularyPublicationWorkspace from '../features/vocabulary-catalog/VocabularyPublicationWorkspace.jsx';
 
 // Admin Pages
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage.jsx';
@@ -128,6 +132,7 @@ function AppRoutes() {
         <Route path="results/:attemptId" element={<StudentResultDetailPage />} />
         <Route path="profile" element={<StudentProfilePage />} />
         <Route path="vocabulary" element={<StudentVocabularyPage />} />
+        <Route path="vocabulary-catalog" element={<StudentVocabularyCatalogPage />} />
         <Route path="flashcards" element={<FlashcardPage />} />
         <Route path="courses/:courseId/lessons/:lessonId" element={<LessonPage />} />
         <Route path="tests/:testId" element={<TestPage />} />
@@ -170,6 +175,9 @@ function AppRoutes() {
         <Route path="lessons" element={<AdminLessonsPage />} />
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyPage />} />
+        <Route path="vocabulary/catalog" element={<ProtectedRoute requiredRole="admin"><VocabularyCatalogWorkspace /></ProtectedRoute>} />
+        <Route path="vocabulary/import" element={<ProtectedRoute requiredRole="admin"><VocabularyImportWorkspace /></ProtectedRoute>} />
+        <Route path="vocabulary/publication" element={<ProtectedRoute requiredRole="admin"><VocabularyPublicationWorkspace /></ProtectedRoute>} />
         <Route path="questions" element={<AdminQuestionsPage />} />
         <Route path="questions/import-part5" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div role="status">Đang tải trang…</div>}><AdminToeicPart5ImportPage /></Suspense></ProtectedRoute>} />
         <Route path="assessments" element={<AdminAssessmentsPage />} />

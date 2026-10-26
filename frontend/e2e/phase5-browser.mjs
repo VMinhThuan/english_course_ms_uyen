@@ -580,7 +580,9 @@ async function main() {
       const pdfRow = studentSession.page.locator('.lesson-material-item').filter({ hasText: 'Phase 5 practice.pdf' });
       const canvas = pdfRow.getByTestId('pdf-preview-canvas');
       await canvas.waitFor({ timeout: 10000 });
-      await studentSession.page.waitForFunction(() => document.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '1', null, { timeout: 10000 });
+      await studentSession.page.waitForFunction((materialName) => [...document.querySelectorAll('.lesson-material-item')]
+        .find((row) => row.textContent.includes(materialName))
+        ?.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '1', 'Phase 5 practice.pdf', { timeout: 10000 });
       await pdfRow.getByRole('status').getByText('Trang 1 / 3').waitFor({ timeout: 5000 });
       const firstPage = await canvas.evaluate((element) => {
         const context = element.getContext('2d');
@@ -594,10 +596,14 @@ async function main() {
       assert.ok(firstPage.width > 0 && firstPage.height > 0);
       assert.ok(firstPage.nonWhitePixels > 25, `PDF page canvas should contain rendered content: ${JSON.stringify(firstPage)}`);
       await pdfRow.getByRole('button', { name: 'Trang tiếp theo' }).click();
-      await studentSession.page.waitForFunction(() => document.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '2', null, { timeout: 10000 });
+      await studentSession.page.waitForFunction((materialName) => [...document.querySelectorAll('.lesson-material-item')]
+        .find((row) => row.textContent.includes(materialName))
+        ?.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '2', 'Phase 5 practice.pdf', { timeout: 10000 });
       await pdfRow.getByRole('status').getByText('Trang 2 / 3').waitFor({ timeout: 5000 });
       await pdfRow.getByRole('button', { name: 'Trang trước' }).click();
-      await studentSession.page.waitForFunction(() => document.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '1', null, { timeout: 10000 });
+      await studentSession.page.waitForFunction((materialName) => [...document.querySelectorAll('.lesson-material-item')]
+        .find((row) => row.textContent.includes(materialName))
+        ?.querySelector('[data-testid="pdf-preview-canvas"]')?.dataset.renderedPage === '1', 'Phase 5 practice.pdf', { timeout: 10000 });
       await pdfRow.locator('.pdf-document-preview').screenshot({ path: path.join(evidenceDir, 'lesson-pdf-preview.png') });
       return `PDF.js rendered page 1 with nonblank canvas pixels (${firstPage.width}×${firstPage.height}); navigation rendered page 2 of 3 and returned to page 1.`;
     });

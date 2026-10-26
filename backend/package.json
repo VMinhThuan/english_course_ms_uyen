@@ -24,6 +24,10 @@
     "test:vocabulary-catalog-v4a": "node --test tests/vocabularyCatalogV4a.integration.test.js",
     "test:vocabulary-student-catalog-v4b": "node --test tests/vocabularyStudentCatalogV4b.integration.test.js",
     "test:vocabulary-publication-v5a": "node --test tests/vocabularyPublicationV5a.integration.test.js",
+    "test:vocabulary-application-integration": "node --test tests/vocabularyCatalogApplication.integration.test.js",
+    "test:vocabulary-index-migration": "node --test tests/vocabularyCatalogIndexMigration.test.js",
+    "vocabulary:indexes:check": "node src/scripts/ensureVocabularyCatalogIndexes.js",
+    "vocabulary:indexes:apply": "node src/scripts/ensureVocabularyCatalogIndexes.js --apply",
     "vocabulary:inventory:readonly": "node src/scripts/inventoryVocabularyCatalogReadOnly.js"
   },
   "keywords": [

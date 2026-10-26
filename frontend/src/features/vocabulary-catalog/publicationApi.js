@@ -1,5 +1,6 @@
+const API_ROOT = String(import.meta.env?.VITE_API_URL || '/api/v1').replace(/\/$/, '');
 const DEFAULT_BASE = import.meta.env?.VITE_VOCABULARY_PUBLICATION_API_BASE
-  || '/api/v1/admin/vocabulary-publication';
+  || `${API_ROOT}/admin/vocabulary-publication`;
 
 export class VocabularyPublicationApiError extends Error {
   constructor(message, { status = null, code = 'REQUEST_FAILED', details = null } = {}) {
@@ -11,10 +12,16 @@ export class VocabularyPublicationApiError extends Error {
   }
 }
 
+function defaultAuthHeaders() {
+  if (typeof localStorage === 'undefined') return {};
+  const token = localStorage.getItem('accessToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export function createVocabularyPublicationApi({
   baseUrl = DEFAULT_BASE,
   fetchImpl = fetch,
-  getHeaders = () => ({}),
+  getHeaders = defaultAuthHeaders,
   timeoutMs = 20000,
 } = {}) {
   const root = String(baseUrl).replace(/\/$/, '');

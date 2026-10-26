@@ -26,6 +26,11 @@ import adminRoutes from './routes/adminRoutes.js';
 import questionImportRoutes from './routes/questionImportRoutes.js';
 import { adminToeicRoutes, studentToeicRoutes } from './routes/toeicRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
+import { verifyToken, checkRole } from './middlewares/auth.js';
+import { createVocabularyCatalogManagementPrototypeRouter } from './routes/vocabularyCatalogManagementPrototypeRoutes.js';
+import { createVocabularyImportPrototypeRouter } from './routes/vocabularyImportPrototypeRoutes.js';
+import { createVocabularyPublicationPrototypeRouter } from './routes/vocabularyPublicationPrototypeRoutes.js';
+import { createStudentVocabularyCatalogPrototypeRouter } from './routes/studentVocabularyCatalogPrototypeRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -34,6 +39,11 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '../.env') });
 
 const app = express();
+
+// Vocabulary Catalog routers still enforce their own trusted-principal checks.
+// These adapters bind that contract to the application's JWT-backed User model.
+const authenticateVocabularyCatalogAdmin = (req, res, next) => verifyToken(req, res, () => checkRole('admin')(req, res, next));
+const authenticateVocabularyCatalogStudent = (req, res, next) => verifyToken(req, res, () => checkRole('student')(req, res, next));
 
 const normalizeOrigin = (value) => {
     const trimmed = value.trim();
@@ -133,6 +143,19 @@ app.use('/api/v1/enrollments', enrollmentRoutes);
 app.use('/api/v1/lessons', lessonRoutes);
 app.use('/api/v1/materials', materialRoutes);
 app.use('/api/v1/vocabulary', vocabularyRoutes);
+app.use('/api/v1/admin/vocabulary-catalog', createVocabularyCatalogManagementPrototypeRouter({
+    authenticateAdmin: authenticateVocabularyCatalogAdmin,
+}));
+app.use('/api/v1/admin/vocabulary-import-batches', createVocabularyImportPrototypeRouter({
+    authenticateAdmin: authenticateVocabularyCatalogAdmin,
+    requireCatalogMappingForConfirm: true,
+}));
+app.use('/api/v1/admin/vocabulary-publication', createVocabularyPublicationPrototypeRouter({
+    authenticateAdmin: authenticateVocabularyCatalogAdmin,
+}));
+app.use('/api/v1/student/vocabulary-catalog', createStudentVocabularyCatalogPrototypeRouter({
+    authenticateStudent: authenticateVocabularyCatalogStudent,
+}));
 app.use('/api/v1/progress', progressRoutes);
 app.use('/api/v1/tests', testRoutes);
 app.use('/api/v1/questions', questionRoutes);

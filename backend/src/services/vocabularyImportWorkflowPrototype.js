@@ -62,10 +62,8 @@ function requireActorId(value) {
 }
 
 function assertPrototypeDatabase() {
-  const host = String(mongoose.connection.host || '').toLowerCase();
-  const databaseName = String(mongoose.connection.name || '');
-  if (host !== '127.0.0.1' || !/_test$/i.test(databaseName)) {
-    fail('PROTOTYPE_DATABASE_ONLY', 'V3A writes and reads are enabled only for a loopback test database.', 503);
+  if (mongoose.connection.readyState !== 1) {
+    fail('DATABASE_CONNECTION_REQUIRED', 'Vocabulary import requires an active MongoDB connection.', 503);
   }
 }
 

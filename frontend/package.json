@@ -14,6 +14,7 @@
     "test:vocabulary-publication-v5a:real:e2e": "node e2e/vocabulary-publication-v5a-real-backend.mjs",
     "test:vocabulary-catalog-v4b:mock:e2e": "node e2e/vocabulary-catalog-v4b-mock-browser.mjs",
     "test:vocabulary-catalog-v4b:real:e2e": "node e2e/vocabulary-catalog-v4b-real-backend.mjs",
+    "test:vocabulary-application:e2e": "node e2e/vocabulary-catalog-application-e2e.mjs",
     "test:toeic-part5:unit": "node --test tests/toeicPart5ImportUtils.test.js tests/toeicPart5QuestionBankUtils.test.js",
     "test:toeic-part5:mock:e2e": "node e2e/toeic-part5-import-ui.mjs",
     "test:toeic-part5:real:e2e": "node e2e/toeic-part5-import-real-backend.mjs",

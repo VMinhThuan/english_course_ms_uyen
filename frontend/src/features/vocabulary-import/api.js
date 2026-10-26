@@ -1,5 +1,6 @@
+const API_ROOT = String(import.meta.env?.VITE_API_URL || '/api/v1').replace(/\/$/, '');
 const DEFAULT_BASE_URL = import.meta.env?.VITE_VOCABULARY_IMPORT_API_BASE
-  || '/api/v1/admin/vocabulary-import-batches';
+  || `${API_ROOT}/admin/vocabulary-import-batches`;
 
 export class VocabularyImportApiError extends Error {
   constructor(message, { status = null, code = 'REQUEST_FAILED', payload = null, cause = null } = {}) {
@@ -11,10 +12,16 @@ export class VocabularyImportApiError extends Error {
   }
 }
 
+function defaultAuthHeaders() {
+  if (typeof localStorage === 'undefined') return {};
+  const token = localStorage.getItem('accessToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export function createVocabularyImportApi({
   baseUrl = DEFAULT_BASE_URL,
   fetchImpl = fetch,
-  getHeaders = () => ({}),
+  getHeaders = defaultAuthHeaders,
   timeoutMs = 45000,
 } = {}) {
   const root = String(baseUrl).replace(/\/$/, '');

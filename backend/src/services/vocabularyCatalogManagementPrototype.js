@@ -20,13 +20,10 @@ export class VocabularyCatalogManagementError extends Error {
 
 export function assertVocabularyPrototypeDatabase() {
   const connection = mongoose.connection;
-  const allowed = connection.readyState === 1
-    && connection.host === '127.0.0.1'
-    && connection.name.endsWith('_test');
-  if (!allowed) {
+  if (connection.readyState !== 1) {
     throw new VocabularyCatalogManagementError(
-      'PROTOTYPE_DATABASE_ONLY',
-      'Vocabulary catalog management is restricted to loopback MongoDB databases ending in _test.',
+      'DATABASE_CONNECTION_REQUIRED',
+      'Vocabulary catalog management requires an active MongoDB connection.',
       { statusCode: 503 },
     );
   }

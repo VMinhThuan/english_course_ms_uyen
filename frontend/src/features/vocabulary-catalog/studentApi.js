@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE = '/api/v1/student/vocabulary-catalog';
+const DEFAULT_API_BASE = `${String(import.meta.env?.VITE_API_URL || '/api/v1').replace(/\/$/, '')}/student/vocabulary-catalog`;
 
 function resolveBaseUrl() {
   if (typeof window !== 'undefined' && window.__VOCAB_STUDENT_CATALOG_API_BASE__) {

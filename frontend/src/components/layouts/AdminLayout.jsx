@@ -167,6 +167,33 @@ export default function AdminLayout() {
             <span>Quản Lý Từ Vựng</span>
           </NavLink>
 
+          {isAdmin && <>
+            <NavLink
+              to="/admin/vocabulary/catalog"
+              className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+              <span>Catalog Vocabulary</span>
+            </NavLink>
+            <NavLink
+              to="/admin/vocabulary/import"
+              className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+              <span>Import Vocabulary</span>
+            </NavLink>
+            <NavLink
+              to="/admin/vocabulary/publication"
+              className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 4 4L19 6" /><circle cx="12" cy="12" r="10" /></svg>
+              <span>Publish Vocabulary</span>
+            </NavLink>
+          </>}
+
           <NavLink
             to="/admin/questions"
             className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
