@@ -238,10 +238,12 @@ function eligibleMembershipStages() {
         as: '_approvedImportEvidence',
       },
     },
-    // Quick DOCX imports are published directly by an admin and intentionally
-    // do not create the legacy multi-step review/audit records.
+    // Quick DOCX imports and direct PDF catalog imports are published by an
+    // admin at insertion time and intentionally do not create the legacy
+    // multi-step candidate review/audit records.
     { $match: { $expr: { $or: [
       { $regexMatch: { input: { $ifNull: ['$sourceIdentity', ''] }, regex: '^quick-docx-' } },
+      { $regexMatch: { input: { $ifNull: ['$sourceIdentity', ''] }, regex: '^manual-pdf:' } },
       { $gt: [{ $size: '$_approvedImportEvidence' }, 0] },
     ] } } },
   ];

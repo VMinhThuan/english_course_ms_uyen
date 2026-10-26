@@ -183,6 +183,7 @@ export async function createVocabularyStudentCatalogFixtures() {
   const wrongChapterReferenceWord = await createVocabulary({ word: 'hidden wrong chapter reference', meaning: 'không được trả về' });
   const noProvenanceWord = await createVocabulary({ word: 'hidden without provenance', meaning: 'không được trả về' });
   const noMembershipWord = await createVocabulary({ word: 'hidden without membership', meaning: 'không được trả về' });
+  const manualPdfWord = await createVocabulary({ word: 'manual PDF vocabulary', meaning: 'từ vựng PDF nhập trực tiếp' });
 
   await Promise.all([
     createMembershipEvidence({ chapter: chapters.start1, vocabulary: multiSenseVocabulary, sortOrder: 1 }),
@@ -201,6 +202,12 @@ export async function createVocabularyStudentCatalogFixtures() {
     createMembershipEvidence({ chapter: chapters.start1, vocabulary: noProvenanceWord, sortOrder: 11 }).then(async ({ membership }) => {
       await VocabularyImportCandidate.deleteOne({ sourceIdentity: membership.sourceIdentity });
       await VocabularyImportAudit.deleteMany({ sourceIdentity: membership.sourceIdentity });
+    }),
+    ChapterVocabulary.create({
+      chapterId: chapters.start1._id,
+      vocabularyId: manualPdfWord._id,
+      sortOrder: 4.5,
+      sourceIdentity: `manual-pdf:${'D'.repeat(64)}:row:1`,
     }),
   ]);
   void noMembershipWord;
@@ -224,6 +231,7 @@ export async function createVocabularyStudentCatalogFixtures() {
       wrongChapterReferenceWord,
       noProvenanceWord,
       noMembershipWord,
+      manualPdfWord,
     },
   };
 }

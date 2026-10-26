@@ -61,7 +61,7 @@ test('Student Catalog prototype enforces published state and immutable import pr
     assert.deepEqual(result.payload.data.items.map((tag) => tag.name), [
       'Synthetic Fundamentals', 'Synthetic Collocations', 'Synthetic Essentials',
     ]);
-    assert.deepEqual(result.payload.data.items.map(({ chapterCount, vocabularyCount }) => [chapterCount, vocabularyCount]), [[3, 6], [1, 1], [1, 0]]);
+    assert.deepEqual(result.payload.data.items.map(({ chapterCount, vocabularyCount }) => [chapterCount, vocabularyCount]), [[3, 7], [1, 1], [1, 0]]);
     const serialized = JSON.stringify(result.payload);
     for (const hidden of ['Synthetic Draft Tag', 'Synthetic Archived Tag', 'rawValues', 'sourceIdentity', 'fileSha256', 'private-source']) {
       assert.equal(serialized.includes(hidden), false, `Unexpected tag response field/content: ${hidden}`);
@@ -74,11 +74,11 @@ test('Student Catalog prototype enforces published state and immutable import pr
     assert.deepEqual(result.payload.data.items.map((chapter) => chapter.title), [
       'Synthetic Start 1', 'Synthetic Start 2', 'Synthetic Empty Chapter',
     ]);
-    assert.deepEqual(result.payload.data.items.map((chapter) => chapter.vocabularyCount), [4, 2, 0]);
+    assert.deepEqual(result.payload.data.items.map((chapter) => chapter.vocabularyCount), [5, 2, 0]);
     assert.equal(result.payload.data.pagination.total, 3);
     assert.deepEqual(
       [result.payload.data.tag.chapterCount, result.payload.data.tag.vocabularyCount],
-      [3, 6],
+      [3, 7],
     );
     assert.equal(result.payload.data.items.filter((chapter) => chapter._id === String(fixture.chapters.start1._id)).length, 1);
     assert.equal((await request(`/tags/${fixture.tags[1]._id}/chapters?search=Collocation`)).payload.data.pagination.total, 1);
@@ -99,7 +99,7 @@ test('Student Catalog prototype enforces published state and immutable import pr
     assert.equal(result.status, 200, JSON.stringify(result.payload));
     const items = result.payload.data.items;
     assert.deepEqual(items.map((item) => item.word), [
-      'synthetic record', 'synthetic charge', 'synthetic charge', 'synthetic shared',
+      'synthetic record', 'synthetic charge', 'synthetic charge', 'synthetic shared', 'manual PDF vocabulary',
     ]);
     const record = items[0];
     assert.equal(record.catalogSenses.length, 2);
@@ -129,7 +129,7 @@ test('Student Catalog prototype enforces published state and immutable import pr
       fixture.vocabulary.noProvenanceWord,
       fixture.vocabulary.noMembershipWord,
     ]) assert.equal(visibleWords.includes(hidden.word), false, `${hidden.word} must be excluded`);
-    assert.equal(result.payload.data.pagination.total, 4);
+    assert.equal(result.payload.data.pagination.total, 5);
     const direct = await request(`/chapters/${fixture.chapters.start2._id}/vocabularies`);
     assert.deepEqual(direct.payload.data.items.map((item) => item.word), ['synthetic shared', 'synthetic budget']);
   });
