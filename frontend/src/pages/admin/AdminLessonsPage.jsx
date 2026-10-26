@@ -12,6 +12,7 @@ export default function AdminLessonsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const courseIdFromUrl = searchParams.get('courseId');
+  const isToeicPart1Workspace = searchParams.get('scope') === 'toeic-part1';
 
   const [courses, setCourses] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
@@ -30,7 +31,7 @@ export default function AdminLessonsPage() {
   // Form state
   const initialLessonForm = {
     title: '',
-    topic: 'General',
+    topic: isToeicPart1Workspace ? 'TOEIC Part 1: Photographs' : 'General',
     difficulty: '',
     description: '',
     content: '',
@@ -38,13 +39,13 @@ export default function AdminLessonsPage() {
     duration: 15,
     videoUrl: '',
     audioUrl: '',
-    status: 'published',
+    status: isToeicPart1Workspace ? 'draft' : 'published',
   };
   const [formData, setFormData] = useState(initialLessonForm);
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [isToeicPart1Workspace, courseIdFromUrl]);
 
   useEffect(() => {
     if (selectedCourseId) {
@@ -61,7 +62,10 @@ export default function AdminLessonsPage() {
       // Fetch via getAdminCourses to include drafts and teacher-specific courses
       const res = await courseApi.getAdminCourses();
       if (res.status === 'success') {
-        const list = res.data.courses || [];
+        const allCourses = res.data.courses || [];
+        const list = isToeicPart1Workspace
+          ? allCourses.filter((course) => course.englishType === 'TOEIC' && course.category === 'listening')
+          : allCourses;
         setCourses(list);
         if (list.length > 0) {
           // Check if courseIdFromUrl matches one of the courses
@@ -97,13 +101,15 @@ export default function AdminLessonsPage() {
 
   const handleCourseChange = (courseId) => {
     setSelectedCourseId(courseId);
-    setSearchParams({ courseId });
+    setSearchParams({ ...(isToeicPart1Workspace ? { scope: 'toeic-part1' } : {}), courseId });
   };
 
   const handleOpenCreate = () => {
     setEditingLesson(null);
     setFormData({
       ...initialLessonForm,
+      topic: isToeicPart1Workspace ? 'TOEIC Part 1: Photographs' : initialLessonForm.topic,
+      status: isToeicPart1Workspace ? 'draft' : initialLessonForm.status,
       order: lessons.length + 1,
     });
     setShowModal(true);
@@ -233,8 +239,8 @@ export default function AdminLessonsPage() {
   return (
     <div className="admin-page-container">
       <PageHeader
-        title="Quản Lý Bài Học"
-        description="Quản lý nội dung bài giảng, video, thứ tự sắp xếp và trạng thái hiển thị cho từng khóa học."
+        title={isToeicPart1Workspace ? 'TOEIC Part 1 · Bài học' : 'Quản Lý Bài Học'}
+        description={isToeicPart1Workspace ? 'Chỉ chọn Course có metadata TOEIC + Listening. Bài mới bắt đầu ở Draft và cần Publish thủ công.' : 'Quản lý nội dung bài giảng, video, thứ tự sắp xếp và trạng thái hiển thị cho từng khóa học.'}
         actions={selectedCourseId && (
           <UiButton onClick={handleOpenCreate}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -245,6 +251,12 @@ export default function AdminLessonsPage() {
           </UiButton>
         )}
       />
+
+      {isToeicPart1Workspace && (
+        <div role="note" style={{ padding: '0.85rem 1rem', marginBottom: '1rem', borderRadius: '8px', border: '1px solid var(--brand-warning-border)', background: 'var(--brand-warning-bg)', color: 'var(--brand-text)' }}>
+          <strong>Audio &amp; storage:</strong> thêm file MP3/M4A/WAV qua mục Tài liệu của bài học; học viên nghe qua luồng preview có kiểm tra quyền. Backend hiện dùng filesystem cục bộ, còn filesystem serverless là tạm thời — chưa upload/publish audio khách hàng trên serverless cho tới khi có persistent object storage được cấu hình.
+        </div>
+      )}
 
       {feedback.text && (
         <div
@@ -317,7 +329,7 @@ export default function AdminLessonsPage() {
               {currentCourse.isPublished ? 'Khóa học: Đã xuất bản' : 'Khóa học: Bản nháp'}
             </span>
             <button
-              onClick={() => navigate('/admin/courses')}
+              onClick={() => navigate(isToeicPart1Workspace ? '/admin/courses?template=toeic-listening' : '/admin/courses')}
               style={{
                 padding: '0.4rem 0.8rem',
                 borderRadius: '6px',
@@ -328,7 +340,7 @@ export default function AdminLessonsPage() {
                 fontWeight: 600,
               }}
             >
-              Quản lý Khóa học
+              {isToeicPart1Workspace ? 'Quản lý Course TOEIC Listening' : 'Quản lý Khóa học'}
             </button>
           </div>
         )}
@@ -352,7 +364,7 @@ export default function AdminLessonsPage() {
         </div>
       ) : courses.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)', background: 'var(--brand-surface)', borderRadius: '12px', border: '1px solid var(--brand-border)' }}>
-          Bạn chưa tạo khóa học nào. Hãy vào <a href="/admin/courses" style={{ color: 'var(--brand-coffee)', fontWeight: 600 }}>Quản lý khóa học</a> để tạo khóa học trước khi thêm bài học.
+          {isToeicPart1Workspace ? <>Chưa có Course TOEIC Listening nào. Hãy tạo Course đúng metadata trước khi thêm bài Part 1. <button type="button" onClick={() => navigate('/admin/courses?template=toeic-listening')} style={{ color: 'var(--brand-coffee)', fontWeight: 700, border: 0, background: 'none', cursor: 'pointer', padding: 0 }}>Tạo Course TOEIC Listening</button></> : <>Bạn chưa tạo khóa học nào. Hãy vào <a href="/admin/courses" style={{ color: 'var(--brand-coffee)', fontWeight: 600 }}>Quản lý khóa học</a> để tạo khóa học trước khi thêm bài học.</>}
         </div>
       ) : loadingLessons ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)' }}>

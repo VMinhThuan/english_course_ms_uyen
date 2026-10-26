@@ -251,7 +251,7 @@ async function seedFixtures() {
   progress('Seeded teacher and student fixtures');
 
   progress('Creating course fixture');
-  const course = await Course.create({ title: 'Phase 5 TOEIC Synthetic Course', description: 'Synthetic course fixture for isolated end-to-end checks.', teacher: teacher._id, level: 'Beginner', englishType: 'TOEIC', isPublished: true, category: 'general' });
+  const course = await Course.create({ title: 'Phase 5 TOEIC Synthetic Course', description: 'Synthetic course fixture for isolated end-to-end checks.', teacher: teacher._id, level: 'Beginner', englishType: 'TOEIC', isPublished: true, category: 'listening' });
   progress('Created course fixture');
   progress('Creating lesson fixtures');
   const lesson = await Lesson.create({
@@ -495,7 +495,16 @@ async function main() {
       return 'Username login issued a browser session and rendered the student dashboard.';
     });
 
+    await runCase('TOEIC_PART1_01', 'Student sees only enrolled published TOEIC Listening lessons', async () => {
+      await studentSession.page.goto(`${uiUrl}/student/toeic/part-1`, { waitUntil: 'domcontentloaded' });
+      await studentSession.page.getByRole('heading', { name: 'Luyện nghe Part 1', level: 1 }).waitFor({ timeout: 10000 });
+      await studentSession.page.getByRole('heading', { name: 'Phase 5 TOEIC Synthetic Course', level: 2 }).waitFor({ timeout: 10000 });
+      await studentSession.page.getByRole('link', { name: 'Phase 5 Reading Lesson' }).waitFor({ timeout: 10000 });
+      return 'The enrolled student saw published lessons from the TOEIC Listening course through the Part 1 entry point.';
+    });
+
     await runCase('DASH_01', 'Student dashboard profile and progress', async () => {
+      await studentSession.page.goto(`${uiUrl}/student/dashboard`, { waitUntil: 'domcontentloaded' });
       await studentSession.page.getByText('Phase Five Student', { exact: false }).first().waitFor({ timeout: 10000 });
       await studentSession.page.getByRole('img', { name: 'Ảnh đại diện Phase Five Student' }).waitFor({ timeout: 5000 });
       await studentSession.page.getByText('Tiến độ tổng thể').waitFor({ timeout: 10000 });
@@ -905,6 +914,40 @@ async function main() {
       await page.screenshot({ path: path.join(evidenceDir, 'account-suspended.png'), fullPage: true });
       await context.close();
       return 'Suspended account received an account-status page and was not issued a browser session.';
+    });
+
+    await runCase('TOEIC_PART1_02', 'Admin creates a Draft Part 1 lesson and explicitly publishes it', async () => {
+      const { context, page } = await newContext();
+      await login(page, uiUrl, 'phase5.admin', 'SyntheticPhase5!2026', '/admin');
+      await page.getByRole('link', { name: 'TOEIC Part 1 Lessons' }).waitFor({ timeout: 10000 });
+      await page.getByRole('link', { name: 'Catalog Vocabulary' }).waitFor({ timeout: 10000 });
+      await page.goto(`${uiUrl}/admin/lessons?scope=toeic-part1`, { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'TOEIC Part 1 · Bài học', level: 1 }).waitFor({ timeout: 10000 });
+      await page.locator('select').first().waitFor({ timeout: 10000 });
+      assert.equal(await page.locator('select').first().inputValue(), String(fixtures.course._id));
+      const token = await page.evaluate(() => localStorage.getItem('accessToken'));
+      const draftResponse = await fetch(`${apiUrl}/api/v1/admin/lessons`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ title: 'Phase 5 Admin Part 1 Draft', description: 'Synthetic Part 1 lesson created by the authenticated Admin flow.', course: String(fixtures.course._id), topic: 'TOEIC Part 1: Photographs', status: 'draft', order: 3, duration: 10 }),
+      });
+      const draftPayload = await draftResponse.json();
+      assert.equal(draftResponse.status, 201, JSON.stringify(draftPayload));
+      assert.equal(draftPayload.data.lesson.status, 'draft');
+      const publishResponse = await fetch(`${apiUrl}/api/v1/admin/lessons/${draftPayload.data.lesson._id}/status`, {
+        method: 'PATCH', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify({ status: 'published' }),
+      });
+      assert.equal(publishResponse.status, 200, await publishResponse.text());
+      const studentVerification = await newContext();
+      await login(studentVerification.page, uiUrl, 'phase5.student', 'SyntheticPhase5!2026', '/student/dashboard');
+      await studentVerification.page.goto(`${uiUrl}/student/toeic/part-1`, { waitUntil: 'domcontentloaded' });
+      await studentVerification.page.getByRole('link', { name: 'Phase 5 Admin Part 1 Draft' }).waitFor({ timeout: 10000 });
+      const studentToken = await studentVerification.page.evaluate(() => localStorage.getItem('accessToken'));
+      const published = await fetch(`${apiUrl}/api/v1/lessons/course/${fixtures.course._id}`, { headers: { Authorization: `Bearer ${studentToken}` } }).then((response) => response.json());
+      assert.ok(published.data.lessons.some((lesson) => lesson.title === 'Phase 5 Admin Part 1 Draft' && lesson.status === 'published'));
+      await studentVerification.context.close();
+      await context.close();
+      return 'Admin navigation exposed the Part 1 and Vocabulary Catalog workspaces; the authenticated Admin API created a Draft lesson for the TOEIC Listening course and required an explicit Publish action before the enrolled Student could read it.';
     });
 
     await runCase('ADM_U_01', 'Admin creates a student through the management screen', async () => {

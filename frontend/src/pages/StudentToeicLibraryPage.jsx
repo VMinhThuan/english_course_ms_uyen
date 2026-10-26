@@ -24,7 +24,7 @@ export default function StudentToeicLibraryPage() {
   });
   const modes = [['ALL', `Tất cả (${tests.length})`], ['full_test', "Full Test (120')"], ['mini_test', 'Mini Test'], ['practice', 'Luyện theo Part']];
   return <div className="toeic-page">
-    <PageHeader eyebrow="TOEIC practice" title="Kho đề thi TOEIC" description="Luyện Full Test, Mini Test và từng Part với giao diện mô phỏng thực tế." actions={<div className="toeic-mode-tabs" aria-label="Lọc loại đề thi">{modes.map(([mode, label]) => <button key={mode} type="button" className={activeMode === mode ? 'active' : ''} onClick={() => setActiveMode(mode)}>{label}</button>)}</div>} />
+    <PageHeader eyebrow="TOEIC practice" title="Kho đề thi TOEIC" description="Luyện Full Test, Mini Test và từng Part với giao diện mô phỏng thực tế." actions={<div style={{ display: 'grid', gap: '0.75rem' }}><Link className="ds-button ds-button--secondary" to="/student/toeic/part-1">Luyện nghe Part 1</Link><div className="toeic-mode-tabs" aria-label="Lọc loại đề thi">{modes.map(([mode, label]) => <button key={mode} type="button" className={activeMode === mode ? 'active' : ''} onClick={() => setActiveMode(mode)}>{label}</button>)}</div></div>} />
     <label className="assessment-search"><span>Tìm đề thi TOEIC</span><input type="search" value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Nhập tên hoặc nội dung đề..." aria-label="Tìm đề thi TOEIC" /></label>
     {loading ? <div className="ds-loading-state">Đang tải kho đề thi TOEIC...</div>
       : error ? <div className="toeic-error ds-error-state"><strong>{error}</strong><button type="button" className="ds-button ds-button--danger" onClick={fetchToeicTests}>Thử lại</button></div>

@@ -50,6 +50,7 @@ import AdminStatisticsPage from '../pages/admin/AdminStatisticsPage.jsx';
 
 // Student TOEIC Pages
 import StudentToeicLibraryPage from '../pages/StudentToeicLibraryPage.jsx';
+import StudentToeicPart1Page from '../pages/StudentToeicPart1Page.jsx';
 import StudentToeicOverviewPage from '../pages/StudentToeicOverviewPage.jsx';
 import StudentToeicExamPage from '../pages/StudentToeicExamPage.jsx';
 import StudentToeicResultPage from '../pages/StudentToeicResultPage.jsx';
@@ -125,6 +126,7 @@ function AppRoutes() {
         <Route path="courses/:id" element={<CourseDetailPage />} />
         <Route path="assessments" element={<StudentAssessmentsPage />} />
         <Route path="toeic" element={<StudentToeicLibraryPage />} />
+        <Route path="toeic/part-1" element={<StudentToeicPart1Page />} />
         <Route path="toeic/:assessmentId" element={<StudentToeicOverviewPage />} />
         <Route path="toeic/attempt/:attemptId" element={<StudentToeicExamPage />} />
         <Route path="toeic/results/:attemptId" element={<StudentToeicResultPage />} />

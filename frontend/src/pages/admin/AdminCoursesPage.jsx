@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { courseApi } from '../../api/courseApi.js';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import UiButton from '../../components/ui/UiButton.jsx';
@@ -9,6 +9,7 @@ import './AdminStudentsPage.css';
 
 export default function AdminCoursesPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,6 +41,20 @@ export default function AdminCoursesPage() {
     isPublished: false,
   };
   const [formData, setFormData] = useState(initialFormData);
+
+  useEffect(() => {
+    if (searchParams.get('template') !== 'toeic-listening') return;
+    setEditingCourse(null);
+    setFormData({
+      ...initialFormData,
+      title: 'TOEIC Listening Part 1',
+      description: 'Lộ trình luyện nghe TOEIC Part 1: Photographs.',
+      category: 'listening',
+      skills: 'Listening, TOEIC Part 1',
+    });
+    setShowModal(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     fetchCourses();
