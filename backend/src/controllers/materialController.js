@@ -78,10 +78,39 @@ const isTeacherOwner = (user, course) =>
 const safeExternalUrlForStudent = (material) =>
   material.allowDownload && isSafeExternalMaterialUrl(material.fileUrl) ? material.fileUrl : '';
 
-const toStudentMaterial = (material) => {
+const hasLocalMaterialFile = async (material) => {
+  const filePath = materialFilePath(material);
+  if (!filePath || !isPathWithinRoot(getUploadDir(), filePath)) return false;
+
+  try {
+    const [rootRealPath, fileRealPath, stat] = await Promise.all([
+      fs.realpath(getUploadDir()),
+      fs.realpath(filePath),
+      fs.stat(filePath),
+    ]);
+    return isPathWithinRoot(rootRealPath, fileRealPath) && stat.isFile();
+  } catch {
+    return false;
+  }
+};
+
+const hasMaterialFile = async (material) => {
+  const item = typeof material.toObject === 'function' ? material.toObject() : material;
+  return Boolean(isSafeExternalMaterialUrl(item.fileUrl) || await hasLocalMaterialFile(material));
+};
+
+const toStudentMaterial = async (material) => {
   const item = typeof material.toObject === 'function' ? material.toObject() : { ...material };
   delete item.filePath;
+  item.hasFile = await hasMaterialFile(material);
   item.fileUrl = safeExternalUrlForStudent(item);
+  return item;
+};
+
+const toAdminMaterialWithAvailability = async (material) => {
+  const item = typeof material.toObject === 'function' ? material.toObject() : { ...material };
+  delete item.filePath;
+  item.hasFile = await hasMaterialFile(material);
   return item;
 };
 
@@ -236,12 +265,14 @@ export const getAdminMaterials = async (req, res, next) => {
     if (search) filter.title = { $regex: search, $options: 'i' };
 
     const materials = await Material.find(filter)
-      .select('-filePath -__v')
+      .select('+filePath -__v')
       .populate('lesson', 'title status')
       .populate('course', 'title teacher')
       .sort({ createdAt: -1 });
 
-    return res.json({ status: 'success', data: { materials } });
+    const responseMaterials = await Promise.all(materials.map(toAdminMaterialWithAvailability));
+
+    return res.json({ status: 'success', data: { materials: responseMaterials } });
   } catch (error) {
     return next(error);
   }
@@ -253,7 +284,7 @@ export const getAdminMaterials = async (req, res, next) => {
 export const getAdminMaterialById = async (req, res, next) => {
   try {
     const material = await Material.findById(req.params.id)
-      .select('-filePath -__v')
+      .select('+filePath -__v')
       .populate({
         path: 'lesson',
         select: 'title status course',
@@ -264,7 +295,7 @@ export const getAdminMaterialById = async (req, res, next) => {
     if (!canManageCourse(req.user, material.lesson?.course || material.course)) {
       return sendError(res, 403, 'FORBIDDEN', 'Not authorized to view this material.');
     }
-    return res.json({ status: 'success', data: { material } });
+    return res.json({ status: 'success', data: { material: await toAdminMaterialWithAvailability(material) } });
   } catch (error) {
     return next(error);
   }
@@ -340,13 +371,13 @@ export const updateMaterial = async (req, res, next) => {
     }
 
     const updatedMaterial = await Material.findById(material._id)
-      .select('-filePath -__v')
+      .select('+filePath -__v')
       .populate('lesson', 'title status')
       .populate('course', 'title teacher');
     return res.json({
       status: 'success',
       message: 'Material updated successfully',
-      data: { material: updatedMaterial },
+      data: { material: await toAdminMaterialWithAvailability(updatedMaterial) },
     });
   } catch (error) {
     return next(error);
@@ -398,11 +429,11 @@ export const getStudentMaterialsByLesson = async (req, res, next) => {
     }
 
     const materials = await Material.find({ lesson: lesson._id, course: lesson.course?._id || lesson.course, status: 'published' })
-      .select('-filePath -__v')
+      .select('+filePath -__v')
       .sort({ createdAt: -1 });
-    const responseMaterials = req.user.role === 'student'
-      ? materials.map(toStudentMaterial)
-      : materials;
+    const responseMaterials = await Promise.all(materials.map(
+      req.user.role === 'student' ? toStudentMaterial : toAdminMaterialWithAvailability
+    ));
     return res.json({ status: 'success', data: { materials: responseMaterials } });
   } catch (error) {
     return next(error);

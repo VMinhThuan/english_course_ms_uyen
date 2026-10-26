@@ -606,7 +606,13 @@ export default function HomePage() {
               </div>
             </div>
             <div className="about-course-text">
-              {/* Layout structure preserved for future text */}
+              <h2 className="about-course-quote" aria-label="The future belongs to those who believe in the beauty of their dreams">
+                <span>the <em>future</em></span>
+                <span>belongs to those</span>
+                <span>who <em>believe</em></span>
+                <span>in the <em>beauty</em></span>
+                <span>of their <em>dreams</em></span>
+              </h2>
             </div>
           </div>
         </div>

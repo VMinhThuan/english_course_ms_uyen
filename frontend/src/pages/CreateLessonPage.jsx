@@ -4,6 +4,8 @@ import { lessonApi } from '../api/lessonApi.js';
 import { courseApi } from '../api/courseApi.js';
 import PageHeader from '../components/ui/PageHeader.jsx';
 import UiButton from '../components/ui/UiButton.jsx';
+import { notifyFileOperation } from '../utils/fileOperationFeedback.js';
+import { getMaterialOperationError } from '../utils/materialDownload.js';
 import './CreateLessonPage.css';
 
 export default function CreateLessonPage() {
@@ -101,7 +103,7 @@ export default function CreateLessonPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!formData.courseId) {
-      setMessage('Vui lòng chọn khóa học cho bài học này.');
+      notifyFileOperation({ action: 'lesson', outcome: 'error', message: 'Vui lòng chọn khóa học cho bài học này.' });
       return;
     }
     setLoading(true);
@@ -119,13 +121,28 @@ export default function CreateLessonPage() {
         : await lessonApi.createLesson(payload);
 
       if (response.status === 'success') {
-        setMessage(isEdit ? 'Cập nhật bài học thành công!' : 'Tạo bài học mới thành công!');
-        setTimeout(() => {
-          navigate(`/admin/lessons?courseId=${formData.courseId}`);
-        }, 1200);
+        const attachmentMessage = attachments.length
+          ? `Bài học đã được lưu cùng ${attachments.length} tệp đính kèm.`
+          : 'Thông tin bài học đã được lưu.';
+        notifyFileOperation({
+          action: 'lesson',
+          outcome: 'success',
+          message: attachmentMessage,
+          onClose: () => navigate(`/admin/lessons?courseId=${formData.courseId}`),
+        });
+      } else {
+        notifyFileOperation({
+          action: 'lesson',
+          outcome: 'error',
+          message: 'Máy chủ chưa xác nhận đã lưu bài học. Hãy kiểm tra lại rồi thử lại.',
+        });
       }
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Thao tác lưu bài học thất bại.');
+      const result = await getMaterialOperationError(error, {
+        action: 'save',
+        fallbackMessage: 'Không thể lưu bài học hoặc tải tài liệu đính kèm lên.',
+      });
+      notifyFileOperation({ action: 'lesson', outcome: 'error', ...result });
     } finally {
       setLoading(false);
     }

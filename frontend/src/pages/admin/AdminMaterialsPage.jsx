@@ -7,7 +7,14 @@ import PageHeader from '../../components/ui/PageHeader.jsx';
 import UiButton from '../../components/ui/UiButton.jsx';
 import DataTable from '../../components/ui/DataTable.jsx';
 import StatusBadge from '../../components/ui/StatusBadge.jsx';
-import { isDownloadErrorBlob, readDownloadErrorMessage, resolveMaterialFilename } from '../../utils/materialDownload.js';
+import { notifyFileOperation } from '../../utils/fileOperationFeedback.js';
+import {
+  getMaterialOperationError,
+  hasAttachedMaterialFile,
+  isDownloadErrorBlob,
+  readDownloadErrorMessage,
+  resolveMaterialFilename,
+} from '../../utils/materialDownload.js';
 import './AdminStudentsPage.css';
 
 function formatFileSize(bytes) {
@@ -151,18 +158,19 @@ export default function AdminMaterialsPage() {
   const handleSaveMaterial = async (e) => {
     e.preventDefault();
     if (!formData.title.trim()) {
-      setFeedback({ type: 'error', text: 'Vui lòng nhập tên tài liệu' });
+      notifyFileOperation({ action: 'save', outcome: 'error', message: 'Vui lòng nhập tên tài liệu.' });
       return;
     }
     if (!formData.lessonId) {
-      setFeedback({ type: 'error', text: 'Vui lòng chọn bài học đính kèm tài liệu' });
+      notifyFileOperation({ action: 'save', outcome: 'error', message: 'Vui lòng chọn bài học đính kèm tài liệu.' });
       return;
     }
     if (!editingMaterial && !formData.file && !formData.fileUrl.trim()) {
-      setFeedback({ type: 'error', text: 'Vui lòng chọn file tải lên hoặc nhập file URL' });
+      notifyFileOperation({ action: 'save', outcome: 'error', message: 'Chọn tệp để tải lên hoặc nhập liên kết tài liệu.' });
       return;
     }
 
+    const operationAction = formData.file ? 'upload' : 'save';
     try {
       setSubmitting(true);
       setFeedback({ type: '', text: '' });
@@ -182,27 +190,46 @@ export default function AdminMaterialsPage() {
 
       if (editingMaterial) {
         await materialApi.updateMaterial(editingMaterial._id, data);
-        setFeedback({ type: 'success', text: 'Cập nhật tài liệu thành công!' });
+        notifyFileOperation({
+          action: operationAction,
+          outcome: 'success',
+          message: formData.file ? 'Tệp mới đã được tải lên và tài liệu đã cập nhật.' : 'Tài liệu đã được cập nhật.',
+        });
       } else {
         await materialApi.createMaterial(data);
-        setFeedback({ type: 'success', text: 'Thêm tài liệu mới thành công!' });
+        notifyFileOperation({
+          action: operationAction,
+          outcome: 'success',
+          message: formData.file ? 'Tệp đã được tải lên và tài liệu đã lưu.' : 'Tài liệu đã được lưu.',
+        });
       }
 
       setShowModal(false);
       fetchMaterials();
     } catch (err) {
-      setFeedback({
-        type: 'error',
-        text: err.response?.data?.message || 'Lưu tài liệu thất bại',
+      const result = await getMaterialOperationError(err, {
+        action: operationAction,
+        fallbackMessage: formData.file ? 'Không thể tải tệp lên và lưu tài liệu.' : 'Không thể lưu tài liệu.',
       });
+      notifyFileOperation({ action: operationAction, outcome: 'error', ...result });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleOpenMaterial = async (material) => {
+    if (!hasAttachedMaterialFile(material)) {
+      notifyFileOperation({ action: 'download', outcome: 'error', message: 'Tài liệu này chưa có tệp đính kèm để mở hoặc tải xuống.' });
+      return;
+    }
+
     if (material.fileUrl && /^https:\/\//i.test(material.fileUrl)) {
       window.open(material.fileUrl, '_blank', 'noopener,noreferrer');
+      notifyFileOperation({
+        action: 'download',
+        outcome: 'success',
+        message: 'Đã mở liên kết tài liệu trong tab mới. Quyền truy cập tệp do dịch vụ lưu trữ liên kết quản lý.',
+      });
       return;
     }
 
@@ -224,9 +251,10 @@ export default function AdminMaterialsPage() {
       anchor.click();
       anchor.remove();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      notifyFileOperation({ action: 'download', outcome: 'success', message: 'Máy chủ đã gửi tệp cho trình duyệt tải xuống.' });
     } catch (err) {
-      const responseMessage = await readDownloadErrorMessage(err.response?.data);
-      setFeedback({ type: 'error', text: responseMessage || err.message || err.response?.data?.message || 'Không thể mở tệp này.' });
+      const result = await getMaterialOperationError(err, { action: 'download', fallbackMessage: 'Không thể mở hoặc tải tệp này.' });
+      notifyFileOperation({ action: 'download', outcome: 'error', ...result });
     }
   };
 
@@ -432,7 +460,7 @@ export default function AdminMaterialsPage() {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
-                      {mat.fileUrl && (
+                      {hasAttachedMaterialFile(mat) && (
                         <button
                           type="button"
                           onClick={() => handleOpenMaterial(mat)}
@@ -567,7 +595,9 @@ export default function AdminMaterialsPage() {
                 />
                 {editingMaterial && !formData.file && (
                   <div style={{ fontSize: '0.8rem', color: 'var(--brand-muted)', marginTop: '0.25rem' }}>
-                    Hiện tại: {editingMaterial.fileUrl ? <code>{editingMaterial.fileUrl}</code> : 'Chưa có file'} (chọn file mới nếu muốn thay thế)
+                    {hasAttachedMaterialFile(editingMaterial)
+                      ? <>Hiện tại: <code>{editingMaterial.fileUrl || editingMaterial.originalName || editingMaterial.title}</code></>
+                      : 'Hiện tại chưa có tệp đính kèm khả dụng'} (chọn file mới nếu muốn thay thế)
                   </div>
                 )}
               </div>

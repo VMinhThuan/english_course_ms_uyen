@@ -4,7 +4,14 @@ import { lessonApi } from '../api/lessonApi.js';
 import { materialApi } from '../api/materialApi.js';
 import { progressApi } from '../api/progressApi.js';
 import { getSafeLessonMediaUrl, sanitizeLessonHtml } from '../utils/sanitizeLessonHtml.js';
-import { isDownloadErrorBlob, readDownloadErrorMessage, resolveMaterialFilename } from '../utils/materialDownload.js';
+import { notifyFileOperation } from '../utils/fileOperationFeedback.js';
+import {
+  getMaterialOperationError,
+  hasAttachedMaterialFile,
+  isDownloadErrorBlob,
+  readDownloadErrorMessage,
+  resolveMaterialFilename,
+} from '../utils/materialDownload.js';
 import LessonMaterialPreview from '../components/LessonMaterialPreview.jsx';
 import './CourseLearning.css';
 
@@ -81,17 +88,18 @@ export default function LessonPage() {
       setNotice(null);
       setLessonVocabularyFlipped(false);
       try {
-        const [lessonRes, courseLessonsRes, accessRes] = await Promise.all([
+        const [lessonRes, courseLessonsRes, accessRes, materialsRes] = await Promise.all([
           lessonApi.getLessonById(lessonId),
           lessonApi.getLessonsByCourse(courseId).catch(() => ({ data: { lessons: [] } })),
           progressApi.accessLesson(lessonId).catch(() => ({ data: {} })),
+          materialApi.getMaterialsByLesson(lessonId),
         ]);
 
         if (!isLive) return;
 
         const lessonData = lessonRes.data?.lesson;
         setLesson(lessonData);
-        setMaterials(lessonRes.data?.materials || []);
+        setMaterials(materialsRes.data?.materials || []);
         setVocabulary(lessonRes.data?.vocabulary || []);
         setCourseLessons(courseLessonsRes.data?.lessons || []);
         setCompleted(accessRes.data?.progress?.status === 'completed');
@@ -138,10 +146,19 @@ export default function LessonPage() {
 
   const handleDownload = async (material) => {
     setNotice(null);
+    if (!hasAttachedMaterialFile(material)) {
+      notifyFileOperation({ action: 'download', outcome: 'error', message: 'Tài liệu này chưa có tệp đính kèm để tải xuống.' });
+      return;
+    }
+
     try {
       if (material.fileUrl && /^https:\/\//i.test(material.fileUrl)) {
         window.open(material.fileUrl, '_blank', 'noopener,noreferrer');
-        setNotice({ type: 'info', text: 'Đã mở liên kết tài liệu trong tab mới.' });
+        notifyFileOperation({
+          action: 'download',
+          outcome: 'success',
+          message: 'Đã mở liên kết tài liệu trong tab mới. Quyền truy cập tệp do dịch vụ lưu trữ liên kết quản lý.',
+        });
         return;
       }
       const res = await materialApi.downloadMaterial(material._id);
@@ -161,10 +178,10 @@ export default function LessonPage() {
       a.click();
       a.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1500);
-      setNotice({ type: 'success', text: 'Tài liệu đã được gửi tới trình duyệt để tải xuống.' });
+      notifyFileOperation({ action: 'download', outcome: 'success', message: 'Máy chủ đã gửi tệp cho trình duyệt tải xuống.' });
     } catch (e) {
-      const responseMessage = await readDownloadErrorMessage(e.response?.data);
-      setNotice({ type: 'error', text: responseMessage || e.message || e.response?.data?.message || 'Không thể tải tài liệu này.' });
+      const result = await getMaterialOperationError(e, { action: 'download', fallbackMessage: 'Không thể tải tài liệu này.' });
+      notifyFileOperation({ action: 'download', outcome: 'error', ...result });
     }
   };
 
@@ -344,7 +361,7 @@ export default function LessonPage() {
                     {m.fileType} {fileSize(m.fileSize) && `· ${fileSize(m.fileSize)}`}
                   </small>
                 </div>
-                {m.allowDownload && (
+                {m.allowDownload && hasAttachedMaterialFile(m) && (
                   <div className="material-actions">
                     <button type="button" className="material-download-button" onClick={() => handleDownload(m)}>
                       {m.fileUrl && /^https:\/\//i.test(m.fileUrl) ? 'Mở tài liệu' : '⬇️ Tải xuống'}
@@ -352,7 +369,7 @@ export default function LessonPage() {
                   </div>
                 )}
               </div>
-              <LessonMaterialPreview material={m} />
+              {m.allowDownload && hasAttachedMaterialFile(m) && <LessonMaterialPreview material={m} />}
             </article>
           ))
         ) : (

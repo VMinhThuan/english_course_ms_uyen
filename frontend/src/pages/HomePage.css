@@ -847,6 +847,42 @@ body {
   align-items: center;
 }
 
+.about-course-visual .editorial-img-box {
+  width: min(100%, 480px);
+  aspect-ratio: 3 / 4;
+  margin: 0 auto;
+  background: var(--brand-bg);
+}
+
+.about-course-visual .editorial-img-box img {
+  height: 100%;
+}
+
+.about-course-grid .about-course-text {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.about-course-grid .about-course-quote {
+  margin: 0;
+  color: var(--brand-coffee);
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.15vw, 3.4rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.28;
+}
+
+.about-course-grid .about-course-quote span {
+  display: block;
+}
+
+.about-course-grid .about-course-quote em {
+  font-weight: 400;
+}
+
 .course-stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

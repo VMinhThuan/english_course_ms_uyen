@@ -1,0 +1,88 @@
+.file-operation-dialog {
+  width: min(460px, calc(100vw - 32px));
+  max-width: none;
+  border: 1px solid var(--brand-border, #dfd3c6);
+  border-radius: 20px;
+  padding: 32px;
+  color: var(--brand-text, #302a25);
+  background: #fcf7f0;
+  box-shadow: 0 24px 80px rgba(38, 27, 19, 0.28);
+  text-align: center;
+}
+
+.file-operation-dialog::backdrop {
+  background: rgba(34, 26, 20, 0.56);
+  backdrop-filter: blur(3px);
+}
+
+.file-operation-dialog__icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.file-operation-dialog.is-success .file-operation-dialog__icon {
+  color: #315b43;
+  background: #e7f0e8;
+}
+
+.file-operation-dialog.is-error .file-operation-dialog__icon {
+  color: #8f332c;
+  background: #f8e9e5;
+}
+
+.file-operation-dialog h2 {
+  margin: 0 0 10px;
+  color: #4c382b;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.file-operation-dialog p {
+  margin: 0;
+  color: #65594e;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.file-operation-dialog__code {
+  display: inline-block;
+  margin-top: 14px;
+  color: #725c4b;
+  font-size: 12px;
+}
+
+.file-operation-dialog button {
+  min-width: 132px;
+  min-height: 46px;
+  margin-top: 24px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 11px;
+  color: #fffdf9;
+  background: #805a40;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.file-operation-dialog button:hover {
+  background: #68452f;
+}
+
+.file-operation-dialog button:focus-visible {
+  outline: 3px solid rgba(128, 90, 64, 0.34);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .file-operation-dialog,
+  .file-operation-dialog::backdrop { scroll-behavior: auto; }
+}

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import backgroundImage1 from '../../images/background.jpg';
-import backgroundImage2 from '../../images/background_1.jpg';
-import backgroundImage3 from '../../images/bg_2.jpg';
-import backgroundImage4 from '../../images/bg_3.jpg';
+import backgroundImage1 from '../../images/auth-carousel/img_3300.jpg';
+import backgroundImage2 from '../../images/auth-carousel/img_3301.jpg';
+import backgroundImage3 from '../../images/auth-carousel/img_3302.jpg';
+import backgroundImage4 from '../../images/auth-carousel/img_3304.jpg';
 import './AuthLayout.css';
 
 const backgroundImages = [
@@ -17,6 +17,9 @@ export default function AuthLayout({ activeTab, title, subtitle, children, showT
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return undefined;
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % backgroundImages.length);
     }, 4000);
@@ -27,7 +30,7 @@ export default function AuthLayout({ activeTab, title, subtitle, children, showT
   return (
     <div className="auth-page-wrapper ds-auth-screen">
       <div className="auth-split-container">
-        {/* Left Visual Section (52%) */}
+        {/* Left photo carousel */}
         <div className="auth-visual-section">
           <div className="auth-visual-inner">
             <div className="auth-slideshow">
@@ -40,55 +43,35 @@ export default function AuthLayout({ activeTab, title, subtitle, children, showT
               ))}
             </div>
 
-            {/* Warm Coffee Gradient Overlay */}
+            {/* Light overlay keeps the image's printed text readable. */}
             <div className="auth-visual-overlay" />
 
-            {/* Editorial Content Overlay */}
             <div className="auth-visual-content">
-              <span className="auth-eyebrow">ONLINE TOEIC CLASS</span>
-              <h1 className="auth-visual-title">
-                A better you starts with<br />a better way of learning.
-              </h1>
-              <p className="auth-visual-desc">
-                Không gian học tập, luyện thi và theo dõi tiến bộ TOEIC mỗi ngày.
-              </p>
-
-              <div className="auth-mini-info-row">
-                <span>850+ Practice</span>
-                <span className="bullet">•</span>
-                <span>Listening & Reading</span>
-                <span className="bullet">•</span>
-                <span>TOEIC Learning</span>
-              </div>
-
-              <div className="auth-visual-bottom">
-                <div className="auth-quote">"Discipline today, a brighter tomorrow."</div>
-                <div className="auth-slide-controls" aria-label="Chọn ảnh nền">
-                  <span className="auth-slide-count" aria-live="polite">
-                    {String(currentSlide + 1).padStart(2, '0')}
-                    <i aria-hidden="true" />
-                    {String(backgroundImages.length).padStart(2, '0')}
-                  </span>
-                  <div className="auth-slide-dots" role="tablist" aria-label="Ảnh nền">
-                    {backgroundImages.map((_, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        role="tab"
-                        aria-label={`Chuyển đến ảnh ${index + 1}`}
-                        aria-selected={index === currentSlide}
-                        className={`auth-slide-dot ${index === currentSlide ? 'active' : ''}`}
-                        onClick={() => setCurrentSlide(index)}
-                      />
-                    ))}
-                  </div>
+              <div className="auth-slide-controls" aria-label="Chọn ảnh nền">
+                <span className="auth-slide-count" aria-live="polite">
+                  {String(currentSlide + 1).padStart(2, '0')}
+                  <i aria-hidden="true" />
+                  {String(backgroundImages.length).padStart(2, '0')}
+                </span>
+                <div className="auth-slide-dots" role="tablist" aria-label="Ảnh nền">
+                  {backgroundImages.map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      role="tab"
+                      aria-label={`Chuyển đến ảnh ${index + 1}`}
+                      aria-selected={index === currentSlide}
+                      className={`auth-slide-dot ${index === currentSlide ? 'active' : ''}`}
+                      onClick={() => setCurrentSlide(index)}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Form Section (48%) */}
+        {/* Right form section */}
         <div className="auth-form-section">
           <div className="auth-form-wrapper">
             {/* Top Brand Logo */}

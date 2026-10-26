@@ -336,7 +336,7 @@ export const updateLesson = async (req, res, next) => {
       id,
       {
         ...updates,
-        attachments: req.files
+        attachments: req.files?.length
           ? req.files.map((file) => ({
               filename: file.filename,
               originalName: getSafeDisplayName(file.originalname),
