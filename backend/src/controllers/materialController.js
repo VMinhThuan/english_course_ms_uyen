@@ -265,7 +265,7 @@ export const getAdminMaterials = async (req, res, next) => {
     if (search) filter.title = { $regex: search, $options: 'i' };
 
     const materials = await Material.find(filter)
-      .select('+filePath -__v')
+      .select('-__v')
       .populate('lesson', 'title status')
       .populate('course', 'title teacher')
       .sort({ createdAt: -1 });
@@ -284,7 +284,7 @@ export const getAdminMaterials = async (req, res, next) => {
 export const getAdminMaterialById = async (req, res, next) => {
   try {
     const material = await Material.findById(req.params.id)
-      .select('+filePath -__v')
+      .select('-__v')
       .populate({
         path: 'lesson',
         select: 'title status course',
@@ -371,7 +371,7 @@ export const updateMaterial = async (req, res, next) => {
     }
 
     const updatedMaterial = await Material.findById(material._id)
-      .select('+filePath -__v')
+      .select('-__v')
       .populate('lesson', 'title status')
       .populate('course', 'title teacher');
     return res.json({
@@ -429,7 +429,7 @@ export const getStudentMaterialsByLesson = async (req, res, next) => {
     }
 
     const materials = await Material.find({ lesson: lesson._id, course: lesson.course?._id || lesson.course, status: 'published' })
-      .select('+filePath -__v')
+      .select('-__v')
       .sort({ createdAt: -1 });
     const responseMaterials = await Promise.all(materials.map(
       req.user.role === 'student' ? toStudentMaterial : toAdminMaterialWithAvailability

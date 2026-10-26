@@ -19,6 +19,7 @@ import LearningProgress from '../src/models/LearningProgress.js';
 import Assessment from '../src/models/Assessment.js';
 import Attempt from '../src/models/Attempt.js';
 import Question from '../src/models/Question.js';
+import Material from '../src/models/Material.js';
 
 const dbName = `phase3_integration_${randomUUID().replaceAll('-', '')}`;
 let mongoServer;
@@ -46,7 +47,7 @@ try {
   await mongoose.connect(isolatedUri, { serverSelectionTimeoutMS: 5000, autoIndex: true });
   await Promise.all([
     User.init(), Course.init(), Lesson.init(), Enrollment.init(),
-    LearningProgress.init(), Assessment.init(), Attempt.init(), Question.init(),
+    LearningProgress.init(), Assessment.init(), Attempt.init(), Question.init(), Material.init(),
   ]);
 
   process.env.JWT_SECRET = `phase3-access-${randomUUID()}`;
@@ -102,6 +103,35 @@ test('Phase 3 isolated MongoDB/API integration', { skip: setupError ? `BLOCKED: 
   const createdEmail = `phase3-${randomUUID().slice(0, 8)}@example.test`;
   const createdUsername = `phase3_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
   let createdStudent;
+
+  await t.test('admin material list uses a valid MongoDB exclusion projection', async () => {
+    const course = await Course.create({
+      title: `Phase 3 material course ${randomUUID().slice(0, 8)}`,
+      description: 'Material projection regression fixture',
+      teacher: teacher._id,
+      level: 'Beginner',
+      englishType: 'TOEIC',
+      isPublished: true,
+    });
+    const lesson = await Lesson.create({ title: 'Material projection lesson', course: course._id, status: 'published' });
+    const material = await Material.create({
+      title: 'Material projection fixture',
+      lesson: lesson._id,
+      course: course._id,
+      fileUrl: 'https://example.test/material-projection.pdf',
+      filePath: '',
+      status: 'published',
+    });
+
+    const { response, json } = await request(`/api/v1/admin/materials?courseId=${course._id}`, { token: adminToken });
+
+    assert.equal(response.status, 200);
+    assert.equal(json.status, 'success');
+    assert.equal(json.data.materials.length, 1);
+    assert.equal(json.data.materials[0]._id, material._id.toString());
+    assert.equal(json.data.materials[0].filePath, undefined);
+    assert.equal(json.data.materials[0].__v, undefined);
+  });
 
   await t.test('Phase 2 real Mongo routes: Standard/TOEIC submit, expiry, CAS, engine checks, limits, legacy, and history reads', async () => {
     const standardQuestion = await Question.create({
