@@ -35,6 +35,10 @@ const ensureUploadSubdirectory = (name) => {
 };
 
 export const getPrivateUploadDir = () => ensureUploadSubdirectory('private');
-export const getPublicUploadDir = () => ensureUploadSubdirectory('public');
+export const getPublicUploadDir = () => {
+  const bundledDir = path.join(process.cwd(), 'uploads', 'public');
+  if (fs.existsSync(bundledDir)) return bundledDir;
+  return ensureUploadSubdirectory('public');
+};
 
 export const UPLOAD_DIR = getUploadDir();
