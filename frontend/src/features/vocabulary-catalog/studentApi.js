@@ -1,3 +1,5 @@
+import axiosInstance from '../../api/axiosConfig.js';
+
 const DEFAULT_API_BASE = `${String(import.meta.env?.VITE_API_URL || '/api/v1').replace(/\/$/, '')}/student/vocabulary-catalog`;
 
 function resolveBaseUrl() {
@@ -7,33 +9,23 @@ function resolveBaseUrl() {
   return DEFAULT_API_BASE;
 }
 
-function responseError(response, payload) {
-  const error = new Error(payload?.message || 'Không thể tải dữ liệu từ vựng.');
-  error.response = { status: response.status, data: payload };
-  return error;
-}
-
 async function get(path, params = {}) {
-  const query = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && String(value) !== '') query.set(key, String(value));
-  });
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const query = Object.fromEntries(Object.entries(params).filter(([, value]) => (
+    value !== undefined && value !== null && String(value) !== ''
+  )));
   const testHeaders = typeof window !== 'undefined' ? window.__VOCAB_STUDENT_CATALOG_HEADERS__ || {} : {};
-  const url = `${resolveBaseUrl()}${path}${query.size ? `?${query}` : ''}`;
-  const response = await fetch(url, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...testHeaders,
-    },
-  });
-  let payload;
-  try { payload = await response.json(); }
-  catch { payload = null; }
-  if (!response.ok) throw responseError(response, payload);
-  return payload?.data || payload;
+  try {
+    const response = await axiosInstance.get(path, {
+      baseURL: resolveBaseUrl(),
+      params: query,
+      withCredentials: true,
+      headers: testHeaders,
+    });
+    return response.data?.data || response.data;
+  } catch (error) {
+    if (error.response?.data?.message) error.message = error.response.data.message;
+    throw error;
+  }
 }
 
 export function createStudentVocabularyCatalogApi() {

@@ -3,7 +3,7 @@ import axios from 'axios';
 // Use proxy in development, or direct URL in production
 // Force use proxy in dev to avoid CORS issues
 const API_URL =
-    import.meta.env.VITE_API_URL || '/api/v1';
+    import.meta.env?.VITE_API_URL || '/api/v1';
 
 const axiosInstance = axios.create({
     baseURL: API_URL,
