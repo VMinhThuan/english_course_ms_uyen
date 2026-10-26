@@ -74,8 +74,6 @@ export default function DocxVocabularyImportModal({ isOpen, onClose, onSuccess }
       });
   }, [selectedCourseId]);
 
-  if (!isOpen) return null;
-
   // File handler
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -164,6 +162,8 @@ export default function DocxVocabularyImportModal({ isOpen, onClose, onSuccess }
       return matchTopic && matchQuery;
     });
   }, [items, selectedTopic, searchQuery]);
+
+  if (!isOpen) return null;
 
   // Select / Deselect All
   const handleToggleSelectAll = (e) => {
