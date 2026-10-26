@@ -26,7 +26,7 @@ export default function StudentLayout() {
     if (path.includes('dashboard')) pageTitle = 'Trang chủ';
     else if (path.includes('/courses/')) pageTitle = path.includes('/lessons/') ? 'Bài học' : 'Khóa học';
     else if (path === '/student/courses') pageTitle = 'Tất cả khóa học';
-    else if (path.includes('my-courses')) pageTitle = 'Bài học của tôi';
+    else if (path === '/student/courses') pageTitle = 'Bài học';
     else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
     else if (path.includes('/tests/')) pageTitle = 'Đang làm bài kiểm tra';
     else if (path.includes('assessments')) pageTitle = 'Luyện tập';
@@ -237,7 +237,7 @@ export default function StudentLayout() {
           </NavLink>
 
           <NavLink
-            to="/student/my-courses"
+            to="/student/courses"
             end
             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             onClick={closeMobileMenu}
@@ -246,20 +246,7 @@ export default function StudentLayout() {
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
-            <span>Bài Học Của Tôi</span>
-          </NavLink>
-
-          <NavLink
-            to="/student/courses"
-            end
-            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="7"></circle>
-              <path d="m20 20-4-4"></path>
-            </svg>
-            <span>Tất Cả Khóa Học</span>
+            <span>Bài Học</span>
           </NavLink>
 
           <NavLink
