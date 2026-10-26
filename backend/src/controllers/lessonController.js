@@ -186,6 +186,7 @@ export const getLessonById = async (req, res, next) => {
     const vocabulary = await Vocabulary.find({
       lesson: id,
       status: 'published',
+      catalogOnly: { $ne: true },
     }).select('-__v');
 
     res.json({
@@ -448,7 +449,7 @@ export const deleteLesson = async (req, res, next) => {
     await Material.deleteMany({ lesson: id });
 
     // 2. Cascade cleanup Vocabulary
-    await Vocabulary.deleteMany({ lesson: id });
+    await Vocabulary.deleteMany({ lesson: id, catalogOnly: { $ne: true } });
 
     // 3. Cascade cleanup LearningProgress
     await LearningProgress.deleteMany({ lesson: id });

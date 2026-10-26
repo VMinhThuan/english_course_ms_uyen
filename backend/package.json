@@ -15,7 +15,16 @@
     "seed:demo": "node src/scripts/seedDemoData.js",
     "seed:lesson-preview-demo": "node src/scripts/seedLessonMaterialPreviewDemo.js",
     "test:phase2-import": "node --test tests/phase2ToeicPart5Import.test.js",
-    "test:phase5": "node --test tests/phase5ToeicPart1.test.js tests/phase5Cors.test.js"
+    "test:phase5": "node --test tests/phase5ToeicPart1.test.js tests/phase5Cors.test.js",
+    "test:vocabulary-parser-v2": "node --test tests/docxVocabularyParserV2.test.js",
+    "accept:vocabulary-parser-v2": "node tests/runDocxVocabularyParserV2Acceptance.js",
+    "test:vocabulary-catalog-v1": "node --test tests/vocabularyCatalogV1.integration.test.js",
+    "test:vocabulary-integration-v1-1": "node --test tests/vocabularyParserCatalogIntegration.test.js",
+    "test:vocabulary-import-v3a": "node --test tests/vocabularyImportPrototype.integration.test.js",
+    "test:vocabulary-catalog-v4a": "node --test tests/vocabularyCatalogV4a.integration.test.js",
+    "test:vocabulary-student-catalog-v4b": "node --test tests/vocabularyStudentCatalogV4b.integration.test.js",
+    "test:vocabulary-publication-v5a": "node --test tests/vocabularyPublicationV5a.integration.test.js",
+    "vocabulary:inventory:readonly": "node src/scripts/inventoryVocabularyCatalogReadOnly.js"
   },
   "keywords": [
     "english",
@@ -39,13 +48,15 @@
     "pdfkit": "^0.20.2",
     "sanitize-html": "2.18.1",
     "saxes": "^6.0.0",
-    "yauzl": "^3.4.0"
+    "yauzl": "^3.4.0",
+    "@xmldom/xmldom": "^0.8.15"
   },
   "devDependencies": {
-    "mongodb-memory-server": "^11.3.0"
+    "mongodb-memory-server": "^11.3.0",
+    "fflate": "^0.8.3"
   },
   "engines": {
-    "node": "22.x"
+    "node": ">=22.12.0 <23"
   },
   "overrides": {
     "body-parser": "1.20.9"

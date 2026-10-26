@@ -115,7 +115,7 @@ export const getAdminVocabulary = async (req, res, next) => {
   try {
     const { lesson, lessonId, topic, status, search, page = 1, limit = 50 } = req.query;
 
-    const filter = {};
+    const filter = { catalogOnly: { $ne: true } };
     const targetLesson = lessonId || lesson;
 
     if (targetLesson) filter.lesson = targetLesson;
@@ -165,7 +165,7 @@ export const getAdminVocabulary = async (req, res, next) => {
 export const getAdminVocabularyById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const vocabulary = await Vocabulary.findById(id)
+    const vocabulary = await Vocabulary.findOne({ _id: id, catalogOnly: { $ne: true } })
       .populate('lesson', 'title status')
       .populate('course', 'title');
 
@@ -193,7 +193,7 @@ export const getAdminVocabularyById = async (req, res, next) => {
 export const updateVocabulary = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const vocabulary = await Vocabulary.findById(id);
+    const vocabulary = await Vocabulary.findOne({ _id: id, catalogOnly: { $ne: true } });
 
     if (!vocabulary) {
       return res.status(404).json({
@@ -203,6 +203,8 @@ export const updateVocabulary = async (req, res, next) => {
     }
 
     const updates = { ...req.body };
+    delete updates.catalogOnly;
+    delete updates.catalogStatus;
 
     if (updates.exampleEnglish && !updates.example) {
       updates.example = updates.exampleEnglish;
@@ -223,10 +225,14 @@ export const updateVocabulary = async (req, res, next) => {
       updates.course = parentLesson.course;
     }
 
-    const updatedVocabulary = await Vocabulary.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedVocabulary = await Vocabulary.findOneAndUpdate(
+      { _id: id, catalogOnly: { $ne: true } },
+      updates,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.json({
       status: 'success',
@@ -246,7 +252,7 @@ export const updateVocabulary = async (req, res, next) => {
 export const deleteVocabulary = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const vocabulary = await Vocabulary.findByIdAndDelete(id);
+    const vocabulary = await Vocabulary.findOneAndDelete({ _id: id, catalogOnly: { $ne: true } });
 
     if (!vocabulary) {
       return res.status(404).json({
@@ -290,7 +296,7 @@ export const getStudentVocabularyByLesson = async (req, res, next) => {
       return res.status(400).json({ status: 'error', code: 'INVALID_VOCABULARY_SORT', message: 'Thứ tự sắp xếp từ vựng không hợp lệ.' });
     }
 
-    const filter = { status: 'published' };
+    const filter = { status: 'published', catalogOnly: { $ne: true } };
 
     if (lessonId) {
       const lesson = await Lesson.findById(lessonId);
@@ -348,7 +354,11 @@ export const getStudentVocabularyByLesson = async (req, res, next) => {
     const [vocabulary, total, topics] = await Promise.all([
       vocabularyQuery,
       Vocabulary.countDocuments(filter),
-      Vocabulary.distinct('topic', { status: 'published', ...(lessonId ? { lesson: lessonId } : {}) }),
+      Vocabulary.distinct('topic', {
+        status: 'published',
+        catalogOnly: { $ne: true },
+        ...(lessonId ? { lesson: lessonId } : {}),
+      }),
     ]);
 
     res.json({
@@ -444,7 +454,10 @@ export const previewDocxVocabulary = async (req, res, next) => {
     const { items, summary, topics, warnings } = parseResult;
 
     // Check for duplicates in the target lesson
-    const existingList = await Vocabulary.find({ lesson: lessonId }).select('word meaning topic partOfSpeech');
+    const existingList = await Vocabulary.find({
+      lesson: lessonId,
+      catalogOnly: { $ne: true },
+    }).select('word meaning topic partOfSpeech');
     const existingMap = new Map();
     existingList.forEach((v) => {
       existingMap.set(v.word.trim().toLowerCase(), v);
@@ -559,7 +572,10 @@ export const confirmDocxVocabularyImport = async (req, res, next) => {
     }
 
     // Existing vocabulary in lesson
-    const existingList = await Vocabulary.find({ lesson: lessonId });
+    const existingList = await Vocabulary.find({
+      lesson: lessonId,
+      catalogOnly: { $ne: true },
+    });
     const existingMap = new Map();
     existingList.forEach((v) => {
       existingMap.set(v.word.trim().toLowerCase(), v);

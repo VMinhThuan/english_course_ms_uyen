@@ -88,6 +88,15 @@
 .chapter-flash-word-examples { margin:7px 0 0 38px; color:#E4D4BE; }
 .chapter-flash-word-examples p { margin:3px 0 0; font-size:11px; line-height:1.45; overflow-wrap:anywhere; }
 .chapter-flash-word-examples b { margin-right:5px; color:#F3C74F; font-size:9px; letter-spacing:.08em; }
+.chapter-flash-catalog-senses { margin:8px 0 0 38px; color:#F1ECE4; }
+.chapter-flash-catalog-sense { padding:9px 0 11px; border-top:1px solid rgba(255,255,255,.12); }
+.chapter-flash-catalog-sense-heading { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
+.chapter-flash-catalog-sense-heading span { color:#F3C74F; font-size:10px; font-weight:800; }
+.chapter-flash-catalog-sense-heading p { margin:0; color:#fff; font-size:13px; font-weight:700; line-height:1.5; overflow-wrap:anywhere; }
+.chapter-flash-catalog-usage { margin:4px 0 0; color:#E4D4BE; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+.chapter-flash-catalog-note { margin:6px 0 0; color:#E4D4BE; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+.chapter-flash-catalog-note--chapter { padding:8px 0 0; border-top:1px dashed rgba(255,255,255,.2); }
+.chapter-flash-catalog-senses .chapter-flash-word-examples { margin-left:0; }
 .chapter-flash-back-hint { flex:none; color:#E4D4BE; font-size:10px; text-align:center; }
 .chapter-bookmark-button { border:1px solid var(--brand-border) !important; background:var(--brand-surface) !important; color:var(--brand-coffee) !important; }
 .chapter-bookmark-button[aria-pressed="true"] { border-color:#e8c26f !important; background:var(--brand-yellow-soft) !important; }

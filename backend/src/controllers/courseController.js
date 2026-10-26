@@ -597,7 +597,7 @@ export const deleteCourse = async (req, res, next) => {
         await removeMaterialFileIfUnreferenced(mat);
       }
       await Material.deleteMany({ lesson: lesson._id });
-      await Vocabulary.deleteMany({ lesson: lesson._id });
+      await Vocabulary.deleteMany({ lesson: lesson._id, catalogOnly: { $ne: true } });
       await LearningProgress.deleteMany({ lesson: lesson._id });
     }
     await Lesson.deleteMany({ course: course._id });
