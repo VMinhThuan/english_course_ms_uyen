@@ -3,7 +3,6 @@ import path from 'node:path';
 import Material from '../models/Material.js';
 import Lesson from '../models/Lesson.js';
 import Course from '../models/Course.js';
-import Enrollment from '../models/Enrollment.js';
 import mammoth from 'mammoth';
 import { getStudentStatusError } from '../security/accountAccessPolicy.js';
 import { sanitizeLessonHtml } from '../security/lessonHtml.js';
@@ -71,7 +70,6 @@ const validateMaterialUrl = (value, { allowExistingUrl = '' } = {}) => {
 
 const materialFilePath = (material) => resolveStoredUploadPath(material, getUploadDir());
 const sameId = (left, right) => String(left?._id || left || '') === String(right?._id || right || '');
-const getCourseId = (material, lesson) => lesson?.course?._id || lesson?.course || material.course?._id || material.course;
 const isTeacherOwner = (user, course) =>
   user?.role === 'teacher' && sameId(course?.teacher, user._id);
 
@@ -417,11 +415,6 @@ export const getStudentMaterialsByLesson = async (req, res, next) => {
       const statusError = getStudentStatusError(req.user);
       if (statusError) return sendError(res, statusError.statusCode, statusError.code, statusError.message);
       if (lesson.status !== 'published' || !lesson.course || lesson.course.isPublished !== true) return sendError(res, 404, 'LESSON_NOT_FOUND', 'Lesson not found.');
-      const enrolled = Boolean(await Enrollment.exists({
-        student: req.user._id,
-        course: lesson.course?._id || lesson.course,
-      }));
-      if (!enrolled) return sendError(res, 403, 'COURSE_ENROLLMENT_REQUIRED', 'Bạn cần đăng ký khóa học để truy cập tài liệu này.');
     } else if (req.user.role === 'teacher') {
       if (!isTeacherOwner(req.user, lesson.course)) return sendError(res, 403, 'FORBIDDEN', 'Access denied.');
     } else if (req.user.role !== 'admin') {
@@ -448,16 +441,11 @@ const getAuthorizedMaterialFile = async (req, res, { preview = false } = {}) => 
     }
 
     const course = material.lesson.course || material.course;
-    const courseId = getCourseId(material, material.lesson);
-    const enrolled = req.user.role === 'student' && courseId
-      ? Boolean(await Enrollment.exists({ student: req.user._id, course: courseId }))
-      : false;
     const decision = evaluateMaterialAccess({
       user: req.user,
       material,
       lesson: material.lesson,
       course,
-      enrolled,
       allowPreview: preview,
     });
     if (!decision.allowed) {

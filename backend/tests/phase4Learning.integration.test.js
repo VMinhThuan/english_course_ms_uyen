@@ -233,8 +233,13 @@ test('Phase 4 isolated learning API integration', {
     assert.equal(unauthenticated.status, 401);
 
     const outsiderPreview = await request(`/api/v1/materials/${enrolledPdf._id}/preview`, { token: unEnrolledToken });
-    assert.equal(outsiderPreview.status, 403);
-    assert.equal((await outsiderPreview.json()).code, 'COURSE_ENROLLMENT_REQUIRED');
+    assert.equal(outsiderPreview.status, 200);
+    assert.match(outsiderPreview.headers.get('content-disposition') || '', /^inline;/i);
+    await outsiderPreview.arrayBuffer();
+    const outsiderDownload = await request(`/api/v1/materials/${enrolledPdf._id}/download`, { token: unEnrolledToken });
+    assert.equal(outsiderDownload.status, 200);
+    assert.match(outsiderDownload.headers.get('content-disposition') || '', /^attachment;/i);
+    await outsiderDownload.arrayBuffer();
 
     const allowedPreview = await request(`/api/v1/materials/${enrolledPdf._id}/preview`, { token: studentToken });
     assert.equal(allowedPreview.status, 200);

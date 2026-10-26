@@ -2,7 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import Material from '../models/Material.js';
 import Lesson from '../models/Lesson.js';
-import Enrollment from '../models/Enrollment.js';
 import connectDB from '../configs/database.js';
 import { authenticateRequest, clearRefreshTokenCookie } from './auth.js';
 import {
@@ -60,8 +59,6 @@ const getFileReference = async (url) => {
   };
 };
 
-const isStudent = (user) => user?.role === 'student';
-
 const sendPolicyDenial = (res, decision) => res.status(decision.statusCode).json({
   status: 'error',
   ...(decision.code ? { code: decision.code } : {}),
@@ -70,7 +67,6 @@ const sendPolicyDenial = (res, decision) => res.status(decision.statusCode).json
 
 const sendProtectedFile = async (req, res, next, reference, url, {
   authenticate = authenticateRequest,
-  enrollmentExists = (filter) => Enrollment.exists(filter),
   uploadRoot = UPLOAD_ROOT,
 } = {}) => {
   if (!reference?.lesson) {
@@ -83,19 +79,11 @@ const sendProtectedFile = async (req, res, next, reference, url, {
     return sendPolicyDenial(res, auth.error);
   }
 
-  const courseId = reference.lesson.course?._id
-    || reference.lesson.course
-    || reference.course?._id
-    || reference.course;
-  const enrolled = isStudent(auth.user) && courseId
-    ? Boolean(await enrollmentExists({ student: auth.user._id, course: courseId }))
-    : false;
   const decision = evaluateMaterialAccess({
     user: auth.user,
     material: reference.material,
     lesson: reference.lesson,
     course: reference.course,
-    enrolled,
   });
   if (!decision.allowed) return sendPolicyDenial(res, decision);
 
@@ -143,7 +131,6 @@ export const createProtectedUploadHandler = ({
   connect = connectDB,
   resolveReference = getFileReference,
   authenticate = authenticateRequest,
-  enrollmentExists = (filter) => Enrollment.exists(filter),
   uploadRoot = UPLOAD_ROOT,
 } = {}) => async (req, res, next) => {
   const url = normalizeUploadRequestUrl(req.originalUrl);
@@ -173,7 +160,6 @@ export const createProtectedUploadHandler = ({
     if (reference) {
       return await sendProtectedFile(req, res, next, reference, url, {
         authenticate,
-        enrollmentExists,
         uploadRoot,
       });
     }
@@ -214,4 +200,3 @@ export const createProtectedUploadHandler = ({
 export const protectPrivateUpload = createProtectedUploadHandler({ privateOnly: true });
 export const protectLegacyUpload = createProtectedUploadHandler({ privateOnly: false });
 export const protectPublicUpload = createProtectedUploadHandler({ publicOnly: true });
-

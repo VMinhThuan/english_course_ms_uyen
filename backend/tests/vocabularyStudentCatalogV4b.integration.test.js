@@ -76,6 +76,10 @@ test('Student Catalog prototype enforces published state and immutable import pr
     ]);
     assert.deepEqual(result.payload.data.items.map((chapter) => chapter.vocabularyCount), [4, 2, 0]);
     assert.equal(result.payload.data.pagination.total, 3);
+    assert.deepEqual(
+      [result.payload.data.tag.chapterCount, result.payload.data.tag.vocabularyCount],
+      [3, 6],
+    );
     assert.equal(result.payload.data.items.filter((chapter) => chapter._id === String(fixture.chapters.start1._id)).length, 1);
     assert.equal((await request(`/tags/${fixture.tags[1]._id}/chapters?search=Collocation`)).payload.data.pagination.total, 1);
   });

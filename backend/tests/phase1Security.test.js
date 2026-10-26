@@ -151,37 +151,35 @@ test('access and refresh tokens issued during or before a suspension are invalid
   assert.equal(isTokenIssuedBeforeSuspension({ role: 'student', suspendedAt: 'invalid' }, suspendedSecond), true);
 });
 
-test('material access separates preview from download and enforces student publication scope', () => {
+test('material access separates preview from download and exposes published resources to active students', () => {
   const user = { _id: 'student-1', role: 'student', status: 'active', isActive: true };
   const material = { status: 'published', allowDownload: true, course: 'course-1' };
   const lesson = { status: 'published', course: 'course-1' };
   const course = { _id: 'course-1', teacher: 'teacher-1', isPublished: true };
 
-  assert.deepEqual(evaluateMaterialAccess({ user, material, lesson, course, enrolled: true }), { allowed: true });
-  assert.equal(evaluateMaterialAccess({ user, material, lesson, course, enrolled: false }).code, 'COURSE_ENROLLMENT_REQUIRED');
-  assert.equal(evaluateMaterialAccess({ user, material: { ...material, allowDownload: false }, lesson, course, enrolled: true }).code, 'MATERIAL_DOWNLOAD_NOT_ALLOWED');
+  assert.deepEqual(evaluateMaterialAccess({ user, material, lesson, course }), { allowed: true });
+  assert.equal(evaluateMaterialAccess({ user, material: { ...material, allowDownload: false }, lesson, course }).code, 'MATERIAL_DOWNLOAD_NOT_ALLOWED');
   assert.deepEqual(evaluateMaterialAccess({
-    user, material: { ...material, allowDownload: false }, lesson, course, enrolled: true, allowPreview: true,
+    user, material: { ...material, allowDownload: false }, lesson, course, allowPreview: true,
   }), { allowed: true });
-  assert.equal(evaluateMaterialAccess({ user, material: { ...material, status: 'hidden' }, lesson, course, enrolled: true }).statusCode, 404);
-  assert.equal(evaluateMaterialAccess({ user, material, lesson, course: { ...course, isPublished: false }, enrolled: true }).statusCode, 404);
-  assert.equal(evaluateMaterialAccess({ user, material, lesson, course: { _id: 'course-1' }, enrolled: true }).statusCode, 404);
-  assert.equal(evaluateMaterialAccess({ user, material: { ...material, course: undefined }, lesson, course, enrolled: true }).statusCode, 404);
-  assert.equal(evaluateMaterialAccess({ user, material, lesson: { status: 'published' }, course, enrolled: true }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material: { ...material, status: 'hidden' }, lesson, course }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material, lesson, course: { ...course, isPublished: false } }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material, lesson, course: { _id: 'course-1' } }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material: { ...material, course: undefined }, lesson, course }).statusCode, 404);
+  assert.equal(evaluateMaterialAccess({ user, material, lesson: { status: 'published' }, course }).statusCode, 404);
   assert.equal(evaluateMaterialAccess({
-    user, material: { ...material, course: 'another-course' }, lesson, course, enrolled: true,
+    user, material: { ...material, course: 'another-course' }, lesson, course,
   }).statusCode, 404);
-  assert.equal(evaluateMaterialAccess({ user: { ...user, status: 'suspended', isActive: false }, material, lesson, course, enrolled: true }).code, 'ACCOUNT_SUSPENDED');
+  assert.equal(evaluateMaterialAccess({ user: { ...user, status: 'suspended', isActive: false }, material, lesson, course }).code, 'ACCOUNT_SUSPENDED');
 });
 
-test('direct private upload URL enforces authentication, enrollment, publication, and download rights', async (t) => {
+test('direct private upload URL enforces authentication, publication, and download rights', async (t) => {
   const uploadRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'phase1-private-upload-'));
   t.after(() => fs.rm(uploadRoot, { recursive: true, force: true }));
   await fs.mkdir(path.join(uploadRoot, 'private'));
   await fs.writeFile(path.join(uploadRoot, 'private', 'lesson.pdf'), '%PDF-1.7 sample');
 
   let auth = { error: { statusCode: 401, code: 'UNAUTHORIZED', message: 'Unauthorized' } };
-  let enrolled = true;
   const reference = {
     material: {
       title: 'Lesson handout', status: 'published', allowDownload: true,
@@ -195,7 +193,6 @@ test('direct private upload URL enforces authentication, enrollment, publication
     connect: async () => {},
     resolveReference: async () => reference,
     authenticate: async () => auth,
-    enrollmentExists: async () => enrolled,
     uploadRoot,
   });
   const makeResponse = () => ({
@@ -226,12 +223,10 @@ test('direct private upload URL enforces authentication, enrollment, publication
   assert.equal(suspended.res.body.code, 'ACCOUNT_SUSPENDED');
 
   auth = { user: { _id: 'student-1', role: 'student', status: 'active', isActive: true } };
-  enrolled = false;
-  const notEnrolled = await invoke();
-  assert.equal(notEnrolled.res.statusCode, 403);
-  assert.equal(notEnrolled.res.body.code, 'COURSE_ENROLLMENT_REQUIRED');
+  const approvedStudent = await invoke();
+  assert.equal(approvedStudent.res.statusCode, 200);
+  assert.ok(approvedStudent.res.downloaded);
 
-  enrolled = true;
   reference.material.status = 'draft';
   const unpublished = await invoke();
   assert.equal(unpublished.res.statusCode, 404);

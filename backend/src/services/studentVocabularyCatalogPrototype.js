@@ -289,6 +289,21 @@ async function countEligibleVocabulary(chapterId) {
   return result?.count || 0;
 }
 
+async function eligibleCountsByTag(tagIds) {
+  if (!tagIds.length) return new Map();
+  const counts = await VocabularyChapter.aggregate([
+    { $match: { tagId: { $in: tagIds }, status: 'published' } },
+    eligibleMembershipCountLookup(),
+    { $addFields: { vocabularyCount: countFromLookup() } },
+    { $group: {
+      _id: '$tagId',
+      chapterCount: { $sum: 1 },
+      vocabularyCount: { $sum: '$vocabularyCount' },
+    } },
+  ]);
+  return new Map(counts.map((count) => [String(count._id), count]));
+}
+
 export async function listStudentVocabularyCatalogTags({ search = '', page = 1, limit = DEFAULT_PAGE_SIZE } = {}) {
   assertStudentCatalogPrototypeDatabase();
   const paging = pagination(page, limit);
@@ -305,20 +320,7 @@ export async function listStudentVocabularyCatalogTags({ search = '', page = 1, 
       .sort({ sortOrder: 1, _id: 1 }).skip(paging.skip).limit(paging.limit).lean(),
     VocabularyTag.countDocuments(tagFilter),
   ]);
-  const countsByTag = new Map();
-  if (tags.length) {
-    const counts = await VocabularyChapter.aggregate([
-      { $match: { tagId: { $in: tags.map((tag) => tag._id) }, status: 'published' } },
-      eligibleMembershipCountLookup(),
-      { $addFields: { vocabularyCount: countFromLookup() } },
-      { $group: {
-        _id: '$tagId',
-        chapterCount: { $sum: 1 },
-        vocabularyCount: { $sum: '$vocabularyCount' },
-      } },
-    ]);
-    for (const row of counts) countsByTag.set(String(row._id), row);
-  }
+  const countsByTag = await eligibleCountsByTag(tags.map((tag) => tag._id));
   return {
     items: tags.map((tag) => tagDto(tag, countsByTag.get(String(tag._id)))),
     pagination: { page: paging.page, limit: paging.limit, total, pages: Math.ceil(total / paging.limit) || 1 },
@@ -338,22 +340,25 @@ export async function listStudentVocabularyCatalogChapters(tagId, { search = '',
       { description: { $regex: escapedRegex(query), $options: 'i' } },
     ] } : {}),
   };
-  const [result = { items: [], total: [] }] = await VocabularyChapter.aggregate([
-    { $match: match },
-    { $sort: { sortOrder: 1, chapterNumber: 1, _id: 1 } },
-    { $facet: {
-      items: [
-        { $skip: paging.skip },
-        { $limit: paging.limit },
-        eligibleMembershipCountLookup(),
-        { $addFields: { vocabularyCount: countFromLookup() } },
-        { $project: { _id: 1, tagId: 1, title: 1, description: 1, chapterNumber: 1, sortOrder: 1, vocabularyCount: 1 } },
-      ],
-      total: [{ $count: 'count' }],
-    } },
+  const [[result = { items: [], total: [] }], countsByTag] = await Promise.all([
+    VocabularyChapter.aggregate([
+      { $match: match },
+      { $sort: { sortOrder: 1, chapterNumber: 1, _id: 1 } },
+      { $facet: {
+        items: [
+          { $skip: paging.skip },
+          { $limit: paging.limit },
+          eligibleMembershipCountLookup(),
+          { $addFields: { vocabularyCount: countFromLookup() } },
+          { $project: { _id: 1, tagId: 1, title: 1, description: 1, chapterNumber: 1, sortOrder: 1, vocabularyCount: 1 } },
+        ],
+        total: [{ $count: 'count' }],
+      } },
+    ]),
+    eligibleCountsByTag([tag._id]),
   ]);
   return {
-    tag: tagDto(tag),
+    tag: tagDto(tag, countsByTag.get(String(tag._id))),
     items: result.items.map((chapter) => chapterDto(chapter, tag, chapter.vocabularyCount)),
     pagination: {
       page: paging.page,

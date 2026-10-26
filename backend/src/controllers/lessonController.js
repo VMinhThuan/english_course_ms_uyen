@@ -3,7 +3,6 @@ import Course from '../models/Course.js';
 import Material from '../models/Material.js';
 import Vocabulary from '../models/Vocabulary.js';
 import LearningProgress from '../models/LearningProgress.js';
-import Enrollment from '../models/Enrollment.js';
 import fs from 'fs';
 import path from 'path';
 import { sanitizeLessonHtml, sanitizeLessonMediaUrl, sanitizeLessonRecord } from '../security/lessonHtml.js';
@@ -112,7 +111,7 @@ export const getLessonsByCourse = async (req, res, next) => {
       data: {
         lessons: lessons.map((lesson) => sanitizeLessonRecord(lesson, {
           // This route is also used for public course discovery; local attachment URLs are
-          // disclosed only by the enrolled lesson detail route after its access checks.
+          // disclosed only by the authenticated lesson detail route after its access checks.
           includeAttachments: Boolean(req.user && !['student'].includes(req.user.role)),
         })),
       },
@@ -153,19 +152,8 @@ export const getLessonById = async (req, res, next) => {
       });
     }
 
-    const enrollment = req.user?.role === 'student'
-      ? await Enrollment.exists({ student: req.user._id, course: lesson.course?._id || lesson.course })
-      : null;
-    if (req.user?.role === 'student' && !enrollment) {
-      return res.status(403).json({
-        status: 'error',
-        code: 'COURSE_ENROLLMENT_REQUIRED',
-        message: 'Bạn cần đăng ký khóa học để truy cập bài học này.',
-      });
-    }
-
-    // Fetch published materials & vocabulary for this lesson. Student DTOs never expose local
-    // storage URLs, and third-party URLs are disclosed only when the student has file access.
+    // Approved students can use every published lesson, independently of enrollment. Student
+    // DTOs never expose local storage paths, and external URLs still require allowDownload.
     const materialRecords = await Material.find({
       lesson: id,
       status: 'published',
@@ -175,13 +163,12 @@ export const getLessonById = async (req, res, next) => {
       if (req.user?.role !== 'student') return material;
       const safeMaterial = material.toObject();
       const canExposeExternalUrl = req.user.status === 'active'
-        && Boolean(enrollment)
         && material.allowDownload
-          && isSafeExternalMaterialUrl(material.fileUrl);
+        && isSafeExternalMaterialUrl(material.fileUrl);
       safeMaterial.fileUrl = canExposeExternalUrl ? material.fileUrl : '';
       delete safeMaterial.filePath;
       return safeMaterial;
-    }).filter((material) => req.user?.role !== 'student' || (req.user.status === 'active' && Boolean(enrollment)));
+    }).filter((material) => req.user?.role !== 'student' || req.user.status === 'active');
 
     const vocabulary = await Vocabulary.find({
       lesson: id,
