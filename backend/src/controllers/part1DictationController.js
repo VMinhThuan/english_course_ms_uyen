@@ -35,7 +35,8 @@ export const listAdminPart1Dictations = async (_req, res, next) => {
   try {
     const items = await Part1Dictation.find()
       .populate('createdBy', 'fullName email')
-      .sort({ createdAt: -1 });
+      .lean();
+    items.sort((left, right) => left.title.localeCompare(right.title, 'en', { numeric: true, sensitivity: 'base' }));
     res.json({ status: 'success', data: { items } });
   } catch (error) {
     next(error);
@@ -106,7 +107,8 @@ export const setPart1DictationVisibility = async (req, res, next) => {
 
 export const listStudentPart1Dictations = async (_req, res, next) => {
   try {
-    const items = await Part1Dictation.find({ isVisible: true }).sort({ createdAt: -1 });
+    const items = await Part1Dictation.find({ isVisible: true }).lean();
+    items.sort((left, right) => left.title.localeCompare(right.title, 'en', { numeric: true, sensitivity: 'base' }));
     res.json({ status: 'success', data: { items: items.map(studentDto) } });
   } catch (error) {
     next(error);

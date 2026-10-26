@@ -1,5 +1,17 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import multer from 'multer';
+import {
+  createUpload,
+  DOCX_UPLOAD_POLICIES,
+  MAX_DOCX_IMPORT_BYTES,
+} from '../utils/uploadValidation.js';
+import DocxVocabularyParser from '../services/docxVocabularyParser.js';
+import {
+  publishVocabularyImport,
+  setVocabularyChapterVisibility,
+  setVocabularyTagVisibility,
+} from '../services/vocabularyQuickImport.js';
 import {
   addCatalogVocabularyMembership,
   archiveManagedVocabularyChapter,
@@ -44,6 +56,40 @@ export function createVocabularyCatalogManagementPrototypeRouter({ authenticateA
   }
   const router = express.Router();
   router.use(authenticateAdmin, requireTrustedAdmin, express.json({ limit: '64kb', strict: true }));
+  const docxUpload = createUpload({
+    storage: multer.memoryStorage(),
+    policies: DOCX_UPLOAD_POLICIES,
+    maxFileSize: MAX_DOCX_IMPORT_BYTES,
+    maxFiles: 1,
+  });
+
+  router.post('/import-docx/preview', docxUpload.single('file', { required: true }), asyncRoute(async (req, res) => {
+    if (!req.file) return res.status(400).json({ status: 'error', message: 'Chọn file Word .docx để nhận diện từ vựng.' });
+    const parsed = await DocxVocabularyParser.parseDocxBuffer(req.file.buffer);
+    return res.json({
+      status: 'success',
+      data: {
+        fileName: req.file.originalname,
+        summary: parsed.summary,
+        items: parsed.items,
+        topics: parsed.topics,
+        warnings: parsed.warnings,
+      },
+    });
+  }));
+
+  router.post('/import-docx/publish', asyncRoute(async (req, res) => {
+    try {
+      const result = await publishVocabularyImport(req.body || {});
+      return res.status(201).json({ status: 'success', data: result });
+    } catch (error) {
+      return res.status(error?.code === 11000 ? 409 : 400).json({
+        status: 'error',
+        code: error?.code === 11000 ? 'VOCABULARY_CATALOG_CONFLICT' : undefined,
+        message: error.message || 'Không thể xuất bản bộ từ vựng.',
+      });
+    }
+  }));
 
   router.get('/tags', asyncRoute(async (req, res) => {
     const result = await listVocabularyTags(req.query);
@@ -59,6 +105,10 @@ export function createVocabularyCatalogManagementPrototypeRouter({ authenticateA
   }));
   router.patch('/tags/:tagId', asyncRoute(async (req, res) => {
     const tag = await updateManagedVocabularyTag(req.params.tagId, req.body);
+    return res.json({ status: 'success', data: { tag } });
+  }));
+  router.patch('/tags/:tagId/visibility', asyncRoute(async (req, res) => {
+    const tag = await setVocabularyTagVisibility(req.params.tagId, req.body?.isVisible);
     return res.json({ status: 'success', data: { tag } });
   }));
   router.post('/tags/:tagId/archive', asyncRoute(async (req, res) => {
@@ -84,6 +134,10 @@ export function createVocabularyCatalogManagementPrototypeRouter({ authenticateA
   }));
   router.patch('/chapters/:chapterId', asyncRoute(async (req, res) => {
     const chapter = await updateManagedVocabularyChapter(req.params.chapterId, req.body);
+    return res.json({ status: 'success', data: { chapter } });
+  }));
+  router.patch('/chapters/:chapterId/visibility', asyncRoute(async (req, res) => {
+    const chapter = await setVocabularyChapterVisibility(req.params.chapterId, req.body?.isVisible);
     return res.json({ status: 'success', data: { chapter } });
   }));
   router.post('/chapters/:chapterId/archive', asyncRoute(async (req, res) => {

@@ -13,7 +13,6 @@ export default function StudentAssessmentsPage() {
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filterType, setFilterType] = useState('ALL');
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => { fetchAssessments(); }, []);
@@ -34,47 +33,37 @@ export default function StudentAssessmentsPage() {
   const filteredAssessments = useMemo(() => {
     const query = searchText.trim().toLocaleLowerCase('vi');
     return assessments.filter((item) => {
-      const matchesType = filterType === 'ALL' || item.type === filterType;
-      const searchableText = [item.title, item.description, item.lesson?.title, item.course?.title]
+      const searchableText = [item.title, item.description]
         .filter(Boolean)
         .join(' ')
         .toLocaleLowerCase('vi');
-      return matchesType && (!query || searchableText.includes(query));
+      return !query || searchableText.includes(query);
     });
-  }, [assessments, filterType, searchText]);
-
-  const tabs = [
-    ['ALL', `Tất cả (${assessments.length})`],
-    ['exercise', 'Bài tập'],
-    ['exam', 'Bài kiểm tra'],
-  ];
+  }, [assessments, searchText]);
 
   return (
     <div className="assessment-page">
       <PageHeader
         eyebrow="Luyện tập"
         title="Bài tập & đề thi"
-        description="Chọn bài tập hoặc bài kiểm tra được xuất bản để luyện tập và củng cố kiến thức."
-        actions={<div className="assessment-tabs">{tabs.map(([type, label]) => (
-          <button type="button" key={type} className={filterType === type ? 'active' : ''} onClick={() => setFilterType(type)}>{label}</button>
-        ))}</div>}
+        description="Các bài tập đã xuất bản sẽ xuất hiện tại đây cho toàn bộ học viên."
       />
 
       <label className="assessment-search">
-        <span>Tìm bài tập hoặc đề thi</span>
+        <span>Tìm bài tập</span>
         <input
           type="search"
           value={searchText}
           onChange={(event) => setSearchText(event.target.value)}
           placeholder="Nhập tên hoặc nội dung..."
-          aria-label="Tìm bài tập hoặc đề thi"
+          aria-label="Tìm bài tập"
         />
       </label>
 
-      {loading ? <div className="ds-loading-state">Đang tải bài tập & đề thi...</div>
+      {loading ? <div className="ds-loading-state">Đang tải bài tập...</div>
         : error ? <div className="ds-error-state" role="alert">{error}</div>
           : filteredAssessments.length === 0
-            ? <div className="ds-empty-state">Không tìm thấy bài tập hoặc đề thi phù hợp.</div>
+            ? <div className="ds-empty-state">Không tìm thấy bài tập phù hợp.</div>
             : <div className="assessment-grid">{filteredAssessments.map((assessment) => {
               const attemptLimit = Number(assessment.attemptLimit || 0);
               const remainingAttempts = attemptLimit === 0 ? null : assessment.remainingAttempts;
@@ -83,7 +72,7 @@ export default function StudentAssessmentsPage() {
                 <article key={assessment._id} className="assessment-card">
                   <div>
                     <div className="assessment-card-meta">
-                      <StatusBadge status={assessment.type} />
+                      <StatusBadge status="exercise" />
                       <span>Điểm đạt: {assessment.passScore ?? 0}%</span>
                     </div>
                     <h2>{assessment.title}</h2>

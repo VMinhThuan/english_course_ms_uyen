@@ -43,7 +43,7 @@ const vocabularyChapterSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: VOCABULARY_CATALOG_STATUSES,
-      default: 'draft',
+      default: 'published',
     },
   },
   { timestamps: true, optimisticConcurrency: true }

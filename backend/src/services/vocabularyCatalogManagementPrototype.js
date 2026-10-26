@@ -250,7 +250,7 @@ export async function listVocabularyTags({ search = '', status = '', page = 1, l
   assertVocabularyPrototypeDatabase();
   const pagination = parsePage(page, limit);
   if (typeof search !== 'string' || search.length > 80) throw new VocabularyCatalogManagementError('INVALID_SEARCH', 'Search must be at most 80 characters.');
-  if (status && !['draft', 'published', 'archived'].includes(status)) throw new VocabularyCatalogManagementError('INVALID_STATUS', 'Unsupported Tag status.');
+  if (status && !['draft', 'published', 'hidden', 'archived'].includes(status)) throw new VocabularyCatalogManagementError('INVALID_STATUS', 'Unsupported Tag status.');
   const filter = {
     ...(status ? { status } : {}),
     ...(search.trim() ? { $or: [
@@ -288,7 +288,7 @@ export async function createManagedVocabularyTag(body) {
       slug: normalizeSlug(body.slug),
       description,
       sortOrder: requireSortOrder(body.sortOrder ?? 0),
-      status: 'draft',
+      status: 'published',
     }]);
     return asTagSummary(tag);
   } catch (error) {
@@ -305,7 +305,6 @@ export async function updateManagedVocabularyTag(tagId, body) {
   const version = requireVersion(body.expectedVersion);
   if ((tag.__v || 0) !== version) throw new VocabularyCatalogManagementError('CONCURRENT_MODIFICATION', 'The Tag changed. Reload it before saving.', { statusCode: 409 });
   if (tag.status === 'archived') throw new VocabularyCatalogManagementError('TAG_ARCHIVED', 'Archived Tags cannot be edited.', { statusCode: 409 });
-  if (tag.status === 'published') throw new VocabularyCatalogManagementError('PUBLISHED_ENTITY_IMMUTABLE', 'Published Tags cannot be edited. Archive and replace the content through a reviewed workflow.', { statusCode: 409 });
   if (Object.hasOwn(body, 'name')) tag.name = normalizeName(body.name, 'name');
   if (Object.hasOwn(body, 'slug')) tag.slug = normalizeSlug(body.slug);
   if (Object.hasOwn(body, 'description')) tag.description = normalizeDescription(body.description);
@@ -350,7 +349,7 @@ export async function listManagedVocabularyChapters(tagId, { search = '', status
   await loadTag(tagObjectId);
   const pagination = parsePage(page, limit);
   if (typeof search !== 'string' || search.length > 80) throw new VocabularyCatalogManagementError('INVALID_SEARCH', 'Search must be at most 80 characters.');
-  if (status && !['draft', 'published', 'archived'].includes(status)) throw new VocabularyCatalogManagementError('INVALID_STATUS', 'Unsupported Chapter status.');
+  if (status && !['draft', 'published', 'hidden', 'archived'].includes(status)) throw new VocabularyCatalogManagementError('INVALID_STATUS', 'Unsupported Chapter status.');
   const filter = {
     tagId: tagObjectId,
     ...(status ? { status } : {}),
@@ -438,7 +437,7 @@ export async function createManagedVocabularyChapter(tagId, body) {
       description: body.description === undefined ? '' : normalizeDescription(body.description),
       chapterNumber: requireChapterNumber(body.chapterNumber),
       sortOrder: requireSortOrder(body.sortOrder ?? 0),
-      status: 'draft',
+      status: 'published',
     }]);
     return asChapterSummary(chapter);
   } catch (error) {
@@ -455,7 +454,6 @@ export async function updateManagedVocabularyChapter(chapterId, body) {
   const version = requireVersion(body.expectedVersion);
   if ((chapter.__v || 0) !== version) throw new VocabularyCatalogManagementError('CONCURRENT_MODIFICATION', 'The Chapter changed. Reload it before saving.', { statusCode: 409 });
   if (chapter.status === 'archived') throw new VocabularyCatalogManagementError('CHAPTER_ARCHIVED', 'Archived Chapters cannot be edited.', { statusCode: 409 });
-  if (chapter.status === 'published') throw new VocabularyCatalogManagementError('PUBLISHED_ENTITY_IMMUTABLE', 'Published Chapters cannot be edited. Archive and replace the content through a reviewed workflow.', { statusCode: 409 });
   let targetTag = null;
   if (Object.hasOwn(body, 'tagId')) {
     targetTag = await requireWritableTag(body.tagId);

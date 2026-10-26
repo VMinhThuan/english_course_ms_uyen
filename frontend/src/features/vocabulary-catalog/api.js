@@ -30,13 +30,15 @@ export function createVocabularyCatalogApi({
   const catalogRoot = String(catalogBaseUrl).replace(/\/$/, '');
   const importRoot = String(importBaseUrl).replace(/\/$/, '');
 
-  async function request(root, path, { method = 'GET', body, query } = {}) {
+  async function request(root, path, { method = 'GET', body, formData, query } = {}) {
     const search = query ? `?${new URLSearchParams(Object.entries(query).filter(([, value]) => value !== '' && value !== null && value !== undefined)).toString()}` : '';
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort('request-timeout'), timeoutMs);
     const headers = { ...getHeaders() };
     const options = { method, credentials: 'include', headers, signal: controller.signal };
-    if (body !== undefined) {
+    if (formData !== undefined) {
+      options.body = formData;
+    } else if (body !== undefined) {
       options.body = JSON.stringify(body);
       headers['Content-Type'] = 'application/json';
     }
@@ -71,10 +73,12 @@ export function createVocabularyCatalogApi({
     getTag(tagId) { return catalog(`/tags/${encodeURIComponent(tagId)}`); },
     createTag(body) { return catalog('/tags', { method: 'POST', body }); },
     updateTag(tagId, body) { return catalog(`/tags/${encodeURIComponent(tagId)}`, { method: 'PATCH', body }); },
+    setTagVisibility(tagId, isVisible) { return catalog(`/tags/${encodeURIComponent(tagId)}/visibility`, { method: 'PATCH', body: { isVisible } }); },
     archiveTag(tagId, body) { return catalog(`/tags/${encodeURIComponent(tagId)}/archive`, { method: 'POST', body }); },
     listChapters(tagId, query) { return catalog(`/tags/${encodeURIComponent(tagId)}/chapters`, { query }); },
     listTagVocabulary(tagId, query) { return catalog(`/tags/${encodeURIComponent(tagId)}/vocabulary`, { query }); },
     createChapter(tagId, body) { return catalog(`/tags/${encodeURIComponent(tagId)}/chapters`, { method: 'POST', body }); },
+    setChapterVisibility(chapterId, isVisible) { return catalog(`/chapters/${encodeURIComponent(chapterId)}/visibility`, { method: 'PATCH', body: { isVisible } }); },
     getChapter(chapterId) { return catalog(`/chapters/${encodeURIComponent(chapterId)}`); },
     updateChapter(chapterId, body) { return catalog(`/chapters/${encodeURIComponent(chapterId)}`, { method: 'PATCH', body }); },
     archiveChapter(chapterId, body) { return catalog(`/chapters/${encodeURIComponent(chapterId)}/archive`, { method: 'POST', body }); },
@@ -82,6 +86,12 @@ export function createVocabularyCatalogApi({
     addMembership(chapterId, body) { return catalog(`/chapters/${encodeURIComponent(chapterId)}/memberships`, { method: 'POST', body }); },
     reorderMemberships(chapterId, body) { return catalog(`/chapters/${encodeURIComponent(chapterId)}/memberships/reorder`, { method: 'POST', body }); },
     listVocabularyOptions(query) { return catalog('/vocabulary-options', { query }); },
+    previewDocx(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      return catalog('/import-docx/preview', { method: 'POST', formData });
+    },
+    publishDocx(body) { return catalog('/import-docx/publish', { method: 'POST', body }); },
     listBatches(query) { return imports('', { query }); },
     getBatch(batchId) { return imports(`/${encodeURIComponent(batchId)}`); },
     getBatchMapping(batchId) { return imports(`/${encodeURIComponent(batchId)}/catalog-mapping`); },

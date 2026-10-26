@@ -16,14 +16,6 @@ const assessmentSchema = new mongoose.Schema(
       enum: ['exercise', 'exam'],
       required: true,
     },
-    lesson: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Lesson',
-    },
-    course: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Course',
-    },
     questions: [
       {
         question: {

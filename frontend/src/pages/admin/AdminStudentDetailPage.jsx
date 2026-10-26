@@ -48,13 +48,6 @@ export default function AdminStudentDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState('');
 
-  const [progress, setProgress] = useState(null);
-  const [progressLoading, setProgressLoading] = useState(true);
-  const [progressError, setProgressError] = useState('');
-  const [lessonPage, setLessonPage] = useState(1);
-  const [coursePage, setCoursePage] = useState(1);
-  const [courseFilter, setCourseFilter] = useState('');
-
   const [attempts, setAttempts] = useState(null);
   const [attemptLoading, setAttemptLoading] = useState(true);
   const [attemptError, setAttemptError] = useState('');
@@ -74,25 +67,6 @@ export default function AdminStudentDetailPage() {
       .finally(() => { if (active) setStudentLoading(false); });
     return () => { active = false; };
   }, [id]);
-
-  useEffect(() => {
-    let active = true;
-    setProgressLoading(true);
-    setProgressError('');
-    adminApi.getStudentProgress(id, {
-      page: lessonPage,
-      limit: 20,
-      coursePage,
-      courseLimit: 20,
-      ...(courseFilter ? { courseId: courseFilter } : {}),
-    })
-      .then((response) => { if (active) setProgress(response.data); })
-      .catch((requestError) => {
-        if (active) setProgressError(requestError.response?.data?.message || 'Không thể tải tiến độ học tập.');
-      })
-      .finally(() => { if (active) setProgressLoading(false); });
-    return () => { active = false; };
-  }, [id, lessonPage, coursePage, courseFilter]);
 
   useEffect(() => {
     let active = true;
@@ -140,10 +114,6 @@ export default function AdminStudentDetailPage() {
     ['Lần đăng nhập gần nhất', dateTime(student.lastLoginAt)],
   ];
   const content = action ? actionContent[action] : null;
-  const courseSummary = courseFilter
-    ? (progress?.courses || []).find((course) => String(course._id) === String(courseFilter))
-    : null;
-  const visibleProgress = courseSummary || progress;
   const attemptSummary = attempts?.summary || {};
 
   return <div className="admin-page-container admin-student-detail-page">
@@ -159,26 +129,9 @@ export default function AdminStudentDetailPage() {
 
     <section className="admin-panel student-detail-panel"><div className="admin-panel-head"><div><h2>Thông tin tài khoản</h2><p>Thông tin đăng ký và hoạt động gần nhất của học viên.</p></div></div><dl className="student-detail-grid">{fields.map(([name, value]) => <div key={name}><dt>{name}</dt><dd title={value || ''}>{value || '—'}</dd></div>)}</dl></section>
 
-    <section className="admin-summary-grid student-learning-summary" aria-label="Tổng quan học tập">
-      <article className="admin-summary-card"><span>Khóa học đã đăng ký</span><strong>{progress?.totalCourses ?? '—'}</strong><small>Các khóa được lấy từ enrollment và liên kết học viên cũ.</small></article>
-      <article className="admin-summary-card"><span>Bài học hoàn thành</span><strong>{visibleProgress?.completedLessons ?? '—'} / {visibleProgress?.totalLessons ?? '—'}</strong><small>{visibleProgress?.completionPercentage ?? 0}% bài học đã xuất bản.</small></article>
+    <section className="admin-summary-grid student-learning-summary" aria-label="Tổng quan bài làm">
       <article className="admin-summary-card"><span>Lượt đã chấm</span><strong>{attemptSummary.scoredAttemptCount ?? '—'}</strong><small>{attemptSummary.distinctStudents ? 'Tổng số lượt làm được giữ riêng.' : 'Điểm 0 hợp lệ vẫn được tính khi có thang điểm.'}</small></article>
       <article className="admin-summary-card"><span>Đang làm / chờ chấm</span><strong>{attemptSummary.inProgressCount ?? '—'} / {attemptSummary.expiredPendingCount ?? '—'}</strong><small>GET báo cáo chỉ đọc, không tự chấm attempt.</small></article>
-    </section>
-
-    <section className="admin-panel student-detail-panel">
-      <div className="admin-panel-head"><div><h2>Khóa học đã đăng ký</h2><p>Tiến độ được tính trên các bài học đã xuất bản; bài ẩn và chưa xuất bản không nằm trong mẫu số.</p></div></div>
-      {progressError && <div className="admin-error" role="alert">{progressError}</div>}
-      {progressLoading ? <div className="admin-table-skeleton"><i /><i /><i /></div> : (progress?.courses || []).length === 0
-        ? <div className="admin-empty">Học viên chưa có khóa học nào được ghi nhận.</div>
-        : <><div className="admin-table-container"><table className="admin-data-table student-detail-table"><thead><tr><th>Khóa học</th><th>Ngày đăng ký</th><th>Bài hoàn thành</th><th>Tiến độ</th><th>Hoạt động gần nhất</th><th></th></tr></thead><tbody>{progress.courses.map((course) => <tr key={course._id}><td><strong>{course.title}</strong></td><td>{dateOnly(course.enrolledAt)}</td><td>{course.completedLessons} / {course.totalLessons}</td><td>{course.completionPercentage}%</td><td>{dateTime(course.lastLearningActivity)}</td><td><button type="button" className="admin-quiet-button" onClick={() => { setCourseFilter(String(course._id)); setLessonPage(1); }}>Bài học</button></td></tr>)}</tbody></table></div><Pagination label="Phân trang khóa học" page={progress.coursePagination?.page || 1} pages={progress.coursePagination?.pages || 0} onChange={setCoursePage} /></>}
-    </section>
-
-    <section className="admin-panel student-detail-panel">
-      <div className="admin-panel-head"><div><h2>Bài học và tiến độ</h2><p>{progress?.lastLearningActivity ? `Hoạt động học gần nhất: ${dateTime(progress.lastLearningActivity)}.` : 'Chưa ghi nhận hoạt động học tập.'}</p></div><label className="student-history-filter">Lọc khóa học<select value={courseFilter} onChange={(event) => { setCourseFilter(event.target.value); setLessonPage(1); }}><option value="">Tất cả khóa học</option>{(progress?.courses || []).map((course) => <option key={course._id} value={course._id}>{course.title}</option>)}</select></label></div>
-      {progressError ? null : progressLoading ? <div className="admin-table-skeleton"><i /><i /></div> : (progress?.lessons || []).length === 0
-        ? <div className="admin-empty">Không có bài học đã xuất bản trong phạm vi này.</div>
-        : <><div className="admin-table-container"><table className="admin-data-table student-detail-table"><thead><tr><th>Bài học</th><th>Khóa học</th><th>Trạng thái</th><th>Tiến độ</th><th>Hoàn thành</th><th>Truy cập gần nhất</th></tr></thead><tbody>{progress.lessons.map((lesson) => <tr key={lesson._id}><td><strong>{lesson.title}</strong></td><td>{lesson.course?.title || '—'}</td><td><span className={`student-learning-state ${lesson.status}`}>{({ completed: 'Hoàn thành', in_progress: 'Đang học', not_started: 'Chưa bắt đầu' })[lesson.status] || 'Chưa xác định'}</span></td><td>{lesson.progress}%</td><td>{dateTime(lesson.completedAt)}</td><td>{dateTime(lesson.lastAccessedAt)}</td></tr>)}</tbody></table></div><Pagination label="Phân trang bài học" page={progress.lessonPagination?.page || 1} pages={progress.lessonPagination?.pages || 0} onChange={setLessonPage} /></>}
     </section>
 
     <section className="admin-panel student-detail-panel">

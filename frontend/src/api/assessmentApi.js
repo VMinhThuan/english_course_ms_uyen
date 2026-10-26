@@ -42,6 +42,15 @@ export const assessmentApi = {
     return response.data;
   },
 
+  getStudentPart5Questions: async (params = {}) => {
+    const response = await axiosInstance.get('/questions/part-5', { params });
+    return response.data;
+  },
+  submitStudentPart5Answer: async (questionId, answer) => {
+    const response = await axiosInstance.post(`/questions/part-5/${questionId}/submit`, { answer });
+    return response.data;
+  },
+
   // Admin Question Bank APIs
   getAdminQuestions: async (params = {}) => {
     const response = await axiosInstance.get('/admin/questions', { params });

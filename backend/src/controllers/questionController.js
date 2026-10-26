@@ -1,7 +1,8 @@
 import Question from '../models/Question.js';
-import Lesson from '../models/Lesson.js';
 import Assessment from '../models/Assessment.js';
 import Attempt from '../models/Attempt.js';
+
+const normalizePart5Answer = (value) => String(value ?? '').normalize('NFKC').trim().toLocaleLowerCase('en');
 
 // Helper to validate type rules
 const validateQuestionPayload = ({ type, options, correctAnswers }) => {
@@ -82,7 +83,7 @@ const validatePart5QuestionPayload = ({ questionText, type, options, correctAnsw
 // @access  Private (Admin/Teacher)
 export const createQuestion = async (req, res, next) => {
   try {
-    const { questionText, type, explanation, options, correctAnswers, score, lesson, topic, status, toeicPart } = req.body;
+    const { questionText, type, explanation, options, correctAnswers, score, topic, status, toeicPart } = req.body;
 
     if (!questionText) {
       return res.status(400).json({
@@ -101,16 +102,6 @@ export const createQuestion = async (req, res, next) => {
       });
     }
 
-    if (lesson) {
-      const parentLesson = await Lesson.findById(lesson);
-      if (!parentLesson) {
-        return res.status(404).json({
-          status: 'error',
-          message: 'Referenced lesson does not exist',
-        });
-      }
-    }
-
     const question = await Question.create({
       questionText,
       type,
@@ -118,7 +109,6 @@ export const createQuestion = async (req, res, next) => {
       options: options || [],
       correctAnswers,
       score: score || 1,
-      lesson: lesson || null,
       topic: topic || 'General',
       status: status || 'draft',
       ...(toeicPart !== undefined ? { toeicPart } : {}),
@@ -142,10 +132,9 @@ export const createQuestion = async (req, res, next) => {
 // @access  Private (Admin/Teacher)
 export const getQuestions = async (req, res, next) => {
   try {
-    const { search, lesson, topic, type, status, toeicPart, page = 1, limit = 50 } = req.query;
+    const { search, topic, type, status, toeicPart, page = 1, limit = 50 } = req.query;
 
     const filter = {};
-    if (lesson) filter.lesson = lesson;
     if (topic) filter.topic = topic;
     if (type) filter.type = type;
     if (status) filter.status = status;
@@ -169,7 +158,6 @@ export const getQuestions = async (req, res, next) => {
 
     const total = await Question.countDocuments(filter);
     const questions = await Question.find(filter)
-      .populate('lesson', 'title status')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
@@ -197,7 +185,7 @@ export const getQuestions = async (req, res, next) => {
 export const getQuestionById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const question = await Question.findById(id).populate('lesson', 'title status');
+    const question = await Question.findById(id);
 
     if (!question) {
       return res.status(404).json({
@@ -214,6 +202,60 @@ export const getQuestionById = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// Published Part 5 bank only. Correct answers are deliberately omitted until submission.
+export const getStudentPart5Questions = async (req, res, next) => {
+  try {
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const search = typeof req.query.search === 'string' ? req.query.search.trim().slice(0, 80) : '';
+    const filter = {
+      toeicPart: 5,
+      status: 'published',
+      ...(search ? { questionText: { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } } : {}),
+    };
+    const [items, total] = await Promise.all([
+      Question.find(filter)
+        .select('_id questionText type options topic')
+        .sort({ createdAt: 1, _id: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Question.countDocuments(filter),
+    ]);
+    return res.json({
+      status: 'success',
+      data: { items, pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 } },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const submitStudentPart5Answer = async (req, res, next) => {
+  try {
+    const selected = typeof req.body.answer === 'string' ? req.body.answer : '';
+    if (!selected) return res.status(400).json({ status: 'error', message: 'Hãy chọn một đáp án.' });
+
+    const question = await Question.findOne({ _id: req.params.id, toeicPart: 5, status: 'published' })
+      .select('correctAnswers explanation options')
+      .lean();
+    if (!question) return res.status(404).json({ status: 'error', message: 'Câu hỏi Part 5 không khả dụng.' });
+
+    const answer = question.correctAnswers?.[0] || '';
+    const correctOption = question.options?.find((option) => normalizePart5Answer(option.id) === normalizePart5Answer(answer)) || null;
+    return res.json({
+      status: 'success',
+      data: {
+        isCorrect: normalizePart5Answer(selected) === normalizePart5Answer(answer),
+        correctOption,
+        explanation: question.explanation || '',
+      },
+    });
+  } catch (error) {
+    return next(error);
   }
 };
 

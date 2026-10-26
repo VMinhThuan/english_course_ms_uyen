@@ -11,14 +11,6 @@ import { getPublicUploadDir, getUploadDir } from './utils/uploadConfig.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
-import courseRoutes from './routes/courseRoutes.js';
-import instructorRoutes from './routes/instructorRoutes.js';
-import enrollmentRoutes from './routes/enrollmentRoutes.js';
-import lessonRoutes from './routes/lessonRoutes.js';
-import materialRoutes from './routes/materialRoutes.js';
-import vocabularyRoutes from './routes/vocabularyRoutes.js';
-import progressRoutes from './routes/progressRoutes.js';
-import testRoutes from './routes/testRoutes.js';
 import questionRoutes from './routes/questionRoutes.js';
 import assessmentRoutes from './routes/assessmentRoutes.js';
 import attemptRoutes from './routes/attemptRoutes.js';
@@ -29,8 +21,6 @@ import mediaRoutes from './routes/mediaRoutes.js';
 import { adminPart1DictationRoutes, studentPart1DictationRoutes } from './routes/part1DictationRoutes.js';
 import { verifyToken, checkRole } from './middlewares/auth.js';
 import { createVocabularyCatalogManagementPrototypeRouter } from './routes/vocabularyCatalogManagementPrototypeRoutes.js';
-import { createVocabularyImportPrototypeRouter } from './routes/vocabularyImportPrototypeRoutes.js';
-import { createVocabularyPublicationPrototypeRouter } from './routes/vocabularyPublicationPrototypeRoutes.js';
 import { createStudentVocabularyCatalogPrototypeRouter } from './routes/studentVocabularyCatalogPrototypeRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -85,7 +75,8 @@ const corsOptions = {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
-app.use(express.json());
+app.use('/api/v1/admin/vocabulary-catalog/import-docx/publish', express.json({ limit: '12mb', strict: true }));
+app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -94,9 +85,14 @@ const uploadStaticHeaders = (res) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
 };
 
+const publicUploadStaticHeaders = (res) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+};
+
 // New public media is separated from lesson/material uploads. Private and legacy files are
 // intercepted before static serving so a public URL cannot bypass a Material access check.
-app.use('/uploads/public', protectPublicUpload, express.static(getPublicUploadDir(), { setHeaders: uploadStaticHeaders }));
+app.use('/uploads/public', protectPublicUpload, express.static(getPublicUploadDir(), { setHeaders: publicUploadStaticHeaders }));
 app.use('/uploads/private', protectPrivateUpload);
 app.use('/uploads', protectLegacyUpload, express.static(getUploadDir(), { setHeaders: uploadStaticHeaders }));
 
@@ -138,27 +134,12 @@ app.use('/api', async (req, res, next) => {
 
 // 4. API Routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/courses', courseRoutes);
-app.use('/api/v1/instructors', instructorRoutes);
-app.use('/api/v1/enrollments', enrollmentRoutes);
-app.use('/api/v1/lessons', lessonRoutes);
-app.use('/api/v1/materials', materialRoutes);
-app.use('/api/v1/vocabulary', vocabularyRoutes);
 app.use('/api/v1/admin/vocabulary-catalog', createVocabularyCatalogManagementPrototypeRouter({
-    authenticateAdmin: authenticateVocabularyCatalogAdmin,
-}));
-app.use('/api/v1/admin/vocabulary-import-batches', createVocabularyImportPrototypeRouter({
-    authenticateAdmin: authenticateVocabularyCatalogAdmin,
-    requireCatalogMappingForConfirm: true,
-}));
-app.use('/api/v1/admin/vocabulary-publication', createVocabularyPublicationPrototypeRouter({
     authenticateAdmin: authenticateVocabularyCatalogAdmin,
 }));
 app.use('/api/v1/student/vocabulary-catalog', createStudentVocabularyCatalogPrototypeRouter({
     authenticateStudent: authenticateVocabularyCatalogStudent,
 }));
-app.use('/api/v1/progress', progressRoutes);
-app.use('/api/v1/tests', testRoutes);
 app.use('/api/v1/questions', questionRoutes);
 app.use('/api/v1/assessments', assessmentRoutes);
 app.use('/api/v1/attempts', attemptRoutes);

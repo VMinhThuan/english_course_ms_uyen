@@ -23,14 +23,8 @@ export default function TeacherLayout() {
         </div>
 
         <nav className="teacher-header-nav">
-          <Link to="/admin/courses" className="teacher-header-link">
-            Quản Lý Khóa Học
-          </Link>
-          <Link to="/admin/lessons" className="teacher-header-link">
-            Quản Lý Bài Học
-          </Link>
-          <Link to="/admin/materials" className="teacher-header-link">
-            Quản Lý Tài Liệu
+          <Link to="/admin/assessments" className="teacher-header-link">
+            Bài Tập
           </Link>
           <Link to="/admin/toeic-tests" className="teacher-header-link">
             Quản Lý Đề TOEIC

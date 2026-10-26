@@ -39,8 +39,7 @@ const vocabularySchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
-    // Catalog-only rows share this collection but never acquire synthetic Lesson/Course links.
-    // Missing values on legacy documents remain legacy because the default is false.
+    // Vocabulary is independent from courses and lessons. Legacy rows are migrated into the catalog.
     catalogOnly: {
       type: Boolean,
       default: false,
@@ -66,20 +65,6 @@ const vocabularySchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: '',
-    },
-    lesson: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Lesson',
-      required: function requiredForLegacyVocabulary() {
-        return this.catalogOnly !== true;
-      },
-    },
-    course: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Course',
-      required: function requiredForLegacyVocabulary() {
-        return this.catalogOnly !== true;
-      },
     },
     topic: {
       type: String,
@@ -114,7 +99,6 @@ const vocabularySchema = new mongoose.Schema(
   }
 );
 
-vocabularySchema.index({ lesson: 1, topic: 1, order: 1 });
 vocabularySchema.index(
   { catalogStatus: 1, word: 1, _id: 1 },
   {

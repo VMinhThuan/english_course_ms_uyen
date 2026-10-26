@@ -7,7 +7,6 @@ export const adminApi = {
   },
   getStudent: async (id) => (await axiosInstance.get(`/admin/students/${id}`)).data,
   createStudent: async (data) => (await axiosInstance.post('/admin/students', data)).data,
-  getStudentProgress: async (id, params = {}) => (await axiosInstance.get(`/admin/students/${id}/progress`, { params })).data,
   getStudentAttempts: async (id, params = {}) => (await axiosInstance.get(`/admin/students/${id}/attempts`, { params })).data,
 
   approveStudent: async (id) => {

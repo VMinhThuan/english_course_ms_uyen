@@ -33,10 +33,6 @@ const questionSchema = new mongoose.Schema(
       default: 1,
       min: 0.1,
     },
-    lesson: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Lesson',
-    },
     topic: {
       type: String,
       default: 'General',

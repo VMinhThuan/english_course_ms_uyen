@@ -115,8 +115,8 @@ export default function HomePage() {
 
           <nav className={`nav-links ${mobileMenuOpen ? 'mobile-show' : ''}`}>
             <Link to="/" className="active" onClick={() => setMobileMenuOpen(false)}>Trang Chủ</Link>
-            <Link to={isAuthenticated ? "/student/my-courses" : "/login"} onClick={() => setMobileMenuOpen(false)}>Tài Liệu</Link>
-            <Link to={isAuthenticated ? "/student/my-courses" : "/login"} onClick={() => setMobileMenuOpen(false)}>Từ Vựng</Link>
+            <Link to={isAuthenticated ? "/student/part-1" : "/login"} onClick={() => setMobileMenuOpen(false)}>Chép chính tả Part 1</Link>
+            <Link to={isAuthenticated ? "/student/vocabulary-catalog" : "/login"} onClick={() => setMobileMenuOpen(false)}>Từ Vựng</Link>
             <Link to={isAuthenticated ? "/student/assessments" : "/login"} onClick={() => setMobileMenuOpen(false)}>Luyện Tập</Link>
             <Link to={isAuthenticated ? "/student/toeic" : "/login"} onClick={() => setMobileMenuOpen(false)}>Thi Thử TOEIC</Link>
           </nav>
@@ -395,7 +395,7 @@ export default function HomePage() {
                     <polyline points="14 2 14 8 20 8"></polyline>
                   </svg>
                 </div>
-                <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="eco-arrow-link" aria-label="Xem tài liệu">
+                <Link to={isAuthenticated ? "/student/part-1" : "/login"} className="eco-arrow-link" aria-label="Mở chép chính tả Part 1">
                   →
                 </Link>
               </div>
@@ -430,7 +430,7 @@ export default function HomePage() {
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                   </svg>
                 </div>
-                <Link to={isAuthenticated ? "/student/my-courses" : "/login"} className="eco-arrow-link" aria-label="Xem từ vựng">
+                <Link to={isAuthenticated ? "/student/vocabulary-catalog" : "/login"} className="eco-arrow-link" aria-label="Xem từ vựng">
                   →
                 </Link>
               </div>
@@ -898,8 +898,8 @@ export default function HomePage() {
             <div className="footer-col">
               <h4 className="footer-col-title">Học Tập</h4>
               <ul className="footer-link-list">
-                <li><Link to={isAuthenticated ? "/student/my-courses" : "/login"}>Tài Liệu Học Tập</Link></li>
-                <li><Link to={isAuthenticated ? "/student/my-courses" : "/login"}>Sổ Tay Từ Vựng</Link></li>
+                <li><Link to={isAuthenticated ? "/student/part-1" : "/login"}>Chép chính tả Part 1</Link></li>
+                <li><Link to={isAuthenticated ? "/student/vocabulary-catalog" : "/login"}>Sổ Tay Từ Vựng</Link></li>
                 <li><Link to={isAuthenticated ? "/student/assessments" : "/login"}>Luyện Tập Tự Chấm</Link></li>
               </ul>
             </div>

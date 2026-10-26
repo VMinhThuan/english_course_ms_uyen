@@ -14,8 +14,9 @@ export default function AdminStatisticsPage() {
     finally { setLoading(false); }
   };
   const cards = [
-    ['Tổng số học viên dự tổng', stats?.totalStudents || 0, `${stats?.activeStudents || 0} học viên active · ${stats?.pendingStudents || 0} đang chờ duyệt`],
-    ['Bài học đã xuất bản', stats?.publishedLessons || 0, 'Đã sẵn sàng cho học viên học tập'],
+    ['Tổng số học viên', stats?.totalStudents || 0, `${stats?.activeStudents || 0} học viên đang hoạt động · ${stats?.pendingStudents || 0} chờ duyệt`],
+    ['Bài tập đang mở', stats?.publishedExercises || 0, 'Hiển thị cho toàn bộ học viên'],
+    ['Đề thi TOEIC đang mở', stats?.publishedToeicTests || 0, 'Đề thi đã xuất bản'],
     ['Lượt nộp bài tập & thi', stats?.completedAttempts || 0, 'Đã được máy chủ tự động chấm điểm'],
     ['Tỷ lệ điểm trung bình', `${stats?.averageScore || 0}%`, 'Tính trên tổng tất cả các lượt làm bài'],
   ];

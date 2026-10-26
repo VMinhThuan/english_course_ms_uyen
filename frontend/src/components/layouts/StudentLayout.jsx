@@ -24,12 +24,12 @@ export default function StudentLayout() {
     const path = location.pathname;
     let pageTitle = 'Học viên';
     if (path.includes('dashboard')) pageTitle = 'Trang chủ';
-    else if (path.includes('/courses/')) pageTitle = path.includes('/lessons/') ? 'Bài học' : 'Khóa học';
-    else if (path === '/student/courses') pageTitle = 'Bài học';
+    else if (path.includes('part-1')) pageTitle = 'Chép chính tả Part 1';
+    else if (path.includes('part-5')) pageTitle = 'Ngân hàng Part 5';
     else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
     else if (path.includes('/tests/')) pageTitle = 'Đang làm bài kiểm tra';
-    else if (path.includes('assessments')) pageTitle = 'Luyện tập';
-    else if (path.includes('toeic')) pageTitle = 'Thi thử TOEIC';
+    else if (path.includes('assessments')) pageTitle = 'Bài tập';
+    else if (path.includes('toeic')) pageTitle = 'Đề thi TOEIC';
     else if (path.includes('history')) pageTitle = 'Lịch sử';
     else if (path.includes('profile')) pageTitle = 'Hồ sơ';
 
@@ -236,19 +236,6 @@ export default function StudentLayout() {
           </NavLink>
 
           <NavLink
-            to="/student/courses"
-            end
-            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
-            <span>Bài Học</span>
-          </NavLink>
-
-          <NavLink
             to="/student/assessments"
             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             onClick={closeMobileMenu}
@@ -257,7 +244,7 @@ export default function StudentLayout() {
               <path d="M9 11l3 3L22 4"></path>
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
             </svg>
-            <span>Bài Tập & Đề Thi</span>
+            <span>Bài Tập</span>
           </NavLink>
 
           <NavLink
@@ -266,7 +253,7 @@ export default function StudentLayout() {
             onClick={closeMobileMenu}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
-            <span>Vocabulary Catalog</span>
+            <span>Từ Vựng</span>
           </NavLink>
 
           <NavLink
@@ -282,12 +269,21 @@ export default function StudentLayout() {
           </NavLink>
 
           <NavLink
-            to="/student/toeic/part-1"
+            to="/student/part-1"
             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             onClick={closeMobileMenu}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
             <span>Luyện nghe Part 1</span>
+          </NavLink>
+
+          <NavLink
+            to="/student/part-5"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 5h16M4 12h16M4 19h16" /><path d="m8 9 2 2-2 2" /></svg>
+            <span>Ngân hàng Part 5</span>
           </NavLink>
 
           <NavLink

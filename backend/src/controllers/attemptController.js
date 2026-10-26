@@ -40,6 +40,7 @@ export const getAvailableAssessments = async (req, res, next) => {
     const now = new Date();
     const filter = {
       status: 'published',
+      type: 'exercise',
       examFormat: { $in: ['standard', null] },
       $and: [
         { $or: [{ availableFrom: null }, { availableFrom: { $lte: now } }] },
@@ -47,10 +48,7 @@ export const getAvailableAssessments = async (req, res, next) => {
       ],
     };
 
-    const assessments = await Assessment.find(filter)
-      .populate('lesson', 'title')
-      .populate('course', 'title')
-      .select('-questions.question');
+    const assessments = await Assessment.find(filter).select('-questions.question');
 
     const assessmentIds = assessments.map((assessment) => assessment._id);
     let attempts = assessmentIds.length
@@ -122,13 +120,14 @@ export const getStudentActiveAttempts = async (req, res, next) => {
       status: 'in_progress',
       deadlineAt: { $gt: new Date() },
     })
-      .populate('assessment', 'title examFormat toeicMode')
+      .populate('assessment', 'title type examFormat toeicMode')
       .sort({ startedAt: -1 });
 
     const activeAttempts = attempts.reduce((items, attempt) => {
       const assessment = attempt.assessment;
       const engine = resolveAttemptEngine(attempt, assessment);
       if (!assessment || !engine) return items;
+      if (assessment.type === 'exam' && assessment.examFormat !== 'toeic') return items;
 
       items.push({
         attemptId: attempt._id,
@@ -153,11 +152,13 @@ export const getStudentActiveAttempts = async (req, res, next) => {
 export const getStudentAssessmentById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const assessment = await Assessment.findById(id)
-      .populate('lesson', 'title')
-      .populate('course', 'title');
+    const assessment = await Assessment.findOne({
+      _id: id,
+      type: 'exercise',
+      examFormat: { $in: ['standard', null] },
+    });
 
-    if (!assessment || assessment.status !== 'published' || assessment.examFormat !== 'standard') {
+    if (!assessment || assessment.status !== 'published') {
       return res.status(404).json({
         status: 'error',
         message: 'Assessment not found or not available',
@@ -194,7 +195,7 @@ export const startAttempt = async (req, res, next) => {
     const studentId = req.user._id;
 
     const assessment = await Assessment.findById(id);
-    if (!assessment || assessment.status !== 'published') {
+    if (!assessment || assessment.status !== 'published' || assessment.type !== 'exercise') {
       return res.status(404).json({
         status: 'error',
         message: 'Assessment not found or not published',

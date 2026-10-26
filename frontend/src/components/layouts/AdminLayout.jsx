@@ -16,10 +16,8 @@ export default function AdminLayout() {
     const path = location.pathname;
     let pageTitle = 'Quản trị';
     if (path.includes('students')) pageTitle = 'Quản lý Học viên';
-    else if (path.includes('courses')) pageTitle = 'Quản lý Khóa học';
-    else if (path.includes('lessons')) pageTitle = 'Quản lý Bài học';
-    else if (path.includes('materials')) pageTitle = 'Quản lý Tài liệu';
     else if (path.includes('vocabulary')) pageTitle = 'Quản lý Từ vựng';
+    else if (path.includes('part1-dictations')) pageTitle = 'Chép chính tả Part 1';
     else if (path.includes('questions')) pageTitle = isAdmin ? 'Ngân hàng Part 5' : 'Ngân hàng Câu hỏi';
     else if (path.includes('assessments')) pageTitle = 'Quản lý Bài tập';
     else if (path.includes('toeic')) pageTitle = 'Quản lý Đề thi TOEIC';
@@ -120,44 +118,7 @@ export default function AdminLayout() {
           </NavLink>
 
           <NavLink
-            to="/admin/courses"
-            className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-              <path d="M2 17l10 5 10-5"></path>
-              <path d="M2 12l10 5 10-5"></path>
-            </svg>
-            <span>Quản Lý Khóa Học</span>
-          </NavLink>
-
-          <NavLink
-            to="/admin/lessons"
-            className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
-            <span>Quản Lý Bài Học</span>
-          </NavLink>
-
-          <NavLink
-            to="/admin/materials"
-            className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-            </svg>
-            <span>Quản Lý Tài Liệu</span>
-          </NavLink>
-
-          <NavLink
-            to={isAdmin ? "/admin/vocabulary/catalog" : "/admin/vocabulary"}
+            to="/admin/vocabulary"
             className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
             onClick={closeMobileMenu}
           >
@@ -200,7 +161,7 @@ export default function AdminLayout() {
               <path d="M9 11l3 3L22 4"></path>
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
             </svg>
-            <span>Bài Tập & Đề Thi</span>
+            <span>Bài Tập</span>
           </NavLink>
 
           <NavLink

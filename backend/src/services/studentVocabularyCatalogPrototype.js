@@ -238,7 +238,12 @@ function eligibleMembershipStages() {
         as: '_approvedImportEvidence',
       },
     },
-    { $match: { $expr: { $gt: [{ $size: '$_approvedImportEvidence' }, 0] } } },
+    // Quick DOCX imports are published directly by an admin and intentionally
+    // do not create the legacy multi-step review/audit records.
+    { $match: { $expr: { $or: [
+      { $regexMatch: { input: { $ifNull: ['$sourceIdentity', ''] }, regex: '^quick-docx-' } },
+      { $gt: [{ $size: '$_approvedImportEvidence' }, 0] },
+    ] } } },
   ];
 }
 

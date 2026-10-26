@@ -361,7 +361,6 @@ export const activateStudent = async (req, res, next) => {
 // @access  Private (Admin only)
 export const getAdminStats = async (req, res, next) => {
   try {
-    const Lesson = (await import('../models/Lesson.js')).default;
     const Assessment = (await import('../models/Assessment.js')).default;
     const Attempt = (await import('../models/Attempt.js')).default;
 
@@ -369,7 +368,8 @@ export const getAdminStats = async (req, res, next) => {
       totalStudents,
       pendingStudents,
       activeStudents,
-      publishedLessons,
+      publishedExercises,
+      publishedToeicTests,
       totalAssessments,
       completedAttempts,
       submittedAttempts,
@@ -379,7 +379,8 @@ export const getAdminStats = async (req, res, next) => {
       User.countDocuments({ role: 'student' }),
       User.countDocuments({ role: 'student', status: 'pending' }),
       User.countDocuments({ role: 'student', status: 'active' }),
-      Lesson.countDocuments({ status: 'published' }),
+      Assessment.countDocuments({ type: 'exercise', examFormat: { $in: ['standard', null] }, status: 'published' }),
+      Assessment.countDocuments({ examFormat: 'toeic', status: 'published' }),
       Assessment.countDocuments({}),
       Attempt.countDocuments({ status: 'submitted' }),
       Attempt.find({ status: 'submitted' }).select('score maxScore scorePercentage'),
@@ -409,7 +410,8 @@ export const getAdminStats = async (req, res, next) => {
         totalStudents,
         pendingStudents,
         activeStudents,
-        publishedLessons,
+        publishedExercises,
+        publishedToeicTests,
         totalAssessments,
         completedAttempts,
         averageScore: avgPercentage,

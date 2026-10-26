@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const VOCABULARY_CATALOG_STATUSES = Object.freeze(['draft', 'published', 'archived']);
+export const VOCABULARY_CATALOG_STATUSES = Object.freeze(['draft', 'published', 'hidden', 'archived']);
 
 const vocabularyTagSchema = new mongoose.Schema(
   {
@@ -27,7 +27,7 @@ const vocabularyTagSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: VOCABULARY_CATALOG_STATUSES,
-      default: 'draft',
+      default: 'published',
     },
   },
   { timestamps: true, optimisticConcurrency: true }

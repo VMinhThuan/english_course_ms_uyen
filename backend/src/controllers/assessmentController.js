@@ -1,7 +1,5 @@
 import Assessment from '../models/Assessment.js';
 import Question from '../models/Question.js';
-import Lesson from '../models/Lesson.js';
-import Course from '../models/Course.js';
 import Attempt from '../models/Attempt.js';
 import { hasActiveQuestionBankSelectionLock } from '../services/toeicPart5BankSelection.js';
 
@@ -52,8 +50,6 @@ export const createAssessment = async (req, res, next) => {
       title,
       description,
       type,
-      lesson,
-      course,
       questions,
       durationMinutes,
       status,
@@ -64,37 +60,14 @@ export const createAssessment = async (req, res, next) => {
       passScore,
     } = req.body;
 
-    if (!title || !type || !['exercise', 'exam'].includes(type)) {
+    if (!title || type !== 'exercise') {
       return res.status(400).json({
         status: 'error',
-        message: 'Title and valid type (exercise or exam) are required',
+        message: 'Tên bài và loại bài tập hợp lệ là bắt buộc.',
       });
     }
     if (passScore !== undefined && (!Number.isFinite(Number(passScore)) || Number(passScore) < 0 || Number(passScore) > 100)) {
       return res.status(400).json({ status: 'error', message: 'Pass score must be a percentage between 0 and 100' });
-    }
-
-    let targetCourse = course;
-    let targetLesson = lesson;
-
-    if (lesson) {
-      const lessonDoc = await Lesson.findById(lesson);
-      if (!lessonDoc) {
-        return res.status(404).json({
-          status: 'error',
-          message: 'Referenced lesson does not exist',
-        });
-      }
-      targetCourse = lessonDoc.course;
-      targetLesson = lessonDoc._id;
-    } else if (course) {
-      const courseDoc = await Course.findById(course);
-      if (!courseDoc) {
-        return res.status(404).json({
-          status: 'error',
-          message: 'Referenced course does not exist',
-        });
-      }
     }
 
     let formattedQuestions = [];
@@ -112,9 +85,7 @@ export const createAssessment = async (req, res, next) => {
     const assessment = new Assessment({
       title,
       description: description || '',
-      type,
-      lesson: targetLesson || null,
-      course: targetCourse || null,
+      type: 'exercise',
       questions: formattedQuestions,
       durationMinutes: durationMinutes !== undefined ? Number(durationMinutes) : 30,
       status: status || 'draft',
@@ -145,20 +116,15 @@ export const createAssessment = async (req, res, next) => {
 // @access  Private (Admin/Teacher)
 export const getAdminAssessments = async (req, res, next) => {
   try {
-    const { type, status, lesson, course, search } = req.query;
+    const { status, search } = req.query;
 
-    const filter = {};
-    if (type) filter.type = type;
+    const filter = { type: 'exercise', examFormat: { $in: ['standard', null] } };
     if (status) filter.status = status;
-    if (lesson) filter.lesson = lesson;
-    if (course) filter.course = course;
     if (search) {
       filter.title = { $regex: search, $options: 'i' };
     }
 
     const assessments = await Assessment.find(filter)
-      .populate('lesson', 'title status')
-      .populate('course', 'title')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -178,9 +144,7 @@ export const getAdminAssessments = async (req, res, next) => {
 export const getAdminAssessmentById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const assessment = await Assessment.findById(id)
-      .populate('lesson', 'title status')
-      .populate('course', 'title')
+    const assessment = await Assessment.findOne({ _id: id, type: 'exercise', examFormat: { $in: ['standard', null] } })
       .populate('questions.question');
 
     if (!assessment) {
@@ -189,7 +153,6 @@ export const getAdminAssessmentById = async (req, res, next) => {
         message: 'Assessment not found',
       });
     }
-
     res.json({
       status: 'success',
       data: {
@@ -215,6 +178,9 @@ export const updateAssessment = async (req, res, next) => {
         message: 'Assessment not found',
       });
     }
+    if (assessment.type !== 'exercise' || !['standard', undefined, null].includes(assessment.examFormat)) {
+      return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài tập.' });
+    }
     if (await rejectDuringQuestionBankSelection(id, res)) return;
 
     const updates = { ...req.body };
@@ -235,16 +201,10 @@ export const updateAssessment = async (req, res, next) => {
       }
     }
 
-    if (updates.lesson) {
-      const lessonDoc = await Lesson.findById(updates.lesson);
-      if (!lessonDoc) {
-        return res.status(404).json({
-          status: 'error',
-          message: 'Referenced lesson does not exist',
-        });
-      }
-      updates.course = lessonDoc.course;
-    }
+    delete updates.lesson;
+    delete updates.course;
+    delete updates.type;
+    delete updates.examFormat;
 
     Object.assign(assessment, updates);
     await assessment.save();
@@ -283,6 +243,9 @@ export const updateAssessmentStatus = async (req, res, next) => {
         status: 'error',
         message: 'Assessment not found',
       });
+    }
+    if (assessment.type !== 'exercise' || !['standard', undefined, null].includes(assessment.examFormat)) {
+      return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài tập.' });
     }
     if (await rejectDuringQuestionBankSelection(id, res)) return;
 
@@ -361,6 +324,9 @@ export const deleteAssessment = async (req, res, next) => {
         status: 'error',
         message: 'Assessment not found',
       });
+    }
+    if (assessment.type !== 'exercise' || !['standard', undefined, null].includes(assessment.examFormat)) {
+      return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài tập.' });
     }
     if (await rejectDuringQuestionBankSelection(id, res)) return;
 
