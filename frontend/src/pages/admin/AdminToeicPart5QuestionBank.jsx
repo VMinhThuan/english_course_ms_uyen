@@ -62,6 +62,7 @@ export default function AdminToeicPart5QuestionBank() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const [bulkPublishing, setBulkPublishing] = useState(false);
   const requestId = useRef(0);
 
   const setBankParams = useCallback((changes = {}) => {
@@ -203,6 +204,20 @@ export default function AdminToeicPart5QuestionBank() {
     setSearchParams(new URLSearchParams({ toeicPart: '5' }));
   };
 
+  const handlePublishAll = async () => {
+    if (!window.confirm('Bạn có chắc muốn xuất bản tất cả câu hỏi Part 5 hợp lệ đang ở trạng thái Bản nháp? Học viên sẽ thấy và luyện tập được các câu này.')) return;
+    try {
+      setBulkPublishing(true);
+      const res = await assessmentApi.publishAllPart5BankQuestions();
+      setToast(res?.message || 'Đã xuất bản tất cả câu hỏi Part 5 hợp lệ thành công.');
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Không thể xuất bản câu hỏi. Vui lòng thử lại.');
+    } finally {
+      setBulkPublishing(false);
+    }
+  };
+
   const completenessIssues = modal?.item ? getPart5CompletenessIssues(modal.item) : [];
 
   return (
@@ -222,6 +237,15 @@ export default function AdminToeicPart5QuestionBank() {
           {statusOptions.map(([value, label]) => <option key={value || 'all'} value={value}>{label}</option>)}
         </select>
         <button type="button" className="admin-quiet-button" onClick={clearFilters}>Đặt lại bộ lọc</button>
+        <button
+          type="button"
+          className="admin-quiet-button"
+          style={{ background: '#dcfce7', borderColor: '#86efac', color: '#15803d', fontWeight: 700 }}
+          onClick={handlePublishAll}
+          disabled={bulkPublishing}
+        >
+          {bulkPublishing ? 'Đang xuất bản…' : 'Xuất bản tất cả câu hợp lệ'}
+        </button>
         <Link className="admin-quiet-button admin-qb-import-link" to="/admin/questions/import-part5">Import Excel</Link>
         <button type="button" className="admin-primary-button" onClick={openCreate}>Thêm câu hỏi</button>
       </div>

@@ -42,6 +42,19 @@ const questionGroupSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    audioText: {
+      type: String,
+      default: '',
+    },
+    audioSource: {
+      type: String,
+      enum: ['', 'stored', 'browser-tts'],
+      default: '',
+    },
+    transcript: {
+      type: String,
+      default: '',
+    },
     passages: [
       {
         title: { type: String, default: '' },
@@ -69,6 +82,21 @@ const questionGroupSchema = new mongoose.Schema(
     },
     crawlerSourceId: {
       type: String,
+      select: false,
+    },
+    sourceRepository: {
+      type: String,
+      default: '',
+      select: false,
+    },
+    sourceVersion: {
+      type: String,
+      default: '',
+      select: false,
+    },
+    sourceMetadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
       select: false,
     },
   },

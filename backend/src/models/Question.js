@@ -16,6 +16,92 @@ const questionSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    translation: {
+      type: String,
+      default: '',
+    },
+    answerTranslation: {
+      type: String,
+      default: '',
+    },
+    audioText: {
+      type: String,
+      default: '',
+    },
+    audioTranslation: {
+      type: String,
+      default: '',
+    },
+    audioSource: {
+      type: String,
+      enum: ['', 'stored', 'browser-tts'],
+      default: '',
+    },
+    audioUrl: {
+      type: String,
+      default: '',
+    },
+    imageUrl: {
+      type: String,
+      default: '',
+    },
+    imageAlt: {
+      type: String,
+      default: '',
+    },
+    difficulty: {
+      type: String,
+      default: '',
+    },
+    category: {
+      type: String,
+      default: '',
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
+    sourceType: {
+      type: String,
+      default: '',
+    },
+    sourceLabel: {
+      type: String,
+      default: '',
+    },
+    sourceProvider: {
+      type: String,
+      default: '',
+    },
+    sourceUrl: {
+      type: String,
+      default: '',
+    },
+    sourceDetail: {
+      type: String,
+      default: '',
+    },
+    sourceNote: {
+      type: String,
+      default: '',
+    },
+    evidence: {
+      type: String,
+      default: '',
+    },
+    evidenceLocation: {
+      type: String,
+      default: '',
+    },
+    choiceNotes: {
+      type: [String],
+      default: [],
+    },
+    sourceMetadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+      select: false,
+    },
     options: [
       {
         id: { type: String, required: true },

@@ -2,6 +2,7 @@ import Question from '../models/Question.js';
 import Lesson from '../models/Lesson.js';
 import Assessment from '../models/Assessment.js';
 import Attempt from '../models/Attempt.js';
+import { getPart5EligibilityIssues } from '../services/toeicPart5BankSelection.js';
 
 // Helper to validate type rules
 const validateQuestionPayload = ({ type, options, correctAnswers }) => {
@@ -354,3 +355,43 @@ export const deleteQuestion = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Admin publish all valid draft Part 5 bank questions
+// @route   POST /api/v1/admin/questions/publish-part5-bank
+// @access  Private (Admin)
+export const publishPart5BankQuestions = async (req, res, next) => {
+  try {
+    const draftQuestions = await Question.find({
+      toeicPart: 5,
+      status: 'draft',
+      bankSourceQuestionId: { $exists: false },
+      bankTargetAssessmentId: { $exists: false },
+    });
+
+    const validIds = [];
+    for (const q of draftQuestions) {
+      if (getPart5EligibilityIssues(q).filter((i) => i.code !== 'QUESTION_NOT_PUBLISHED').length === 0) {
+        validIds.push(q._id);
+      }
+    }
+
+    if (validIds.length > 0) {
+      await Question.updateMany(
+        { _id: { $in: validIds } },
+        { $set: { status: 'published' } }
+      );
+    }
+
+    res.json({
+      status: 'success',
+      message: `Đã xuất bản thành công ${validIds.length} câu hỏi Part 5.`,
+      data: {
+        publishedCount: validIds.length,
+        skippedCount: draftQuestions.length - validIds.length,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

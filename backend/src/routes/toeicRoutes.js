@@ -23,6 +23,8 @@ import {
   autosaveToeicAttemptAnswers,
   submitToeicAttempt,
   getStudentToeicHistory,
+  getStudentToeicPart5Bank,
+  generateToeicFullTestsController,
 } from '../controllers/toeicController.js';
 import { verifyToken, checkRole, requireActiveStudent } from '../middlewares/auth.js';
 import { getPrivateUploadDir, getPublicUploadDir } from '../utils/uploadConfig.js';
@@ -54,6 +56,7 @@ adminRouter.use(verifyToken, checkRole('admin', 'teacher'));
 adminRouter.get('/toeic-tests', getAdminToeicTests);
 adminRouter.post('/toeic-tests', createToeicTest);
 adminRouter.post('/toeic-tests/template', createToeicTest);
+adminRouter.post('/toeic-tests/generate-full-tests', checkRole('admin'), generateToeicFullTestsController);
 adminRouter.get('/toeic-tests/:id', getAdminToeicTestById);
 // The general TOEIC builder remains Admin/Teacher; this new bank picker is Admin-only.
 adminRouter.get('/toeic-tests/:id/question-bank/part5', checkRole('admin'), getEligibleToeicPart5BankQuestions);
@@ -90,6 +93,7 @@ studentRouter.get('/tests', getStudentToeicTests);
 studentRouter.get('/tests/:id', getStudentToeicTestOverview);
 studentRouter.post('/tests/:id/start', startToeicAttempt);
 studentRouter.get('/history', getStudentToeicHistory);
+studentRouter.get('/part5-bank', getStudentToeicPart5Bank);
 studentRouter.get('/attempts/:attemptId', getStudentToeicAttempt);
 studentRouter.patch('/attempts/:attemptId/answers', autosaveToeicAttemptAnswers);
 studentRouter.post('/attempts/:attemptId/submit', submitToeicAttempt);

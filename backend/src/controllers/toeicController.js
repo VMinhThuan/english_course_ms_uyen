@@ -26,6 +26,11 @@ import { parseToeicPdf } from '../utils/toeicPdfParser.js';
 import { MAX_TOEIC_IMPORT_BYTES } from '../utils/uploadValidation.js';
 import { normalizeToeicCrawlerExport, ToeicCrawlerImportError } from '../services/toeicCrawlerImport.js';
 import {
+  generateToeicFullTests,
+  ToeicFullTestGenerationError,
+  validateToeicFullTestAssessment,
+} from '../services/toeicFullTestGenerator.js';
+import {
   compareAndSwapAttemptAnswers,
   finalizeAttempt,
   isTerminalAttempt,
@@ -50,6 +55,17 @@ const sanitizeQuestionForStudent = (q) => ({
       }))
     : [],
   score: q.score || 1,
+  translation: q.translation || '',
+  answerTranslation: q.answerTranslation || '',
+  audioText: q.audioText || '',
+  audioTranslation: q.audioTranslation || '',
+  audioSource: q.audioSource || '',
+  audioUrl: q.audioUrl || '',
+  imageUrl: q.imageUrl || '',
+  imageAlt: q.imageAlt || '',
+  difficulty: q.difficulty || '',
+  category: q.category || '',
+  tags: Array.isArray(q.tags) ? q.tags : [],
 });
 
 const sanitizeQuestionSnapshotForStudent = sanitizeQuestionForStudent;
@@ -66,6 +82,9 @@ const sanitizeGroupForStudent = (g) => ({
   imageUrls: g.imageUrls?.length ? g.imageUrls : (g.imageUrl ? [g.imageUrl] : []),
   imagePageNumbers: g.imagePageNumbers || [],
   audioUrl: g.audioUrl || '',
+  audioText: g.audioText || '',
+  audioSource: g.audioSource || '',
+  transcript: g.transcript || '',
   passages: g.passages || [],
   questionIds: g.questionIds ? g.questionIds.map((id) => (typeof id === 'object' && id !== null ? (id.questionId || id._id || id).toString() : id.toString())) : [],
   order: g.order || 1,
@@ -151,13 +170,19 @@ export const getAdminToeicTests = async (req, res, next) => {
 
     const tests = await Assessment.find(query)
       .populate('createdBy', 'fullName email')
+      .populate({ path: 'questionGroups', select: 'partNumber type questionIds' })
+      .select('+crawlerSourceSystem')
       .sort({ createdAt: -1 });
 
     const testsWithAttemptStats = await Promise.all(
       tests.map(async (t) => {
         const attemptCount = await Attempt.countDocuments({ assessment: t._id, status: 'submitted' });
+        const data = t.toObject();
+        if (t.crawlerSourceSystem === 'toeic-full-test-generator') {
+          data.fullTestValidation = validateToeicFullTestAssessment(t);
+        }
         return {
-          ...t.toObject(),
+          ...data,
           attemptCount,
         };
       })
@@ -563,7 +588,7 @@ export const publishToeicTest = async (req, res, next) => {
     const assessment = await Assessment.findById(id).populate({
       path: 'questionGroups',
       populate: { path: 'questionIds', model: 'Question' },
-    }).select('+bankSelectionLockToken +bankSelectionLockExpiresAt');
+    }).select('+bankSelectionLockToken +bankSelectionLockExpiresAt +crawlerSourceSystem');
 
     if (!assessment || assessment.examFormat !== 'toeic') {
       return res.status(404).json({
@@ -587,8 +612,17 @@ export const publishToeicTest = async (req, res, next) => {
       errors.push('Đề thi chưa có câu hỏi nào.');
     }
 
-    if (assessment.toeicMode === 'full_test' && totalQCount < 200) {
-      // Allow warning/notice or strict check if configured
+    if (assessment.crawlerSourceSystem === 'toeic-full-test-generator') {
+      const validation = validateToeicFullTestAssessment(assessment);
+      if (!validation.valid) {
+        return res.status(400).json({
+          status: 'error',
+          code: 'TOEIC_FULL_TEST_INCOMPLETE',
+          message: 'Không thể xuất bản Full Test vì cấu trúc chưa đạt chuẩn.',
+          errors: validation.errors,
+          data: validation,
+        });
+      }
     }
 
     if (errors.length > 0) {
@@ -785,6 +819,34 @@ export const deleteToeicTest = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// @desc    Generate one or more complete TOEIC 200-question tests from the reviewed bank
+// @route   POST /api/v1/admin/toeic-tests/generate-full-tests
+// @access  Private (Admin)
+export const generateToeicFullTestsController = async (req, res, next) => {
+  try {
+    const result = await generateToeicFullTests({
+      sourceAssessmentId: req.body?.sourceAssessmentId,
+      count: req.body?.count,
+      actorId: req.user?._id,
+    });
+    return res.status(201).json({
+      status: 'success',
+      message: `${result.createdCount} Full Test đã được tạo ở trạng thái bản nháp.`,
+      data: result,
+    });
+  } catch (error) {
+    if (error instanceof ToeicFullTestGenerationError) {
+      return res.status(error.statusCode || 422).json({
+        status: 'error',
+        code: error.code,
+        message: error.message,
+        data: error.details || null,
+      });
+    }
+    return next(error);
   }
 };
 
@@ -1635,6 +1697,17 @@ export const startToeicAttempt = async (req, res, next) => {
           correctAnswers: q.correctAnswers || [],
           score: q.score || 1,
           explanation: q.explanation || '',
+          translation: q.translation || '',
+          answerTranslation: q.answerTranslation || '',
+          audioText: q.audioText || '',
+          audioTranslation: q.audioTranslation || '',
+          audioSource: q.audioSource || '',
+          audioUrl: q.audioUrl || '',
+          imageUrl: q.imageUrl || '',
+          imageAlt: q.imageAlt || '',
+          difficulty: q.difficulty || '',
+          category: q.category || '',
+          tags: q.tags || [],
           toeicPart: group.partNumber,
           questionGroupId: group._id.toString(),
           questionNumber: q.questionNumber,
@@ -1653,6 +1726,9 @@ export const startToeicAttempt = async (req, res, next) => {
         imageUrls: group.imageUrls,
         imagePageNumbers: group.imagePageNumbers,
         audioUrl: group.audioUrl,
+        audioText: group.audioText,
+        audioSource: group.audioSource,
+        transcript: group.transcript,
         passages: group.passages,
         questionIds: gQuestionIds,
         order: group.order,
@@ -1673,6 +1749,17 @@ export const startToeicAttempt = async (req, res, next) => {
           correctAnswers: qDoc.correctAnswers || [],
           score: item.score || qDoc.score || 1,
           explanation: qDoc.explanation || '',
+          translation: qDoc.translation || '',
+          answerTranslation: qDoc.answerTranslation || '',
+          audioText: qDoc.audioText || '',
+          audioTranslation: qDoc.audioTranslation || '',
+          audioSource: qDoc.audioSource || '',
+          audioUrl: qDoc.audioUrl || '',
+          imageUrl: qDoc.imageUrl || '',
+          imageAlt: qDoc.imageAlt || '',
+          difficulty: qDoc.difficulty || '',
+          category: qDoc.category || '',
+          tags: qDoc.tags || [],
           toeicPart: qDoc.toeicPart || 1,
           questionNumber: qDoc.questionNumber,
           order: qDoc.order || 1,
@@ -2230,3 +2317,53 @@ export const getStudentToeicHistory = async (req, res, next) => {
   }
 };
 
+// @desc    Student get published questions from TOEIC Part 5 question bank
+// @route   GET /api/v1/toeic/part5-bank
+// @access  Private (Active Student)
+export const getStudentToeicPart5Bank = async (req, res, next) => {
+  try {
+    const { search, topic, page = 1, limit = 20 } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = {
+      toeicPart: 5,
+      status: 'published',
+      bankSourceQuestionId: { $exists: false },
+      bankTargetAssessmentId: { $exists: false },
+    };
+
+    if (search && String(search).trim()) {
+      filter.questionText = { $regex: String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
+    }
+
+    if (topic && String(topic).trim()) {
+      filter.topic = String(topic).trim();
+    }
+
+    const total = await Question.countDocuments(filter);
+    const questions = await Question.find(filter)
+      .select('questionText type options correctAnswers explanation score topic difficulty translation answerTranslation createdAt')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    res.json({
+      status: 'success',
+      data: {
+        questions,
+        pagination: {
+          total,
+          page: pageNum,
+          pages: Math.ceil(total / limitNum) || 1,
+          limit: limitNum,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

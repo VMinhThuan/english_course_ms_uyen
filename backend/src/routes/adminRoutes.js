@@ -43,6 +43,7 @@ import {
   getQuestionById,
   updateQuestion,
   deleteQuestion,
+  publishPart5BankQuestions,
 } from '../controllers/questionController.js';
 import {
   createAssessment,
@@ -145,6 +146,7 @@ router.delete('/vocabulary/:id', deleteVocabulary);
 
 // Question Bank admin endpoints
 router.post('/questions', createQuestion);
+router.post('/questions/publish-part5-bank', checkRole('admin'), publishPart5BankQuestions);
 router.get('/questions', getQuestions);
 router.get('/questions/:id', getQuestionById);
 router.put('/questions/:id', updateQuestion);

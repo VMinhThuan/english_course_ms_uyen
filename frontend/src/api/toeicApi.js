@@ -19,6 +19,11 @@ export const toeicApi = {
     return response.data;
   },
 
+  generateFullTests: async (data = {}) => {
+    const response = await axiosInstance.post('/admin/toeic-tests/generate-full-tests', data);
+    return response.data;
+  },
+
   updateToeicTest: async (id, data) => {
     const response = await axiosInstance.put(`/admin/toeic-tests/${id}`, data);
     return response.data;
@@ -157,12 +162,18 @@ export const toeicApi = {
     const response = await axiosInstance.get('/toeic/history');
     return response.data;
   },
+
+  getStudentPart5Bank: async (params = {}) => {
+    const response = await axiosInstance.get('/toeic/part5-bank', { params });
+    return response.data;
+  },
 };
 
 // Named exports for individual imports
 export const getAdminToeicTests = toeicApi.getAdminToeicTests;
 export const getAdminToeicTestById = toeicApi.getAdminToeicTestById;
 export const createToeicTest = toeicApi.createToeicTest;
+export const generateFullTests = toeicApi.generateFullTests;
 export const updateToeicTest = toeicApi.updateToeicTest;
 export const upsertQuestionGroup = toeicApi.upsertQuestionGroup;
 export const duplicateToeicTest = toeicApi.duplicateToeicTest;
@@ -184,5 +195,7 @@ export const autosaveToeicAnswers = toeicApi.autosaveToeicAnswers;
 export const submitToeicAttempt = toeicApi.submitToeicAttempt;
 export const getToeicAttemptResult = toeicApi.getToeicAttemptResult;
 export const getStudentToeicHistory = toeicApi.getStudentToeicHistory;
+export const getStudentPart5Bank = toeicApi.getStudentPart5Bank;
 
 export default toeicApi;
+
