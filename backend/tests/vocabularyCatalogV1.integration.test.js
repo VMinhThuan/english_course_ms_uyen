@@ -687,8 +687,12 @@ test('Parser V2.1 candidate adapter preserves source evidence and is determinist
     word: 'approve',
     partOfSpeech: ['verb'],
     rawPartOfSpeech: 'v.',
-    senses: [{ meaning: 'chấp thuận', examples: [{ english: 'We approve it.', vietnamese: 'Chúng tôi chấp thuận.' }] }],
-    notes: [],
+    senses: [{
+      meaning: 'chấp thuận',
+      examples: [{ english: 'We approve it.', vietnamese: 'Chúng tôi chấp thuận.' }],
+      notes: [{ text: 'approve a request', paragraphIndex: 14 }],
+    }],
+    notes: [{ text: 'approve + noun', paragraphIndex: 14 }],
     raw: { word: 'approve', text: 'approve (v.): chấp thuận', paragraphs: [{ paragraphIndex: 12 }] },
     normalized: { word: 'approve' },
     reviewStatus: 'NEEDS_REVIEW',
@@ -708,6 +712,8 @@ test('Parser V2.1 candidate adapter preserves source evidence and is determinist
   assert.equal(adapted.source.sourceOrdinal, 7);
   assert.equal(adapted.source.paragraphStart, 12);
   assert.equal(adapted.source.paragraphEnd, 14);
+  assert.deepEqual(adapted.vocabularyCandidate.notes, ['approve + noun']);
+  assert.deepEqual(adapted.vocabularyCandidate.senses[0].notes, ['approve a request']);
   assert.deepEqual(adapted.rawValues, candidate.raw);
   assert.deepEqual(adapted.editedValues, {});
   assert.deepEqual(adapted.duplicateMetadata, candidate.duplicateCandidate);

@@ -811,7 +811,10 @@ export async function approveVocabularyImportCandidates({ batchId, actorId, body
         details: { reviewedVersion: version, contentHash, bulk: true },
       });
     }
-    await VocabularyImportAudit.create(audits, { session });
+    // Mongoose requires ordered writes when creating more than one document in a
+    // transaction.  Keep the audit trail atomic with the review decision rather
+    // than falling back to an untransactional insert.
+    await VocabularyImportAudit.create(audits, { session, ordered: true });
     await summarizeBatch(batch, session);
     return {
       batch: batchResponse(batch),

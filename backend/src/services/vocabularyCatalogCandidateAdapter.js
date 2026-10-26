@@ -21,6 +21,23 @@ function copy(value) {
   return value === undefined ? null : structuredClone(value);
 }
 
+function noteText(note) {
+  if (typeof note === 'string') return note;
+  if (note && typeof note.text === 'string') return note.text;
+  return note;
+}
+
+function normalizeParserSenses(senses) {
+  if (!Array.isArray(senses)) return copy(senses);
+  return senses.map((sense) => {
+    if (!sense || typeof sense !== 'object') return copy(sense);
+    return {
+      ...copy(sense),
+      notes: Array.isArray(sense.notes) ? sense.notes.map(noteText) : copy(sense.notes),
+    };
+  });
+}
+
 function requireLocator(value, name) {
   if (value !== null && value !== undefined && (!Number.isInteger(value) || value < 0)) {
     throw new TypeError('Parser candidate source.' + name + ' must be a non-negative integer or null.');
@@ -129,8 +146,11 @@ export function adaptVocabularyParserCandidate(candidate) {
       word: copy(candidate.word),
       partOfSpeech: copy(candidate.partOfSpeech),
       rawPartOfSpeech: copy(candidate.rawPartOfSpeech),
-      senses: copy(candidate.senses),
-      notes: copy(candidate.notes),
+      // Parser V2 preserves note locators as objects. The import DTO stores
+      // editorial note text, while source locator evidence remains in the
+      // parser/source metadata, so normalize only the note representation.
+      senses: normalizeParserSenses(candidate.senses),
+      notes: Array.isArray(candidate.notes) ? candidate.notes.map(noteText) : copy(candidate.notes),
       normalized: copy(candidate.normalized),
     },
     rawValues: copy(candidate.raw) || {},
