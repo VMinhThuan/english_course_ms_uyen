@@ -3,6 +3,11 @@
   "env": {
     "NODE_OPTIONS": "--experimental-require-module"
   },
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "uploads/public/**"
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",

@@ -122,6 +122,27 @@ const assessmentSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    crawlerSourceUrl: {
+      type: String,
+      select: false,
+    },
+    crawlerLicense: {
+      type: String,
+      select: false,
+    },
+    generatedFromAssessment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Assessment',
+      select: false,
+    },
+    generatorBatchId: {
+      type: String,
+      select: false,
+    },
+    generatorSequence: {
+      type: Number,
+      select: false,
+    },
     // Short lease serializes Part 5 bank-selection writes without requiring
     // MongoDB replica-set transactions. Hidden from API serialization.
     bankSelectionLockToken: {
@@ -152,6 +173,10 @@ assessmentSchema.pre('save', function (next) {
 assessmentSchema.index(
   { crawlerSourceSystem: 1, crawlerSourceId: 1 },
   { unique: true, sparse: true, name: 'uniq_toeic_crawler_source' }
+);
+assessmentSchema.index(
+  { generatedFromAssessment: 1, generatorBatchId: 1, generatorSequence: 1 },
+  { sparse: true, name: 'idx_toeic_generated_full_test' }
 );
 
 const Assessment = mongoose.model('Assessment', assessmentSchema);

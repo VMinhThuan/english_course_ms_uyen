@@ -1,6 +1,8 @@
 import Question from '../models/Question.js';
+import Lesson from '../models/Lesson.js';
 import Assessment from '../models/Assessment.js';
 import Attempt from '../models/Attempt.js';
+import { getPart5EligibilityIssues } from '../services/toeicPart5BankSelection.js';
 
 const normalizePart5Answer = (value) => String(value ?? '').normalize('NFKC').trim().toLocaleLowerCase('en');
 
@@ -83,7 +85,7 @@ const validatePart5QuestionPayload = ({ questionText, type, options, correctAnsw
 // @access  Private (Admin/Teacher)
 export const createQuestion = async (req, res, next) => {
   try {
-    const { questionText, type, explanation, options, correctAnswers, score, topic, status, toeicPart } = req.body;
+    const { questionText, type, explanation, options, correctAnswers, score, lesson, topic, status, toeicPart } = req.body;
 
     if (!questionText) {
       return res.status(400).json({
@@ -102,6 +104,16 @@ export const createQuestion = async (req, res, next) => {
       });
     }
 
+    if (lesson) {
+      const parentLesson = await Lesson.findById(lesson);
+      if (!parentLesson) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Referenced lesson does not exist',
+        });
+      }
+    }
+
     const question = await Question.create({
       questionText,
       type,
@@ -109,6 +121,7 @@ export const createQuestion = async (req, res, next) => {
       options: options || [],
       correctAnswers,
       score: score || 1,
+      lesson: lesson || null,
       topic: topic || 'General',
       status: status || 'draft',
       ...(toeicPart !== undefined ? { toeicPart } : {}),
@@ -132,9 +145,10 @@ export const createQuestion = async (req, res, next) => {
 // @access  Private (Admin/Teacher)
 export const getQuestions = async (req, res, next) => {
   try {
-    const { search, topic, type, status, toeicPart, page = 1, limit = 50 } = req.query;
+    const { search, lesson, topic, type, status, toeicPart, page = 1, limit = 50 } = req.query;
 
     const filter = {};
+    if (lesson) filter.lesson = lesson;
     if (topic) filter.topic = topic;
     if (type) filter.type = type;
     if (status) filter.status = status;
@@ -158,6 +172,7 @@ export const getQuestions = async (req, res, next) => {
 
     const total = await Question.countDocuments(filter);
     const questions = await Question.find(filter)
+      .populate('lesson', 'title status')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
@@ -185,7 +200,7 @@ export const getQuestions = async (req, res, next) => {
 export const getQuestionById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const question = await Question.findById(id);
+    const question = await Question.findById(id).populate('lesson', 'title status');
 
     if (!question) {
       return res.status(404).json({
@@ -391,6 +406,45 @@ export const deleteQuestion = async (req, res, next) => {
     res.json({
       status: 'success',
       message: 'Question deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Admin publish all valid draft Part 5 bank questions
+// @route   POST /api/v1/admin/questions/publish-part5-bank
+// @access  Private (Admin)
+export const publishPart5BankQuestions = async (req, res, next) => {
+  try {
+    const draftQuestions = await Question.find({
+      toeicPart: 5,
+      status: 'draft',
+      bankSourceQuestionId: { $exists: false },
+      bankTargetAssessmentId: { $exists: false },
+    });
+
+    const validIds = [];
+    for (const q of draftQuestions) {
+      if (getPart5EligibilityIssues(q).filter((i) => i.code !== 'QUESTION_NOT_PUBLISHED').length === 0) {
+        validIds.push(q._id);
+      }
+    }
+
+    if (validIds.length > 0) {
+      await Question.updateMany(
+        { _id: { $in: validIds } },
+        { $set: { status: 'published' } }
+      );
+    }
+
+    res.json({
+      status: 'success',
+      message: `Đã xuất bản thành công ${validIds.length} câu hỏi Part 5.`,
+      data: {
+        publishedCount: validIds.length,
+        skippedCount: draftQuestions.length - validIds.length,
+      },
     });
   } catch (error) {
     next(error);

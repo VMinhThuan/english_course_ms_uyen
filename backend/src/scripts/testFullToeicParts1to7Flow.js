@@ -490,7 +490,7 @@ async function runFullToeicParts1to7Suite() {
     res = await fetch(`${API_BASE}/toeic/attempts/${attemptId}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${studentToken}` },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ revision: 2 }),
     });
     data = await res.json();
     const result = data.data?.result || data.data?.attempt;

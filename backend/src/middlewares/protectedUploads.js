@@ -10,7 +10,7 @@ import {
   normalizeUploadRequestUrl,
   resolveStoredUploadPath,
 } from '../security/materialAccessPolicy.js';
-import { getUploadDir } from '../utils/uploadConfig.js';
+import { getUploadDir, getPublicUploadDir } from '../utils/uploadConfig.js';
 
 const UPLOAD_ROOT = getUploadDir();
 const EXECUTABLE_OR_ACTIVE_CONTENT_EXTENSIONS = new Set([
@@ -144,7 +144,7 @@ export const createProtectedUploadHandler = ({
   const isPublicPath = pathSegments[0] === 'public';
   if (privateOnly && !isPrivatePath) return res.status(404).end();
   if (privateOnly && pathSegments.length !== 2) return res.status(404).end();
-  if (publicOnly && (!isPublicPath || pathSegments.length !== 2)) return res.status(404).end();
+  if (publicOnly && !isPublicPath) return res.status(404).end();
   if (!privateOnly && (isPrivatePath || isPublicPath)) {
     if (!publicOnly) return res.status(404).end();
   }
@@ -170,11 +170,15 @@ export const createProtectedUploadHandler = ({
 
     // express.static follows symlinks. Confirm that unreferenced public/legacy assets are
     // regular files whose resolved target remains inside the configured upload root.
-    const staticPath = path.resolve(uploadRoot, ...relative.split('/'));
-    if (!isPathWithinRoot(uploadRoot, staticPath)) return res.status(404).end();
+    const publicRoot = getPublicUploadDir();
+    const effectiveRoot = publicOnly ? publicRoot : uploadRoot;
+    const staticPath = publicOnly
+      ? path.resolve(publicRoot, ...pathSegments.slice(1))
+      : path.resolve(uploadRoot, ...relative.split('/'));
+    if (!isPathWithinRoot(effectiveRoot, staticPath)) return res.status(404).end();
     try {
       const [rootRealPath, fileRealPath, fileStat] = await Promise.all([
-        fs.realpath(uploadRoot),
+        fs.realpath(effectiveRoot),
         fs.realpath(staticPath),
         fs.stat(staticPath),
       ]);

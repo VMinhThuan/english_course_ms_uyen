@@ -85,6 +85,14 @@ export default function AdminToeicPreviewPage() {
   const totalQuestionCount = Object.values(questionCountsByPart).reduce((total, count) => total + count, 0);
   const totalGroupCount = assessment?.questionGroups?.length || 0;
 
+  const speakText = (value) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis || !String(value || '').trim()) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(String(value));
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
+  };
+
   if (loading) {
     return (
       <div className="toeic-preview-screen toeic-preview-screen--state toeic-preview-screen--loading">
@@ -229,6 +237,17 @@ export default function AdminToeicPreviewPage() {
                     🎧 Audio Stimulus:
                   </div>
                   <audio controls src={group.audioUrl} style={{ width: '100%', maxWidth: '420px' }} />
+                </div>
+              )}
+
+              {!group.audioUrl && group.audioText && (
+                <div style={{ background: 'var(--brand-yellow-soft)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--brand-border)' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-coffee)', marginBottom: '0.4rem' }}>🔊 Transcript / Browser TTS</div>
+                  <button type="button" onClick={() => speakText(group.audioText)} style={{ border: '1px solid var(--brand-border)', borderRadius: '7px', padding: '0.45rem 0.7rem', background: 'var(--brand-surface)', color: 'var(--brand-coffee)', fontWeight: 700, cursor: 'pointer' }}>
+                    Nghe thử bằng giọng đọc trình duyệt
+                  </button>
+                  <p style={{ margin: '0.65rem 0 0', whiteSpace: 'pre-wrap', color: 'var(--brand-text)', fontSize: '0.85rem', lineHeight: 1.5 }}>{group.audioText}</p>
+                  <small style={{ color: 'var(--brand-muted)' }}>Repository không cung cấp MP3; học viên sẽ dùng TTS.</small>
                 </div>
               )}
 

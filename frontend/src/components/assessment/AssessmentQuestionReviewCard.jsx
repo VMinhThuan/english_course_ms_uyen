@@ -1,4 +1,5 @@
 import { formatAssessmentAnswer, hasAssessmentAnswer } from '../../utils/assessmentAnswerLabel.js';
+import { studentExplanationText } from '../../utils/studentContentLanguage.js';
 
 export default function AssessmentQuestionReviewCard({ question, questionNumber, showCorrectAnswer = true, variant = 'summary' }) {
   const isCorrect = question.isCorrect === true;
@@ -8,6 +9,7 @@ export default function AssessmentQuestionReviewCard({ question, questionNumber,
   const hasCorrectAnswer = showCorrectAnswer && hasAssessmentAnswer(correctAnswers);
   const hasScore = question.score !== undefined && question.score !== null && question.score !== '';
   const questionText = question.questionText || question.prompt || question.text || 'Nội dung câu hỏi không khả dụng.';
+  const explanation = studentExplanationText(question.explanation);
 
   if (variant === 'options') {
     const selectedAnswers = (Array.isArray(question.studentAnswer) ? question.studentAnswer : [question.studentAnswer])
@@ -32,7 +34,7 @@ export default function AssessmentQuestionReviewCard({ question, questionNumber,
             <span className="assessment-review-card__question">{questionText}</span>
           </div>
           <span className="assessment-review-card__status">
-            {isCorrect ? '✓ Đúng' : '✕ Sai'}
+            {isCorrect ? '✓ Đúng' : hasAnswer ? '✕ Sai' : 'Bỏ trống'}
           </span>
         </div>
 
@@ -76,9 +78,9 @@ export default function AssessmentQuestionReviewCard({ question, questionNumber,
           </div>
         )}
 
-        {showCorrectAnswer && question.explanation && (
+        {showCorrectAnswer && explanation && (
           <div className="assessment-review-card__explanation">
-            <strong>💡 Giải thích:</strong> {question.explanation}
+            <strong>💡 Giải thích:</strong> {explanation}
           </div>
         )}
       </article>
@@ -115,9 +117,9 @@ export default function AssessmentQuestionReviewCard({ question, questionNumber,
         )}
       </div>
 
-      {question.explanation && (
+      {explanation && (
         <div className="assessment-review-card__explanation">
-          <strong>Giải thích:</strong> {question.explanation}
+          <strong>Giải thích:</strong> {explanation}
         </div>
       )}
     </article>

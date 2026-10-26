@@ -82,7 +82,8 @@ app.use(cookieParser());
 
 const uploadStaticHeaders = (res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
 };
 
 const publicUploadStaticHeaders = (res) => {

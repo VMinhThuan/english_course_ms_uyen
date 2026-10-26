@@ -184,6 +184,10 @@ export default function StudentToeicExamPage() {
     autoSubmitStartedRef.current = true;
     try {
       setSubmitting(true);
+      // Ensure the last debounced answer write reaches the server before an
+      // expired attempt is finalized. The backend intentionally ignores a
+      // late client answer payload and scores the persisted answer map.
+      await autosaveQueueRef.current.catch(() => undefined);
       const res = await toeicApi.submitToeicAttempt(attemptId, userAnswers, revisionRef.current);
       if (res.status === 'success') {
         navigate(`/student/toeic/results/${attemptId}`);
@@ -506,6 +510,12 @@ export default function StudentToeicExamPage() {
                                 src={resolveMediaUrl(imageUrl)}
                                 alt={`Passage visual ${imageIndex + 1}`}
                                 className="toeic-stimulus-image"
+                                onError={(e) => {
+                                  if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                    e.currentTarget.dataset.fallbackTried = 'true';
+                                    e.currentTarget.src = imageUrl;
+                                  }
+                                }}
                               />
                               {group.imagePageNumbers?.[imageIndex] && (
                                 <small style={{ display: 'block', textAlign: 'center', color: 'var(--brand-muted)' }}>
@@ -545,6 +555,12 @@ export default function StudentToeicExamPage() {
                                         src={resolveMediaUrl(imageUrl)}
                                         alt={`Passage ${pas.title || pIdx + 1}, trang ${imageIndex + 1}`}
                                         className="toeic-stimulus-image"
+                                        onError={(e) => {
+                                          if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                            e.currentTarget.dataset.fallbackTried = 'true';
+                                            e.currentTarget.src = imageUrl;
+                                          }
+                                        }}
                                       />
                                     ))}
                                   </div>
@@ -553,7 +569,17 @@ export default function StudentToeicExamPage() {
                                 )}
                                 {pas.imageUrl && group.partNumber !== 7 && (
                                   <div style={{ marginTop: '0.75rem' }}>
-                                    <img src={resolveMediaUrl(pas.imageUrl)} alt={`Passage illustration ${pIdx + 1}`} className="toeic-stimulus-image" />
+                                    <img
+                                      src={resolveMediaUrl(pas.imageUrl)}
+                                      alt={`Passage illustration ${pIdx + 1}`}
+                                      className="toeic-stimulus-image"
+                                      onError={(e) => {
+                                        if (pas.imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                          e.currentTarget.dataset.fallbackTried = 'true';
+                                          e.currentTarget.src = pas.imageUrl;
+                                        }
+                                      }}
+                                    />
                                   </div>
                                 )}
                               </div>
@@ -581,6 +607,15 @@ export default function StudentToeicExamPage() {
                             />
                           </div>
                         )}
+                        {!group.audioUrl && group.audioText && (
+                          <div style={{ marginBottom: '1.25rem', background: 'var(--brand-surface)', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid var(--brand-border)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '1.2rem' }}>🔊</span>
+                            <button type="button" onClick={() => speakText(group.audioText)} style={{ border: '1px solid var(--brand-border)', borderRadius: '8px', padding: '0.55rem 0.8rem', background: 'var(--brand-yellow-soft)', color: 'var(--brand-coffee)', fontWeight: 700, cursor: 'pointer' }}>
+                              Nghe bằng giọng đọc trình duyệt (TTS)
+                            </button>
+                            <small style={{ color: 'var(--brand-muted)' }}>Nguồn không có file audio MP3.</small>
+                          </div>
+                        )}
 
                         {/* Image Stimulus (Part 1 Photograph or Part 3/4 graphic) */}
                         {(group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : [])).map((imageUrl, imageIndex) => (
@@ -589,6 +624,12 @@ export default function StudentToeicExamPage() {
                               src={resolveMediaUrl(imageUrl)}
                               alt={`Question stimulus ${imageIndex + 1}`}
                               className="toeic-stimulus-image"
+                              onError={(e) => {
+                                if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                  e.currentTarget.dataset.fallbackTried = 'true';
+                                  e.currentTarget.src = imageUrl;
+                                }
+                              }}
                             />
                             {group.imagePageNumbers?.[imageIndex] && (
                               <small style={{ color: 'var(--brand-muted)' }}>Ảnh từ trang {group.imagePageNumbers[imageIndex]} của đề PDF</small>
@@ -784,6 +825,14 @@ export default function StudentToeicExamPage() {
   );
 
   // Helper to render individual Question Card
+  function speakText(value) {
+    if (typeof window === 'undefined' || !window.speechSynthesis || !String(value || '').trim()) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(String(value));
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
+  }
+
   function renderQuestionCard(q) {
     const qId = q.questionId || q._id;
     const qNum = q.questionNumber || allQuestions.findIndex((question) => question.qId === qId) + 1;
@@ -848,6 +897,15 @@ export default function StudentToeicExamPage() {
           </button>
         </div>
 
+        {!q.questionGroupId && !q.audioUrl && q.audioText && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: '0.4rem 0 0.75rem', flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => speakText(q.audioText)} style={{ border: '1px solid var(--brand-border)', borderRadius: '7px', padding: '0.4rem 0.65rem', background: 'var(--brand-yellow-soft)', color: 'var(--brand-coffee)', fontWeight: 700, cursor: 'pointer' }}>
+              🔊 Nghe câu hỏi (TTS)
+            </button>
+            <small style={{ color: 'var(--brand-muted)' }}>Không có audio lưu trữ</small>
+          </div>
+        )}
+
         {/* Options Radio List */}
         <fieldset aria-label={`Câu ${qNum}, ${isMultiple ? 'chọn nhiều đáp án' : 'chọn một đáp án'}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem', border: 0, padding: 0, minWidth: 0 }}>
           <legend className="visually-hidden">{isMultiple ? 'Chọn tất cả đáp án đúng' : 'Chọn một đáp án'}</legend>
@@ -858,7 +916,6 @@ export default function StudentToeicExamPage() {
             return (
               <label
                 key={optId}
-                onClick={() => handleSelectOption(qId, optId)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

@@ -73,6 +73,11 @@ export const assessmentApi = {
     return response.data;
   },
 
+  publishAllPart5BankQuestions: async () => {
+    const response = await axiosInstance.post('/admin/questions/publish-part5-bank');
+    return response.data;
+  },
+
   // Admin Assessment APIs
   getAdminAssessments: async (params = {}) => {
     const response = await axiosInstance.get('/admin/assessments', { params });

@@ -15,6 +15,10 @@ export default function AdminToeicListPage() {
   const [feedback, setFeedback] = useState({ type: '', text: '' });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [generateCount, setGenerateCount] = useState(2);
+  const [generateLoading, setGenerateLoading] = useState(false);
+  const [generateReport, setGenerateReport] = useState(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,6 +82,24 @@ export default function AdminToeicListPage() {
       setFeedback({ type: 'error', text: err.response?.data?.message || 'Lỗi khi nhân bản đề thi' });
     } finally {
       setActionLoadingId(null);
+    }
+  };
+
+  const handleGenerateFullTests = async (event) => {
+    event.preventDefault();
+    try {
+      setGenerateLoading(true);
+      setGenerateReport(null);
+      setFeedback({ type: '', text: '' });
+      const res = await toeicApi.generateFullTests({ count: Number(generateCount) });
+      setGenerateReport(res.data || null);
+      setFeedback({ type: 'success', text: res.message || 'Đã tạo Full Test bản nháp.' });
+      fetchToeicTests();
+    } catch (err) {
+      setGenerateReport(err.response?.data?.data || null);
+      setFeedback({ type: 'error', text: err.response?.data?.message || 'Không đủ dữ liệu để tạo Full Test.' });
+    } finally {
+      setGenerateLoading(false);
     }
   };
 
@@ -264,6 +286,9 @@ export default function AdminToeicListPage() {
             </svg>
             Import Đề Từ PDF
           </UiButton>
+          <UiButton variant="secondary" onClick={() => { setGenerateReport(null); setShowGenerateModal(true); }}>
+            ⚙ Sinh Full Test 200 câu
+          </UiButton>
           <Link
             to="/admin/toeic-tests/new"
             className="ds-button ds-button--primary"
@@ -416,6 +441,11 @@ export default function AdminToeicListPage() {
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <StatusBadge status={t.status} label={t.status === 'published' ? 'Đã Xuất Bản' : 'Bản Nháp (Draft)'} />
+                    {t.fullTestValidation && !t.fullTestValidation.valid && (
+                      <div style={{ marginTop: '0.35rem', color: 'var(--brand-danger)', fontSize: '0.75rem', fontWeight: 700 }} title={t.fullTestValidation.errors?.join(' ')}>
+                        ⚠ Chưa đạt cấu trúc Full Test
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--brand-text)' }}>
                     {t.attemptCount || 0}
@@ -490,6 +520,35 @@ export default function AdminToeicListPage() {
               <button onClick={() => setDeleteTarget(null)} style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid var(--brand-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}>Hủy</button>
               <button onClick={handleDeleteConfirm} style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: 'var(--brand-danger)', color: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 700 }}>Xác Nhận Xóa</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showGenerateModal && (
+        <div className="ds-modal-overlay">
+          <div className="ds-modal-content ds-modal-content--sm">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-text)', margin: 0 }}>Sinh TOEIC Full Test</h3>
+                <p style={{ color: 'var(--brand-muted)', fontSize: '0.85rem', margin: '0.4rem 0 0' }}>Mỗi đề gồm đúng 200 câu, giữ nguyên group và passage nguồn.</p>
+              </div>
+              <button type="button" onClick={() => setShowGenerateModal(false)} disabled={generateLoading} style={{ background: 'transparent', border: 0, fontSize: '1.5rem', cursor: 'pointer', color: 'var(--brand-muted)' }}>×</button>
+            </div>
+            <form onSubmit={handleGenerateFullTests}>
+              <label htmlFor="toeic-generate-count" style={{ display: 'block', color: 'var(--brand-text)', fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.45rem' }}>Số đề muốn tạo</label>
+              <input id="toeic-generate-count" type="number" min="1" max="10" value={generateCount} onChange={(event) => setGenerateCount(event.target.value)} style={{ width: '100%', padding: '0.65rem 0.8rem', border: '1px solid var(--brand-border)', borderRadius: '8px' }} />
+              <p style={{ color: 'var(--brand-muted)', fontSize: '0.8rem', lineHeight: 1.5 }}>Hệ thống không nhân bản câu nguồn. Nếu ngân hàng không đủ, chỉ tạo số đề hợp lệ thực tế và báo phần thiếu.</p>
+              {generateReport && (
+                <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'var(--brand-bg-sub)', border: '1px solid var(--brand-border)', fontSize: '0.8rem', color: 'var(--brand-text)', marginBottom: '1rem' }}>
+                  Đã tạo: <strong>{generateReport.createdCount || 0}</strong> / {generateReport.requestedCount || generateCount} đề · Thiếu: <strong>{generateReport.shortageCount || 0}</strong>.
+                  {generateReport.tests?.length > 0 && <div style={{ marginTop: '0.35rem' }}>{generateReport.tests.map((test) => <div key={test.assessmentId}>• {test.assessmentId}: {test.questionCount} câu / {test.groupCount} nhóm</div>)}</div>}
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button type="button" onClick={() => setShowGenerateModal(false)} disabled={generateLoading} style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid var(--brand-border)', background: 'var(--brand-surface)', cursor: 'pointer', fontWeight: 600 }}>Đóng</button>
+                <button type="submit" disabled={generateLoading} style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: 0, background: 'var(--brand-yellow)', color: 'var(--brand-text)', cursor: generateLoading ? 'not-allowed' : 'pointer', fontWeight: 700 }}>{generateLoading ? 'Đang sinh đề…' : 'Sinh bản nháp'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
