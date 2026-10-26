@@ -2,7 +2,8 @@ node_modules/
 .env
 .DS_Store
 *.log
-uploads/
+uploads/*
+!uploads/public/
 data/toeic-translation-state.json
 data/toeic-translation-failures.jsonl
 data/backups/

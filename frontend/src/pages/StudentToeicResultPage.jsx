@@ -230,13 +230,54 @@ export default function StudentToeicResultPage() {
                           {passage.title && <strong>{passage.title}</strong>}
                           {passage.content && <div style={{ whiteSpace: 'pre-wrap' }}>{passage.content}</div>}
                           {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => (
-                            <img key={`${imageUrl}-${imageIndex}`} src={resolveMediaUrl(imageUrl)} alt={`Passage ${passageIndex + 1}`} className="toeic-stimulus-image" style={{ marginTop: '0.5rem' }} />
+                            <img
+                              key={`${imageUrl}-${imageIndex}`}
+                              src={resolveMediaUrl(imageUrl)}
+                              alt={`Passage ${passageIndex + 1}`}
+                              className="toeic-stimulus-image"
+                              style={{ marginTop: '0.5rem' }}
+                              onError={(e) => {
+                                if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                  e.currentTarget.dataset.fallbackTried = 'true';
+                                  e.currentTarget.src = imageUrl;
+                                }
+                              }}
+                            />
                           ))}
+                        </div>
+                      ))}
+                      {/* Part 1 photograph or Part 3/4 group stimuli */}
+                      {(group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : [])).map((imageUrl, imageIndex) => (
+                        <div key={`${imageUrl}-${imageIndex}`} style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+                          <img
+                            src={resolveMediaUrl(imageUrl)}
+                            alt={`Group stimulus ${imageIndex + 1}`}
+                            className="toeic-stimulus-image"
+                            onError={(e) => {
+                              if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                                e.currentTarget.dataset.fallbackTried = 'true';
+                                e.currentTarget.src = imageUrl;
+                              }
+                            }}
+                          />
                         </div>
                       ))}
                     </div>
                   )}
-                  {q.imageUrl && <img src={resolveMediaUrl(q.imageUrl)} alt={q.imageAlt || `Câu ${qNum}`} className="toeic-stimulus-image" style={{ marginBottom: '0.75rem' }} />}
+                  {q.imageUrl && (
+                    <img
+                      src={resolveMediaUrl(q.imageUrl)}
+                      alt={q.imageAlt || `Câu ${qNum}`}
+                      className="toeic-stimulus-image"
+                      style={{ marginBottom: '0.75rem' }}
+                      onError={(e) => {
+                        if (q.imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
+                          e.currentTarget.dataset.fallbackTried = 'true';
+                          e.currentTarget.src = q.imageUrl;
+                        }
+                      }}
+                    />
+                  )}
                   <AssessmentQuestionReviewCard
                     question={reviewQuestion}
                     questionNumber={qNum}
