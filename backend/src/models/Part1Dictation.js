@@ -21,6 +21,12 @@ const part1DictationSchema = new mongoose.Schema(
           trim: true,
           maxlength: 1000,
         },
+        translation: {
+          type: String,
+          default: '',
+          trim: true,
+          maxlength: 1000,
+        },
         order: {
           type: Number,
           required: true,

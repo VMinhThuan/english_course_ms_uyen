@@ -81,7 +81,7 @@ export default function StudentToeicPart1Page() {
                   return <label key={index} className={`part1-answer-row${result ? (result.isCorrect ? ' is-correct' : ' is-incorrect') : ''}`}>
                     <span>{index + 1}</span><input value={answer} disabled={submitting} onChange={(event) => { const next = [...answers]; next[index] = event.target.value; setAnswers(next); setResults(null); }} placeholder={`Nhập câu ${index + 1}`} aria-label={`Đáp án câu ${index + 1}`} />
                     {result && <b>{result.isCorrect ? 'Đúng' : 'Chưa đúng'}</b>}
-                    {result && !result.isCorrect && <span className="part1-answer-correction"><strong>Đáp án đúng:</strong> {result.correctAnswer}</span>}
+                    {result && !result.isCorrect && <span className="part1-answer-correction"><strong>Đáp án đúng</strong><span className="part1-answer-correction__text">{result.correctAnswer}</span>{result.correctTranslation && <span className="part1-answer-correction__translation">Dịch: {result.correctTranslation}</span>}</span>}
                   </label>;
                 })}
                 {error && <p className="part1-form-error" role="alert">{error}</p>}

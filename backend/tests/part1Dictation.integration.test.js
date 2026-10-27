@@ -67,7 +67,7 @@ test('Part 1 dictation keeps answers private and grades text case-insensitively'
 
   const created = await request('/api/v1/admin/part1-dictations', {
     method: 'POST', token: adminToken,
-    body: { title: 'Station announcement', audioUrl: '/uploads/public/station.mp3', answers: [{ text: 'The train arrives at noon.' }, { text: 'Please keep your ticket.' }], isVisible: false },
+    body: { title: 'Station announcement', audioUrl: '/uploads/public/station.mp3', answers: [{ text: 'The train arrives at noon.', translation: 'Tàu đến vào buổi trưa.' }, { text: 'Please keep your ticket.', translation: 'Vui lòng giữ vé của bạn.' }], isVisible: false },
   });
   assert.equal(created.response.status, 201, created.json.message);
   const id = created.json.data.item._id;
@@ -97,8 +97,8 @@ test('Part 1 dictation keeps answers private and grades text case-insensitively'
     });
     assert.equal(submitted.response.status, 200);
     assert.deepEqual(submitted.json.data.results, [
-      { order: 1, isCorrect: true, correctAnswer: 'The train arrives at noon.' },
-      { order: 2, isCorrect: false, correctAnswer: 'Please keep your ticket.' },
+      { order: 1, isCorrect: true, correctAnswer: 'The train arrives at noon.', correctTranslation: 'Tàu đến vào buổi trưa.' },
+      { order: 2, isCorrect: false, correctAnswer: 'Please keep your ticket.', correctTranslation: 'Vui lòng giữ vé của bạn.' },
     ]);
     assert.equal(submitted.json.data.correctCount, 1);
   });

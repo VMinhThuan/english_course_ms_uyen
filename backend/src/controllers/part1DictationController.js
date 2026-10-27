@@ -16,6 +16,7 @@ const parseAnswers = (answers) => {
 
   const normalized = answers.map((answer, index) => ({
     text: typeof answer?.text === 'string' ? answer.text.trim() : '',
+    translation: typeof answer?.translation === 'string' ? answer.translation.trim() : '',
     order: index + 1,
   }));
   if (normalized.some((answer) => !answer.text)) {
@@ -138,6 +139,7 @@ export const submitStudentPart1Dictation = async (req, res, next) => {
         isCorrect: normalizeAnswer(submissions[index]) === normalizeAnswer(answer.text),
         // Only disclose the reference text after the student has submitted.
         correctAnswer: answer.text,
+        correctTranslation: answer.translation || '',
       }));
     const correctCount = results.filter((result) => result.isCorrect).length;
     res.json({

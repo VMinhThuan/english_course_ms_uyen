@@ -14,6 +14,7 @@
     "seed": "node src/scripts/seedData.js",
     "seed:demo": "node src/scripts/seedDemoData.js",
     "seed:lesson-preview-demo": "node src/scripts/seedLessonMaterialPreviewDemo.js",
+    "seed:part1-translations": "node src/scripts/seedPart1DictationTranslations.js",
     "test:phase2-import": "node --test tests/phase2ToeicPart5Import.test.js",
     "test:phase5": "node --test tests/phase5ToeicPart1.test.js tests/phase5Cors.test.js",
     "test:toeic-crawler-import": "node --test tests/toeicCrawlerImport.test.js",

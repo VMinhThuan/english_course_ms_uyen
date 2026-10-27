@@ -5,7 +5,7 @@ import { part1DictationApi } from '../../api/part1DictationApi.js';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
 import '../Part1Dictation.css';
 
-const emptyForm = () => ({ title: '', audioUrl: '', answers: [{ text: '' }], isVisible: false });
+const emptyForm = () => ({ title: '', audioUrl: '', answers: [{ text: '', translation: '' }], isVisible: false });
 
 export default function AdminPart1DictationPage() {
   const [items, setItems] = useState([]);
@@ -27,10 +27,10 @@ export default function AdminPart1DictationPage() {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const updateAnswer = (index, text) => setForm((current) => ({ ...current, answers: current.answers.map((answer, answerIndex) => answerIndex === index ? { text } : answer) }));
+  const updateAnswer = (index, field, value) => setForm((current) => ({ ...current, answers: current.answers.map((answer, answerIndex) => answerIndex === index ? { ...answer, [field]: value } : answer) }));
   const edit = (item) => {
     setEditingId(item._id);
-    setForm({ title: item.title, audioUrl: item.audioUrl, answers: item.answers.map((answer) => ({ text: answer.text })), isVisible: item.isVisible });
+    setForm({ title: item.title, audioUrl: item.audioUrl, answers: item.answers.map((answer) => ({ text: answer.text, translation: answer.translation || '' })), isVisible: item.isVisible });
     setNotice({ type: '', text: '' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -52,7 +52,7 @@ export default function AdminPart1DictationPage() {
   const save = async (event) => {
     event.preventDefault();
     setSaving(true); setNotice({ type: '', text: '' });
-    const payload = { ...form, answers: form.answers.map((answer) => ({ text: answer.text })) };
+    const payload = { ...form, answers: form.answers.map((answer) => ({ text: answer.text, translation: answer.translation })) };
     const wasEditing = Boolean(editingId);
     try {
       if (editingId) await part1DictationApi.update(editingId, payload);
@@ -79,8 +79,8 @@ export default function AdminPart1DictationPage() {
         <label>Tên bài<input required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ví dụ: Pictures at the station" /></label>
         <label>File audio<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/*" onChange={uploadAudio} disabled={uploading} />{uploading && <small>Đang upload audio…</small>}</label>
         {form.audioUrl && <div className="part1-admin-preview"><audio controls src={resolveMediaUrl(form.audioUrl)} /><span>Audio đã sẵn sàng</span></div>}
-        <fieldset><legend>Các câu đáp án</legend><p>Mỗi dòng tương ứng một ô nhập của học viên.</p>{form.answers.map((answer, index) => <div className="part1-admin-answer" key={index}><span>{index + 1}</span><input required value={answer.text} onChange={(event) => updateAnswer(index, event.target.value)} placeholder={`Câu đáp án ${index + 1}`} />{form.answers.length > 1 && <button type="button" onClick={() => setForm((current) => ({ ...current, answers: current.answers.filter((_, answerIndex) => answerIndex !== index) }))}>Xóa</button>}</div>)}
-          <button type="button" className="part1-add-answer" onClick={() => setForm((current) => ({ ...current, answers: [...current.answers, { text: '' }] }))}>+ Thêm câu đáp án</button>
+        <fieldset><legend>Các câu đáp án</legend><p>Mỗi dòng tương ứng một ô nhập của học viên.</p>{form.answers.map((answer, index) => <div className="part1-admin-answer" key={index}><span>{index + 1}</span><div className="part1-admin-answer__fields"><input required value={answer.text} onChange={(event) => updateAnswer(index, 'text', event.target.value)} placeholder={`Câu đáp án ${index + 1}`} /><input value={answer.translation} onChange={(event) => updateAnswer(index, 'translation', event.target.value)} placeholder="Bản dịch tiếng Việt (không bắt buộc)" /></div>{form.answers.length > 1 && <button type="button" onClick={() => setForm((current) => ({ ...current, answers: current.answers.filter((_, answerIndex) => answerIndex !== index) }))}>Xóa</button>}</div>)}
+          <button type="button" className="part1-add-answer" onClick={() => setForm((current) => ({ ...current, answers: [...current.answers, { text: '', translation: '' }] }))}>+ Thêm câu đáp án</button>
         </fieldset>
         <label className="part1-visibility"><input type="checkbox" checked={form.isVisible} onChange={(event) => setForm((current) => ({ ...current, isVisible: event.target.checked }))} />Hiển thị ngay với toàn bộ học viên</label>
         <div className="part1-editor-actions"><button type="button" className="ds-button ds-button--secondary" onClick={reset}>Hủy</button><button className="ds-button ds-button--primary" type="submit" disabled={saving || uploading}>{saving ? 'Đang lưu…' : editingId ? 'Lưu thay đổi' : 'Tạo bài nghe'}</button></div>
