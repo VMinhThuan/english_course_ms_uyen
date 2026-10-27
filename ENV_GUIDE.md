@@ -93,7 +93,7 @@ VITE_API_URL=http://localhost:5000/api/v1
 - Dùng URL backend trong môi trường development.
 - **Lưu ý**: Vite yêu cầu prefix `VITE_` cho tất cả biến môi trường
 - Development: `http://localhost:5000/api/v1`
-- Production: API dùng `/api/v1` cùng origin; Vercel rewrite chuyển tiếp request tới Backend để refresh cookie không phụ thuộc cookie bên thứ ba. Có thể giữ `VITE_API_URL` trỏ tới Backend để tạo URL tuyệt đối cho media legacy `/uploads/*`.
+- Production: API dùng `/api/v1` cùng origin; rewrite trong `frontend/vercel.json` chuyển request tới Backend để refresh cookie không phụ thuộc cookie bên thứ ba. Có thể giữ `VITE_API_URL` trỏ tới Backend để tạo URL tuyệt đối cho media legacy `/uploads/*`.
 
 ---
 
@@ -202,7 +202,7 @@ Trước khi deploy production, đảm bảo:
 - [ ] Đã cấu hình `MONGODB_URI` đúng
 - [ ] Đã set `NODE_ENV=production`
 - [ ] Đã cấu hình `FRONTEND_URL` đúng domain
-- [ ] Vercel frontend đã rewrite `/api/v1/*` đến Backend Production
+- [ ] `frontend/vercel.json` rewrite `/api/v1/*` đến Backend Production
 - [ ] `VITE_API_URL` production trỏ tới Backend nếu cần URL tuyệt đối cho media legacy
 - [ ] File `.env` không được commit lên Git
 
@@ -216,7 +216,7 @@ Trước khi deploy production, đảm bảo:
 
 ### Frontend không gọi được API
 - Development: kiểm tra `VITE_API_URL` đúng
-- Production: kiểm tra rewrite `/api/v1/*` trong `vercel.json` và domain Backend
+- Production: kiểm tra rewrite `/api/v1/*` trong `frontend/vercel.json` và domain Backend
 - Kiểm tra Backend đang chạy
 - Kiểm tra CORS trong Backend (`FRONTEND_URL`)
 
