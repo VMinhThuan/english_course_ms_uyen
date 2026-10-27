@@ -2,10 +2,11 @@ import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import useAuthStore from '../store/authStore.js';
 import axiosInstance from '../api/axiosConfig.js';
+import { API_BASE_URL } from '../api/apiBaseUrl.js';
 import '../pages/HomePage.css';
 import './CheckoutPage.css';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const API_URL = API_BASE_URL;
 const getApiUrl = (path) => {
   return `${API_URL}${path}`;
 };

@@ -1,6 +1,7 @@
 import axiosInstance from '../../api/axiosConfig.js';
+import { API_BASE_URL } from '../../api/apiBaseUrl.js';
 
-const DEFAULT_API_BASE = `${String(import.meta.env?.VITE_API_URL || '/api/v1').replace(/\/$/, '')}/student/vocabulary-catalog`;
+const DEFAULT_API_BASE = `${String(API_BASE_URL).replace(/\/$/, '')}/student/vocabulary-catalog`;
 
 function resolveBaseUrl() {
   if (typeof window !== 'undefined' && window.__VOCAB_STUDENT_CATALOG_API_BASE__) {

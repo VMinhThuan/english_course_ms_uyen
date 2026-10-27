@@ -1,5 +1,7 @@
-const API_ROOT = String(import.meta.env?.VITE_API_URL || '/api/v1').replace(/\/$/, '');
-const DEFAULT_BASE_URL = import.meta.env?.VITE_VOCABULARY_IMPORT_API_BASE
+import { API_BASE_URL, IS_PRODUCTION_BUILD } from '../../api/apiBaseUrl.js';
+
+const API_ROOT = String(API_BASE_URL).replace(/\/$/, '');
+const DEFAULT_BASE_URL = (!IS_PRODUCTION_BUILD && import.meta.env?.VITE_VOCABULARY_IMPORT_API_BASE)
   || `${API_ROOT}/admin/vocabulary-import-batches`;
 
 export class VocabularyImportApiError extends Error {
