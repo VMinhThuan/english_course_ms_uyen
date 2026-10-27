@@ -617,7 +617,7 @@ export const publishToeicTest = async (req, res, next) => {
       errors.push('Đề thi chưa có câu hỏi nào.');
     }
 
-    if (assessment.crawlerSourceSystem === 'toeic-full-test-generator') {
+    if (assessment.toeicMode === 'full_test') {
       const validation = validateToeicFullTestAssessment(assessment);
       if (!validation.valid) {
         return res.status(400).json({

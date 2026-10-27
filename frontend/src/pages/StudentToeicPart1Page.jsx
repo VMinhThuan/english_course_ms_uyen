@@ -76,10 +76,14 @@ export default function StudentToeicPart1Page() {
               <div className="part1-audio"><span aria-hidden="true">♫</span><audio controls preload="metadata" src={resolveMediaUrl(active.audioUrl)}>Trình duyệt của bạn không hỗ trợ phát audio.</audio></div>
               <form onSubmit={submit} className="part1-answer-form">
                 <p>Nhập câu bạn nghe được. Hệ thống không phân biệt chữ hoa và chữ thường.</p>
-                {answers.map((answer, index) => <label key={index} className={`part1-answer-row${results ? (results.results[index]?.isCorrect ? ' is-correct' : ' is-incorrect') : ''}`}>
-                  <span>{index + 1}</span><input value={answer} disabled={submitting} onChange={(event) => { const next = [...answers]; next[index] = event.target.value; setAnswers(next); setResults(null); }} placeholder={`Nhập câu ${index + 1}`} aria-label={`Đáp án câu ${index + 1}`} />
-                  {results && <b>{results.results[index]?.isCorrect ? 'Đúng' : 'Chưa đúng'}</b>}
-                </label>)}
+                {answers.map((answer, index) => {
+                  const result = results?.results[index];
+                  return <label key={index} className={`part1-answer-row${result ? (result.isCorrect ? ' is-correct' : ' is-incorrect') : ''}`}>
+                    <span>{index + 1}</span><input value={answer} disabled={submitting} onChange={(event) => { const next = [...answers]; next[index] = event.target.value; setAnswers(next); setResults(null); }} placeholder={`Nhập câu ${index + 1}`} aria-label={`Đáp án câu ${index + 1}`} />
+                    {result && <b>{result.isCorrect ? 'Đúng' : 'Chưa đúng'}</b>}
+                    {result && !result.isCorrect && <span className="part1-answer-correction"><strong>Đáp án đúng:</strong> {result.correctAnswer}</span>}
+                  </label>;
+                })}
                 {error && <p className="part1-form-error" role="alert">{error}</p>}
                 {results && <div className="part1-score" role="status"><strong>{results.correctCount}/{results.total}</strong><span>câu đúng</span></div>}
                 <button className="ds-button ds-button--primary" type="submit" disabled={submitting}>{submitting ? 'Đang chấm…' : 'Nộp bài để kiểm tra'}</button>

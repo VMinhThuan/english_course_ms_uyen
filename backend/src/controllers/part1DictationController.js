@@ -136,6 +136,8 @@ export const submitStudentPart1Dictation = async (req, res, next) => {
       .map((answer, index) => ({
         order: answer.order,
         isCorrect: normalizeAnswer(submissions[index]) === normalizeAnswer(answer.text),
+        // Only disclose the reference text after the student has submitted.
+        correctAnswer: answer.text,
       }));
     const correctCount = results.filter((result) => result.isCorrect).length;
     res.json({

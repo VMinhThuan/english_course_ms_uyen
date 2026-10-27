@@ -4,6 +4,17 @@ import { toeicApi } from '../api/toeicApi.js';
 import { resolveMediaUrl } from '../utils/mediaUrl.js';
 import '../styles/assessment-screens.css';
 
+const attemptNavigationKey = (attemptId) => `toeic-attempt-navigation:${attemptId}`;
+
+const readAttemptNavigation = (attemptId) => {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(attemptNavigationKey(attemptId)) || 'null');
+    return Number.isInteger(saved?.partNumber) && saved.partNumber >= 1 && saved.partNumber <= 7 ? saved : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function StudentToeicExamPage() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
@@ -23,8 +34,8 @@ export default function StudentToeicExamPage() {
   const [isExpired, setIsExpired] = useState(false);
 
   // Navigation & UI state
-  const [activePartNumber, setActivePartNumber] = useState(1);
-  const [activeQuestionId, setActiveQuestionId] = useState(null);
+  const [activePartNumber, setActivePartNumber] = useState(() => readAttemptNavigation(attemptId)?.partNumber || 1);
+  const [activeQuestionId, setActiveQuestionId] = useState(() => readAttemptNavigation(attemptId)?.questionId || null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [revisionConflict, setRevisionConflict] = useState(false);
@@ -40,8 +51,25 @@ export default function StudentToeicExamPage() {
   const autoSubmitHandlerRef = useRef(null);
 
   useEffect(() => {
+    const savedNavigation = readAttemptNavigation(attemptId);
+    setActivePartNumber(savedNavigation?.partNumber || 1);
+    setActiveQuestionId(savedNavigation?.questionId || null);
     loadAttempt();
   }, [attemptId]);
+
+  // Answers live on the server; this only restores the learner's place after
+  // a refresh or a short connection interruption.
+  useEffect(() => {
+    if (String(attempt?._id || '') !== String(attemptId)) return;
+    try {
+      window.localStorage.setItem(attemptNavigationKey(attemptId), JSON.stringify({
+        partNumber: activePartNumber,
+        questionId: activeQuestionId,
+      }));
+    } catch {
+      // Storage can be unavailable in private browsing. The exam still works.
+    }
+  }, [attemptId, activePartNumber, activeQuestionId]);
 
   // Load Attempt Data
   const loadAttempt = async () => {
@@ -150,7 +178,7 @@ export default function StudentToeicExamPage() {
           setRevisionConflict(true);
           if (version === autosaveVersionRef.current) setSaveStatus('error');
         } else {
-          if (version === autosaveVersionRef.current) setSaveStatus('error');
+          if (version === autosaveVersionRef.current) setSaveStatus(typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'error');
         }
       }
     }, 600);
@@ -163,6 +191,7 @@ export default function StudentToeicExamPage() {
       ? (selected.includes(optionId) ? selected.filter((id) => id !== optionId) : [...selected, optionId])
       : [optionId];
     const updated = { ...userAnswers, [questionId]: nextSelected };
+    setActiveQuestionId(questionId);
     setUserAnswers(updated);
     triggerAutosave(updated, flaggedIds);
   };
@@ -179,6 +208,16 @@ export default function StudentToeicExamPage() {
     triggerAutosave(userAnswers, updatedFlags);
   };
 
+  useEffect(() => {
+    const retryWhenOnline = () => {
+      if (attempt && !revisionConflict && !isExpired && saveStatus !== 'saved') {
+        triggerAutosave(userAnswers, flaggedIds);
+      }
+    };
+    window.addEventListener('online', retryWhenOnline);
+    return () => window.removeEventListener('online', retryWhenOnline);
+  }, [attempt, flaggedIds, isExpired, revisionConflict, saveStatus, userAnswers]);
+
   const handleAutoSubmitOnExpire = async () => {
     if (autoSubmitStartedRef.current || !attemptId) return;
     autoSubmitStartedRef.current = true;
@@ -190,6 +229,7 @@ export default function StudentToeicExamPage() {
       await autosaveQueueRef.current.catch(() => undefined);
       const res = await toeicApi.submitToeicAttempt(attemptId, userAnswers, revisionRef.current);
       if (res.status === 'success') {
+        try { window.localStorage.removeItem(attemptNavigationKey(attemptId)); } catch {}
         navigate(`/student/toeic/results/${attemptId}`);
       }
     } catch (err) {
@@ -391,7 +431,7 @@ export default function StudentToeicExamPage() {
             {assessment?.title || 'TOEIC Test'}
           </h1>
           <span className={`toeic-exam-screen__header-status toeic-exam-screen__header-status--${saveStatus === 'saved' ? 'saved' : saveStatus === 'saving' ? 'saving' : 'error'}`}>
-            {saveStatus === 'saved' ? '✓ Đã lưu' : saveStatus === 'saving' ? '⏳ Đang lưu...' : '⚠️ Không thể lưu'}
+            {saveStatus === 'saved' ? '✓ Đã lưu' : saveStatus === 'saving' ? '⏳ Đang lưu...' : saveStatus === 'offline' ? '⌁ Chờ kết nối để lưu' : '⚠️ Không thể lưu'}
           </span>
         </div>
 
@@ -427,7 +467,7 @@ export default function StudentToeicExamPage() {
           return (
             <button
               key={p.partNumber}
-              onClick={() => setActivePartNumber(p.partNumber)}
+              onClick={() => { setActivePartNumber(p.partNumber); setActiveQuestionId(null); }}
               className={`toeic-exam-screen__part-button${isActive ? ' toeic-exam-screen__part-button--active' : ''}`}
             >
               Part {p.partNumber}
@@ -601,7 +641,7 @@ export default function StudentToeicExamPage() {
                             <span style={{ fontSize: '1.2rem' }}>🎧</span>
                             <audio
                               controls
-                              src={group.audioUrl}
+                              src={resolveMediaUrl(group.audioUrl)}
                               preload="metadata"
                               style={{ width: '100%', maxWidth: '520px', height: '40px' }}
                             />
@@ -845,6 +885,7 @@ export default function StudentToeicExamPage() {
       <div
         key={qId}
         id={`question-${qId}`}
+        onFocusCapture={() => setActiveQuestionId(qId)}
         style={{
           background: 'var(--brand-surface)',
           borderRadius: '12px',
@@ -896,6 +937,12 @@ export default function StudentToeicExamPage() {
             {isFlagged ? '🚩' : '🏳️'}
           </button>
         </div>
+
+        {!q.questionGroupId && q.audioUrl && (
+          <div style={{ margin: '0.4rem 0 0.75rem' }}>
+            <audio controls src={resolveMediaUrl(q.audioUrl)} preload="metadata" style={{ width: '100%', maxWidth: '520px', height: '40px' }} />
+          </div>
+        )}
 
         {!q.questionGroupId && !q.audioUrl && q.audioText && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: '0.4rem 0 0.75rem', flexWrap: 'wrap' }}>

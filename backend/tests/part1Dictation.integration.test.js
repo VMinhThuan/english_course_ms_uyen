@@ -96,7 +96,10 @@ test('Part 1 dictation keeps answers private and grades text case-insensitively'
       method: 'POST', token: studentToken, body: { answers: ['  the   TRAIN arrives at NOON. ', 'different sentence'] },
     });
     assert.equal(submitted.response.status, 200);
-    assert.deepEqual(submitted.json.data.results, [{ order: 1, isCorrect: true }, { order: 2, isCorrect: false }]);
+    assert.deepEqual(submitted.json.data.results, [
+      { order: 1, isCorrect: true, correctAnswer: 'The train arrives at noon.' },
+      { order: 2, isCorrect: false, correctAnswer: 'Please keep your ticket.' },
+    ]);
     assert.equal(submitted.json.data.correctCount, 1);
   });
 });

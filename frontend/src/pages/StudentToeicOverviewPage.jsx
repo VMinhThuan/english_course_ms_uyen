@@ -5,6 +5,8 @@ import StatusBadge from '../components/ui/StatusBadge.jsx';
 import UiButton from '../components/ui/UiButton.jsx';
 import './StudentToeic.css';
 
+const FULL_TEST_PART_COUNTS = { 1: 6, 2: 25, 3: 39, 4: 30, 5: 30, 6: 16, 7: 54 };
+
 export default function StudentToeicOverviewPage() {
   const { assessmentId } = useParams();
   const navigate = useNavigate();
@@ -31,10 +33,10 @@ export default function StudentToeicOverviewPage() {
   const parts = test.parts || [];
   const listeningParts = parts.filter((part) => part.section === 'listening');
   const readingParts = parts.filter((part) => part.section === 'reading');
-  const totalQuestions = test.toeicConfig?.totalQuestions || test.questions?.length || 200;
+  const totalQuestions = test.totalQuestions || test.toeicConfig?.totalQuestions || test.questions?.length || 200;
   const durationMinutes = test.toeicConfig?.durationMinutes || test.duration || 120;
   const exhausted = !activeAttempt && Number(test.attemptLimit || 0) > 0 && Number(test.submittedCount || 0) >= Number(test.attemptLimit);
-  const renderPart = (part) => { const count = part.questionGroups?.reduce((sum, group) => sum + (group.questionIds?.length || 0), 0) || 0; return <article key={part.partNumber} className="toeic-part-card"><strong>Part {part.partNumber}: {part.name}</strong><span>{count > 0 ? `${count} câu hỏi` : part.instructions ? 'Chuẩn hóa TOEIC' : part.section === 'listening' ? 'Listening' : 'Reading'}</span></article>; };
+  const renderPart = (part) => { const count = test.toeicMode === 'full_test' ? FULL_TEST_PART_COUNTS[part.partNumber] : part.questionGroups?.reduce((sum, group) => sum + (group.questionIds?.length || 0), 0) || 0; return <article key={part.partNumber} className="toeic-part-card"><strong>Part {part.partNumber}: {part.name}</strong><span>{count > 0 ? `${count} câu hỏi` : part.instructions ? 'Chuẩn hóa TOEIC' : part.section === 'listening' ? 'Listening' : 'Reading'}</span></article>; };
   const mode = test.toeicMode === 'full_test' ? 'FULL TOEIC TEST' : test.toeicMode === 'mini_test' ? 'MINI TEST' : 'PRACTICE';
   return <div className="toeic-overview">
     <section className="toeic-overview-hero"><StatusBadge label={mode} variant="warning" /><h1>{test.title}</h1>{test.description && <p>{test.description}</p>}<div className="toeic-overview-facts"><span>⏱️ Thời gian: <strong>{durationMinutes} phút</strong></span><span>📝 Tổng câu hỏi: <strong>{totalQuestions} câu</strong></span><span>🔄 Đã làm: <strong>{test.submittedCount} lượt</strong></span><span>🎯 Còn lượt: <strong>{test.remainingAttempts === null ? 'Không giới hạn' : test.remainingAttempts}</strong></span></div></section>

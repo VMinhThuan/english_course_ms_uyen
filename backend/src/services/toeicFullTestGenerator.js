@@ -319,6 +319,7 @@ export function validateToeicFullTestAssessment(assessment) {
   const errors = [];
   const groups = Array.isArray(assessment?.questionGroups) ? assessment.questionGroups : [];
   const questionIds = [];
+  const questionNumbers = [];
   const byPart = {};
 
   for (const group of groups) {
@@ -360,6 +361,55 @@ export function validateToeicFullTestAssessment(assessment) {
     errors.push(
       `Part 7 cần 54 câu (29 single-passage, 25 multiple-passage), hiện có ${part7.questions} câu (${part7.passageQuestions}/${part7.multiPassageQuestions}).`,
     );
+  }
+
+  // publishToeicTest populates QuestionGroup.questionIds. Keep the structural
+  // validation usable in list/preview contexts where it is not populated, but
+  // when question data is available also guard the learner-facing assets and
+  // answer keys needed to run a real full test.
+  for (const group of groups) {
+    const part = Number(group.partNumber);
+    const questions = Array.isArray(group.questionIds) ? group.questionIds : [];
+    const hasQuestionData = questions.some((question) => question && typeof question === 'object' && (
+      question.questionText !== undefined || question.options !== undefined
+    ));
+    if (!hasQuestionData) continue;
+
+    const hasGroupAudio = Boolean(clean(group.audioUrl) || clean(group.audioText));
+    const hasQuestionAudio = questions.some((question) => clean(question?.audioUrl) || clean(question?.audioText));
+    if (part >= 1 && part <= 4 && !hasGroupAudio && !hasQuestionAudio) {
+      errors.push(`Part ${part}, group "${group.title || idString(group)}" thiếu audio hoặc nội dung TTS.`);
+    }
+    if (part === 1 && !clean(group.imageUrl) && !(group.imageUrls || []).length && !questions.some((question) => clean(question?.imageUrl))) {
+      errors.push(`Part 1, group "${group.title || idString(group)}" thiếu hình ảnh.`);
+    }
+    if ([6, 7].includes(part) && !(group.passages || []).some((passage) => clean(passage?.content) || clean(passage?.imageUrl) || (passage?.imageUrls || []).length)) {
+      errors.push(`Part ${part}, group "${group.title || idString(group)}" thiếu đoạn văn hoặc tài liệu đọc.`);
+    }
+
+    for (const question of questions) {
+      if (!question || typeof question !== 'object') continue;
+      const expectedOptionCount = part === 2 ? 3 : 4;
+      if (!clean(question.questionText)) {
+        errors.push(`Part ${part} có câu hỏi thiếu nội dung.`);
+      }
+      if (!Array.isArray(question.options) || question.options.length !== expectedOptionCount) {
+        errors.push(`Part ${part}, câu ${question.questionNumber || idString(question)} cần đúng ${expectedOptionCount} lựa chọn.`);
+      }
+      const optionValues = (question.options || []).flatMap((option) => [String(option?.id || ''), String(option?.text || '')]);
+      if (!Array.isArray(question.correctAnswers) || question.correctAnswers.length !== 1 || !question.correctAnswers.every((answer) => optionValues.includes(String(answer)))) {
+        errors.push(`Part ${part}, câu ${question.questionNumber || idString(question)} thiếu hoặc có đáp án đúng không khớp lựa chọn.`);
+      }
+      questionNumbers.push(question.questionNumber);
+    }
+  }
+
+  if (questionNumbers.length === 200) {
+    const expectedNumbers = new Set(Array.from({ length: 200 }, (_, index) => index + 1));
+    const actualNumbers = new Set(questionNumbers.map(Number));
+    if (actualNumbers.size !== 200 || [...actualNumbers].some((number) => !expectedNumbers.has(number))) {
+      errors.push('Số thứ tự câu hỏi phải liên tục từ 1 đến 200.');
+    }
   }
 
   return {
