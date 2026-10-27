@@ -31,6 +31,8 @@
 .part1-answer-correction strong{color:var(--brand-text)}
 .part1-answer-correction__text{display:block;color:var(--brand-danger);font-weight:750}
 .part1-answer-correction__translation{display:block;color:var(--brand-muted);font-size:12px}
+.part1-answer-correction.is-correct{border-color:var(--brand-success-border);background:var(--brand-success-bg)}
+.part1-answer-correction.is-correct .part1-answer-correction__text{color:var(--brand-success)}
 .part1-score{display:flex;align-items:baseline;gap:7px;padding:13px 15px;border-radius:10px;background:var(--brand-success-bg);color:var(--brand-success)}
 .part1-score strong{font-size:22px}
 .part1-score span{font-size:13px;font-weight:700}

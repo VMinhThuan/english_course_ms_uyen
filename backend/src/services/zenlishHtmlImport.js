@@ -83,6 +83,7 @@ export function normalizeZenlishHtmlImport({ testHtml, reviewHtml }) {
   const { sourceId, sourceUrl } = sourceIdFromTitle(testHtml);
   const groups = [];
   const counts = {};
+  let part7SinglePassageQuestions = 0;
 
   for (const [partIndex, rawPart] of parts.entries()) {
     const partNumber = partNumberFromName(rawPart.term_name);
@@ -131,7 +132,9 @@ export function normalizeZenlishHtmlImport({ testHtml, reviewHtml }) {
         : [];
       const audioUrl = clean(rawGroup.audio_url);
       const type = partNumber >= 6
-        ? 'passage'
+        ? partNumber === 7 && part7SinglePassageQuestions + questions.length > 29
+          ? 'multi_passage'
+          : 'passage'
         : audioUrl && groupImageUrls.length ? 'audio_image'
           : audioUrl ? 'audio'
             : groupImageUrls.length ? 'image'
@@ -149,6 +152,7 @@ export function normalizeZenlishHtmlImport({ testHtml, reviewHtml }) {
         order: groupIndex + 1,
         questions,
       });
+      if (partNumber === 7 && type === 'passage') part7SinglePassageQuestions += questions.length;
     }
   }
 
