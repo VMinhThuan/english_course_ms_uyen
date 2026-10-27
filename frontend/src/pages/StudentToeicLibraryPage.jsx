@@ -24,17 +24,7 @@ export default function StudentToeicLibraryPage() {
   });
   const modes = [['ALL', `Tất cả (${tests.length})`], ['full_test', "Full Test (120')"], ['mini_test', 'Mini Test'], ['practice', 'Luyện theo Part']];
   return <div className="toeic-page">
-    <PageHeader eyebrow="TOEIC practice" title="Kho đề thi TOEIC" description="Luyện Full Test, Mini Test và từng Part với giao diện mô phỏng thực tế." actions={<div style={{ display: 'grid', gap: '0.75rem' }}><div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}><Link className="ds-button ds-button--primary" to="/student/toeic/part-5">Ngân hàng Part 5</Link><Link className="ds-button ds-button--secondary" to="/student/toeic/part-1">Luyện nghe Part 1</Link></div><div className="toeic-mode-tabs" aria-label="Lọc loại đề thi">{modes.map(([mode, label]) => <button key={mode} type="button" className={activeMode === mode ? 'active' : ''} onClick={() => setActiveMode(mode)}>{label}</button>)}</div></div>} />
-    <div className="toeic-spotlight-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.25rem', background: 'linear-gradient(135deg, rgba(235, 131, 36, 0.08) 0%, rgba(200, 70, 10, 0.04) 100%)', border: '1px solid rgba(235, 131, 36, 0.25)', borderRadius: '14px', padding: '1.1rem 1.4rem', margin: '1rem 0 1.25rem', flexWrap: 'wrap' }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-          <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.55rem', borderRadius: '6px', background: '#eb8324', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ngân Hàng Mới</span>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--brand-coffee, #2c1a0e)' }}>Ngân hàng Part 5: Incomplete Sentences</h3>
-        </div>
-        <p style={{ margin: 0, color: 'var(--brand-muted, #666)', fontSize: '0.88rem' }}>Luyện tập bộ câu hỏi ngữ pháp và từ vựng Part 5 với đáp án &amp; lời giải thích chi tiết tiếng Việt.</p>
-      </div>
-      <Link to="/student/toeic/part-5" className="ds-button ds-button--primary" style={{ whiteSpace: 'nowrap' }}>Vào luyện Part 5 ngay →</Link>
-    </div>
+    <PageHeader eyebrow="TOEIC practice" title="Kho đề thi TOEIC" description="Luyện Full Test, Mini Test và từng Part với giao diện mô phỏng thực tế." actions={<div className="toeic-mode-tabs" aria-label="Lọc loại đề thi">{modes.map(([mode, label]) => <button key={mode} type="button" className={activeMode === mode ? 'active' : ''} onClick={() => setActiveMode(mode)}>{label}</button>)}</div>} />
     <label className="assessment-search"><span>Tìm đề thi TOEIC</span><input type="search" value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Nhập tên hoặc nội dung đề..." aria-label="Tìm đề thi TOEIC" /></label>
     {loading ? <div className="ds-loading-state">Đang tải kho đề thi TOEIC...</div>
       : error ? <div className="toeic-error ds-error-state"><strong>{error}</strong><button type="button" className="ds-button ds-button--danger" onClick={fetchToeicTests}>Thử lại</button></div>

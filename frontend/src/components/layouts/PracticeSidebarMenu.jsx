@@ -10,6 +10,7 @@ const getLinks = (variant, showPart1) => {
     ...(showDictationPages ? [{ label: 'Chép chính tả từ vựng', to: variant === 'admin' ? `${prefix}/vocabulary-dictations` : `${prefix}/vocabulary-dictation` }] : []),
     { label: 'Road to Part 7', to: `${prefix}/road-to-part-7` },
     { label: 'Bài tập ngữ pháp', to: `${prefix}/assessments` },
+    ...(variant === 'student' ? [{ label: 'Ngân hàng Part 5', to: `${prefix}/part-5` }] : []),
   ];
 };
 

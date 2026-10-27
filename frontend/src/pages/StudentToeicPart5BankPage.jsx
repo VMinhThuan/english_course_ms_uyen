@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
 import PageHeader from '../components/ui/PageHeader.jsx';
 import { studentExplanationText, studentTopicLabel } from '../utils/studentContentLanguage.js';
@@ -154,21 +154,11 @@ export default function StudentToeicPart5BankPage() {
   };
 
   return (
-    <div className="toeic-p5-container" data-testid="student-toeic-part5-page">
+    <div className="toeic-p5-container" data-testid="student-part5-bank-page">
       <PageHeader
-        eyebrow="TOEIC · Reading"
-        title="Ngân hàng Part 5: Incomplete Sentences"
+        eyebrow="Bài tập · TOEIC Part 5"
+        title="Ngân hàng Part 5"
         description="Bộ câu hỏi trắc nghiệm ngữ pháp và từ vựng chuẩn đề thi TOEIC, có đáp án và lời giải chi tiết từng câu."
-        actions={
-          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
-            <Link className="ds-button ds-button--secondary" to="/student/toeic">
-              Kho đề thi TOEIC
-            </Link>
-            <Link className="ds-button ds-button--secondary" to="/student/toeic/part-1">
-              Luyện nghe Part 1
-            </Link>
-          </div>
-        }
       />
 
       {/* Progress & Quick Stats Card */}

@@ -50,11 +50,10 @@ import AdminAssessmentsPage from '../pages/admin/AdminAssessmentsPage.jsx';
 import AdminResultsPage from '../pages/admin/AdminResultsPage.jsx';
 import AdminStatisticsPage from '../pages/admin/AdminStatisticsPage.jsx';
 
-// Student TOEIC Pages
+// Student TOEIC and practice pages
 import StudentToeicLibraryPage from '../pages/StudentToeicLibraryPage.jsx';
 import StudentToeicPart1Page from '../pages/StudentToeicPart1Page.jsx';
 import StudentToeicPart5BankPage from '../pages/StudentToeicPart5BankPage.jsx';
-import StudentPart5Page from '../pages/StudentPart5Page.jsx';
 import StudentToeicOverviewPage from '../pages/StudentToeicOverviewPage.jsx';
 import StudentToeicExamPage from '../pages/StudentToeicExamPage.jsx';
 import StudentToeicResultPage from '../pages/StudentToeicResultPage.jsx';
@@ -138,10 +137,10 @@ function AppRoutes() {
         <Route path="vocabulary-dictation" element={<StudentVocabularyDictationPage />} />
         <Route path="road-to-part-7" element={<RoadToPart7Page />} />
         <Route path="toeic" element={<StudentToeicLibraryPage />} />
-        <Route path="toeic/part-1" element={<StudentToeicPart1Page />} />
-        <Route path="toeic/part-5" element={<StudentToeicPart5BankPage />} />
+        <Route path="toeic/part-1" element={<Navigate to="/student/part-1" replace />} />
+        <Route path="toeic/part-5" element={<Navigate to="/student/part-5" replace />} />
         <Route path="part-1" element={<StudentToeicPart1Page />} />
-        <Route path="part-5" element={<StudentPart5Page />} />
+        <Route path="part-5" element={<StudentToeicPart5BankPage />} />
         <Route path="toeic/:assessmentId" element={<StudentToeicOverviewPage />} />
         <Route path="toeic/attempt/:attemptId" element={<StudentToeicExamPage />} />
         <Route path="toeic/results/:attemptId" element={<StudentToeicResultPage />} />
