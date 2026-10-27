@@ -20,6 +20,9 @@ import { adminToeicRoutes, studentToeicRoutes } from './routes/toeicRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
 import { createBlobUploadTicket, completeBlobUpload } from './controllers/blobUploadController.js';
 import { adminPart1DictationRoutes, studentPart1DictationRoutes } from './routes/part1DictationRoutes.js';
+import { adminVocabularyDictationRoutes, studentVocabularyDictationRoutes } from './routes/vocabularyDictationRoutes.js';
+import { adminRoadToPart7Routes, studentRoadToPart7Routes } from './routes/roadToPart7Routes.js';
+import learningContentRoutes from './routes/learningContentRoutes.js';
 import { verifyToken, checkRole } from './middlewares/auth.js';
 import { normalizePrivateBlobRequest, signPrivateBlobResponse } from './middlewares/privateBlobResponses.js';
 import { createVocabularyCatalogManagementPrototypeRouter } from './routes/vocabularyCatalogManagementPrototypeRoutes.js';
@@ -79,6 +82,7 @@ app.use(cors(corsOptions));
 
 app.use('/api/v1/admin/vocabulary-catalog/import-docx/publish', express.json({ limit: '12mb', strict: true }));
 app.use('/api/v1/admin/toeic-tests', express.json({ limit: '4mb', strict: true }));
+app.use('/api/v1/admin/learning-content/import-excel-seed', express.json({ limit: '300kb', strict: true }));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -158,6 +162,11 @@ app.post('/api/v1/storage/uploads/complete', verifyToken, checkRole('admin', 'te
 app.use('/api/v1/toeic', studentToeicRoutes);
 app.use('/api/v1/admin/part1-dictations', adminPart1DictationRoutes);
 app.use('/api/v1/part1-dictations', studentPart1DictationRoutes);
+app.use('/api/v1/admin/vocabulary-dictations', adminVocabularyDictationRoutes);
+app.use('/api/v1/vocabulary-dictations', studentVocabularyDictationRoutes);
+app.use('/api/v1/admin/road-to-part-7', adminRoadToPart7Routes);
+app.use('/api/v1/road-to-part-7', studentRoadToPart7Routes);
+app.use('/api/v1/admin/learning-content', learningContentRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

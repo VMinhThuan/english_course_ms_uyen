@@ -1,0 +1,33 @@
+.road7-page{display:grid;max-width:1320px;gap:22px;margin:0 auto}
+.road7-workspace{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);align-items:start;gap:18px}
+.road7-library,.road7-reader{min-width:0;border:1px solid var(--brand-border);border-radius:var(--radius-card);background:var(--brand-surface);box-shadow:var(--shadow-subtle)}
+.road7-library{position:sticky;top:18px;display:grid;max-height:calc(100vh - 150px);grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;padding:15px}
+.road7-library__heading{display:flex;align-items:center;justify-content:space-between;padding:4px 3px 12px}
+.road7-library__heading h2{margin:5px 0 0;color:var(--brand-text);font-family:var(--font-serif);font-size:20px;font-weight:600}
+.road7-search{display:grid;gap:6px;padding-bottom:12px;color:var(--brand-coffee);font-size:11px;font-weight:800}
+.road7-search input{box-sizing:border-box;width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--brand-border);border-radius:9px;background:#fffefa;color:var(--brand-text);font:13px var(--font-sans)}
+.road7-reading-list{display:grid;align-content:start;gap:5px;overflow:auto;padding-right:3px;overscroll-behavior:contain}
+.road7-reading-option{display:grid;grid-template-columns:31px minmax(0,1fr);gap:2px 9px;width:100%;padding:11px 9px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--brand-text);text-align:left;cursor:pointer}
+.road7-reading-option:hover,.road7-reading-option.is-active{border-color:#f0d78b;background:var(--brand-yellow-soft)}
+.road7-reading-option>span{grid-row:span 2;padding-top:2px;color:var(--brand-brown-sec);font-size:11px;font-weight:800}
+.road7-reading-option strong{font-size:12px;line-height:1.4}
+.road7-reading-option small{color:var(--brand-muted);font-size:10px}
+.road7-no-results{margin:8px;color:var(--brand-muted);font-size:12px}
+.road7-reader{display:grid;grid-template-rows:auto auto minmax(300px,1fr) auto;gap:14px;padding:24px}
+.road7-reader__header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.road7-reader__header h2{margin:6px 0 0;color:var(--brand-text);font-family:var(--font-serif);font-size:26px;font-weight:600;line-height:1.25}
+.road7-face-switch{display:flex;flex-shrink:0;gap:4px;padding:4px;border:1px solid var(--brand-border);border-radius:10px;background:var(--brand-bg-sub)}
+.road7-face-switch button{min-height:36px;padding:7px 12px;border:0;border-radius:7px;background:transparent;color:var(--brand-brown-sec);font:700 11px var(--font-sans);cursor:pointer}
+.road7-face-switch button[aria-pressed=true]{background:#fff;color:var(--brand-coffee-dark);box-shadow:var(--shadow-subtle)}
+.road7-reader__meta{display:flex;justify-content:space-between;gap:12px;padding:10px 13px;border:1px solid #efe6d8;border-radius:9px;background:#fffdfa;color:var(--brand-muted);font-size:11px;font-weight:700}
+.road7-reading-content{min-height:360px;max-height:min(62vh,760px);overflow:auto;padding:24px 28px;border:1px solid var(--brand-border-light);border-radius:12px;background:#fffefa;color:var(--brand-text);overscroll-behavior:contain;scrollbar-gutter:stable}
+.road7-reading-content:focus-visible{outline:3px solid var(--brand-yellow);outline-offset:2px}
+.road7-english-article,.road7-bilingual-pairs{margin:0;font-size:17px;line-height:1.95;white-space:pre-wrap}
+.road7-bilingual-pairs{display:grid;gap:14px}
+.road7-bilingual-pairs p{margin:0}
+.road7-bilingual-pairs strong{font-weight:800}
+.road7-bilingual-pairs span{color:#645b52}
+.road7-reader__footer{display:flex;align-items:center;justify-content:space-between;gap:14px;color:var(--brand-muted);font-size:11px;font-weight:700}
+.road7-page :is(button,input):focus-visible{outline:3px solid var(--brand-yellow);outline-offset:2px}
+@media(max-width:900px){.road7-workspace{grid-template-columns:1fr}.road7-library{position:static;max-height:320px}.road7-reading-list{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.road7-reader__header{align-items:stretch;flex-direction:column}.road7-face-switch{align-self:start}}
+@media(max-width:600px){.road7-page{gap:16px}.road7-library{max-height:280px;padding:11px}.road7-reading-list{grid-template-columns:1fr}.road7-reader{gap:12px;padding:16px}.road7-reader__header h2{font-size:22px}.road7-reading-content{min-height:300px;max-height:60vh;padding:18px 16px}.road7-english-article,.road7-bilingual-pairs{font-size:16px;line-height:1.85}.road7-reader__footer{align-items:stretch;flex-direction:column}.road7-reader__footer button{width:100%}}

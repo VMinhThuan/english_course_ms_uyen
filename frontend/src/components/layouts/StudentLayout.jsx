@@ -28,6 +28,7 @@ export default function StudentLayout() {
     else if (path.includes('/courses/')) pageTitle = path.includes('/lessons/') ? 'Bài học' : 'Khóa học';
     else if (path === '/student/courses') pageTitle = 'Bài học';
     else if (path.includes('vocabulary-dictation')) pageTitle = 'Chép chính tả từ vựng';
+    else if (path.includes('road-to-part-7')) pageTitle = 'Road to Part 7';
     else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
     else if (path.includes('/tests/')) pageTitle = 'Đang làm bài kiểm tra';
     else if (path.includes('assessments')) pageTitle = 'Bài tập ngữ pháp';

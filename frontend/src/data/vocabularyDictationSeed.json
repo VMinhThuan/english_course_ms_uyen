@@ -1,0 +1,994 @@
+[
+  {
+    "sourceKey": "test-7-section-01",
+    "title": "Test 7 · Mục 1 · Từ 1–10",
+    "testNumber": 7,
+    "sectionNumber": 1,
+    "firstWord": 1,
+    "lastWord": 10,
+    "audioFilename": "Muc_01_Test_7_tu_01-10.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "garage",
+        "translation": "nhà để xe; bãi đỗ xe",
+        "order": 1
+      },
+      {
+        "text": "liquid",
+        "translation": "chất lỏng",
+        "order": 2
+      },
+      {
+        "text": "bulletin board",
+        "translation": "bảng thông báo",
+        "order": 3
+      },
+      {
+        "text": "occupied",
+        "translation": "đang được sử dụng; có người sử dụng",
+        "order": 4
+      },
+      {
+        "text": "committee",
+        "translation": "ủy ban; ban",
+        "order": 5
+      },
+      {
+        "text": "layover",
+        "translation": "chặng dừng; thời gian dừng chờ khi nối chuyến",
+        "order": 6
+      },
+      {
+        "text": "astronomy",
+        "translation": "thiên văn học",
+        "order": 7
+      },
+      {
+        "text": "astronaut",
+        "translation": "phi hành gia",
+        "order": 8
+      },
+      {
+        "text": "fit",
+        "translation": "phù hợp; vừa vặn",
+        "order": 9
+      },
+      {
+        "text": "cookware",
+        "translation": "dụng cụ nấu ăn",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-7-section-02",
+    "title": "Test 7 · Mục 2 · Từ 11–20",
+    "testNumber": 7,
+    "sectionNumber": 2,
+    "firstWord": 11,
+    "lastWord": 20,
+    "audioFilename": "Muc_02_Test_7_tu_11-20.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "agreement",
+        "translation": "thỏa thuận; hợp đồng",
+        "order": 1
+      },
+      {
+        "text": "supervise",
+        "translation": "giám sát; quản lý",
+        "order": 2
+      },
+      {
+        "text": "forecast",
+        "translation": "dự báo; sự dự báo",
+        "order": 3
+      },
+      {
+        "text": "depart",
+        "translation": "khởi hành; rời đi",
+        "order": 4
+      },
+      {
+        "text": "short-staffed",
+        "translation": "thiếu nhân viên",
+        "order": 5
+      },
+      {
+        "text": "storefront",
+        "translation": "mặt tiền cửa hàng; khu vực phía trước cửa hàng",
+        "order": 6
+      },
+      {
+        "text": "vacant",
+        "translation": "trống; chưa có người sử dụng",
+        "order": 7
+      },
+      {
+        "text": "analyze",
+        "translation": "phân tích",
+        "order": 8
+      },
+      {
+        "text": "demonstrate",
+        "translation": "trình diễn; minh họa",
+        "order": 9
+      },
+      {
+        "text": "itinerary",
+        "translation": "lịch trình; lịch trình chuyến đi",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-7-section-03",
+    "title": "Test 7 · Mục 3 · Từ 21–30",
+    "testNumber": 7,
+    "sectionNumber": 3,
+    "firstWord": 21,
+    "lastWord": 30,
+    "audioFilename": "Muc_03_Test_7_tu_21-30.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "realize",
+        "translation": "nhận ra; nhận thức được",
+        "order": 1
+      },
+      {
+        "text": "distracting",
+        "translation": "gây xao nhãng; gây mất tập trung",
+        "order": 2
+      },
+      {
+        "text": "flavor",
+        "translation": "hương vị",
+        "order": 3
+      },
+      {
+        "text": "expert",
+        "translation": "chuyên gia; thuộc về chuyên gia",
+        "order": 4
+      },
+      {
+        "text": "extension",
+        "translation": "sự gia hạn; sự mở rộng",
+        "order": 5
+      },
+      {
+        "text": "overtime",
+        "translation": "làm thêm giờ; thuộc thời gian làm thêm",
+        "order": 6
+      },
+      {
+        "text": "exchange",
+        "translation": "sự trao đổi; trao đổi",
+        "order": 7
+      },
+      {
+        "text": "receipt",
+        "translation": "biên lai; hóa đơn thanh toán",
+        "order": 8
+      },
+      {
+        "text": "ancient",
+        "translation": "thuộc thời cổ đại",
+        "order": 9
+      },
+      {
+        "text": "civilization",
+        "translation": "nền văn minh",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-7-section-04",
+    "title": "Test 7 · Mục 4 · Từ 31–40",
+    "testNumber": 7,
+    "sectionNumber": 4,
+    "firstWord": 31,
+    "lastWord": 40,
+    "audioFilename": "Muc_04_Test_7_tu_31-40.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "last-minute",
+        "translation": "vào phút cuối",
+        "order": 1
+      },
+      {
+        "text": "expertise",
+        "translation": "kiến thức chuyên môn; kỹ năng chuyên môn",
+        "order": 2
+      },
+      {
+        "text": "memorable",
+        "translation": "đáng nhớ",
+        "order": 3
+      },
+      {
+        "text": "immediately",
+        "translation": "ngay lập tức",
+        "order": 4
+      },
+      {
+        "text": "fair",
+        "translation": "hội chợ; triển lãm",
+        "order": 5
+      },
+      {
+        "text": "demolition",
+        "translation": "sự phá dỡ",
+        "order": 6
+      },
+      {
+        "text": "involvement",
+        "translation": "sự tham gia",
+        "order": 7
+      },
+      {
+        "text": "invest",
+        "translation": "đầu tư",
+        "order": 8
+      },
+      {
+        "text": "substantial",
+        "translation": "đáng kể; lớn",
+        "order": 9
+      },
+      {
+        "text": "press",
+        "translation": "báo chí; giới truyền thông",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-7-section-05",
+    "title": "Test 7 · Mục 5 · Từ 41–50",
+    "testNumber": 7,
+    "sectionNumber": 5,
+    "firstWord": 41,
+    "lastWord": 50,
+    "audioFilename": "Muc_05_Test_7_tu_41-50.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "improve",
+        "translation": "cải thiện; cải tiến",
+        "order": 1
+      },
+      {
+        "text": "partial",
+        "translation": "một phần; không đầy đủ",
+        "order": 2
+      },
+      {
+        "text": "motivate",
+        "translation": "tạo động lực; thúc đẩy",
+        "order": 3
+      },
+      {
+        "text": "reassurance",
+        "translation": "sự trấn an; lời trấn an",
+        "order": 4
+      },
+      {
+        "text": "misunderstanding",
+        "translation": "sự hiểu lầm",
+        "order": 5
+      },
+      {
+        "text": "specific",
+        "translation": "cụ thể; nhất định",
+        "order": 6
+      },
+      {
+        "text": "guideline",
+        "translation": "hướng dẫn; nguyên tắc chỉ dẫn",
+        "order": 7
+      },
+      {
+        "text": "practical",
+        "translation": "mang tính thực tế; thuộc thực hành",
+        "order": 8
+      },
+      {
+        "text": "disposal",
+        "translation": "sự xử lý; sự thải bỏ",
+        "order": 9
+      },
+      {
+        "text": "determine",
+        "translation": "xác định; quyết định",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-7-section-06",
+    "title": "Test 7 · Mục 6 · Từ 51–60",
+    "testNumber": 7,
+    "sectionNumber": 6,
+    "firstWord": 51,
+    "lastWord": 60,
+    "audioFilename": "Muc_06_Test_7_tu_51-60.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "protective",
+        "translation": "có tác dụng bảo vệ; dùng để bảo vệ",
+        "order": 1
+      },
+      {
+        "text": "represent",
+        "translation": "đại diện cho",
+        "order": 2
+      },
+      {
+        "text": "approach",
+        "translation": "tiến đến; đến gần",
+        "order": 3
+      },
+      {
+        "text": "yield",
+        "translation": "sản lượng; năng suất",
+        "order": 4
+      },
+      {
+        "text": "assembly",
+        "translation": "sự lắp ráp",
+        "order": 5
+      },
+      {
+        "text": "authorize",
+        "translation": "cho phép; phê duyệt; trao quyền",
+        "order": 6
+      },
+      {
+        "text": "margin",
+        "translation": "khoảng dự phòng; mức chênh lệch",
+        "order": 7
+      },
+      {
+        "text": "adjustment",
+        "translation": "sự điều chỉnh",
+        "order": 8
+      },
+      {
+        "text": "broadcast",
+        "translation": "phát sóng",
+        "order": 9
+      },
+      {
+        "text": "present",
+        "translation": "hiện tại",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-7-section-07",
+    "title": "Test 7 · Mục 7 · Từ 61–70",
+    "testNumber": 7,
+    "sectionNumber": 7,
+    "firstWord": 61,
+    "lastWord": 70,
+    "audioFilename": "Muc_07_Test_7_tu_61-70.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "certainly",
+        "translation": "chắc chắn; nhất định",
+        "order": 1
+      },
+      {
+        "text": "policy",
+        "translation": "chính sách; quy định",
+        "order": 2
+      },
+      {
+        "text": "achievement",
+        "translation": "thành tựu; sự đạt được",
+        "order": 3
+      },
+      {
+        "text": "feedback",
+        "translation": "ý kiến phản hồi",
+        "order": 4
+      },
+      {
+        "text": "excuse",
+        "translation": "lý do bào chữa; lời biện minh",
+        "order": 5
+      },
+      {
+        "text": "disappointment",
+        "translation": "sự thất vọng",
+        "order": 6
+      },
+      {
+        "text": "aboard",
+        "translation": "trên tàu, máy bay; lên tàu, máy bay",
+        "order": 7
+      },
+      {
+        "text": "renowned",
+        "translation": "nổi tiếng; có danh tiếng",
+        "order": 8
+      },
+      {
+        "text": "inconvenience",
+        "translation": "sự bất tiện",
+        "order": 9
+      },
+      {
+        "text": "architectural",
+        "translation": "thuộc kiến trúc",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-7-section-08",
+    "title": "Test 7 · Mục 8 · Từ 71–80",
+    "testNumber": 7,
+    "sectionNumber": 8,
+    "firstWord": 71,
+    "lastWord": 80,
+    "audioFilename": "Muc_08_Test_7_tu_71-80.mp3",
+    "audioAvailable": false,
+    "answers": [
+      {
+        "text": "landmark",
+        "translation": "địa danh nổi bật; công trình mang tính biểu tượng",
+        "order": 1
+      },
+      {
+        "text": "connection",
+        "translation": "sự kết nối; mối liên hệ",
+        "order": 2
+      },
+      {
+        "text": "express",
+        "translation": "nhanh; tốc hành",
+        "order": 3
+      },
+      {
+        "text": "caution",
+        "translation": "sự thận trọng; lời cảnh báo",
+        "order": 4
+      },
+      {
+        "text": "conservation",
+        "translation": "sự bảo tồn; sự bảo vệ",
+        "order": 5
+      },
+      {
+        "text": "catering",
+        "translation": "dịch vụ cung cấp thức ăn; dịch vụ tiệc",
+        "order": 6
+      },
+      {
+        "text": "urban",
+        "translation": "thuộc đô thị; thuộc thành phố",
+        "order": 7
+      },
+      {
+        "text": "suburban",
+        "translation": "thuộc vùng ngoại ô",
+        "order": 8
+      },
+      {
+        "text": "rating",
+        "translation": "xếp hạng; mức đánh giá",
+        "order": 9
+      },
+      {
+        "text": "organization",
+        "translation": "tổ chức; cơ quan",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-8-section-09",
+    "title": "Test 8 · Mục 9 · Từ 1–10",
+    "testNumber": 8,
+    "sectionNumber": 9,
+    "firstWord": 1,
+    "lastWord": 10,
+    "audioFilename": "Muc_09_Test_8_tu_01-10.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "flowerpot",
+        "translation": "chậu hoa; chậu cây",
+        "order": 1
+      },
+      {
+        "text": "rug",
+        "translation": "thảm trải sàn",
+        "order": 2
+      },
+      {
+        "text": "covered",
+        "translation": "có mái che; được che phủ",
+        "order": 3
+      },
+      {
+        "text": "patio",
+        "translation": "sân hiên",
+        "order": 4
+      },
+      {
+        "text": "intersection",
+        "translation": "giao lộ; ngã tư",
+        "order": 5
+      },
+      {
+        "text": "flyer",
+        "translation": "tờ rơi",
+        "order": 6
+      },
+      {
+        "text": "ceiling",
+        "translation": "trần nhà",
+        "order": 7
+      },
+      {
+        "text": "unload",
+        "translation": "dỡ hàng; bốc hàng xuống",
+        "order": 8
+      },
+      {
+        "text": "climb",
+        "translation": "leo lên; trèo lên",
+        "order": 9
+      },
+      {
+        "text": "rake",
+        "translation": "cào; gom bằng cào",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-8-section-10",
+    "title": "Test 8 · Mục 10 · Từ 11–20",
+    "testNumber": 8,
+    "sectionNumber": 10,
+    "firstWord": 11,
+    "lastWord": 20,
+    "audioFilename": "Muc_10_Test_8_tu_11-20.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "alert",
+        "translation": "thông báo; cảnh báo",
+        "order": 1
+      },
+      {
+        "text": "agenda",
+        "translation": "chương trình nghị sự; các vấn đề cần thảo luận",
+        "order": 2
+      },
+      {
+        "text": "informational",
+        "translation": "mang tính cung cấp thông tin",
+        "order": 3
+      },
+      {
+        "text": "satisfaction",
+        "translation": "sự hài lòng; mức độ hài lòng",
+        "order": 4
+      },
+      {
+        "text": "predict",
+        "translation": "dự đoán",
+        "order": 5
+      },
+      {
+        "text": "assignment",
+        "translation": "nhiệm vụ được giao; sự phân công",
+        "order": 6
+      },
+      {
+        "text": "productive",
+        "translation": "có năng suất; hiệu quả",
+        "order": 7
+      },
+      {
+        "text": "comfortable",
+        "translation": "thoải mái; dễ chịu",
+        "order": 8
+      },
+      {
+        "text": "laboratory",
+        "translation": "phòng thí nghiệm",
+        "order": 9
+      },
+      {
+        "text": "worth",
+        "translation": "đáng giá; có giá trị",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-8-section-11",
+    "title": "Test 8 · Mục 11 · Từ 21–30",
+    "testNumber": 8,
+    "sectionNumber": 11,
+    "firstWord": 21,
+    "lastWord": 30,
+    "audioFilename": "Muc_11_Test_8_tu_21-30.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "apply",
+        "translation": "áp dụng",
+        "order": 1
+      },
+      {
+        "text": "calculate",
+        "translation": "tính toán",
+        "order": 2
+      },
+      {
+        "text": "degree",
+        "translation": "độ (đơn vị đo nhiệt độ)",
+        "order": 3
+      },
+      {
+        "text": "monitor",
+        "translation": "theo dõi; giám sát",
+        "order": 4
+      },
+      {
+        "text": "incomplete",
+        "translation": "chưa hoàn thành; không đầy đủ",
+        "order": 5
+      },
+      {
+        "text": "insufficient",
+        "translation": "không đủ",
+        "order": 6
+      },
+      {
+        "text": "equipment",
+        "translation": "thiết bị; dụng cụ",
+        "order": 7
+      },
+      {
+        "text": "rare",
+        "translation": "hiếm; hiếm gặp",
+        "order": 8
+      },
+      {
+        "text": "practice",
+        "translation": "sự thực hành; việc thực hiện",
+        "order": 9
+      },
+      {
+        "text": "publicity",
+        "translation": "sự quảng bá; sự đưa tin",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-8-section-12",
+    "title": "Test 8 · Mục 12 · Từ 31–40",
+    "testNumber": 8,
+    "sectionNumber": 12,
+    "firstWord": 31,
+    "lastWord": 40,
+    "audioFilename": "Muc_12_Test_8_tu_31-40.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "wing",
+        "translation": "khu nhà phụ; dãy nhà",
+        "order": 1
+      },
+      {
+        "text": "city hall",
+        "translation": "tòa thị chính; trụ sở chính quyền thành phố",
+        "order": 2
+      },
+      {
+        "text": "create",
+        "translation": "tạo ra; làm ra",
+        "order": 3
+      },
+      {
+        "text": "official",
+        "translation": "quan chức; người có thẩm quyền",
+        "order": 4
+      },
+      {
+        "text": "construction",
+        "translation": "sự xây dựng; công trình xây dựng",
+        "order": 5
+      },
+      {
+        "text": "soil",
+        "translation": "đất; đất trồng",
+        "order": 6
+      },
+      {
+        "text": "agriculture",
+        "translation": "nông nghiệp",
+        "order": 7
+      },
+      {
+        "text": "curious",
+        "translation": "tò mò; muốn biết",
+        "order": 8
+      },
+      {
+        "text": "improvement",
+        "translation": "sự cải thiện; sự cải tạo",
+        "order": 9
+      },
+      {
+        "text": "script",
+        "translation": "kịch bản; bản thảo",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-8-section-13",
+    "title": "Test 8 · Mục 13 · Từ 41–50",
+    "testNumber": 8,
+    "sectionNumber": 13,
+    "firstWord": 41,
+    "lastWord": 50,
+    "audioFilename": "Muc_13_Test_8_tu_41-50.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "episode",
+        "translation": "tập phim; một kỳ phát sóng",
+        "order": 1
+      },
+      {
+        "text": "performer",
+        "translation": "người biểu diễn; diễn viên; nhạc công",
+        "order": 2
+      },
+      {
+        "text": "outdoor",
+        "translation": "ngoài trời",
+        "order": 3
+      },
+      {
+        "text": "flat rate",
+        "translation": "mức phí cố định",
+        "order": 4
+      },
+      {
+        "text": "varied",
+        "translation": "đa dạng; phong phú",
+        "order": 5
+      },
+      {
+        "text": "machinery",
+        "translation": "máy móc",
+        "order": 6
+      },
+      {
+        "text": "automated",
+        "translation": "được tự động hóa; tự động",
+        "order": 7
+      },
+      {
+        "text": "transplant",
+        "translation": "cấy ghép; chuyển cây sang nơi khác để trồng",
+        "order": 8
+      },
+      {
+        "text": "handle",
+        "translation": "xử lý; giải quyết",
+        "order": 9
+      },
+      {
+        "text": "amazement",
+        "translation": "sự kinh ngạc; sự ngạc nhiên",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-8-section-14",
+    "title": "Test 8 · Mục 14 · Từ 51–60",
+    "testNumber": 8,
+    "sectionNumber": 14,
+    "firstWord": 51,
+    "lastWord": 60,
+    "audioFilename": "Muc_14_Test_8_tu_51-60.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "inclement weather",
+        "translation": "thời tiết khắc nghiệt; thời tiết xấu",
+        "order": 1
+      },
+      {
+        "text": "doubt",
+        "translation": "nghi ngờ; cho rằng điều gì khó xảy ra",
+        "order": 2
+      },
+      {
+        "text": "organizer",
+        "translation": "người tổ chức; đơn vị tổ chức",
+        "order": 3
+      },
+      {
+        "text": "rebook",
+        "translation": "đặt lại; đặt lại chỗ",
+        "order": 4
+      },
+      {
+        "text": "misinformation",
+        "translation": "thông tin sai lệch",
+        "order": 5
+      },
+      {
+        "text": "compliment",
+        "translation": "lời khen",
+        "order": 6
+      },
+      {
+        "text": "pillow",
+        "translation": "gối",
+        "order": 7
+      },
+      {
+        "text": "assist",
+        "translation": "giúp đỡ; hỗ trợ",
+        "order": 8
+      },
+      {
+        "text": "position",
+        "translation": "vị trí; tư thế",
+        "order": 9
+      },
+      {
+        "text": "firm",
+        "translation": "chắc; cứng",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-8-section-15",
+    "title": "Test 8 · Mục 15 · Từ 61–70",
+    "testNumber": 8,
+    "sectionNumber": 15,
+    "firstWord": 61,
+    "lastWord": 70,
+    "audioFilename": "Muc_15_Test_8_tu_61-70.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "pain",
+        "translation": "cơn đau; sự đau đớn",
+        "order": 1
+      },
+      {
+        "text": "objection",
+        "translation": "sự phản đối; lời phản đối",
+        "order": 2
+      },
+      {
+        "text": "paperwork",
+        "translation": "công việc giấy tờ; thủ tục giấy tờ",
+        "order": 3
+      },
+      {
+        "text": "autonomous",
+        "translation": "tự chủ; tự vận hành",
+        "order": 4
+      },
+      {
+        "text": "remotely",
+        "translation": "từ xa",
+        "order": 5
+      },
+      {
+        "text": "operate",
+        "translation": "vận hành; điều hành",
+        "order": 6
+      },
+      {
+        "text": "maintain",
+        "translation": "bảo trì; duy trì",
+        "order": 7
+      },
+      {
+        "text": "administer",
+        "translation": "thực hiện; tiến hành; quản lý",
+        "order": 8
+      },
+      {
+        "text": "compliance",
+        "translation": "sự tuân thủ",
+        "order": 9
+      },
+      {
+        "text": "primarily",
+        "translation": "chủ yếu",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "sourceKey": "test-8-section-16",
+    "title": "Test 8 · Mục 16 · Từ 71–80",
+    "testNumber": 8,
+    "sectionNumber": 16,
+    "firstWord": 71,
+    "lastWord": 80,
+    "audioFilename": "Muc_16_Test_8_tu_71-80.mp3",
+    "audioAvailable": true,
+    "answers": [
+      {
+        "text": "exceed",
+        "translation": "vượt quá",
+        "order": 1
+      },
+      {
+        "text": "standard",
+        "translation": "tiêu chuẩn; mức chuẩn",
+        "order": 2
+      },
+      {
+        "text": "responsibility",
+        "translation": "trách nhiệm",
+        "order": 3
+      },
+      {
+        "text": "respond",
+        "translation": "trả lời; phản hồi",
+        "order": 4
+      },
+      {
+        "text": "control",
+        "translation": "kiểm soát; điều khiển",
+        "order": 5
+      },
+      {
+        "text": "allow",
+        "translation": "cho phép",
+        "order": 6
+      },
+      {
+        "text": "clinical",
+        "translation": "thuộc lâm sàng",
+        "order": 7
+      },
+      {
+        "text": "alternative",
+        "translation": "phương án thay thế; lựa chọn khác",
+        "order": 8
+      },
+      {
+        "text": "bulk",
+        "translation": "số lượng lớn; với số lượng lớn",
+        "order": 9
+      },
+      {
+        "text": "officially",
+        "translation": "một cách chính thức",
+        "order": 10
+      }
+    ]
+  }
+]

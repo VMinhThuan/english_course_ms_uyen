@@ -1,4 +1,5 @@
 import Part1Dictation from '../models/Part1Dictation.js';
+import { deleteFromBlob } from '../utils/blobStorage.js';
 
 const normalizeAnswer = (value) => String(value ?? '')
   .normalize('NFKC')
@@ -101,6 +102,17 @@ export const setPart1DictationVisibility = async (req, res, next) => {
     );
     if (!item) return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài chép chính tả Part 1.' });
     res.json({ status: 'success', data: { item } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deletePart1Dictation = async (req, res, next) => {
+  try {
+    const item = await Part1Dictation.findByIdAndDelete(req.params.id);
+    if (!item) return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài chép chính tả Part 1.' });
+    await deleteFromBlob(item.audioUrl).catch(() => {});
+    res.json({ status: 'success', message: 'Đã xóa bài chép chính tả Part 1.' });
   } catch (error) {
     next(error);
   }

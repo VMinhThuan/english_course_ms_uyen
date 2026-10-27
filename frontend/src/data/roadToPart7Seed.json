@@ -1,0 +1,1371 @@
+[
+  {
+    "sourceKey": "reading-01",
+    "title": "Bài đọc 01",
+    "order": 1,
+    "englishText": "Tin Prices May Improve LONDON (12 September)—Prices for tin rose to a record high in August. International inventories are unusually low at this time, and problems with availability persist. The price increases are driven by reduced supply in countries that produce the metal, coupled with increasing worldwide demand for and manufacturing of electronics, whose components are joined together with tin compounds. Chilean Smelting, Inc., a major producer, has invested in improved equipment and aims to increase production. As a result, tin traders predict some moderation in prices as supplies rise.",
+    "bilingualPairs": [
+      {
+        "english": "Tin Prices May Improve",
+        "vietnamese": "Giá thiếc có thể ổn định hơn",
+        "order": 1
+      },
+      {
+        "english": "LONDON (12 September)—Prices for tin rose to a record high in August. (LONDON",
+        "vietnamese": "ngày 12 tháng 9) — Giá thiếc đã tăng lên mức cao kỷ lục vào tháng Tám.",
+        "order": 2
+      },
+      {
+        "english": "International inventories are unusually low at this time, and problems with availability persist.",
+        "vietnamese": "Lượng hàng tồn kho trên toàn cầu hiện thấp bất thường và tình trạng thiếu nguồn cung vẫn tiếp diễn.",
+        "order": 3
+      },
+      {
+        "english": "The price increases are driven by reduced supply in countries that produce the metal, coupled with increasing worldwide demand for and manufacturing of electronics, whose components are joined together with tin compounds.",
+        "vietnamese": "Giá tăng do nguồn cung giảm tại các quốc gia sản xuất kim loại này, cùng với nhu cầu và hoạt động sản xuất thiết bị điện tử trên toàn thế giới tăng lên; các linh kiện của những thiết bị này được gắn với nhau bằng các hợp chất thiếc.",
+        "order": 4
+      },
+      {
+        "english": "Chilean Smelting, Inc., a major producer, has invested in improved equipment and aims to increase production.",
+        "vietnamese": "Chilean Smelting, Inc., một nhà sản xuất lớn, đã đầu tư vào thiết bị cải tiến và đặt mục tiêu tăng sản lượng.",
+        "order": 5
+      },
+      {
+        "english": "As a result, tin traders predict some moderation in prices as supplies rise.",
+        "vietnamese": "Do đó, các thương nhân kinh doanh thiếc dự đoán giá sẽ phần nào ổn định trở lại khi nguồn cung tăng.",
+        "order": 6
+      }
+    ],
+    "sourceRow": 2
+  },
+  {
+    "sourceKey": "reading-02",
+    "title": "Bài đọc 02",
+    "order": 2,
+    "englishText": "To Whom It May Concern: I read the article on Sonfaya Mutual’s BASA in the most recent issue of AFR with interest. Subsequently, I visited your Web site, looking for the previous AFR issue referenced in the article. Unfortunately, I could not locate it on the archival page. Please advise on how I can obtain that back issue. Sincerely,",
+    "bilingualPairs": [
+      {
+        "english": "To Whom It May Concern:",
+        "vietnamese": "Kính gửi người phụ trách,",
+        "order": 1
+      },
+      {
+        "english": "I read the article on Sonfaya Mutual’s BASA in the most recent issue of AFR with interest.",
+        "vietnamese": "Tôi đã đọc bài viết về BASA của Sonfaya Mutual trong số mới nhất của AFR với sự quan tâm.",
+        "order": 2
+      },
+      {
+        "english": "Subsequently, I visited your Web site, looking for the previous AFR issue referenced in the article.",
+        "vietnamese": "Sau đó, tôi đã truy cập trang web của quý vị để tìm số AFR trước đó được nhắc đến trong bài viết.",
+        "order": 3
+      },
+      {
+        "english": "Unfortunately, I could not locate it on the archival page.",
+        "vietnamese": "Rất tiếc, tôi không tìm thấy số báo đó trên trang lưu trữ.",
+        "order": 4
+      },
+      {
+        "english": "Please advise on how I can obtain that back issue.",
+        "vietnamese": "Xin vui lòng hướng dẫn tôi cách có thể nhận được số báo cũ đó.",
+        "order": 5
+      },
+      {
+        "english": "Sincerely,",
+        "vietnamese": "Trân trọng,",
+        "order": 6
+      }
+    ],
+    "sourceRow": 3
+  },
+  {
+    "sourceKey": "reading-03",
+    "title": "Bài đọc 03",
+    "order": 3,
+    "englishText": "Hello, I have a reservation to stay at your bed and breakfast next week. I wanted to inquire about breakfast times. I need to leave before 7 A.M. on Saturday morning, April 11, for my conference at the Ivor Hotel and Conference Center. Will breakfast be available before then? If not, what restaurants near the conference would you recommend that would be open at that time? Sincerely, Maya Rodriguez",
+    "bilingualPairs": [
+      {
+        "english": "Hello,",
+        "vietnamese": "Xin chào,",
+        "order": 1
+      },
+      {
+        "english": "I have a reservation to stay at your bed and breakfast next week.",
+        "vietnamese": "Tôi đã đặt phòng tại cơ sở lưu trú có phục vụ bữa sáng của quý vị vào tuần tới.",
+        "order": 2
+      },
+      {
+        "english": "I wanted to inquire about breakfast times.",
+        "vietnamese": "Tôi muốn hỏi về thời gian phục vụ bữa sáng.",
+        "order": 3
+      },
+      {
+        "english": "I need to leave before 7 A.M. on Saturday morning, April 11, for my conference at the Ivor Hotel and Conference Center.",
+        "vietnamese": "Tôi cần rời đi trước 7 giờ sáng thứ Bảy, ngày 11 tháng 4, để tham dự hội nghị tại Khách sạn và Trung tâm Hội nghị Ivor.",
+        "order": 4
+      },
+      {
+        "english": "Will breakfast be available before then?",
+        "vietnamese": "Bữa sáng có được phục vụ trước thời điểm đó không?",
+        "order": 5
+      },
+      {
+        "english": "If not, what restaurants near the conference would you recommend that would be open at that time?",
+        "vietnamese": "Nếu không, quý vị có thể giới thiệu nhà hàng nào gần địa điểm tổ chức hội nghị mở cửa vào thời điểm đó không?",
+        "order": 6
+      },
+      {
+        "english": "Sincerely,",
+        "vietnamese": "Trân trọng,",
+        "order": 7
+      },
+      {
+        "english": "Maya Rodriguez",
+        "vietnamese": "Maya Rodriguez",
+        "order": 8
+      }
+    ],
+    "sourceRow": 4
+  },
+  {
+    "sourceKey": "reading-04",
+    "title": "Bài đọc 04",
+    "order": 4,
+    "englishText": "Dear Customer Service Representative: I received a confirmation e-mail on June 15 that my 4-cubic-foot cement mixer would be delivered one week ago from JJ’s Home and Garden Suppliers. I have a small business and am dependent on my equipment. I have not yet received the product, and I have already left several unanswered phone messages. If the cement mixer is not at my business by the end of the day today, I can still pick it up at either the New Gralen or the Paloner store if I have to, as I need it for a job tomorrow afternoon. If one is not available by tomorrow, I ask that you cancel my order and provide me with a full refund. I will instead buy a Mr. Buddy from Alliance Hardware Store, a small, local store where it is currently in stock (and at your same price). Please advise me on the status of my order immediately. I hope that my order with you will arrive today and that no further action will be needed by either of us. Sincerely,",
+    "bilingualPairs": [
+      {
+        "english": "Dear Customer Service Representative:",
+        "vietnamese": "Kính gửi nhân viên chăm sóc khách hàng,",
+        "order": 1
+      },
+      {
+        "english": "I received a confirmation e-mail on June 15 that my 4-cubic-foot cement mixer would be delivered one week ago from JJ’s Home and Garden Suppliers.",
+        "vietnamese": "Tôi nhận được email xác nhận vào ngày 15 tháng 6 rằng chiếc máy trộn xi măng dung tích 4 feet khối của tôi sẽ được JJ’s Home and Garden Suppliers giao cách đây một tuần.",
+        "order": 2
+      },
+      {
+        "english": "I have a small business and am dependent on my equipment.",
+        "vietnamese": "Tôi điều hành một doanh nghiệp nhỏ và phụ thuộc vào các thiết bị của mình.",
+        "order": 3
+      },
+      {
+        "english": "I have not yet received the product, and I have already left several unanswered phone messages.",
+        "vietnamese": "Tôi vẫn chưa nhận được sản phẩm và đã để lại nhiều lời nhắn qua điện thoại nhưng không nhận được phản hồi.",
+        "order": 4
+      },
+      {
+        "english": "If the cement mixer is not at my business by the end of the day today, I can still pick it up at either the New Gralen or the Paloner store if I have to, as I need it for a job tomorrow afternoon.",
+        "vietnamese": "Nếu máy trộn xi măng không được giao đến cơ sở kinh doanh của tôi trước cuối ngày hôm nay, tôi vẫn có thể đến nhận tại cửa hàng New Gralen hoặc Paloner nếu cần, vì tôi cần máy cho một công việc vào chiều mai.",
+        "order": 5
+      },
+      {
+        "english": "If one is not available by tomorrow, I ask that you cancel my order and provide me with a full refund.",
+        "vietnamese": "Nếu đến ngày mai vẫn không có máy, tôi đề nghị quý vị hủy đơn hàng và hoàn lại toàn bộ tiền cho tôi.",
+        "order": 6
+      },
+      {
+        "english": "I will instead buy a Mr. Buddy from Alliance Hardware Store, a small, local store where it is currently in stock (and at your same price). (Thay vào đó, tôi sẽ mua một chiếc Mr. Buddy tại Alliance Hardware Store, một cửa hàng nhỏ ở địa phương hiện đang có sẵn hàng",
+        "vietnamese": "với mức giá bằng giá của quý vị).",
+        "order": 7
+      },
+      {
+        "english": "Please advise me on the status of my order immediately.",
+        "vietnamese": "Xin vui lòng thông báo ngay cho tôi về tình trạng đơn hàng.",
+        "order": 8
+      },
+      {
+        "english": "I hope that my order with you will arrive today and that no further action will be needed by either of us.",
+        "vietnamese": "Tôi hy vọng đơn hàng sẽ đến trong hôm nay và cả hai bên sẽ không cần thực hiện thêm bất kỳ bước nào khác.",
+        "order": 9
+      },
+      {
+        "english": "Sincerely,",
+        "vietnamese": "Trân trọng,",
+        "order": 10
+      }
+    ],
+    "sourceRow": 5
+  },
+  {
+    "sourceKey": "reading-05",
+    "title": "Bài đọc 05",
+    "order": 5,
+    "englishText": "Sparkle Car caters to the maintenance needs of corporate clients who own cars for employee use. Through using our reasonably-priced services, you can be confident your company cars will look clean and professional. Our hand-cleaning and vacuum services restore fabric interiors to their former appearance, while our mobile power-washing service can be performed regularly and help the outside of your vehicles look as good as new. Are you finding your company vehicles often experience breakdowns? Our expert team can conduct engine checks and oil changes. This will allow you to keep your vehicles on the road for longer and reduce the need for replacement vehicles. Go to www.sparklecar.com to see glowing client testimonials and videos of our technicians at work. Service visits can be scheduled by calling 555-0146. Call before November 15 and we will bring a set of complimentary seat covers to your visit!",
+    "bilingualPairs": [
+      {
+        "english": "Sparkle Car caters to the maintenance needs of corporate clients who own cars for employee use.",
+        "vietnamese": "Sparkle Car đáp ứng nhu cầu bảo dưỡng của các khách hàng doanh nghiệp sở hữu ô tô cho nhân viên sử dụng.",
+        "order": 1
+      },
+      {
+        "english": "Through using our reasonably-priced services, you can be confident your company cars will look clean and professional.",
+        "vietnamese": "Khi sử dụng các dịch vụ có giá hợp lý của chúng tôi, quý khách có thể yên tâm rằng xe của công ty sẽ trông sạch sẽ và chuyên nghiệp.",
+        "order": 2
+      },
+      {
+        "english": "Our hand-cleaning and vacuum services restore fabric interiors to their former appearance, while our mobile power-washing service can be performed regularly and help the outside of your vehicles look as good as new.",
+        "vietnamese": "Dịch vụ vệ sinh thủ công và hút bụi của chúng tôi giúp nội thất bọc vải lấy lại diện mạo ban đầu, trong khi dịch vụ rửa xe bằng máy áp lực tại chỗ có thể được thực hiện thường xuyên để giúp bên ngoài xe trông như mới.",
+        "order": 3
+      },
+      {
+        "english": "Are you finding your company vehicles often experience breakdowns?",
+        "vietnamese": "Quý khách có nhận thấy xe của công ty thường xuyên gặp sự cố không?",
+        "order": 4
+      },
+      {
+        "english": "Our expert team can conduct engine checks and oil changes.",
+        "vietnamese": "Đội ngũ chuyên gia của chúng tôi có thể kiểm tra động cơ và thay dầu.",
+        "order": 5
+      },
+      {
+        "english": "This will allow you to keep your vehicles on the road for longer and reduce the need for replacement vehicles.",
+        "vietnamese": "Việc này sẽ giúp xe của quý khách hoạt động lâu hơn và giảm nhu cầu sử dụng xe thay thế.",
+        "order": 6
+      },
+      {
+        "english": "Go to www.sparklecar.com to see glowing client testimonials and videos of our technicians at work.",
+        "vietnamese": "Hãy truy cập www.sparklecar.com để xem những đánh giá tích cực từ khách hàng và video các kỹ thuật viên của chúng tôi làm việc.",
+        "order": 7
+      },
+      {
+        "english": "Service visits can be scheduled by calling 555-0146.",
+        "vietnamese": "Quý khách có thể đặt lịch sử dụng dịch vụ bằng cách gọi 555-0146.",
+        "order": 8
+      },
+      {
+        "english": "Call before November 15 and we will bring a set of complimentary seat covers to your visit!",
+        "vietnamese": "Hãy gọi trước ngày 15 tháng 11 và chúng tôi sẽ mang đến một bộ bọc ghế miễn phí trong lần phục vụ của quý khách!",
+        "order": 9
+      }
+    ],
+    "sourceRow": 6
+  },
+  {
+    "sourceKey": "reading-06",
+    "title": "Bài đọc 06",
+    "order": 6,
+    "englishText": "Dear Ms. Tenton, When we visited your company last Thursday, we were able to perform the bulk of the requested tasks on your fleet. As you know, however, there was one service we had to postpone because of a problem in receiving the required materials from one of our suppliers. Unfortunately, it seems unlikely that this issue will be resolved soon. Therefore, I have refunded the fee of $495 for the work that was not carried out. It should appear in your bank account in the next few days. Also, I spoke with your colleague Alexa Wethers during our visit about taking out a contract with your second branch in Ingram. Because that branch has over 30 vehicles, we will be able to offer discounted rates. I sent a physical copy of the service agreement to your office on Monday. Could you please sign this and send it back to me at your earliest convenience? We look forward to continuing to take care of your vehicle maintenance needs.",
+    "bilingualPairs": [
+      {
+        "english": "Dear Ms. Tenton,",
+        "vietnamese": "Kính gửi bà Tenton,",
+        "order": 1
+      },
+      {
+        "english": "When we visited your company last Thursday, we were able to perform the bulk of the requested tasks on your fleet.",
+        "vietnamese": "Khi đến công ty bà vào thứ Năm tuần trước, chúng tôi đã thực hiện được phần lớn các công việc được yêu cầu đối với đội xe của bà.",
+        "order": 2
+      },
+      {
+        "english": "As you know, however, there was one service we had to postpone because of a problem in receiving the required materials from one of our suppliers.",
+        "vietnamese": "Tuy nhiên, như bà đã biết, chúng tôi phải hoãn một dịch vụ do gặp vấn đề khi nhận vật liệu cần thiết từ một nhà cung cấp.",
+        "order": 3
+      },
+      {
+        "english": "Unfortunately, it seems unlikely that this issue will be resolved soon.",
+        "vietnamese": "Rất tiếc, có vẻ như vấn đề này khó được giải quyết sớm.",
+        "order": 4
+      },
+      {
+        "english": "Therefore, I have refunded the fee of $495 for the work that was not carried out.",
+        "vietnamese": "Vì vậy, tôi đã hoàn lại khoản phí 495 đô la cho công việc chưa được thực hiện.",
+        "order": 5
+      },
+      {
+        "english": "It should appear in your bank account in the next few days.",
+        "vietnamese": "Khoản tiền này sẽ được ghi có vào tài khoản ngân hàng của bà trong vài ngày tới.",
+        "order": 6
+      },
+      {
+        "english": "Also, I spoke with your colleague Alexa Wethers during our visit about taking out a contract with your second branch in Ingram.",
+        "vietnamese": "Ngoài ra, trong chuyến thăm, tôi đã trao đổi với đồng nghiệp của bà là Alexa Wethers về việc ký hợp đồng với chi nhánh thứ hai của bà tại Ingram.",
+        "order": 7
+      },
+      {
+        "english": "Because that branch has over 30 vehicles, we will be able to offer discounted rates.",
+        "vietnamese": "Vì chi nhánh đó có hơn 30 xe, chúng tôi có thể áp dụng mức giá ưu đãi.",
+        "order": 8
+      },
+      {
+        "english": "I sent a physical copy of the service agreement to your office on Monday.",
+        "vietnamese": "Tôi đã gửi một bản giấy của thỏa thuận dịch vụ đến văn phòng của bà vào thứ Hai.",
+        "order": 9
+      },
+      {
+        "english": "Could you please sign this and send it back to me at your earliest convenience?",
+        "vietnamese": "Bà vui lòng ký và gửi lại cho tôi sớm nhất khi thuận tiện được không?",
+        "order": 10
+      },
+      {
+        "english": "We look forward to continuing to take care of your vehicle maintenance needs.",
+        "vietnamese": "Chúng tôi mong được tiếp tục đáp ứng nhu cầu bảo dưỡng xe của quý công ty.",
+        "order": 11
+      }
+    ],
+    "sourceRow": 7
+  },
+  {
+    "sourceKey": "reading-07",
+    "title": "Bài đọc 07",
+    "order": 7,
+    "englishText": "Product developer Responsibilities: developing new drink products. Requirements: degree-level qualification in chemical engineering; ability to get along well with coworkers. We are happy to consider applicants with no previous experience in the field. Brand manager Responsibilities: devising and conducting marketing campaigns. Requirements: familiarity with ProDraw computer software; excellent public speaking skills. Preferred qualifications: 5+ years of experience in a similar role. Delivery driver Responsibilities: transporting our products all over the state as part of our logistics department. Requirements: truck driver’s license; willingness to work nights and weekends. Interested candidates can apply for any of the above roles by contacting Sue Rawlins in our human resources department at s.rawlins@freshco.com. When applying, please state your available dates for an interview between May 17 and May 21.",
+    "bilingualPairs": [
+      {
+        "english": "Product developer",
+        "vietnamese": "Nhân viên phát triển sản phẩm",
+        "order": 1
+      },
+      {
+        "english": "Responsibilities: developing new drink products.",
+        "vietnamese": "Trách nhiệm: phát triển các sản phẩm đồ uống mới.",
+        "order": 2
+      },
+      {
+        "english": "Requirements: degree-level qualification in chemical engineering; ability to get along well with coworkers.",
+        "vietnamese": "Yêu cầu: có bằng cấp chuyên ngành kỹ thuật hóa học; có khả năng hòa hợp tốt với đồng nghiệp.",
+        "order": 3
+      },
+      {
+        "english": "We are happy to consider applicants with no previous experience in the field.",
+        "vietnamese": "Chúng tôi sẵn sàng xem xét các ứng viên chưa có kinh nghiệm trong lĩnh vực này.",
+        "order": 4
+      },
+      {
+        "english": "Brand manager",
+        "vietnamese": "Quản lý thương hiệu",
+        "order": 5
+      },
+      {
+        "english": "Responsibilities: devising and conducting marketing campaigns.",
+        "vietnamese": "Trách nhiệm: xây dựng và triển khai các chiến dịch tiếp thị.",
+        "order": 6
+      },
+      {
+        "english": "Requirements: familiarity with ProDraw computer software; excellent public speaking skills.",
+        "vietnamese": "Yêu cầu: thành thạo phần mềm máy tính ProDraw; có kỹ năng nói trước công chúng xuất sắc.",
+        "order": 7
+      },
+      {
+        "english": "Preferred qualifications: 5+ years of experience in a similar role.",
+        "vietnamese": "Ưu tiên: có từ 5 năm kinh nghiệm trở lên ở vị trí tương tự.",
+        "order": 8
+      },
+      {
+        "english": "Delivery driver",
+        "vietnamese": "Tài xế giao hàng",
+        "order": 9
+      },
+      {
+        "english": "Responsibilities: transporting our products all over the state as part of our logistics department.",
+        "vietnamese": "Trách nhiệm: vận chuyển sản phẩm của công ty đến khắp tiểu bang với tư cách là nhân viên thuộc bộ phận hậu cần.",
+        "order": 10
+      },
+      {
+        "english": "Requirements: truck driver’s license; willingness to work nights and weekends.",
+        "vietnamese": "Yêu cầu: có bằng lái xe tải; sẵn sàng làm việc vào buổi tối và cuối tuần.",
+        "order": 11
+      },
+      {
+        "english": "Interested candidates can apply for any of the above roles by contacting Sue Rawlins in our human resources department at s.rawlins@freshco.com.",
+        "vietnamese": "Các ứng viên quan tâm có thể ứng tuyển vào bất kỳ vị trí nào nêu trên bằng cách liên hệ Sue Rawlins thuộc bộ phận nhân sự của chúng tôi qua s.rawlins@freshco.com.",
+        "order": 12
+      },
+      {
+        "english": "When applying, please state your available dates for an interview between May 17 and May 21.",
+        "vietnamese": "Khi ứng tuyển, vui lòng cho biết những ngày bạn có thể tham gia phỏng vấn trong khoảng từ ngày 17 đến ngày 21 tháng 5.",
+        "order": 13
+      }
+    ],
+    "sourceRow": 8
+  },
+  {
+    "sourceKey": "reading-08",
+    "title": "Bài đọc 08",
+    "order": 8,
+    "englishText": "Bellord Group Results of the Annual Employee Growth Survey Executive Summary The Employee Growth Survey was sent by e-mail to all of Bellord Group’s 1,421 employees on March 10. An acceptable 67.5% (959 employees) submitted a completed survey by the March 21 deadline. The overall results are positive. More than 70% of respondents agree/strongly agree that they are given enough opportunities to handle new tasks and receive training, and more than 80% agree/strongly agree that they have grown professionally since the survey was last administered. However, only 43.6% agree/strongly agree that their supervisor supports their growth. Few respondents provided additional information about this in the comments section, so it is difficult to make general conclusions about the reasons for the low ratings in this category. We recommend assembling a task force to further research this issue and seek solutions to it.",
+    "bilingualPairs": [
+      {
+        "english": "Bellord Group",
+        "vietnamese": "Tập đoàn Bellord",
+        "order": 1
+      },
+      {
+        "english": "Results of the Annual Employee Growth Survey",
+        "vietnamese": "Kết quả khảo sát hằng năm về sự phát triển của nhân viên",
+        "order": 2
+      },
+      {
+        "english": "Executive Summary",
+        "vietnamese": "Tóm tắt báo cáo",
+        "order": 3
+      },
+      {
+        "english": "The Employee Growth Survey was sent by e-mail to all of Bellord Group’s 1,421 employees on March 10.",
+        "vietnamese": "Khảo sát về sự phát triển của nhân viên đã được gửi qua email đến toàn bộ 1.421 nhân viên của Tập đoàn Bellord vào ngày 10 tháng 3.",
+        "order": 4
+      },
+      {
+        "english": "An acceptable 67.5% (959 employees) submitted a completed survey by the March 21 deadline. (Có 67,5% nhân viên",
+        "vietnamese": "959 người), một tỷ lệ chấp nhận được, đã hoàn thành và nộp khảo sát trước hạn chót ngày 21 tháng 3.",
+        "order": 5
+      },
+      {
+        "english": "The overall results are positive.",
+        "vietnamese": "Kết quả tổng thể là tích cực.",
+        "order": 6
+      },
+      {
+        "english": "More than 70% of respondents agree/strongly agree that they are given enough opportunities to handle new tasks and receive training, and more than 80% agree/strongly agree that they have grown professionally since the survey was last administered.",
+        "vietnamese": "Hơn 70% người tham gia đồng ý hoặc hoàn toàn đồng ý rằng họ có đủ cơ hội đảm nhận nhiệm vụ mới và được đào tạo; hơn 80% đồng ý hoặc hoàn toàn đồng ý rằng họ đã phát triển về chuyên môn kể từ lần khảo sát trước.",
+        "order": 7
+      },
+      {
+        "english": "However, only 43.6% agree/strongly agree that their supervisor supports their growth.",
+        "vietnamese": "Tuy nhiên, chỉ 43,6% đồng ý hoặc hoàn toàn đồng ý rằng người quản lý hỗ trợ sự phát triển của họ.",
+        "order": 8
+      },
+      {
+        "english": "Few respondents provided additional information about this in the comments section, so it is difficult to make general conclusions about the reasons for the low ratings in this category.",
+        "vietnamese": "Rất ít người tham gia cung cấp thêm thông tin về vấn đề này trong phần nhận xét, vì vậy khó có thể đưa ra kết luận chung về lý do mục này nhận được đánh giá thấp.",
+        "order": 9
+      },
+      {
+        "english": "We recommend assembling a task force to further research this issue and seek solutions to it.",
+        "vietnamese": "Chúng tôi đề xuất thành lập một nhóm chuyên trách để tìm hiểu thêm và tìm giải pháp cho vấn đề này.",
+        "order": 10
+      }
+    ],
+    "sourceRow": 9
+  },
+  {
+    "sourceKey": "reading-09",
+    "title": "Bài đọc 09",
+    "order": 9,
+    "englishText": "Hello, After carefully considering what SportsView offers, we would like to go ahead and take out a subscription. Sports customers expect premium service, and we are confident that you can help us deliver this. Now, there are sections of our Web site dedicated to news and articles about baseball and basketball. However, we know most of our visitors come for the soccer-related content, and so it is for this particular sport that we would like you to provide your services. Receiving photos just one hour after each event will help set us apart from our competition. I will have my assistant call you first thing in the morning to finalize the terms of the contract. I am sure we can find a price that suits both of us. Regards,",
+    "bilingualPairs": [
+      {
+        "english": "Hello,",
+        "vietnamese": "Xin chào,",
+        "order": 1
+      },
+      {
+        "english": "After carefully considering what SportsView offers, we would like to go ahead and take out a subscription.",
+        "vietnamese": "Sau khi cân nhắc kỹ những dịch vụ SportsView cung cấp, chúng tôi muốn tiến hành đăng ký sử dụng dịch vụ.",
+        "order": 2
+      },
+      {
+        "english": "Sports customers expect premium service, and we are confident that you can help us deliver this.",
+        "vietnamese": "Khách hàng theo dõi thể thao mong đợi dịch vụ chất lượng cao và chúng tôi tin rằng quý vị có thể giúp chúng tôi đáp ứng điều đó.",
+        "order": 3
+      },
+      {
+        "english": "Now, there are sections of our Web site dedicated to news and articles about baseball and basketball.",
+        "vietnamese": "Hiện tại, trang web của chúng tôi có các mục dành riêng cho tin tức và bài viết về bóng chày và bóng rổ.",
+        "order": 4
+      },
+      {
+        "english": "However, we know most of our visitors come for the soccer-related content, and so it is for this particular sport that we would like you to provide your services.",
+        "vietnamese": "Tuy nhiên, chúng tôi biết phần lớn người truy cập đến để xem nội dung liên quan đến bóng đá, vì vậy chúng tôi muốn quý vị cung cấp dịch vụ cho riêng môn thể thao này.",
+        "order": 5
+      },
+      {
+        "english": "Receiving photos just one hour after each event will help set us apart from our competition.",
+        "vietnamese": "Nhận được hình ảnh chỉ một giờ sau mỗi sự kiện sẽ giúp chúng tôi tạo sự khác biệt với các đối thủ cạnh tranh.",
+        "order": 6
+      },
+      {
+        "english": "I will have my assistant call you first thing in the morning to finalize the terms of the contract.",
+        "vietnamese": "Tôi sẽ nhờ trợ lý gọi cho quý vị ngay đầu giờ sáng để hoàn tất các điều khoản hợp đồng.",
+        "order": 7
+      },
+      {
+        "english": "I am sure we can find a price that suits both of us.",
+        "vietnamese": "Tôi tin rằng chúng ta có thể tìm được mức giá phù hợp cho cả hai bên.",
+        "order": 8
+      },
+      {
+        "english": "Regards,",
+        "vietnamese": "Trân trọng,",
+        "order": 9
+      }
+    ],
+    "sourceRow": 10
+  },
+  {
+    "sourceKey": "reading-10",
+    "title": "Bài đọc 10",
+    "order": 10,
+    "englishText": "You brought in one of your delivery vans last month, explaining that you needed some urgent work to get it back on the road the same day so that you could complete your furniture delivery. However, I am very unhappy to report that we have still not received compensation for this work nearly four weeks later. My team and I worked extremely hard on the vehicle, replacing vital engine parts and changing the oil as requested. You contacted me that evening to tell me your delivery was successfully completed and stated that payment would be transferred immediately. We find this situation to be extremely disappointing. Your standing balance was £990.00, and now a £50.00 late payment fee brings the total to £1,040.00. If we do not receive payment by the end of the working week, we will have to pursue legal action. Please call our administrator at 01224 393842 to arrange this by Friday at the latest.",
+    "bilingualPairs": [
+      {
+        "english": "You brought in one of your delivery vans last month, explaining that you needed some urgent work to get it back on the road the same day so that you could complete your furniture delivery.",
+        "vietnamese": "Tháng trước, quý vị đã mang một chiếc xe tải giao hàng đến và giải thích rằng xe cần được sửa gấp để có thể hoạt động trở lại ngay trong ngày, giúp quý vị hoàn thành việc giao đồ nội thất.",
+        "order": 1
+      },
+      {
+        "english": "However, I am very unhappy to report that we have still not received compensation for this work nearly four weeks later.",
+        "vietnamese": "Tuy nhiên, tôi rất không hài lòng khi phải thông báo rằng sau gần bốn tuần, chúng tôi vẫn chưa nhận được tiền thanh toán cho công việc này.",
+        "order": 2
+      },
+      {
+        "english": "My team and I worked extremely hard on the vehicle, replacing vital engine parts and changing the oil as requested.",
+        "vietnamese": "Tôi và đội ngũ của mình đã làm việc rất vất vả trên chiếc xe, thay thế các bộ phận động cơ quan trọng và thay dầu theo yêu cầu.",
+        "order": 3
+      },
+      {
+        "english": "You contacted me that evening to tell me your delivery was successfully completed and stated that payment would be transferred immediately.",
+        "vietnamese": "Tối hôm đó, quý vị đã liên hệ với tôi để thông báo rằng việc giao hàng đã hoàn tất thành công và nói rằng khoản thanh toán sẽ được chuyển ngay lập tức.",
+        "order": 4
+      },
+      {
+        "english": "We find this situation to be extremely disappointing.",
+        "vietnamese": "Chúng tôi thấy tình huống này vô cùng đáng thất vọng.",
+        "order": 5
+      },
+      {
+        "english": "Your standing balance was £990.00, and now a £50.00 late payment fee brings the total to £1,040.00.",
+        "vietnamese": "Số tiền quý vị còn nợ là 990 bảng Anh; khoản phí thanh toán trễ 50 bảng Anh khiến tổng số tiền hiện là 1.040 bảng Anh.",
+        "order": 6
+      },
+      {
+        "english": "If we do not receive payment by the end of the working week, we will have to pursue legal action.",
+        "vietnamese": "Nếu không nhận được khoản thanh toán trước cuối tuần làm việc, chúng tôi sẽ phải tiến hành các biện pháp pháp lý.",
+        "order": 7
+      },
+      {
+        "english": "Please call our administrator at 01224 393842 to arrange this by Friday at the latest.",
+        "vietnamese": "Vui lòng gọi cho nhân viên hành chính của chúng tôi theo số 01224 393842 để thu xếp việc thanh toán chậm nhất vào thứ Sáu.",
+        "order": 8
+      }
+    ],
+    "sourceRow": 11
+  },
+  {
+    "sourceKey": "reading-11",
+    "title": "Bài đọc 11",
+    "order": 11,
+    "englishText": "Dear Mr. Duquette, Regarding our conversation about our sales team’s needs to better communicate with international clients, I have investigated videoconferencing programs as you asked. Based on my findings, I believe our best option would be Altura-2000, a program made by Brady Essentials. — [1] —. It can handle up to thirty videoconference participants at once. The interface is very user-friendly, so we won’t have to invest a lot of time in training employees how to use it. — [2] —. And reviews say it almost never has problems with disconnection or poor video and sound quality. Finally, although its functions are similar to those in other programs I checked out, Altura-2000 has the best record for cybersecurity, so we can rest assured that our files will not be compromised while sending them back and forth. Altura-2000 costs $149.99 per month, which is at the top end of our budget. Fortunately, prospective customers can try it out this month at no cost. — [3] —. I will talk to Amber Garon to make sure that our company computers have the necessary specifications to run the program. I think she’s in the office today, so I’ll get back to you as soon as she confirms that she can install it. — [4] —. I will then give you an update and await your approval for going forward with this.",
+    "bilingualPairs": [
+      {
+        "english": "Dear Mr. Duquette,",
+        "vietnamese": "Kính gửi ông Duquette,",
+        "order": 1
+      },
+      {
+        "english": "Regarding our conversation about our sales team’s needs to better communicate with international clients, I have investigated videoconferencing programs as you asked.",
+        "vietnamese": "Liên quan đến cuộc trao đổi của chúng ta về nhu cầu giao tiếp hiệu quả hơn với khách hàng quốc tế của đội ngũ kinh doanh, tôi đã tìm hiểu các chương trình họp trực tuyến theo yêu cầu của ông.",
+        "order": 2
+      },
+      {
+        "english": "Based on my findings, I believe our best option would be Altura-2000, a program made by Brady Essentials. — [1] —.",
+        "vietnamese": "Dựa trên những gì tìm hiểu được, tôi tin rằng lựa chọn tốt nhất là Altura-2000, một chương trình do Brady Essentials phát triển. — [1] —.",
+        "order": 3
+      },
+      {
+        "english": "It can handle up to thirty videoconference participants at once.",
+        "vietnamese": "Chương trình có thể hỗ trợ tối đa 30 người tham gia họp trực tuyến cùng lúc.",
+        "order": 4
+      },
+      {
+        "english": "The interface is very user-friendly, so we won’t have to invest a lot of time in training employees how to use it. — [2] —.",
+        "vietnamese": "Giao diện rất dễ sử dụng nên chúng ta sẽ không phải dành nhiều thời gian đào tạo nhân viên sử dụng. — [2] —.",
+        "order": 5
+      },
+      {
+        "english": "And reviews say it almost never has problems with disconnection or poor video and sound quality.",
+        "vietnamese": "Các đánh giá cũng cho biết chương trình hầu như không gặp vấn đề mất kết nối hay chất lượng hình ảnh và âm thanh kém.",
+        "order": 6
+      },
+      {
+        "english": "Finally, although its functions are similar to those in other programs I checked out, Altura-2000 has the best record for cybersecurity, so we can rest assured that our files will not be compromised while sending them back and forth.",
+        "vietnamese": "Cuối cùng, mặc dù các chức năng tương tự những chương trình khác mà tôi đã tìm hiểu, Altura-2000 có thành tích tốt nhất về an ninh mạng, nên chúng ta có thể yên tâm rằng các tệp sẽ không bị xâm phạm khi gửi qua lại.",
+        "order": 7
+      },
+      {
+        "english": "Altura-2000 costs $149.99 per month, which is at the top end of our budget.",
+        "vietnamese": "Altura-2000 có giá 149,99 đô la mỗi tháng, tương đương mức cao nhất trong ngân sách của chúng ta.",
+        "order": 8
+      },
+      {
+        "english": "Fortunately, prospective customers can try it out this month at no cost. — [3] —.",
+        "vietnamese": "May mắn là khách hàng tiềm năng có thể dùng thử miễn phí trong tháng này. — [3] —.",
+        "order": 9
+      },
+      {
+        "english": "I will talk to Amber Garon to make sure that our company computers have the necessary specifications to run the program.",
+        "vietnamese": "Tôi sẽ trao đổi với Amber Garon để bảo đảm máy tính của công ty có cấu hình cần thiết để chạy chương trình.",
+        "order": 10
+      },
+      {
+        "english": "I think she’s in the office today, so I’ll get back to you as soon as she confirms that she can install it. — [4] —.",
+        "vietnamese": "Tôi nghĩ hôm nay cô ấy có mặt tại văn phòng, vì vậy tôi sẽ liên hệ lại ngay khi cô ấy xác nhận có thể cài đặt chương trình. — [4] —.",
+        "order": 11
+      },
+      {
+        "english": "I will then give you an update and await your approval for going forward with this.",
+        "vietnamese": "Sau đó, tôi sẽ cập nhật tình hình và chờ ông phê duyệt để tiếp tục triển khai.",
+        "order": 12
+      }
+    ],
+    "sourceRow": 12
+  },
+  {
+    "sourceKey": "reading-12",
+    "title": "Bài đọc 12",
+    "order": 12,
+    "englishText": "The recent government inspection determined that the security protocols at our laboratory are outdated. Therefore, we will be implementing the following updates to them. Starting on Friday, access to the laboratory will be by keycard only. Under no circumstances will employees be granted access without their keycard. Also, ID badges must be worn by all employees at all times. Lastly, all dangerous chemicals will now be stored in a special room that can be accessed only by entering a keycode, which will be sent to you by e-mail. Entering the wrong code three times will result in a facility lockdown, so please take extreme care when inputting the code.",
+    "bilingualPairs": [
+      {
+        "english": "The recent government inspection determined that the security protocols at our laboratory are outdated.",
+        "vietnamese": "Cuộc kiểm tra gần đây của cơ quan chính phủ xác định rằng các quy trình an ninh tại phòng thí nghiệm của chúng ta đã lỗi thời.",
+        "order": 1
+      },
+      {
+        "english": "Therefore, we will be implementing the following updates to them.",
+        "vietnamese": "Vì vậy, chúng ta sẽ thực hiện các cập nhật sau đối với những quy trình này.",
+        "order": 2
+      },
+      {
+        "english": "Starting on Friday, access to the laboratory will be by keycard only.",
+        "vietnamese": "Bắt đầu từ thứ Sáu, chỉ có thể vào phòng thí nghiệm bằng thẻ từ.",
+        "order": 3
+      },
+      {
+        "english": "Under no circumstances will employees be granted access without their keycard.",
+        "vietnamese": "Trong mọi trường hợp, nhân viên sẽ không được vào nếu không có thẻ từ.",
+        "order": 4
+      },
+      {
+        "english": "Also, ID badges must be worn by all employees at all times.",
+        "vietnamese": "Ngoài ra, tất cả nhân viên phải luôn đeo thẻ nhận dạng.",
+        "order": 5
+      },
+      {
+        "english": "Lastly, all dangerous chemicals will now be stored in a special room that can be accessed only by entering a keycode, which will be sent to you by e-mail.",
+        "vietnamese": "Cuối cùng, tất cả hóa chất nguy hiểm sẽ được lưu trữ trong một phòng đặc biệt, nơi chỉ có thể vào bằng cách nhập mã; mã này sẽ được gửi cho các bạn qua email.",
+        "order": 6
+      },
+      {
+        "english": "Entering the wrong code three times will result in a facility lockdown, so please take extreme care when inputting the code.",
+        "vietnamese": "Việc nhập sai mã ba lần sẽ khiến cơ sở bị phong tỏa, vì vậy hãy hết sức cẩn thận khi nhập mã.",
+        "order": 7
+      }
+    ],
+    "sourceRow": 13
+  },
+  {
+    "sourceKey": "reading-13",
+    "title": "Bài đọc 13",
+    "order": 13,
+    "englishText": "Hello all, Up until now, branch managers have had full authority to hire, manage, and discipline their employees directly. A recent complaint from an employee, however, has led us to review some of our company policies. As a result, all interviews for new staff will now take place at our downtown head office rather than in individual stores around the state. This will allow us to streamline this procedure and maintain consistent standards across all branches. I would also like to remind you that our new winter clothing range will be delivered next week. I recently spoke to our design team, and team leader Tony Appleton feels this may be one of our successful product lines yet. Thank you for your continued hard work.",
+    "bilingualPairs": [
+      {
+        "english": "Hello all,",
+        "vietnamese": "Chào mọi người,",
+        "order": 1
+      },
+      {
+        "english": "Up until now, branch managers have had full authority to hire, manage, and discipline their employees directly.",
+        "vietnamese": "Cho đến nay, các quản lý chi nhánh có toàn quyền trực tiếp tuyển dụng, quản lý và xử lý kỷ luật nhân viên của mình.",
+        "order": 2
+      },
+      {
+        "english": "A recent complaint from an employee, however, has led us to review some of our company policies.",
+        "vietnamese": "Tuy nhiên, một khiếu nại gần đây của nhân viên đã khiến chúng tôi xem xét lại một số chính sách của công ty.",
+        "order": 3
+      },
+      {
+        "english": "As a result, all interviews for new staff will now take place at our downtown head office rather than in individual stores around the state.",
+        "vietnamese": "Do đó, tất cả các buổi phỏng vấn nhân viên mới từ nay sẽ diễn ra tại trụ sở chính ở trung tâm thành phố thay vì tại từng cửa hàng trên khắp tiểu bang.",
+        "order": 4
+      },
+      {
+        "english": "This will allow us to streamline this procedure and maintain consistent standards across all branches.",
+        "vietnamese": "Điều này sẽ giúp chúng tôi tinh giản quy trình và duy trì các tiêu chuẩn nhất quán tại tất cả chi nhánh.",
+        "order": 5
+      },
+      {
+        "english": "I would also like to remind you that our new winter clothing range will be delivered next week.",
+        "vietnamese": "Tôi cũng muốn nhắc mọi người rằng dòng sản phẩm quần áo mùa đông mới sẽ được giao vào tuần tới.",
+        "order": 6
+      },
+      {
+        "english": "I recently spoke to our design team, and team leader Tony Appleton feels this may be one of our successful product lines yet.",
+        "vietnamese": "Gần đây tôi đã trao đổi với đội ngũ thiết kế, và trưởng nhóm Tony Appleton cho rằng đây có thể là một trong những dòng sản phẩm thành công của chúng ta từ trước đến nay.",
+        "order": 7
+      },
+      {
+        "english": "Thank you for your continued hard work.",
+        "vietnamese": "Cảm ơn mọi người đã luôn nỗ lực làm việc.",
+        "order": 8
+      }
+    ],
+    "sourceRow": 14
+  },
+  {
+    "sourceKey": "reading-14",
+    "title": "Bài đọc 14",
+    "order": 14,
+    "englishText": "To Harvey’s Electrical customers, Visitors to our Web site over the last month may have encountered frequent error messages. Our technical team has worked hard to resolve these issues and is planning to install some vital software on June 19. The Web site will be unavailable on that day until this process is complete. During that period, customers can call our special hotline at 555-0129, extension 491, and speak to a sales operative who will process any purchases. However, our customer support team will not have access to their e-mail accounts to respond to queries.",
+    "bilingualPairs": [
+      {
+        "english": "To Harvey’s Electrical customers,",
+        "vietnamese": "Kính gửi quý khách hàng của Harvey’s Electrical,",
+        "order": 1
+      },
+      {
+        "english": "Visitors to our Web site over the last month may have encountered frequent error messages.",
+        "vietnamese": "Những người truy cập trang web của chúng tôi trong tháng qua có thể đã thường xuyên gặp các thông báo lỗi.",
+        "order": 2
+      },
+      {
+        "english": "Our technical team has worked hard to resolve these issues and is planning to install some vital software on June 19.",
+        "vietnamese": "Đội ngũ kỹ thuật đã nỗ lực giải quyết các vấn đề này và dự kiến cài đặt một số phần mềm quan trọng vào ngày 19 tháng 6.",
+        "order": 3
+      },
+      {
+        "english": "The Web site will be unavailable on that day until this process is complete.",
+        "vietnamese": "Trang web sẽ không thể truy cập trong ngày hôm đó cho đến khi quá trình này hoàn tất.",
+        "order": 4
+      },
+      {
+        "english": "During that period, customers can call our special hotline at 555-0129, extension 491, and speak to a sales operative who will process any purchases.",
+        "vietnamese": "Trong thời gian đó, khách hàng có thể gọi đường dây nóng đặc biệt theo số 555-0129, số máy lẻ 491, để trao đổi với nhân viên bán hàng, người sẽ xử lý các giao dịch mua hàng.",
+        "order": 5
+      },
+      {
+        "english": "However, our customer support team will not have access to their e-mail accounts to respond to queries.",
+        "vietnamese": "Tuy nhiên, đội ngũ hỗ trợ khách hàng sẽ không thể truy cập tài khoản email để trả lời các thắc mắc.",
+        "order": 6
+      }
+    ],
+    "sourceRow": 15
+  },
+  {
+    "sourceKey": "reading-15",
+    "title": "Bài đọc 15",
+    "order": 15,
+    "englishText": "Thank you for downloading the Spumoni mobile phone app! At your current basic membership level, your ability to save recipes is limited to five per day. If you would like the freedom to save unlimited recipes daily, automatically generate shopping lists, create weekly meal plans, and track nutritional data, you can become a premium member for just $2.99 a month. Many users find this small fee to be money well spent, as the premium features save them time and enable them to make healthier meal choices. Visit our “PM Community” Web page to view real testimonials from our premium members.",
+    "bilingualPairs": [
+      {
+        "english": "Thank you for downloading the Spumoni mobile phone app!",
+        "vietnamese": "Cảm ơn bạn đã tải ứng dụng Spumoni trên điện thoại!",
+        "order": 1
+      },
+      {
+        "english": "At your current basic membership level, your ability to save recipes is limited to five per day.",
+        "vietnamese": "Với cấp độ thành viên cơ bản hiện tại, bạn chỉ có thể lưu tối đa năm công thức nấu ăn mỗi ngày.",
+        "order": 2
+      },
+      {
+        "english": "If you would like the freedom to save unlimited recipes daily, automatically generate shopping lists, create weekly meal plans, and track nutritional data, you can become a premium member for just $2.99 a month.",
+        "vietnamese": "Nếu muốn thoải mái lưu không giới hạn công thức mỗi ngày, tự động tạo danh sách mua sắm, lập kế hoạch bữa ăn hằng tuần và theo dõi thông tin dinh dưỡng, bạn có thể trở thành thành viên cao cấp chỉ với 2,99 đô la mỗi tháng.",
+        "order": 3
+      },
+      {
+        "english": "Many users find this small fee to be money well spent, as the premium features save them time and enable them to make healthier meal choices.",
+        "vietnamese": "Nhiều người dùng cho rằng khoản phí nhỏ này rất đáng chi vì các tính năng cao cấp giúp họ tiết kiệm thời gian và lựa chọn bữa ăn lành mạnh hơn.",
+        "order": 4
+      },
+      {
+        "english": "Visit our “PM Community” Web page to view real testimonials from our premium members.",
+        "vietnamese": "Hãy truy cập trang “PM Community” của chúng tôi để xem những đánh giá thực tế từ các thành viên cao cấp.",
+        "order": 5
+      }
+    ],
+    "sourceRow": 16
+  },
+  {
+    "sourceKey": "reading-16",
+    "title": "Bài đọc 16",
+    "order": 16,
+    "englishText": "Here at Hapler’s Landscape Company, we believe that landscape design does not have to be challenging. Our goal is to design unique, beautiful gardens that meet our clients’ specifications and require minimal care once they have been planted. We also care deeply about reducing air, soil, and water pollution. For more information about how we achieve this, visit haplers.co.uk. Our process is implemented in four phases. This is how it works: Phase 1 - One of our consultants will call you and discuss your goals and vision for your property. Phase 2 — We will conduct a thorough survey of your land to collect information on water level, elevation, soil type, and sun patterns. Note that we work on many projects at once and may not complete the survey until up to a month after your initial consultation call. Phase 3 — Our design specialists will present you with a proposed design to suit your existing landscape. We will discuss adjustments until you are satisfied with every aspect of the plan. Phase 4 — We will implement the design per approved project specifications. Are you ready to get this process started and watch your land change before your eyes? Contact Hapler’s at 01632 960255.",
+    "bilingualPairs": [
+      {
+        "english": "Here at Hapler’s Landscape Company, we believe that landscape design does not have to be challenging.",
+        "vietnamese": "Tại Công ty Cảnh quan Hapler’s, chúng tôi tin rằng thiết kế cảnh quan không nhất thiết phải là một việc khó khăn.",
+        "order": 1
+      },
+      {
+        "english": "Our goal is to design unique, beautiful gardens that meet our clients’ specifications and require minimal care once they have been planted.",
+        "vietnamese": "Mục tiêu của chúng tôi là thiết kế những khu vườn độc đáo, đẹp mắt, đáp ứng yêu cầu của khách hàng và chỉ cần chăm sóc ở mức tối thiểu sau khi được trồng.",
+        "order": 2
+      },
+      {
+        "english": "We also care deeply about reducing air, soil, and water pollution.",
+        "vietnamese": "Chúng tôi cũng rất quan tâm đến việc giảm ô nhiễm không khí, đất và nước.",
+        "order": 3
+      },
+      {
+        "english": "For more information about how we achieve this, visit haplers.co.uk.",
+        "vietnamese": "Để biết thêm thông tin về cách chúng tôi thực hiện điều này, hãy truy cập haplers.co.uk.",
+        "order": 4
+      },
+      {
+        "english": "Our process is implemented in four phases.",
+        "vietnamese": "Quy trình của chúng tôi được thực hiện qua bốn giai đoạn.",
+        "order": 5
+      },
+      {
+        "english": "This is how it works:",
+        "vietnamese": "Quy trình diễn ra như sau:",
+        "order": 6
+      },
+      {
+        "english": "Phase 1 - One of our consultants will call you and discuss your goals and vision for your property.",
+        "vietnamese": "Giai đoạn 1 - Một chuyên viên tư vấn sẽ gọi điện và trao đổi với quý khách về mục tiêu và ý tưởng dành cho khu đất.",
+        "order": 7
+      },
+      {
+        "english": "Phase 2 — We will conduct a thorough survey of your land to collect information on water level, elevation, soil type, and sun patterns.",
+        "vietnamese": "Giai đoạn 2 — Chúng tôi sẽ khảo sát kỹ khu đất để thu thập thông tin về mực nước, độ cao, loại đất và hướng chiếu sáng của mặt trời.",
+        "order": 8
+      },
+      {
+        "english": "Note that we work on many projects at once and may not complete the survey until up to a month after your initial consultation call.",
+        "vietnamese": "Lưu ý rằng chúng tôi thực hiện nhiều dự án cùng lúc và có thể mất đến một tháng sau cuộc gọi tư vấn đầu tiên mới hoàn thành khảo sát.",
+        "order": 9
+      },
+      {
+        "english": "Phase 3 — Our design specialists will present you with a proposed design to suit your existing landscape.",
+        "vietnamese": "Giai đoạn 3 — Các chuyên gia thiết kế sẽ trình bày một phương án phù hợp với cảnh quan hiện có của quý khách.",
+        "order": 10
+      },
+      {
+        "english": "We will discuss adjustments until you are satisfied with every aspect of the plan.",
+        "vietnamese": "Chúng tôi sẽ thảo luận về các điều chỉnh cho đến khi quý khách hài lòng với mọi khía cạnh của kế hoạch.",
+        "order": 11
+      },
+      {
+        "english": "Phase 4 — We will implement the design per approved project specifications.",
+        "vietnamese": "Giai đoạn 4 — Chúng tôi sẽ triển khai thiết kế theo các yêu cầu dự án đã được phê duyệt.",
+        "order": 12
+      },
+      {
+        "english": "Are you ready to get this process started and watch your land change before your eyes?",
+        "vietnamese": "Quý khách đã sẵn sàng bắt đầu quy trình và chứng kiến khu đất của mình thay đổi trước mắt chưa?",
+        "order": 13
+      },
+      {
+        "english": "Contact Hapler’s at 01632 960255.",
+        "vietnamese": "Hãy liên hệ Hapler’s theo số 01632 960255.",
+        "order": 14
+      }
+    ],
+    "sourceRow": 17
+  },
+  {
+    "sourceKey": "reading-17",
+    "title": "Bài đọc 17",
+    "order": 17,
+    "englishText": "Join Hagerstown residents at the community center on January 15 for our Quick Fix workshop series. There is sure to be at least one topic that will interest you. For example, you might learn how to economize financially without inhibiting your lifestyle or to discover ways of reducing your impact on the environment by living smarter. Alternatively, by attending a workshop, you may find inspiration for improving the health and well-being of your family. Our own Grant Cardwell, prominent and long-time Hagerstown resident, will be leading a session on weatherizing your home. Arrive early to secure a seat for that one since nearly everyone is eager to learn how to trim their heating and cooling bills.",
+    "bilingualPairs": [
+      {
+        "english": "Join Hagerstown residents at the community center on January 15 for our Quick Fix workshop series.",
+        "vietnamese": "Hãy cùng cư dân Hagerstown đến trung tâm cộng đồng vào ngày 15 tháng 1 để tham gia chuỗi hội thảo Quick Fix của chúng tôi.",
+        "order": 1
+      },
+      {
+        "english": "There is sure to be at least one topic that will interest you.",
+        "vietnamese": "Chắc chắn sẽ có ít nhất một chủ đề khiến bạn quan tâm.",
+        "order": 2
+      },
+      {
+        "english": "For example, you might learn how to economize financially without inhibiting your lifestyle or to discover ways of reducing your impact on the environment by living smarter.",
+        "vietnamese": "Ví dụ, bạn có thể học cách tiết kiệm chi phí mà không làm ảnh hưởng đến lối sống, hoặc khám phá những cách giảm tác động đến môi trường bằng cách sống thông minh hơn.",
+        "order": 3
+      },
+      {
+        "english": "Alternatively, by attending a workshop, you may find inspiration for improving the health and well-being of your family.",
+        "vietnamese": "Hoặc khi tham dự một hội thảo, bạn có thể tìm được cảm hứng để cải thiện sức khỏe và đời sống của gia đình.",
+        "order": 4
+      },
+      {
+        "english": "Our own Grant Cardwell, prominent and long-time Hagerstown resident, will be leading a session on weatherizing your home.",
+        "vietnamese": "Grant Cardwell, một cư dân lâu năm nổi bật của Hagerstown, sẽ hướng dẫn một buổi chia sẻ về cách bảo vệ ngôi nhà trước tác động của thời tiết.",
+        "order": 5
+      },
+      {
+        "english": "Arrive early to secure a seat for that one since nearly everyone is eager to learn how to trim their heating and cooling bills.",
+        "vietnamese": "Hãy đến sớm để giữ chỗ cho buổi đó vì gần như ai cũng muốn học cách giảm chi phí sưởi ấm và làm mát.",
+        "order": 6
+      }
+    ],
+    "sourceRow": 18
+  },
+  {
+    "sourceKey": "reading-18",
+    "title": "Bài đọc 18",
+    "order": 18,
+    "englishText": "Dear employees, Congratulations for the excellent sales record we achieved last month! I thank you all for your dedication and hard work. It seems that summer has come early this year as we are already receiving more customers. In order to meet the increased demand, the board has decided to open our stores for two more hours from May 17 to August 31. As this is a rather sudden decision, we have not been able to recruit additional employees yet. Therefore, I ask all employees to work longer shifts until recruitment takes place. Those who work overtime hours will be reimbursed with a bonus and additional paid day offs. If you know a friend or a family member who can help us in the busy season, please let me know. I will arrange an interview for these temporary workers. Let’s keep up the good work!",
+    "bilingualPairs": [
+      {
+        "english": "Dear employees,",
+        "vietnamese": "Gửi các nhân viên,",
+        "order": 1
+      },
+      {
+        "english": "Congratulations for the excellent sales record we achieved last month!",
+        "vietnamese": "Chúc mừng mọi người vì kết quả kinh doanh xuất sắc mà chúng ta đã đạt được trong tháng trước!",
+        "order": 2
+      },
+      {
+        "english": "I thank you all for your dedication and hard work.",
+        "vietnamese": "Tôi cảm ơn tất cả mọi người vì sự tận tâm và nỗ lực làm việc.",
+        "order": 3
+      },
+      {
+        "english": "It seems that summer has come early this year as we are already receiving more customers.",
+        "vietnamese": "Có vẻ mùa hè năm nay đến sớm vì chúng ta đã bắt đầu đón nhiều khách hàng hơn.",
+        "order": 4
+      },
+      {
+        "english": "In order to meet the increased demand, the board has decided to open our stores for two more hours from May 17 to August 31.",
+        "vietnamese": "Để đáp ứng nhu cầu tăng cao, ban lãnh đạo quyết định kéo dài giờ mở cửa của các cửa hàng thêm hai tiếng từ ngày 17 tháng 5 đến ngày 31 tháng 8.",
+        "order": 5
+      },
+      {
+        "english": "As this is a rather sudden decision, we have not been able to recruit additional employees yet.",
+        "vietnamese": "Vì đây là một quyết định khá đột ngột, chúng tôi vẫn chưa thể tuyển thêm nhân viên.",
+        "order": 6
+      },
+      {
+        "english": "Therefore, I ask all employees to work longer shifts until recruitment takes place.",
+        "vietnamese": "Vì vậy, tôi đề nghị tất cả nhân viên làm ca dài hơn cho đến khi việc tuyển dụng được thực hiện.",
+        "order": 7
+      },
+      {
+        "english": "Those who work overtime hours will be reimbursed with a bonus and additional paid day offs.",
+        "vietnamese": "Những người làm thêm giờ sẽ được bù đắp bằng một khoản thưởng và thêm ngày nghỉ có lương.",
+        "order": 8
+      },
+      {
+        "english": "If you know a friend or a family member who can help us in the busy season, please let me know.",
+        "vietnamese": "Nếu biết bạn bè hoặc người thân có thể giúp chúng ta trong mùa cao điểm, vui lòng cho tôi biết.",
+        "order": 9
+      },
+      {
+        "english": "I will arrange an interview for these temporary workers.",
+        "vietnamese": "Tôi sẽ sắp xếp phỏng vấn những ứng viên làm việc tạm thời này.",
+        "order": 10
+      },
+      {
+        "english": "Let’s keep up the good work!",
+        "vietnamese": "Hãy tiếp tục phát huy nhé!",
+        "order": 11
+      }
+    ],
+    "sourceRow": 19
+  },
+  {
+    "sourceKey": "reading-19",
+    "title": "Bài đọc 19",
+    "order": 19,
+    "englishText": "July 7 – The steamboat Suncoast is returning to the public on August 20. The Suncoast is a historical symbol of the Industrial Revolution in the U.S. as one of the first steam engine boats to travel along the Mississippi River. The Suncoast has traveled up and down the river while hauling agricultural exports for almost a decade. —[1]—. After the invention of a high-pressure steam engine, the Suncoast was no longer needed. The Pollard Steamboat Company kept the Suncoast’s original shape to maintain its historical value. To convey its historical significance to the community, it was donated to the New Orleans Engines Museum (NOEM) and was displayed at the South Shore Harbor beside the museum. —[2]—. In order to show off the archaic beauty of the Suncoast to the world, NOEM has decided to use the steamboat itself to exhibit the history and evolution of waterway transportation on the Mississippi River during the Industrial Revolution. —[3]—. While preserving most of its inner structure, NOEM has built an indoor café, a restaurant, souvenir shops, and other facilities within the steamboat for visitors to enjoy. —[4]—. An admission ticket for NOEM includes a free drink at the Suncoast Café. For ticket pricing and purchase, visit www.noem.com/suncoast.",
+    "bilingualPairs": [
+      {
+        "english": "July 7 – The steamboat Suncoast is returning to the public on August 20.",
+        "vietnamese": "Ngày 7 tháng 7 – Tàu hơi nước Suncoast sẽ trở lại phục vụ công chúng vào ngày 20 tháng 8.",
+        "order": 1
+      },
+      {
+        "english": "The Suncoast is a historical symbol of the Industrial Revolution in the U.S. as one of the first steam engine boats to travel along the Mississippi River.",
+        "vietnamese": "Suncoast là một biểu tượng lịch sử của cuộc Cách mạng Công nghiệp tại Hoa Kỳ, với tư cách là một trong những tàu chạy bằng động cơ hơi nước đầu tiên hoạt động trên sông Mississippi.",
+        "order": 2
+      },
+      {
+        "english": "The Suncoast has traveled up and down the river while hauling agricultural exports for almost a decade. —[1]—.",
+        "vietnamese": "Trong gần một thập kỷ, tàu Suncoast đã đi xuôi ngược dòng sông để vận chuyển hàng nông sản xuất khẩu. —[1]—.",
+        "order": 3
+      },
+      {
+        "english": "After the invention of a high-pressure steam engine, the Suncoast was no longer needed.",
+        "vietnamese": "Sau khi động cơ hơi nước áp suất cao được phát minh, tàu Suncoast không còn cần thiết nữa.",
+        "order": 4
+      },
+      {
+        "english": "The Pollard Steamboat Company kept the Suncoast’s original shape to maintain its historical value.",
+        "vietnamese": "Công ty Tàu hơi nước Pollard đã giữ nguyên hình dáng ban đầu của Suncoast để bảo tồn giá trị lịch sử của con tàu.",
+        "order": 5
+      },
+      {
+        "english": "To convey its historical significance to the community, it was donated to the New Orleans Engines Museum (NOEM) and was displayed at the South Shore Harbor beside the museum. —[2]—. (Để giới thiệu ý nghĩa lịch sử của con tàu đến cộng đồng, tàu được tặng cho Bảo tàng Động cơ New Orleans",
+        "vietnamese": "NOEM) và trưng bày tại cảng South Shore bên cạnh bảo tàng. —[2]—.",
+        "order": 6
+      },
+      {
+        "english": "In order to show off the archaic beauty of the Suncoast to the world, NOEM has decided to use the steamboat itself to exhibit the history and evolution of waterway transportation on the Mississippi River during the Industrial Revolution. —[3]—.",
+        "vietnamese": "Để giới thiệu vẻ đẹp cổ xưa của Suncoast với thế giới, NOEM quyết định dùng chính con tàu hơi nước này để trưng bày lịch sử và quá trình phát triển của giao thông đường thủy trên sông Mississippi trong thời kỳ Cách mạng Công nghiệp. —[3]—.",
+        "order": 7
+      },
+      {
+        "english": "While preserving most of its inner structure, NOEM has built an indoor café, a restaurant, souvenir shops, and other facilities within the steamboat for visitors to enjoy. —[4]—.",
+        "vietnamese": "Trong khi vẫn bảo tồn phần lớn cấu trúc bên trong, NOEM đã xây dựng một quán cà phê trong nhà, một nhà hàng, các cửa hàng lưu niệm và những tiện ích khác bên trong tàu để du khách trải nghiệm. —[4]—.",
+        "order": 8
+      },
+      {
+        "english": "An admission ticket for NOEM includes a free drink at the Suncoast Café.",
+        "vietnamese": "Vé vào cửa NOEM bao gồm một đồ uống miễn phí tại quán Suncoast Café.",
+        "order": 9
+      },
+      {
+        "english": "For ticket pricing and purchase, visit www.noem.com/suncoast.",
+        "vietnamese": "Để xem giá vé và mua vé, hãy truy cập www.noem.com/suncoast.",
+        "order": 10
+      }
+    ],
+    "sourceRow": 20
+  },
+  {
+    "sourceKey": "reading-20",
+    "title": "Bài đọc 20",
+    "order": 20,
+    "englishText": "Dear Ms. Michelin, I am writing to you to follow up on our conversation on the phone last week. Some commercial properties that will be a perfect fit for your new business plan have recently been put on the market. The first property is a single-story building located on Neich Street. Its construction was completed just last month, which means you will be the first owner of the property. It is situated in a business district, surrounded by numerous office suites. Thus, you will receive a lot of office workers during lunch hours. Also, the store on the third floor of a building on Crimson Avenue is up for sale. The owner has offered to include several kitchen appliances in the deal, so you will not need to purchase new ones. Also, he is willing to leave the tables and chairs in the hall as well. The interior of the store is quite new and requires little refurnishing. If you would like take a tour to the properties, please call me during our work hours, Monday to Friday between 9:00 A.M. and 5:00 P.M., or send me an e-mail. Regarding some financial concerns you expressed, we can discuss installment options when we meet. We hope to serve you best today, tomorrow and always.",
+    "bilingualPairs": [
+      {
+        "english": "Dear Ms. Michelin,",
+        "vietnamese": "Kính gửi bà Michelin,",
+        "order": 1
+      },
+      {
+        "english": "I am writing to you to follow up on our conversation on the phone last week.",
+        "vietnamese": "Tôi viết thư này để tiếp nối cuộc trò chuyện qua điện thoại của chúng ta vào tuần trước.",
+        "order": 2
+      },
+      {
+        "english": "Some commercial properties that will be a perfect fit for your new business plan have recently been put on the market.",
+        "vietnamese": "Một số bất động sản thương mại rất phù hợp với kế hoạch kinh doanh mới của bà vừa được đưa ra thị trường.",
+        "order": 3
+      },
+      {
+        "english": "The first property is a single-story building located on Neich Street.",
+        "vietnamese": "Bất động sản đầu tiên là một tòa nhà một tầng nằm trên đường Neich.",
+        "order": 4
+      },
+      {
+        "english": "Its construction was completed just last month, which means you will be the first owner of the property.",
+        "vietnamese": "Công trình vừa được hoàn thành vào tháng trước, nghĩa là bà sẽ là chủ sở hữu đầu tiên của bất động sản này.",
+        "order": 5
+      },
+      {
+        "english": "It is situated in a business district, surrounded by numerous office suites.",
+        "vietnamese": "Tòa nhà nằm trong khu thương mại, được bao quanh bởi nhiều văn phòng.",
+        "order": 6
+      },
+      {
+        "english": "Thus, you will receive a lot of office workers during lunch hours.",
+        "vietnamese": "Vì vậy, bà sẽ có nhiều khách hàng là nhân viên văn phòng vào giờ ăn trưa.",
+        "order": 7
+      },
+      {
+        "english": "Also, the store on the third floor of a building on Crimson Avenue is up for sale.",
+        "vietnamese": "Ngoài ra, cửa hàng trên tầng ba của một tòa nhà ở đại lộ Crimson cũng đang được rao bán.",
+        "order": 8
+      },
+      {
+        "english": "The owner has offered to include several kitchen appliances in the deal, so you will not need to purchase new ones.",
+        "vietnamese": "Chủ sở hữu đề nghị để lại một số thiết bị nhà bếp trong giao dịch, vì vậy bà sẽ không cần mua thiết bị mới.",
+        "order": 9
+      },
+      {
+        "english": "Also, he is willing to leave the tables and chairs in the hall as well.",
+        "vietnamese": "Ông ấy cũng sẵn lòng để lại bàn ghế trong khu vực sảnh.",
+        "order": 10
+      },
+      {
+        "english": "The interior of the store is quite new and requires little refurnishing.",
+        "vietnamese": "Nội thất cửa hàng còn khá mới và hầu như không cần trang bị lại.",
+        "order": 11
+      },
+      {
+        "english": "If you would like take a tour to the properties, please call me during our work hours, Monday to Friday between 9:00 A.M. and 5:00 P.M., or send me an e-mail.",
+        "vietnamese": "Nếu bà muốn đến xem các bất động sản này, vui lòng gọi cho tôi trong giờ làm việc từ 9 giờ sáng đến 5 giờ chiều, thứ Hai đến thứ Sáu, hoặc gửi email cho tôi.",
+        "order": 12
+      },
+      {
+        "english": "Regarding some financial concerns you expressed, we can discuss installment options when we meet.",
+        "vietnamese": "Về những băn khoăn tài chính bà đã nêu, chúng ta có thể thảo luận về các phương án trả góp khi gặp nhau.",
+        "order": 13
+      },
+      {
+        "english": "We hope to serve you best today, tomorrow and always.",
+        "vietnamese": "Chúng tôi hy vọng được phục vụ bà tốt nhất hôm nay, ngày mai và luôn luôn.",
+        "order": 14
+      }
+    ],
+    "sourceRow": 21
+  },
+  {
+    "sourceKey": "reading-21",
+    "title": "Bài đọc 21",
+    "order": 21,
+    "englishText": "Thank you for showing me around the properties this afternoon. With the terms you offered me, I have decided to purchase the brand-new property. The second option you recommended seems very appealing, but I plan to receive fresh ingredients from the suppliers every morning. Therefore, I need a place that would be more convenient for carrying produce into the building. I would like to sign the contract as soon as possible. Please let me know when you would be available to meet with me with all the documents ready. Thank you for your assistance.",
+    "bilingualPairs": [
+      {
+        "english": "Thank you for showing me around the properties this afternoon.",
+        "vietnamese": "Cảm ơn anh/chị đã đưa tôi đi xem các bất động sản vào chiều nay.",
+        "order": 1
+      },
+      {
+        "english": "With the terms you offered me, I have decided to purchase the brand-new property.",
+        "vietnamese": "Với những điều khoản anh/chị đưa ra, tôi đã quyết định mua bất động sản hoàn toàn mới.",
+        "order": 2
+      },
+      {
+        "english": "The second option you recommended seems very appealing, but I plan to receive fresh ingredients from the suppliers every morning.",
+        "vietnamese": "Lựa chọn thứ hai anh/chị đề xuất có vẻ rất hấp dẫn, nhưng tôi dự định nhận nguyên liệu tươi từ các nhà cung cấp vào mỗi buổi sáng.",
+        "order": 3
+      },
+      {
+        "english": "Therefore, I need a place that would be more convenient for carrying produce into the building.",
+        "vietnamese": "Vì vậy, tôi cần một nơi thuận tiện hơn cho việc vận chuyển nông sản vào bên trong tòa nhà.",
+        "order": 4
+      },
+      {
+        "english": "I would like to sign the contract as soon as possible.",
+        "vietnamese": "Tôi muốn ký hợp đồng sớm nhất có thể.",
+        "order": 5
+      },
+      {
+        "english": "Please let me know when you would be available to meet with me with all the documents ready.",
+        "vietnamese": "Vui lòng cho tôi biết khi nào anh/chị có thể gặp tôi và chuẩn bị sẵn đầy đủ giấy tờ.",
+        "order": 6
+      },
+      {
+        "english": "Thank you for your assistance.",
+        "vietnamese": "Cảm ơn anh/chị đã hỗ trợ.",
+        "order": 7
+      }
+    ],
+    "sourceRow": 22
+  },
+  {
+    "sourceKey": "reading-22",
+    "title": "Bài đọc 22",
+    "order": 22,
+    "englishText": "This year’s festival will take place from May 10-14. Enjoy food from some of the best restaurants in the city as well as food from more than 20 countries. There will be all kinds of exciting events, too. There will be cooking classes led by noted chefs such as Wayne Dupree, Lucinda de Miles, Carol Conner, and Jason Fifer. Visitors can watch how various foods are prepared. And, of course, there will be numerous types of fresh, dried, and canned foods available for people to buy. Admission for the entire five days is $3, but children 5 or younger and adults 65 or older get in for free. Call 495-9332 for more information.",
+    "bilingualPairs": [
+      {
+        "english": "This year’s festival will take place from May 10-14.",
+        "vietnamese": "Lễ hội năm nay sẽ diễn ra từ ngày 10 đến ngày 14 tháng 5.",
+        "order": 1
+      },
+      {
+        "english": "Enjoy food from some of the best restaurants in the city as well as food from more than 20 countries.",
+        "vietnamese": "Hãy thưởng thức món ăn từ một số nhà hàng hàng đầu trong thành phố cũng như ẩm thực đến từ hơn 20 quốc gia.",
+        "order": 2
+      },
+      {
+        "english": "There will be all kinds of exciting events, too.",
+        "vietnamese": "Ngoài ra cũng sẽ có nhiều hoạt động thú vị.",
+        "order": 3
+      },
+      {
+        "english": "There will be cooking classes led by noted chefs such as Wayne Dupree, Lucinda de Miles, Carol Conner, and Jason Fifer.",
+        "vietnamese": "Sẽ có các lớp học nấu ăn do những đầu bếp nổi tiếng như Wayne Dupree, Lucinda de Miles, Carol Conner và Jason Fifer hướng dẫn.",
+        "order": 4
+      },
+      {
+        "english": "Visitors can watch how various foods are prepared.",
+        "vietnamese": "Khách tham quan có thể xem cách chế biến nhiều món ăn khác nhau.",
+        "order": 5
+      },
+      {
+        "english": "And, of course, there will be numerous types of fresh, dried, and canned foods available for people to buy.",
+        "vietnamese": "Và tất nhiên, sẽ có nhiều loại thực phẩm tươi, khô và đóng hộp để mọi người mua.",
+        "order": 6
+      },
+      {
+        "english": "Admission for the entire five days is $3, but children 5 or younger and adults 65 or older get in for free.",
+        "vietnamese": "Phí vào cửa cho cả năm ngày là 3 đô la, nhưng trẻ em từ 5 tuổi trở xuống và người lớn từ 65 tuổi trở lên được vào cửa miễn phí.",
+        "order": 7
+      },
+      {
+        "english": "Call 495-9332 for more information.",
+        "vietnamese": "Hãy gọi 495-9332 để biết thêm thông tin.",
+        "order": 8
+      }
+    ],
+    "sourceRow": 23
+  },
+  {
+    "sourceKey": "reading-23",
+    "title": "Bài đọc 23",
+    "order": 23,
+    "englishText": "Yellowknife (August 28) – Tonight, it is expected that the Northern Lights will be visible at around 10:35 P.M. for about 10 minutes. Tonight should be one of the best nights to see aurora activity since there will be a very clear sky with no precipitation. There will be strong light activity in Cameron Valley, making it an ideal place to see the most colorful and brightest aurorae. The photography club will travel to Cameron Valley to see this remarkable sight. People can sign up for this exciting trip in Room #402 in the Wolfe Building on campus no later than 12:00 P.M. Interested students can contact club representative Jason Mayer at jmayer@fastmail.com or visit the club and ask one of the club members for more information. There is only room for 10 more students, so hurry and save a seat on the tour bus. At 8:00 P.M., they will depart for Cameron Valley, and they will return to campus at 12:00 A.M. Do not miss out on this chance to see a breathtaking display of the Northern Lights!",
+    "bilingualPairs": [
+      {
+        "english": "Yellowknife (August 28) – Tonight, it is expected that the Northern Lights will be visible at around 10:35 P.M. for about 10 minutes. (Yellowknife",
+        "vietnamese": "ngày 28 tháng 8) – Dự kiến tối nay có thể nhìn thấy cực quang vào khoảng 10 giờ 35 tối trong khoảng 10 phút.",
+        "order": 1
+      },
+      {
+        "english": "Tonight should be one of the best nights to see aurora activity since there will be a very clear sky with no precipitation.",
+        "vietnamese": "Tối nay dự kiến sẽ là một trong những thời điểm tốt nhất để ngắm cực quang vì bầu trời sẽ rất quang đãng và không có mưa hay tuyết.",
+        "order": 2
+      },
+      {
+        "english": "There will be strong light activity in Cameron Valley, making it an ideal place to see the most colorful and brightest aurorae.",
+        "vietnamese": "Hoạt động ánh sáng sẽ diễn ra mạnh tại thung lũng Cameron, khiến nơi đây trở thành địa điểm lý tưởng để ngắm những dải cực quang rực rỡ và sáng nhất.",
+        "order": 3
+      },
+      {
+        "english": "The photography club will travel to Cameron Valley to see this remarkable sight.",
+        "vietnamese": "Câu lạc bộ nhiếp ảnh sẽ đến thung lũng Cameron để chiêm ngưỡng cảnh tượng đặc biệt này.",
+        "order": 4
+      },
+      {
+        "english": "People can sign up for this exciting trip in Room #402 in the Wolfe Building on campus no later than 12:00 P.M.",
+        "vietnamese": "Mọi người có thể đăng ký chuyến đi thú vị này tại phòng 402, tòa nhà Wolfe trong khuôn viên trường, chậm nhất vào 12 giờ trưa.",
+        "order": 5
+      },
+      {
+        "english": "Interested students can contact club representative Jason Mayer at jmayer@fastmail.com or visit the club and ask one of the club members for more information.",
+        "vietnamese": "Sinh viên quan tâm có thể liên hệ đại diện câu lạc bộ Jason Mayer qua jmayer@fastmail.com hoặc đến câu lạc bộ và hỏi một thành viên để biết thêm thông tin.",
+        "order": 6
+      },
+      {
+        "english": "There is only room for 10 more students, so hurry and save a seat on the tour bus.",
+        "vietnamese": "Chỉ còn chỗ cho 10 sinh viên nữa, vì vậy hãy nhanh chóng giữ một chỗ trên xe của chuyến đi.",
+        "order": 7
+      },
+      {
+        "english": "At 8:00 P.M., they will depart for Cameron Valley, and they will return to campus at 12:00 A.M.",
+        "vietnamese": "Lúc 8 giờ tối, đoàn sẽ khởi hành đến thung lũng Cameron và trở về trường lúc 12 giờ đêm.",
+        "order": 8
+      },
+      {
+        "english": "Do not miss out on this chance to see a breathtaking display of the Northern Lights!",
+        "vietnamese": "Đừng bỏ lỡ cơ hội chiêm ngưỡng màn trình diễn cực quang ngoạn mục này!",
+        "order": 9
+      }
+    ],
+    "sourceRow": 24
+  },
+  {
+    "sourceKey": "reading-24",
+    "title": "Bài đọc 24",
+    "order": 24,
+    "englishText": "This is in regard to the Professional Development Association’s upcoming series of seminars, Business World, to be held from June 20 to 22. Attending the seminars is obligatory for all new managers. For all managers, the price of admission will be covered by the company, but hotel room reservations should be covered individually. If you choose the Golden Castle Hotel, you will pay $75 per night instead of $130 thanks to the seminar-attendee discount. For reimbursement, please contact the manager of the Accounting Department. Refer to the notice posted on the bulletin board at the employee lounge.",
+    "bilingualPairs": [
+      {
+        "english": "This is in regard to the Professional Development Association’s upcoming series of seminars, Business World, to be held from June 20 to 22.",
+        "vietnamese": "Thông báo này liên quan đến chuỗi hội thảo sắp tới mang tên Business World của Hiệp hội Phát triển Chuyên môn, sẽ được tổ chức từ ngày 20 đến ngày 22 tháng 6.",
+        "order": 1
+      },
+      {
+        "english": "Attending the seminars is obligatory for all new managers.",
+        "vietnamese": "Tất cả các quản lý mới bắt buộc phải tham dự các hội thảo.",
+        "order": 2
+      },
+      {
+        "english": "For all managers, the price of admission will be covered by the company, but hotel room reservations should be covered individually.",
+        "vietnamese": "Công ty sẽ chi trả phí tham dự cho tất cả quản lý, nhưng mỗi người phải tự chi trả chi phí đặt phòng khách sạn.",
+        "order": 3
+      },
+      {
+        "english": "If you choose the Golden Castle Hotel, you will pay $75 per night instead of $130 thanks to the seminar-attendee discount.",
+        "vietnamese": "Nếu chọn khách sạn Golden Castle, bạn sẽ trả 75 đô la mỗi đêm thay vì 130 đô la nhờ ưu đãi dành cho người tham dự hội thảo.",
+        "order": 4
+      },
+      {
+        "english": "For reimbursement, please contact the manager of the Accounting Department.",
+        "vietnamese": "Để được hoàn tiền, vui lòng liên hệ quản lý Phòng Kế toán.",
+        "order": 5
+      },
+      {
+        "english": "Refer to the notice posted on the bulletin board at the employee lounge.",
+        "vietnamese": "Vui lòng xem thông báo được dán trên bảng tin tại phòng nghỉ của nhân viên.",
+        "order": 6
+      }
+    ],
+    "sourceRow": 25
+  },
+  {
+    "sourceKey": "reading-25",
+    "title": "Bài đọc 25",
+    "order": 25,
+    "englishText": "Join our popular seminars that are led by well-known authors, educators, senior executives, consultants, and even current chief executive officers of large corporations! Seminars begin at 9:00 A.M. and end at 5:00 P.M. each day. Lunch will be provided. Through our seminars, you can learn to set mutual goals, maximize team performance, value differences and ideas, and communicate effectively. Please wear business casual attire in layers to the seminars as the room temperatures may vary.",
+    "bilingualPairs": [
+      {
+        "english": "Join our popular seminars that are led by well-known authors, educators, senior executives, consultants, and even current chief executive officers of large corporations!",
+        "vietnamese": "Hãy tham gia các hội thảo được yêu thích của chúng tôi, do những tác giả, nhà giáo dục, lãnh đạo cấp cao, chuyên gia tư vấn nổi tiếng và thậm chí cả các giám đốc điều hành đương nhiệm của những tập đoàn lớn dẫn dắt!",
+        "order": 1
+      },
+      {
+        "english": "Seminars begin at 9:00 A.M. and end at 5:00 P.M. each day.",
+        "vietnamese": "Các buổi hội thảo bắt đầu lúc 9 giờ sáng và kết thúc lúc 5 giờ chiều mỗi ngày.",
+        "order": 2
+      },
+      {
+        "english": "Lunch will be provided.",
+        "vietnamese": "Bữa trưa sẽ được cung cấp.",
+        "order": 3
+      },
+      {
+        "english": "Through our seminars, you can learn to set mutual goals, maximize team performance, value differences and ideas, and communicate effectively.",
+        "vietnamese": "Thông qua các buổi hội thảo, bạn có thể học cách đặt mục tiêu chung, tối đa hóa hiệu quả làm việc nhóm, trân trọng sự khác biệt và các ý tưởng, cũng như giao tiếp hiệu quả.",
+        "order": 4
+      },
+      {
+        "english": "Please wear business casual attire in layers to the seminars as the room temperatures may vary.",
+        "vietnamese": "Vui lòng mặc trang phục công sở thoải mái theo nhiều lớp khi tham dự hội thảo vì nhiệt độ trong phòng có thể thay đổi.",
+        "order": 5
+      }
+    ],
+    "sourceRow": 26
+  },
+  {
+    "sourceKey": "reading-26",
+    "title": "Bài đọc 26",
+    "order": 26,
+    "englishText": "When asked about how his 26-year-long devotion to Spring Bud began, Mr. Smith commented that he had always known what his passions were. “I had been working as an office clerk in Sydney for three years when I saw their advertisement for an assistant field manager at their Brazil office. I had always been eager to work hands-on in the field, helping others. So I submitted my résumé without hesitation.” As an assistant field manager at Spring Bud’s Piracicaba office, he devoted his full efforts to educating pre-school children in the province. His hard work promoted him to a field manager in just three years. “I found being a field staff rough and I kept wondering about the true meaning of this hard job. However, Mr. Smith’s enthusiasm and love towards children touched my heart deep down. He has been the most influential figure in my 13-year career,” said Caitlin Montclair, the current field manager in Brazil.",
+    "bilingualPairs": [
+      {
+        "english": "When asked about how his 26-year-long devotion to Spring Bud began, Mr. Smith commented that he had always known what his passions were.",
+        "vietnamese": "Khi được hỏi về khởi đầu của hành trình 26 năm cống hiến cho Spring Bud, ông Smith cho biết ông luôn biết mình đam mê điều gì.",
+        "order": 1
+      },
+      {
+        "english": "“I had been working as an office clerk in Sydney for three years when I saw their advertisement for an assistant field manager at their Brazil office.",
+        "vietnamese": "“Tôi đã làm nhân viên văn phòng ở Sydney được ba năm khi nhìn thấy quảng cáo tuyển trợ lý quản lý thực địa tại văn phòng của họ ở Brazil.",
+        "order": 2
+      },
+      {
+        "english": "I had always been eager to work hands-on in the field, helping others.",
+        "vietnamese": "Tôi luôn mong muốn được trực tiếp làm việc tại thực địa và giúp đỡ người khác.",
+        "order": 3
+      },
+      {
+        "english": "So I submitted my résumé without hesitation.”",
+        "vietnamese": "Vì vậy, tôi đã gửi hồ sơ ứng tuyển mà không chút do dự.”",
+        "order": 4
+      },
+      {
+        "english": "As an assistant field manager at Spring Bud’s Piracicaba office, he devoted his full efforts to educating pre-school children in the province.",
+        "vietnamese": "Trong vai trò trợ lý quản lý thực địa tại văn phòng Piracicaba của Spring Bud, ông dành toàn bộ tâm sức để giáo dục trẻ em mẫu giáo trong tỉnh.",
+        "order": 5
+      },
+      {
+        "english": "His hard work promoted him to a field manager in just three years.",
+        "vietnamese": "Nhờ làm việc chăm chỉ, ông được thăng chức lên quản lý thực địa chỉ sau ba năm.",
+        "order": 6
+      },
+      {
+        "english": "“I found being a field staff rough and I kept wondering about the true meaning of this hard job.",
+        "vietnamese": "“Tôi thấy công việc của một nhân viên thực địa rất vất vả và luôn tự hỏi ý nghĩa thực sự của công việc khó khăn này là gì.",
+        "order": 7
+      },
+      {
+        "english": "However, Mr. Smith’s enthusiasm and love towards children touched my heart deep down.",
+        "vietnamese": "Tuy nhiên, sự nhiệt tình và tình yêu thương trẻ em của ông Smith đã chạm sâu vào trái tim tôi.",
+        "order": 8
+      },
+      {
+        "english": "He has been the most influential figure in my 13-year career,” said Caitlin Montclair, the current field manager in Brazil.",
+        "vietnamese": "Ông ấy là người có ảnh hưởng lớn nhất trong sự nghiệp 13 năm của tôi,” Caitlin Montclair, quản lý thực địa hiện tại tại Brazil, cho biết.",
+        "order": 9
+      }
+    ],
+    "sourceRow": 27
+  }
+]

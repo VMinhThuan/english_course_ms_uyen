@@ -7,7 +7,8 @@ const getLinks = (variant, showPart1) => {
   const showDictationPages = variant !== 'admin' || showPart1;
   return [
     ...(showPart1 ? [{ label: 'Chép chính tả Part 1', to: variant === 'admin' ? `${prefix}/part1-dictations` : `${prefix}/part-1` }] : []),
-    ...(showDictationPages ? [{ label: 'Chép chính tả từ vựng', to: `${prefix}/vocabulary-dictation` }] : []),
+    ...(showDictationPages ? [{ label: 'Chép chính tả từ vựng', to: variant === 'admin' ? `${prefix}/vocabulary-dictations` : `${prefix}/vocabulary-dictation` }] : []),
+    { label: 'Road to Part 7', to: `${prefix}/road-to-part-7` },
     { label: 'Bài tập ngữ pháp', to: `${prefix}/assessments` },
   ];
 };

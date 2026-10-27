@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   createPart1Dictation,
+  deletePart1Dictation,
   getStudentPart1Dictation,
   listAdminPart1Dictations,
   listStudentPart1Dictations,
@@ -16,6 +17,7 @@ adminRouter.get('/', listAdminPart1Dictations);
 adminRouter.post('/', createPart1Dictation);
 adminRouter.put('/:id', updatePart1Dictation);
 adminRouter.patch('/:id/visibility', setPart1DictationVisibility);
+adminRouter.delete('/:id', deletePart1Dictation);
 
 const studentRouter = express.Router();
 studentRouter.use(verifyToken, requireActiveStudent);
