@@ -70,7 +70,7 @@ export default function StudentDictationPage({ kind = 'part1' }) {
       eyebrow={isVocabulary ? 'Vocabulary · Dictation' : 'TOEIC · Part 1'}
       title={pageTitle}
       description={isVocabulary
-        ? 'Nghe từng nhóm từ, nhập đáp án tiếng Anh và xem nghĩa sau khi nộp.'
+        ? 'Luyện từng nhóm từ, nhập đáp án tiếng Anh và xem nghĩa sau khi nộp.'
         : 'Nghe audio, chép lại từng câu và xem đáp án mẫu sau khi nộp.'}
     />
     {loading ? <div className="ds-loading-state">Đang tải bài nghe…</div>
@@ -84,10 +84,15 @@ export default function StudentDictationPage({ kind = 'part1' }) {
               </button>)}
             </aside>
             {active && <section className="part1-listening-card">
-              <div className="part1-listening-card__header"><div><p className="part1-playlist__eyebrow">NGHE VÀ CHÉP LẠI</p><h2>{active.title}</h2></div><span>{active.answerCount} {isVocabulary ? 'từ' : 'câu'}</span></div>
-              <div className="part1-audio"><span aria-hidden="true">♫</span><audio controls preload="metadata" src={resolveMediaUrl(active.audioUrl)}>Trình duyệt của bạn không hỗ trợ phát audio.</audio></div>
+              <div className="part1-listening-card__header"><div><p className="part1-playlist__eyebrow">{active.audioUrl ? 'NGHE VÀ CHÉP LẠI' : 'ÔN TẬP VÀ ĐIỀN ĐÁP ÁN'}</p><h2>{active.title}</h2></div><span>{active.answerCount} {isVocabulary ? 'từ' : 'câu'}</span></div>
+              <div className="part1-audio"><span aria-hidden="true">♫</span>{active.audioUrl
+                ? <audio controls preload="metadata" src={resolveMediaUrl(active.audioUrl)}>Trình duyệt của bạn không hỗ trợ phát audio.</audio>
+                : <p className="part1-audio__missing">Audio chưa được cập nhật. Bạn vẫn có thể làm bài và xem đáp án sau khi nộp.</p>}
+              </div>
               <form onSubmit={submit} className="part1-answer-form">
-                <p>{isVocabulary ? 'Nghe audio và nhập từ hoặc cụm từ tiếng Anh tương ứng.' : 'Nhập câu bạn nghe được. Hệ thống không phân biệt chữ hoa và chữ thường.'}</p>
+                <p>{active.audioUrl
+                  ? (isVocabulary ? 'Nghe audio và nhập từ hoặc cụm từ tiếng Anh tương ứng.' : 'Nhập câu bạn nghe được. Hệ thống không phân biệt chữ hoa và chữ thường.')
+                  : 'Nhập đáp án theo từng dòng. Hệ thống không phân biệt chữ hoa và chữ thường.'}</p>
                 {answers.map((answer, index) => {
                   const result = results?.results[index];
                   return <label key={index} className={`part1-answer-row${result ? (result.isCorrect ? ' is-correct' : ' is-incorrect') : ''}`}>

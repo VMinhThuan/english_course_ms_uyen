@@ -17,6 +17,7 @@
 .part1-audio{display:flex;align-items:center;gap:13px;margin:26px 0;padding:14px 16px;border:1px solid #e5cf93;border-radius:12px;background:#fffaf0}
 .part1-audio>span{display:grid;width:38px;height:38px;place-items:center;border-radius:50%;background:var(--brand-yellow);color:var(--brand-coffee);font-size:19px}
 .part1-audio audio{width:min(100%,540px)}
+.part1-audio__missing{margin:0;color:#755d45;font-size:14px;line-height:1.5}
 .part1-answer-form{display:grid;gap:13px}
 .part1-answer-form>p,.part1-admin-editor fieldset>p{margin:0;color:var(--brand-muted);font-size:13px;line-height:1.6}
 .part1-answer-row{display:grid;grid-template-columns:32px minmax(0,1fr) 78px;align-items:center;gap:10px}

@@ -87,9 +87,6 @@ export const setVocabularyDictationVisibility = async (req, res, next) => {
     }
     const item = await VocabularyDictation.findById(req.params.id);
     if (!item) return res.status(404).json({ status: 'error', message: 'Không tìm thấy bài chép chính tả từ vựng.' });
-    if (req.body.isVisible && !item.audioUrl) {
-      return res.status(400).json({ status: 'error', message: 'Cần có file audio trước khi hiển thị bài này.' });
-    }
     item.isVisible = req.body.isVisible;
     await item.save();
     res.json({ status: 'success', data: { item } });
@@ -107,7 +104,7 @@ export const deleteVocabularyDictation = async (req, res, next) => {
 
 export const listStudentVocabularyDictations = async (_req, res, next) => {
   try {
-    const items = await VocabularyDictation.find({ isVisible: true, audioUrl: { $ne: '' } }).lean();
+    const items = await VocabularyDictation.find({ isVisible: true }).lean();
     items.sort(sortBySection);
     res.json({ status: 'success', data: { items: items.map(studentDto) } });
   } catch (error) { next(error); }
@@ -115,7 +112,7 @@ export const listStudentVocabularyDictations = async (_req, res, next) => {
 
 export const getStudentVocabularyDictation = async (req, res, next) => {
   try {
-    const item = await VocabularyDictation.findOne({ _id: req.params.id, isVisible: true, audioUrl: { $ne: '' } });
+    const item = await VocabularyDictation.findOne({ _id: req.params.id, isVisible: true });
     if (!item) return res.status(404).json({ status: 'error', message: 'Bài chép chính tả từ vựng không khả dụng.' });
     res.json({ status: 'success', data: { item: studentDto(item) } });
   } catch (error) { next(error); }
@@ -123,7 +120,7 @@ export const getStudentVocabularyDictation = async (req, res, next) => {
 
 export const submitStudentVocabularyDictation = async (req, res, next) => {
   try {
-    const item = await VocabularyDictation.findOne({ _id: req.params.id, isVisible: true, audioUrl: { $ne: '' } });
+    const item = await VocabularyDictation.findOne({ _id: req.params.id, isVisible: true });
     if (!item) return res.status(404).json({ status: 'error', message: 'Bài chép chính tả từ vựng không khả dụng.' });
 
     const submissions = Array.isArray(req.body.answers) ? req.body.answers : [];
