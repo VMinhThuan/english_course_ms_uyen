@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { toeicApi } from '../../api/toeicApi.js';
 import UiButton from '../../components/ui/UiButton.jsx';
 import StatusBadge from '../../components/ui/StatusBadge.jsx';
+import ToeicImageWithBrandOverlay from '../../components/ToeicImageWithBrandOverlay.jsx';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
 import '../../styles/assessment-screens.css';
 
@@ -259,7 +260,7 @@ export default function AdminToeicPreviewPage() {
                       🖼 Hình Ảnh Minh Họa:
                     </div>
                   )}
-                  <img
+                  <ToeicImageWithBrandOverlay
                     src={resolveMediaUrl(imageUrl)}
                     alt={`Group visual ${imageIndex + 1}`}
                     style={{ width: '100%', maxWidth: '720px', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--brand-border)' }}
@@ -279,7 +280,7 @@ export default function AdminToeicPreviewPage() {
                   {group.partNumber === 7 && (p.imageUrls?.length || p.imageUrl) ? (
                     <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.75rem' }}>
                       {(p.imageUrls?.length ? p.imageUrls : [p.imageUrl]).map((imageUrl, imageIndex) => (
-                        <img
+                        <ToeicImageWithBrandOverlay
                           key={`${imageUrl}-${imageIndex}`}
                           src={resolveMediaUrl(imageUrl)}
                           alt={`Ảnh ${p.title || `passage ${pIdx + 1}`}, trang ${imageIndex + 1}`}

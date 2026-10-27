@@ -1,0 +1,64 @@
+.toeic-image-with-brand-overlay {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+  vertical-align: top;
+}
+
+.toeic-image-with-brand-overlay > img {
+  display: block;
+}
+
+.toeic-image-with-brand-overlay__label {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 0.08em;
+  border-radius: 0.12em;
+  background: rgba(255, 255, 255, 0.94);
+  color: #3c2517;
+  font-family: var(--font-sans, Arial, sans-serif);
+  font-size: clamp(6px, 1.15cqw, 15px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.58);
+}
+
+@supports not (font-size: 1cqw) {
+  .toeic-image-with-brand-overlay__label {
+    font-size: clamp(6px, 1.1vw, 15px);
+  }
+}
+
+.toeic-exam-room__document > .toeic-image-with-brand-overlay {
+  width: 100%;
+  max-width: 960px;
+  max-height: min(62vh, 680px);
+  margin: 0 auto;
+}
+
+.toeic-exam-room__document > .toeic-image-with-brand-overlay > .toeic-stimulus-image {
+  width: 100%;
+  max-height: min(62vh, 680px);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.toeic-exam-room__passage .toeic-image-with-brand-overlay {
+  margin: 0 0 0.8rem;
+}
+
+.toeic-exam-room__passage .toeic-image-with-brand-overlay > .toeic-stimulus-image {
+  margin: 0;
+  max-height: none;
+  box-shadow: none;
+}

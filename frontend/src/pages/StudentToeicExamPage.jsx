@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
+import ToeicImageWithBrandOverlay from '../components/ToeicImageWithBrandOverlay.jsx';
 import { resolveMediaUrl } from '../utils/mediaUrl.js';
 import '../styles/assessment-screens.css';
 
@@ -375,6 +376,9 @@ export default function StudentToeicExamPage() {
   const questionPositionInGroup = activeGroup
     ? (activeGroup.questions || []).findIndex((question) => (question.questionId || question._id) === activeQuestion?.qId) + 1
     : 0;
+  const activePartQuestionCount = activePart
+    ? allQuestions.filter((question) => question.partNumber === activePart.partNumber).length
+    : 0;
 
   useEffect(() => {
     if (!activeQuestion || activeQuestionId === activeQuestion.qId) return;
@@ -531,7 +535,7 @@ export default function StudentToeicExamPage() {
                   <h2>PART {activePart.partNumber}</h2>
                   <p>{activePart.name}</p>
                 </div>
-                <div className="toeic-exam-room__counter"><strong>{activeQuestion.questionNumber || activeQuestionIndex + 1}</strong><span>/ {totalQuestions}</span></div>
+                <div className="toeic-exam-room__counter"><strong>{activePartQuestionCount} câu</strong><span>trong Part {activePart.partNumber}</span></div>
               </header>
 
               <div className="toeic-exam-room__stage">
@@ -766,7 +770,7 @@ export default function StudentToeicExamPage() {
     const hasReadingMaterial = [6, 7].includes(partNumber) && passages.length > 0;
 
     return <div className="toeic-exam-room__document">
-      {groupImages.map((imageUrl, imageIndex) => <img
+      {groupImages.map((imageUrl, imageIndex) => <ToeicImageWithBrandOverlay
         key={`${imageUrl}-${imageIndex}`}
         src={resolveMediaUrl(imageUrl)}
         alt={`Tài liệu câu hỏi ${imageIndex + 1}`}
@@ -780,7 +784,7 @@ export default function StudentToeicExamPage() {
       />)}
       {hasReadingMaterial && passages.map((passage, passageIndex) => <article className="toeic-exam-room__passage" key={passageIndex}>
         {passage.title && <h3>{passage.title}</h3>}
-        {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => <img
+        {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => <ToeicImageWithBrandOverlay
           key={`${imageUrl}-${imageIndex}`}
           src={resolveMediaUrl(imageUrl)}
           alt={`Tài liệu đọc ${passageIndex + 1}-${imageIndex + 1}`}
@@ -808,12 +812,16 @@ export default function StudentToeicExamPage() {
     const isFlagged = flaggedIds.includes(qId);
     const selectedOpts = Array.isArray(userAnswers[qId]) ? userAnswers[qId] : (userAnswers[qId] ? [userAnswers[qId]] : []);
     const isMultiple = q.type === 'multiple_choice';
-    const questionPrompt = q.questionText || q.prompt || q.text;
+    const rawQuestionPrompt = q.questionText || q.prompt || q.text || '';
+    const questionPrompt = String(rawQuestionPrompt)
+      .replace(new RegExp(`^\\s*${qNum}\\s*[.)]?\\s*`), '')
+      .trim();
 
     return (
       <div
         key={qId}
         id={`question-${qId}`}
+        className="toeic-question-card"
         onFocusCapture={() => setActiveQuestionId(qId)}
         style={{
           background: 'var(--brand-surface)',
@@ -826,23 +834,11 @@ export default function StudentToeicExamPage() {
         }}
       >
         {/* Question Header & Prompt */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
-            <span
-              style={{
-                background: 'var(--brand-coffee)',
-                color: 'var(--brand-surface)',
-                fontSize: '0.85rem',
-                fontWeight: 800,
-                padding: '0.2rem 0.6rem',
-                borderRadius: '6px',
-                flexShrink: 0,
-              }}
-            >
-              Câu {qNum}
-            </span>
+        <div className="toeic-question-card__header">
+          <div className="toeic-question-card__heading">
+            <span className="toeic-question-card__number">Câu {qNum}</span>
             {questionPrompt && (
-              <span style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--brand-text)', lineHeight: 1.5 }}>
+              <span className="toeic-question-card__prompt">
                 {questionPrompt}
               </span>
             )}

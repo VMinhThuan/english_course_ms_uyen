@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
 import StatusBadge from '../components/ui/StatusBadge.jsx';
 import AssessmentQuestionReviewCard from '../components/assessment/AssessmentQuestionReviewCard.jsx';
+import ToeicImageWithBrandOverlay from '../components/ToeicImageWithBrandOverlay.jsx';
 import { resolveMediaUrl } from '../utils/mediaUrl.js';
 import '../styles/assessment-screens.css';
 
@@ -230,7 +231,7 @@ export default function StudentToeicResultPage() {
                           {passage.title && <strong>{passage.title}</strong>}
                           {passage.content && <div style={{ whiteSpace: 'pre-wrap' }}>{passage.content}</div>}
                           {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => (
-                            <img
+                            <ToeicImageWithBrandOverlay
                               key={`${imageUrl}-${imageIndex}`}
                               src={resolveMediaUrl(imageUrl)}
                               alt={`Passage ${passageIndex + 1}`}
@@ -249,7 +250,7 @@ export default function StudentToeicResultPage() {
                       {/* Part 1 photograph or Part 3/4 group stimuli */}
                       {(group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : [])).map((imageUrl, imageIndex) => (
                         <div key={`${imageUrl}-${imageIndex}`} style={{ textAlign: 'center', marginTop: '0.75rem' }}>
-                          <img
+                          <ToeicImageWithBrandOverlay
                             src={resolveMediaUrl(imageUrl)}
                             alt={`Group stimulus ${imageIndex + 1}`}
                             className="toeic-stimulus-image"
@@ -265,7 +266,7 @@ export default function StudentToeicResultPage() {
                     </div>
                   )}
                   {q.imageUrl && (
-                    <img
+                    <ToeicImageWithBrandOverlay
                       src={resolveMediaUrl(q.imageUrl)}
                       alt={q.imageAlt || `Câu ${qNum}`}
                       className="toeic-stimulus-image"
