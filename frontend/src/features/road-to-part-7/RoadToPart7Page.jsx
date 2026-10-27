@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import { roadToPart7Api } from '../../api/roadToPart7Api.js';
+import '../../pages/Vocabulary.css';
 import './RoadToPart7Page.css';
+
+const readingId = (item) => item?._id || item?.sourceKey || '';
 
 export default function RoadToPart7Page({ admin = false }) {
   const [items, setItems] = useState([]);
@@ -40,11 +43,18 @@ export default function RoadToPart7Page({ admin = false }) {
     return items.filter((item) => `${item.title} ${item.englishText}`.toLocaleLowerCase('vi').includes(normalizedQuery));
   }, [items, query]);
 
-  const selected = items.find((item) => (item._id || item.sourceKey) === selectedId) || filteredItems[0] || null;
+  const selected = filteredItems.find((item) => readingId(item) === selectedId) || filteredItems[0] || null;
+  const selectedIndex = selected ? filteredItems.findIndex((item) => readingId(item) === readingId(selected)) : -1;
 
   const choose = (item) => {
-    setSelectedId(item._id || item.sourceKey);
+    setSelectedId(readingId(item));
     setSide('front');
+  };
+
+  const flip = () => setSide((current) => current === 'front' ? 'back' : 'front');
+  const moveReading = (direction) => {
+    const next = filteredItems[selectedIndex + direction];
+    if (next) choose(next);
   };
 
   return <main className="road7-page">
@@ -69,7 +79,7 @@ export default function RoadToPart7Page({ admin = false }) {
               </label>
               <nav className="road7-reading-list" aria-label="Chọn bài đọc">
                 {filteredItems.map((item, index) => {
-                  const itemId = item._id || item.sourceKey;
+                  const itemId = readingId(item);
                   return <button
                     type="button"
                     key={itemId}
@@ -86,21 +96,60 @@ export default function RoadToPart7Page({ admin = false }) {
               </nav>
             </aside>
 
-            {selected && <section className="road7-reader" aria-labelledby="road7-reader-title">
-              <header className="road7-reader__header">
-                <div><p className="part1-playlist__eyebrow">BÀI {String(selected.order || 1).padStart(2, '0')} · {side === 'front' ? 'MẶT TRƯỚC' : 'MẶT SAU'}</p><h2 id="road7-reader-title">{selected.title}</h2></div>
-                <div className="road7-face-switch" role="group" aria-label="Mặt flashcard">
-                  <button type="button" aria-pressed={side === 'front'} onClick={() => setSide('front')}>Tiếng Anh</button>
-                  <button type="button" aria-pressed={side === 'back'} onClick={() => setSide('back')}>Song ngữ</button>
+            {selected && <section className="road7-reader" aria-label={`${selected.title}, flashcard Road to Part 7`}>
+              <div
+                className={`flashcard chapter-flashcard road7-flashcard${side === 'back' ? ' flipped' : ''}`}
+                role="button"
+                tabIndex="0"
+                aria-label={`Lật flashcard ${selected.title}, mặt ${side === 'front' ? 'tiếng Anh' : 'song ngữ'}`}
+                aria-pressed={side === 'back'}
+                onClick={(event) => { if (!event.target.closest('.road7-flash-scroll')) flip(); }}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); flip(); }
+                  else if (event.key === 'ArrowLeft') { event.preventDefault(); moveReading(-1); }
+                  else if (event.key === 'ArrowRight') { event.preventDefault(); moveReading(1); }
+                  else if (['ArrowDown', 'PageDown', 'ArrowUp', 'PageUp'].includes(event.key)) {
+                    event.preventDefault();
+                    const scrollArea = event.currentTarget.querySelector(side === 'front' ? '.road7-flash-english' : '.road7-flash-pairs');
+                    if (!scrollArea) return;
+                    const direction = event.key === 'ArrowDown' || event.key === 'PageDown' ? 1 : -1;
+                    const step = event.key.startsWith('Page') ? scrollArea.clientHeight * 0.8 : 80;
+                    scrollArea.scrollBy({ top: direction * step, behavior: 'auto' });
+                  }
+                }}
+              >
+                <div className="flash-front chapter-flash-front road7-flash-front">
+                  <span className="chapter-flash-kicker">ROAD TO PART 7 · BÀI {String(selected.order || 1).padStart(2, '0')}</span>
+                  <h2>{selected.title}</h2>
+                  <span className="chapter-flash-word-count">Mặt trước · Bài đọc tiếng Anh</span>
+                  <div className="road7-flash-scroll road7-flash-english" role="region" aria-label={`${selected.title}, bài đọc tiếng Anh`}>
+                    {selected.englishText}
+                  </div>
+                  <i>Nhấn để xem bản dịch song ngữ</i>
                 </div>
-              </header>
-              <div className="road7-reader__meta"><span>{side === 'front' ? 'Bài đọc tiếng Anh' : 'English · Tiếng Việt'}</span><span>{side === 'front' ? '1 đoạn đọc' : `${(selected.bilingualPairs || []).length} câu`}</span></div>
-              <div className={`road7-reading-content${side === 'back' ? ' is-bilingual' : ''}`} tabIndex="0" role="region" aria-label={`${selected.title}, ${side === 'front' ? 'bài đọc tiếng Anh' : 'bản dịch song ngữ'}`}>
-                {side === 'front'
-                  ? <p className="road7-english-article">{selected.englishText}</p>
-                  : <div className="road7-bilingual-pairs">{(selected.bilingualPairs || []).map((pair, index) => <p key={`${pair.order || index}-${index}`}><strong>{pair.english}</strong> <span>({pair.vietnamese})</span></p>)}</div>}
+                <div className="flash-back chapter-flash-back road7-flash-back">
+                  <header className="chapter-flash-back-head">
+                    <div>
+                      <span>ROAD TO PART 7 · BẢN DỊCH SONG NGỮ</span>
+                      <h2>{selected.title}</h2>
+                    </div>
+                    <strong>{(selected.bilingualPairs || []).length} câu</strong>
+                  </header>
+                  <div className="road7-flash-scroll road7-flash-pairs" role="region" aria-label={`${selected.title}, bản dịch song ngữ`}>
+                    {(selected.bilingualPairs || []).map((pair, index) => (
+                      <p key={`${pair.order || index}-${index}`}><strong>{pair.english}</strong> <span>({pair.vietnamese})</span></p>
+                    ))}
+                  </div>
+                  <span className="chapter-flash-back-hint">Nhấn để quay lại mặt tiếng Anh</span>
+                </div>
               </div>
-              <footer className="road7-reader__footer"><span>{side === 'front' ? 'Mặt trước · Toàn bộ bài đọc' : 'Mặt sau · Bản dịch theo từng câu'}</span><button type="button" className="ds-button ds-button--primary" onClick={() => setSide((current) => current === 'front' ? 'back' : 'front')}>{side === 'front' ? 'Xem mặt song ngữ' : 'Quay lại tiếng Anh'}</button></footer>
+              <nav className="flash-nav road7-flash-nav" aria-label="Điều hướng bài đọc">
+                <button type="button" disabled={selectedIndex <= 0} onClick={() => moveReading(-1)}>← Bài trước</button>
+                <span>{selectedIndex + 1} / {filteredItems.length}</span>
+                <button type="button" className="road7-flip-button" onClick={flip}>{side === 'front' ? 'Xem mặt song ngữ' : 'Mặt tiếng Anh'}</button>
+                <button type="button" disabled={selectedIndex < 0 || selectedIndex >= filteredItems.length - 1} onClick={() => moveReading(1)}>Bài tiếp theo →</button>
+              </nav>
             </section>}
           </div>}
   </main>;

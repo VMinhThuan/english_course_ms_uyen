@@ -97,35 +97,27 @@ export default function StudentDictationPage({ kind = 'part1' }) {
                   const result = results?.results[index];
                   return <label key={index} className={`part1-answer-row${result ? (result.isCorrect ? ' is-correct' : ' is-incorrect') : ''}`}>
                     <span>{index + 1}</span>
-                    <input
-                      value={answer}
-                      disabled={submitting}
-                      onChange={(event) => { const next = [...answers]; next[index] = event.target.value; setAnswers(next); setResults(null); }}
-                      placeholder={isVocabulary ? `Nhập từ ${index + 1}` : `Nhập câu ${index + 1}`}
-                      aria-label={isVocabulary ? `Đáp án từ ${index + 1}` : `Đáp án câu ${index + 1}`}
-                    />
-                    {result && <b>{result.isCorrect ? 'Đúng' : 'Chưa đúng'}</b>}
+                    <div className="part1-answer-field">
+                      <div className="part1-answer-field__control">
+                        <input
+                          value={answer}
+                          disabled={submitting}
+                          onChange={(event) => { const next = [...answers]; next[index] = event.target.value; setAnswers(next); setResults(null); }}
+                          placeholder={isVocabulary ? `Nhập từ ${index + 1}` : `Nhập câu ${index + 1}`}
+                          aria-label={isVocabulary ? `Đáp án từ ${index + 1}` : `Đáp án câu ${index + 1}`}
+                        />
+                        {result && <b className="part1-answer-status">{result.isCorrect ? '✓ Đúng' : '× Chưa đúng'}</b>}
+                      </div>
+                      {result && <div className={`part1-answer-correction${result.isCorrect ? ' is-correct' : ''}`}>
+                        <strong>{result.isCorrect ? 'Đáp án của bạn' : 'Đáp án đúng'}</strong>
+                        <span className="part1-answer-correction__text">{result.correctAnswer}</span>
+                        {result.correctTranslation && <span className="part1-answer-correction__translation">{isVocabulary ? 'Nghĩa' : 'Bản dịch'}: {result.correctTranslation}</span>}
+                      </div>}
+                    </div>
                   </label>;
                 })}
                 {error && <p className="part1-form-error" role="alert">{error}</p>}
-                {results && <>
-                  <div className="part1-score" role="status"><strong>{results.correctCount}/{results.total}</strong><span>đáp án đúng</span></div>
-                  <section className="part1-results" aria-label="Đáp án sau khi nộp">
-                    <h3>Đáp án sau khi nộp</h3>
-                    <ol>
-                      {results.results.map((result, index) => (
-                        <li key={`${result.order}-${index}`} className={result.isCorrect ? 'is-correct' : 'is-incorrect'}>
-                          <span className="part1-results__number">{index + 1}</span>
-                          <div>
-                            <strong>{result.isCorrect ? 'Bạn trả lời đúng' : 'Đáp án chuẩn'}</strong>
-                            <p>{result.correctAnswer}</p>
-                            {result.correctTranslation && <small>{isVocabulary ? 'Nghĩa' : 'Bản dịch'}: {result.correctTranslation}</small>}
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  </section>
-                </>}
+                {results && <div className="part1-score" role="status"><strong>{results.correctCount}/{results.total}</strong><span>đáp án đúng</span></div>}
                 <button className="ds-button ds-button--primary" type="submit" disabled={submitting}>{submitting ? 'Đang chấm…' : results ? 'Nộp lại bài' : 'Nộp bài để kiểm tra'}</button>
               </form>
             </section>}

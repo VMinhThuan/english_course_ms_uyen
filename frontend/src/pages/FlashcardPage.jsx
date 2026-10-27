@@ -333,7 +333,7 @@ export default function FlashcardPage() {
                 <span className="chapter-flash-word-count">Từ {index + 1} / {visibleCards.length}</span>
                 <i>Nhấn để xem nghĩa và ví dụ</i>
               </div>
-              <div className="flash-back chapter-flash-back">
+              <div className="flash-back chapter-flash-back chapter-flash-back--single">
                 <header className="chapter-flash-back-head">
                   <div>
                     <span>{card.chapterTitle}</span>
