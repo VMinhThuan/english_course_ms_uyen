@@ -24,6 +24,7 @@ const rejectDuringQuestionBankSelection = async (assessmentId, res) => {
 import { DEFAULT_TOEIC_PARTS } from '../utils/toeicHelper.js';
 import { parseToeicPdf } from '../utils/toeicPdfParser.js';
 import { getSafeDisplayName, MAX_TOEIC_IMPORT_BYTES, TOEIC_UPLOAD_POLICIES, validateUploadSample } from '../utils/uploadValidation.js';
+import { isOwnedBlobUploadPathname } from '../utils/blobUploadPaths.js';
 import {
   deleteFromBlob,
   getPrivateBlobPathname,
@@ -44,11 +45,7 @@ import {
 } from '../utils/attemptLifecycle.js';
 
 const isOwnedToeicUploadPath = (pathname, purpose, userId, extension) => {
-  if (!pathname) return false;
-  const prefix = `uploads/${purpose}/${userId}/`;
-  if (!pathname.startsWith(prefix)) return false;
-  const escapedExtension = extension.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`^[0-9a-f-]{36}${escapedExtension}$`, 'i').test(path.basename(pathname));
+  return isOwnedBlobUploadPathname({ pathname, purpose, userId, extension });
 };
 import {
   studentExplanationText,

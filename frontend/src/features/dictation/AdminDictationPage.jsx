@@ -61,7 +61,7 @@ export default function AdminDictationPage({ kind = 'part1' }) {
     if (!file) return;
     setUploading(true); setNotice({ type: '', text: '' });
     try {
-      const response = await mediaApi.uploadMedia(file);
+      const response = await mediaApi.uploadMedia(file, isVocabulary ? 'audio-voc' : 'audio-part1');
       if (response.data.fileType !== 'audio') throw new Error('Hãy chọn một file audio hợp lệ.');
       setForm((current) => ({ ...current, audioUrl: response.data.storageUrl || response.data.fileUrl }));
     } catch (error) {
@@ -115,7 +115,7 @@ export default function AdminDictationPage({ kind = 'part1' }) {
       for (const [index, seed] of expectedAudio.entries()) {
         const file = byName.get(seed.audioFilename);
         setImportProgress({ current: index + 1, total: expectedAudio.length });
-        const response = await mediaApi.uploadMedia(file);
+        const response = await mediaApi.uploadMedia(file, 'audio-voc');
         if (response.data.fileType !== 'audio' || !response.data.storageUrl) {
           throw new Error(`Không nhận được địa chỉ Blob hợp lệ cho ${file.name}.`);
         }

@@ -411,7 +411,8 @@ export default function AdminToeicBuilderPage() {
     try {
       setMediaUploading(true);
       setFeedback({ type: '', text: '' });
-      const res = await mediaApi.uploadMedia(file);
+      const storageFolder = type === 'group_audio' ? 'toeic-test-audio' : 'toeic-test-image';
+      const res = await mediaApi.uploadMedia(file, storageFolder);
       if (res.status === 'success') {
         if (type === 'group_image') {
           setGroupImageUrl(res.data.fileUrl);

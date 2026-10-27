@@ -1,8 +1,9 @@
 import { uploadFileToBlob } from './blobUploadApi.js';
 
 export const mediaApi = {
-  uploadMedia: async (file) => {
+  uploadMedia: async (file, storageFolder = 'import-files') => {
     const uploaded = await uploadFileToBlob(file, 'media', {
+      storageFolder,
       ticketPath: '/admin/media/upload',
       completePath: '/admin/media/complete',
     });

@@ -8,13 +8,14 @@ import {
 import { XLSX_IMPORT_LIMITS, XlsxImportError } from '../services/toeicPart5XlsxParser.js';
 import { deleteFromBlob, getPrivateBlobMetadata, getPrivateBlobPathname, readPrivateBlobBuffer } from '../utils/blobStorage.js';
 import { getSafeDisplayName } from '../utils/uploadValidation.js';
+import { isOwnedBlobUploadPathname } from '../utils/blobUploadPaths.js';
 
 const getOwnedQuestionImportBlobPath = (value, userId) => {
   const pathname = getPrivateBlobPathname(value);
   if (!pathname) return null;
-  const prefix = `uploads/question-import-xlsx/${String(userId || '')}/`;
-  if (!pathname.startsWith(prefix)) return null;
-  return /^[0-9a-f-]{36}\.xlsx$/i.test(pathname.slice(prefix.length)) ? pathname : null;
+  return isOwnedBlobUploadPathname({ pathname, purpose: 'question-import-xlsx', userId, extension: '.xlsx' })
+    ? pathname
+    : null;
 };
 
 const handleControllerError = (error, res, next) => {

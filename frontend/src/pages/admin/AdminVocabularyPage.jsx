@@ -105,7 +105,7 @@ export default function AdminVocabularyPage() {
     if (!file) return;
     setUploading(true);
     try {
-      const res = await mediaApi.uploadMedia(file);
+      const res = await mediaApi.uploadMedia(file, 'import-files');
       setForm((f) => ({ ...f, audioUrl: res.data.fileUrl }));
       setToast('Đã tải audio lên.');
     } catch (err) {

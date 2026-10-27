@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
-import { deleteFromBlob, isBlobConfigured, readPrivateBlobSample, createPrivateBlobUploadUrl, createPrivateBlobReadUrl } from '../utils/blobStorage.js';
+import { deleteFromBlob, getPrivateBlobPathname, isBlobConfigured, readPrivateBlobSample, createPrivateBlobUploadUrl, createPrivateBlobReadUrl } from '../utils/blobStorage.js';
+import { createOwnedBlobUploadPathname, isOwnedBlobUploadPathname, resolveBlobUploadFolder } from '../utils/blobUploadPaths.js';
 import {
   GENERAL_UPLOAD_POLICIES,
   MAX_GENERAL_UPLOAD_BYTES,
@@ -31,14 +32,6 @@ const fail = (res, statusCode, code, message) =>
 
 const getUserId = (user) => String(user?._id || '');
 
-const getExpectedPath = ({ purpose, userId, pathname, extension }) => {
-  const prefix = `uploads/${purpose}/${userId}/`;
-  if (!pathname.startsWith(prefix)) return false;
-  const leaf = pathname.slice(prefix.length);
-  const escapedExtension = extension.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`^[0-9a-f-]{36}${escapedExtension}$`, 'i').test(leaf);
-};
-
 export const createBlobUploadTicket = async (req, res, next, forcedPurpose) => {
   try {
     if (!isBlobConfigured()) {
@@ -66,9 +59,16 @@ export const createBlobUploadTicket = async (req, res, next, forcedPurpose) => {
 
     const userId = getUserId(req.user);
     if (!userId) return fail(res, 401, 'UNAUTHORIZED', 'Unauthorized');
-    const pathname = `uploads/${purpose}/${userId}/${randomUUID()}${fileInfo.extension}`;
+    const storageFolder = resolveBlobUploadFolder(purpose, req.body?.storageFolder);
+    if (!storageFolder) return fail(res, 400, 'UPLOAD_FOLDER_NOT_ALLOWED', 'Thư mục lưu tệp không hợp lệ.');
+    const pathname = createOwnedBlobUploadPathname({
+      storageFolder,
+      userId,
+      fileId: randomUUID(),
+      extension: fileInfo.extension,
+    });
     const validUntil = Date.now() + 15 * 60 * 1000;
-    const uploadUrl = await createPrivateBlobUploadUrl(pathname, {
+    const { uploadUrl, storageUrl } = await createPrivateBlobUploadUrl(pathname, {
       allowedContentTypes: [fileInfo.mimeType],
       maximumSizeInBytes: config.maxBytes,
       validUntil,
@@ -78,7 +78,9 @@ export const createBlobUploadTicket = async (req, res, next, forcedPurpose) => {
       status: 'success',
       data: {
         purpose,
+        storageFolder,
         pathname,
+        storageUrl,
         originalName,
         contentType: fileInfo.mimeType,
         size,
@@ -105,17 +107,23 @@ export const completeBlobUpload = async (req, res, next, forcedPurpose) => {
     const originalName = getSafeDisplayName(req.body?.originalName || req.body?.fileName);
     const fileInfo = config && getUploadFileInfo(originalName, config.policy);
     const pathname = String(req.body?.pathname || '');
+    const storageUrl = String(req.body?.storageUrl || '');
     const userId = getUserId(req.user);
-    if (!config || !fileInfo || !getExpectedPath({ purpose, userId, pathname, extension: fileInfo.extension })) {
+    const storageUrlPathname = storageUrl ? getPrivateBlobPathname(storageUrl) : null;
+    if (!config || !fileInfo || !isOwnedBlobUploadPathname({ purpose, userId, pathname, extension: fileInfo.extension })
+      || (storageUrl && storageUrlPathname !== pathname)) {
       return fail(res, 400, 'UPLOAD_REFERENCE_INVALID', 'Tham chiếu tải lên không hợp lệ.');
     }
 
+    const uploadedReference = storageUrl || pathname;
     let uploaded;
     try {
       // The browser PUT goes directly to Blob storage. A short origin read
-      // retry covers propagation immediately after the upload completes.
+      // retry covers propagation immediately after the upload completes. Use
+      // the exact private store URL issued with the ticket before falling back
+      // to a pathname lookup, which otherwise depends on runtime store config.
       for (let attempt = 0; attempt < 3; attempt += 1) {
-        uploaded = await readPrivateBlobSample(pathname);
+        uploaded = await readPrivateBlobSample(attempt === 0 ? uploadedReference : pathname);
         if (uploaded) break;
         if (attempt < 2) await delay(200 * (attempt + 1));
       }
@@ -126,7 +134,7 @@ export const completeBlobUpload = async (req, res, next, forcedPurpose) => {
 
     const { blob, sample } = uploaded;
     if (!Number.isSafeInteger(blob.size) || blob.size <= 0 || blob.size > config.maxBytes) {
-      await deleteFromBlob(pathname).catch(() => {});
+      await deleteFromBlob(blob.url || uploadedReference).catch(() => {});
       return fail(res, 400, 'FILE_TOO_LARGE', `Dung lượng tệp vượt quá ${Math.floor(config.maxBytes / 1024 / 1024)} MiB.`);
     }
 
@@ -136,11 +144,11 @@ export const completeBlobUpload = async (req, res, next, forcedPurpose) => {
       sample,
     }, config.policy);
     if (!validation.valid || validation.detectedMimeType !== fileInfo.mimeType) {
-      await deleteFromBlob(pathname).catch(() => {});
+      await deleteFromBlob(blob.url || uploadedReference).catch(() => {});
       return fail(res, 400, validation.code || 'FILE_CONTENT_INVALID', validation.message || 'Nội dung tệp không đúng định dạng.');
     }
 
-    const previewUrl = await createPrivateBlobReadUrl(pathname);
+    const previewUrl = await createPrivateBlobReadUrl(blob.url || uploadedReference);
     return res.json({
       status: 'success',
       data: {

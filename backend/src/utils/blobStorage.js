@@ -5,6 +5,7 @@ import {
   head,
   issueSignedToken,
   list,
+  parseStoreIdFromDelegationToken,
   presignUrl,
   put,
 } from '@vercel/blob';
@@ -112,7 +113,12 @@ export const createPrivateBlobUploadUrl = async (
     ...(allowedContentTypes?.length ? { allowedContentTypes } : {}),
     ...(Number.isFinite(maximumSizeInBytes) ? { maximumSizeInBytes } : {}),
   });
-  return presignedUrl;
+  const storeId = parseStoreIdFromDelegationToken(token.delegationToken);
+  const encodedPath = cleanPath.split('/').map(encodeURIComponent).join('/');
+  return {
+    uploadUrl: presignedUrl,
+    storageUrl: `https://${storeId}.private.blob.vercel-storage.com/${encodedPath}`,
+  };
 };
 
 export const createPrivateBlobReadUrl = async (
@@ -123,7 +129,16 @@ export const createPrivateBlobReadUrl = async (
   if (!pathname) throw new Error('A valid private Blob reference is required.');
   if (!isBlobConfigured()) throw new Error('Vercel Blob is not configured for this environment.');
 
-  const token = await issueSignedToken({ pathname, operations: ['get'], validUntil });
+  let storeId;
+  if (/^https:\/\//i.test(String(value))) {
+    storeId = new URL(value).hostname.replace(/\.private\.blob\.vercel-storage\.com$/i, '');
+  }
+  const token = await issueSignedToken({
+    pathname,
+    operations: ['get'],
+    validUntil,
+    ...(storeId ? { storeId } : {}),
+  });
   const { presignedUrl } = await presignUrl(token, {
     pathname,
     operation: 'get',

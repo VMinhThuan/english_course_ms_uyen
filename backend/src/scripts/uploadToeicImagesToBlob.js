@@ -40,7 +40,7 @@ async function run() {
     const filename = files[i];
     const filePath = path.join(localImageDir, filename);
     const fileBuffer = fs.readFileSync(filePath);
-    const blobPath = `toeic-question-ocean/part1/${filename}`;
+    const blobPath = `toeic-test-image/${filename}`;
     const localRelPath = `/uploads/public/toeic-question-ocean/part1/${filename}`;
 
     process.stdout.write(`[${i + 1}/${files.length}] Uploading ${filename} ... `);

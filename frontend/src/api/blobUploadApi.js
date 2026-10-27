@@ -2,6 +2,7 @@ import axiosInstance from './axiosConfig.js';
 
 export const uploadFileToBlob = async (file, purpose, {
   originalName = file?.name,
+  storageFolder,
   ticketPath = '/storage/uploads',
   completePath = '/storage/uploads/complete',
 } = {}) => {
@@ -12,6 +13,7 @@ export const uploadFileToBlob = async (file, purpose, {
     originalName,
     mimeType: file.type,
     size: file.size,
+    ...(storageFolder ? { storageFolder } : {}),
   });
   const ticket = ticketResponse.data?.data;
   if (!ticket?.uploadUrl || !ticket.pathname || !ticket.contentType) {
@@ -30,6 +32,7 @@ export const uploadFileToBlob = async (file, purpose, {
   const completeResponse = await axiosInstance.post(completePath, {
     purpose,
     pathname: ticket.pathname,
+    storageUrl: ticket.storageUrl,
     originalName,
   });
   const uploaded = completeResponse.data?.data;

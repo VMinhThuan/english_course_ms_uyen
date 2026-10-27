@@ -41,7 +41,7 @@ export default function AdminPart1DictationPage() {
     if (!file) return;
     setUploading(true); setNotice({ type: '', text: '' });
     try {
-      const response = await mediaApi.uploadMedia(file);
+      const response = await mediaApi.uploadMedia(file, 'audio-part1');
       if (response.data.fileType !== 'audio') throw new Error('Hãy chọn một file audio hợp lệ.');
       setForm((current) => ({ ...current, audioUrl: response.data.fileUrl }));
     } catch (error) {
