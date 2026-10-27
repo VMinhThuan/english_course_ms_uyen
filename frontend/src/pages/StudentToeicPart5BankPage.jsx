@@ -350,9 +350,10 @@ export default function StudentToeicPart5BankPage() {
 
                 {/* Options (A, B, C, D) */}
                 <div className="toeic-p5-options-grid">
-                  {(q.options || []).map((opt) => {
+                  {(q.options || []).map((opt, optionIndex) => {
                     const isSelected = qState.selectedAnswer === opt.id;
                     const isThisCorrect = correctAnswers.includes(opt.id);
+                    const optionLetter = ['A', 'B', 'C', 'D'][optionIndex] || opt.id;
 
                     let evalClass = '';
                     if (isChecked) {
@@ -370,7 +371,7 @@ export default function StudentToeicPart5BankPage() {
                         onClick={() => handleSelectOption(q._id, opt.id)}
                         disabled={isChecked && studyMode === 'PRACTICE'}
                       >
-                        <span className="toeic-p5-option-letter">{opt.id}</span>
+                        <span className="toeic-p5-option-letter">{optionLetter}</span>
                         <span>{opt.text}</span>
                         {isChecked && isThisCorrect && (
                           <span style={{ marginLeft: 'auto', fontSize: '0.8rem', fontWeight: 700, color: '#15803d' }}>

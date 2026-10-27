@@ -10,6 +10,7 @@ import {
   getUploadFileInfo,
   validateUploadSample,
 } from '../utils/uploadValidation.js';
+import { XLSX_IMPORT_LIMITS } from '../services/toeicPart5XlsxParser.js';
 
 const UPLOAD_PURPOSES = Object.freeze({
   media: { field: 'file', policy: MEDIA_UPLOAD_POLICIES.file, maxBytes: MAX_GENERAL_UPLOAD_BYTES },
@@ -17,6 +18,11 @@ const UPLOAD_PURPOSES = Object.freeze({
   'lesson-attachment': { field: 'attachments', policy: GENERAL_UPLOAD_POLICIES.attachments, maxBytes: MAX_GENERAL_UPLOAD_BYTES },
   'toeic-pdf': { field: 'file', policy: TOEIC_UPLOAD_POLICIES.file, maxBytes: MAX_TOEIC_IMPORT_BYTES },
   'toeic-page-image': { field: 'pageImages', policy: TOEIC_UPLOAD_POLICIES.pageImages, maxBytes: MAX_TOEIC_IMPORT_BYTES },
+  'question-import-xlsx': {
+    field: 'file',
+    policy: { extensions: ['.xlsx'] },
+    maxBytes: XLSX_IMPORT_LIMITS.maxFileBytes,
+  },
 });
 
 const fail = (res, statusCode, code, message) =>

@@ -1,4 +1,5 @@
 import axiosInstance from './axiosConfig.js';
+import { uploadFileToBlob } from './blobUploadApi.js';
 
 const readResponse = async (request) => {
   const response = await request;
@@ -6,11 +7,11 @@ const readResponse = async (request) => {
 };
 
 export const questionImportApi = {
-  upload: (file) => {
-    const body = new FormData();
-    body.append('file', file);
-    return readResponse(axiosInstance.post('/admin/question-import-batches', body, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  upload: async (file) => {
+    const uploaded = await uploadFileToBlob(file, 'question-import-xlsx');
+    return readResponse(axiosInstance.post('/admin/question-import-batches', {
+      blobPath: uploaded.pathname,
+      originalFileName: uploaded.originalName || file.name,
     }));
   },
   getBatch: (batchId) => readResponse(axiosInstance.get(`/admin/question-import-batches/${encodeURIComponent(batchId)}`)),

@@ -47,10 +47,15 @@ export default function StudentPart5Page() {
     {loading ? <div className="ds-loading-state">Đang tải câu hỏi…</div>
       : items.length ? <div className="student-part5-list">{items.map((question, index) => {
         const result = results[question._id];
+        const options = question.options || [];
+        const correctOptionIndex = result
+          ? options.findIndex((option) => option.id === result.correctOption?.id)
+          : -1;
+        const correctOptionLabel = ['A', 'B', 'C', 'D'][correctOptionIndex] || result?.correctOption?.id || '';
         return <article className={`student-part5-card${result ? (result.isCorrect ? ' is-correct' : ' is-incorrect') : ''}`} key={question._id}>
           <div className="student-part5-question"><span>Câu {(page - 1) * 20 + index + 1}</span><h2>{question.questionText}</h2></div>
-          <fieldset className="student-part5-options"><legend>Chọn một đáp án</legend>{(question.options || []).map((option) => <label className={result?.correctOption?.id === option.id ? 'is-answer' : ''} key={option.id}><input type="radio" name={`part5-${question._id}`} value={option.id} checked={answers[question._id] === option.id} disabled={Boolean(result) || submittingId === question._id} onChange={() => setAnswers((current) => ({ ...current, [question._id]: option.id }))} /><span className="student-part5-option-id">{option.id}</span><span>{option.text}</span></label>)}</fieldset>
-          {result && <div className={`student-part5-feedback ${result.isCorrect ? 'is-correct' : 'is-incorrect'}`} role="status"><strong>{result.isCorrect ? 'Chính xác' : `Chưa đúng · Đáp án: ${result.correctOption?.id || ''}`}</strong>{result.explanation && <p>{result.explanation}</p>}</div>}
+          <fieldset className="student-part5-options"><legend>Chọn một đáp án</legend>{options.map((option, optionIndex) => <label className={result?.correctOption?.id === option.id ? 'is-answer' : ''} key={option.id}><input type="radio" name={`part5-${question._id}`} value={option.id} checked={answers[question._id] === option.id} disabled={Boolean(result) || submittingId === question._id} onChange={() => setAnswers((current) => ({ ...current, [question._id]: option.id }))} /><span className="student-part5-option-id">{['A', 'B', 'C', 'D'][optionIndex] || option.id}</span><span>{option.text}</span></label>)}</fieldset>
+          {result && <div className={`student-part5-feedback ${result.isCorrect ? 'is-correct' : 'is-incorrect'}`} role="status"><strong>{result.isCorrect ? 'Chính xác' : `Chưa đúng · Đáp án: ${correctOptionLabel}`}</strong>{result.explanation && <p>{result.explanation}</p>}</div>}
           <button type="button" className="ds-button ds-button--primary" disabled={!answers[question._id] || Boolean(result) || submittingId === question._id} onClick={() => submit(question)}>{submittingId === question._id ? 'Đang kiểm tra…' : result ? 'Đã kiểm tra' : 'Kiểm tra đáp án'}</button>
         </article>;
       })}</div> : <div className="ds-empty-state">Chưa có câu hỏi Part 5 được hiển thị.</div>}
