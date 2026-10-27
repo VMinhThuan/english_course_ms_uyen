@@ -82,9 +82,9 @@ Frontend chạy tại: `http://localhost:5173`
 
 ### 2. Upload bài giảng (Teacher)
 **File**: `frontend/src/pages/CreateLessonPage.jsx`
-- Frontend tạo FormData với files
-- Backend nhận file qua multer, lưu vào `uploads/`
-- Backend lưu metadata vào MongoDB
+- Frontend xin URL tải lên có thời hạn từ backend và tải tệp trực tiếp lên Vercel Blob Private
+- Backend kiểm tra quyền, chữ ký nội dung, định dạng và dung lượng trước khi lưu tham chiếu vào MongoDB
+- URL đọc được ký trong thời gian ngắn; tài liệu vẫn đi qua kiểm tra quyền tải/xem của backend
 
 ### 3. Bài test Reading (TTS ở FE, auto-check ở BE)
 **File**: `frontend/src/pages/TestPage.jsx`
@@ -112,7 +112,8 @@ Frontend chạy tại: `http://localhost:5173`
 - Node.js + Express
 - MongoDB + Mongoose
 - JWT (jsonwebtoken)
-- Multer (file upload)
+- Vercel Blob Private (`@vercel/blob`) cho media, tài liệu bài học và ảnh TOEIC
+- Multer memory storage cho các tệp nhập liệu chỉ xử lý tạm như DOCX/XLSX
 - bcryptjs (password hashing)
 
 ### Frontend
@@ -128,4 +129,5 @@ Frontend chạy tại: `http://localhost:5173`
 - Backend và Frontend hoàn toàn độc lập, có thể deploy riêng
 - Frontend chỉ biết URL của Backend qua environment variable
 - Không có template engine, chỉ JSON API
-- File uploads được lưu trong `backend/uploads/`# english_course_ms_uyen
+- Các tệp tải lên để dùng lâu dài được lưu trong Vercel Blob Private. Cần gắn Blob store với project backend để Vercel cấp quyền truy cập Blob (OIDC hoặc `BLOB_READ_WRITE_TOKEN`).
+- Các tệp DOCX/XLSX dùng để nhập dữ liệu chỉ được xử lý tạm trong bộ nhớ và không lưu thành file.

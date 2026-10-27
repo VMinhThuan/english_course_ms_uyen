@@ -8,7 +8,13 @@ import path from 'path';
 import { sanitizeLessonHtml, sanitizeLessonMediaUrl, sanitizeLessonRecord } from '../security/lessonHtml.js';
 import { isPathWithinRoot, isSafeExternalMaterialUrl, resolveStoredUploadPath } from '../security/materialAccessPolicy.js';
 import { getUploadDir } from '../utils/uploadConfig.js';
-import { getSafeDisplayName } from '../utils/uploadValidation.js';
+import { getSafeDisplayName, MAX_LESSON_ATTACHMENTS } from '../utils/uploadValidation.js';
+import {
+  deleteFromBlob,
+  getPrivateBlobMetadata,
+  getPrivateBlobPathname,
+  normalizePrivateBlobUrl,
+} from '../utils/blobStorage.js';
 
 const isTeacherCourseOwner = (user, course) =>
   user?.role === 'teacher'
@@ -25,6 +31,31 @@ const parseLessonDifficulty = (value) => {
     : { valid: false };
 };
 
+const prepareLessonAttachments = async (value) => {
+  if (!Array.isArray(value)) return { error: 'Danh sách tệp đính kèm không hợp lệ.' };
+  if (value.length > MAX_LESSON_ATTACHMENTS) {
+    return { error: `Mỗi bài học chỉ hỗ trợ tối đa ${MAX_LESSON_ATTACHMENTS} tệp đính kèm.` };
+  }
+
+  const attachments = await Promise.all(value.map(async (attachment) => {
+    const url = normalizePrivateBlobUrl(attachment?.url);
+    if (!url) return null;
+    const metadata = await getPrivateBlobMetadata(url);
+    if (!metadata) return null;
+    const pathname = getPrivateBlobPathname(url);
+    return {
+      filename: path.posix.basename(pathname),
+      originalName: getSafeDisplayName(attachment.originalName),
+      url,
+      type: metadata.contentType || String(attachment.type || 'application/octet-stream'),
+    };
+  }));
+  if (attachments.some((attachment) => !attachment)) {
+    return { error: 'Một hoặc nhiều tệp đính kèm chưa được tải lên Blob hoặc không hợp lệ.' };
+  }
+  return { attachments };
+};
+
 const invalidDifficultyResponse = (res) => res.status(400).json({
   status: 'error',
   code: 'INVALID_LESSON_DIFFICULTY',
@@ -35,6 +66,19 @@ const cleanupReplacedLessonAttachments = async (oldAttachments, newAttachments, 
   const retainedUrls = new Set((newAttachments || []).map((attachment) => attachment.url));
   for (const attachment of oldAttachments || []) {
     if (!attachment?.url || retainedUrls.has(attachment.url)) continue;
+    const blobPath = getPrivateBlobPathname(attachment.url);
+    if (blobPath) {
+      try {
+        const [otherLessonReference, materialReference] = await Promise.all([
+          Lesson.exists({ _id: { $ne: lessonId }, 'attachments.url': attachment.url }),
+          Material.exists({ 'fileUrl': attachment.url }),
+        ]);
+        if (!otherLessonReference && !materialReference) await deleteFromBlob(blobPath);
+      } catch {
+        console.error('Unable to clean up a replaced lesson Blob attachment.');
+      }
+      continue;
+    }
     const filePath = resolveStoredUploadPath({ fileUrl: attachment.url }, getUploadDir());
     if (!filePath || !isPathWithinRoot(getUploadDir(), filePath)) continue;
     const relativePath = path.relative(getUploadDir(), filePath);
@@ -67,6 +111,19 @@ const cleanupDeletedLessonFiles = async (lesson, materials) => {
   ];
 
   for (const file of files) {
+    const blobPath = getPrivateBlobPathname(file.fileUrl);
+    if (blobPath) {
+      try {
+        const [materialReference, lessonReference] = await Promise.all([
+          Material.exists({ fileUrl: file.fileUrl }),
+          Lesson.exists({ _id: { $ne: lesson._id }, 'attachments.url': file.fileUrl }),
+        ]);
+        if (!materialReference && !lessonReference) await deleteFromBlob(blobPath);
+      } catch {
+        console.error('Unable to clean up an unreferenced lesson Blob.');
+      }
+      continue;
+    }
     const filePath = resolveStoredUploadPath(file, getUploadDir());
     if (!filePath || !isPathWithinRoot(getUploadDir(), filePath)) continue;
     try {
@@ -105,15 +162,27 @@ export const getLessonsByCourse = async (req, res, next) => {
     const lessons = await Lesson.find(filter)
       .sort({ order: 1, createdAt: 1 })
       .select('-__v');
+    const courseForMedia = req.user?.role === 'teacher'
+      ? await Course.findById(courseId).select('teacher')
+      : null;
+    const canViewPrivateCourseMedia = req.user?.role === 'admin'
+      || (req.user?.role === 'teacher'
+        && String(courseForMedia?.teacher || '') === String(req.user._id));
+    const lessonRecords = lessons.map((lesson) => {
+      const record = sanitizeLessonRecord(lesson, {
+        includeAttachments: Boolean(canViewPrivateCourseMedia && req.user),
+      });
+      if (req.user?.role === 'teacher' && !canViewPrivateCourseMedia) {
+        record.audioUrl = '';
+        record.videoUrl = '';
+      }
+      return record;
+    });
 
     res.json({
       status: 'success',
       data: {
-        lessons: lessons.map((lesson) => sanitizeLessonRecord(lesson, {
-          // This route is also used for public course discovery; local attachment URLs are
-          // disclosed only by the authenticated lesson detail route after its access checks.
-          includeAttachments: Boolean(req.user && !['student'].includes(req.user.role)),
-        })),
+        lessons: lessonRecords,
       },
     });
   } catch (error) {
@@ -197,6 +266,10 @@ export const createLesson = async (req, res, next) => {
     const { title, content, description, topic, status, courseId, course, order, duration, videoUrl, audioUrl } = req.body;
     const difficulty = parseLessonDifficulty(req.body.difficulty);
     if (!difficulty.valid) return invalidDifficultyResponse(res);
+    const attachmentResult = await prepareLessonAttachments(req.body.attachments || []);
+    if (attachmentResult.error) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_LESSON_ATTACHMENTS', message: attachmentResult.error });
+    }
     const targetCourseId = courseId || course;
 
     if (!targetCourseId) {
@@ -237,16 +310,8 @@ export const createLesson = async (req, res, next) => {
       course: targetCourseId,
       order: order || 0,
       duration: duration || 0,
-      attachments: req.files
-        ? req.files.map((file) => ({
-            filename: file.filename,
-            originalName: getSafeDisplayName(file.originalname),
-            url: `/uploads/private/${file.filename}`,
-            type: file.detectedMimeType,
-          }))
-        : [],
+      attachments: attachmentResult.attachments,
     });
-    if (req.files?.length) req.uploadsPersisted = true;
 
     res.status(201).json({
       status: 'success',
@@ -301,6 +366,15 @@ export const updateLesson = async (req, res, next) => {
     }
 
     const updates = { ...req.body };
+    const hasNewAttachments = Array.isArray(req.body.attachments) && req.body.attachments.length > 0;
+    let newAttachments = null;
+    if (hasNewAttachments) {
+      const attachmentResult = await prepareLessonAttachments(req.body.attachments);
+      if (attachmentResult.error) {
+        return res.status(400).json({ status: 'error', code: 'INVALID_LESSON_ATTACHMENTS', message: attachmentResult.error });
+      }
+      newAttachments = attachmentResult.attachments;
+    }
     if (Object.prototype.hasOwnProperty.call(updates, 'difficulty')) {
       const difficulty = parseLessonDifficulty(updates.difficulty);
       if (!difficulty.valid) return invalidDifficultyResponse(res);
@@ -324,19 +398,11 @@ export const updateLesson = async (req, res, next) => {
       id,
       {
         ...updates,
-        attachments: req.files?.length
-          ? req.files.map((file) => ({
-              filename: file.filename,
-              originalName: getSafeDisplayName(file.originalname),
-              url: `/uploads/private/${file.filename}`,
-              type: file.detectedMimeType,
-            }))
-          : lesson.attachments,
+        attachments: newAttachments || lesson.attachments,
       },
       { new: true, runValidators: true }
     );
-    if (req.files?.length) {
-      req.uploadsPersisted = true;
+    if (newAttachments) {
       await cleanupReplacedLessonAttachments(previousAttachments, updatedLesson.attachments, lesson._id);
     }
 

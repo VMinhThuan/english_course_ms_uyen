@@ -27,25 +27,6 @@ import {
   generateToeicFullTestsController,
 } from '../controllers/toeicController.js';
 import { verifyToken, checkRole, requireActiveStudent } from '../middlewares/auth.js';
-import { getPrivateUploadDir, getPublicUploadDir } from '../utils/uploadConfig.js';
-import {
-  createSafeDiskStorage,
-  createUpload,
-  MAX_TOEIC_IMPORT_BYTES,
-  MiB,
-  TOEIC_UPLOAD_POLICIES,
-} from '../utils/uploadValidation.js';
-
-const pdfUpload = createUpload({
-  storage: createSafeDiskStorage({
-    directory: (_req, file) => file.fieldname === 'pageImages' ? getPublicUploadDir() : getPrivateUploadDir(),
-    prefix: 'toeic',
-  }),
-  policies: TOEIC_UPLOAD_POLICIES,
-  maxFileSize: MAX_TOEIC_IMPORT_BYTES,
-  maxFiles: 101,
-  maxFieldSize: 5 * MiB,
-});
 
 // ==================================================
 // ADMIN / TEACHER ROUTES (/api/v1/admin/toeic-tests)
@@ -69,13 +50,9 @@ adminRouter.post('/toeic-tests/:id/unpublish', unpublishToeicTest);
 adminRouter.delete('/toeic-tests/:id', deleteToeicTest);
 adminRouter.delete('/toeic-tests/:id/groups/:groupId', deleteQuestionGroupFromTest);
 adminRouter.delete('/toeic-tests/:id/questions/:questionId', deleteQuestionFromTest);
-const pdfImportUpload = pdfUpload.fields([
-  { name: 'file', maxCount: 1 },
-  { name: 'pageImages', maxCount: 100 },
-]);
-adminRouter.post('/toeic-tests/import-pdf', pdfImportUpload, importToeicPdf);
+adminRouter.post('/toeic-tests/import-pdf', importToeicPdf);
 adminRouter.post('/toeic-tests/import-crawler-export', checkRole('admin'), importToeicCrawlerExport);
-adminRouter.post('/toeic-tests/:id/import-pdf', pdfImportUpload, importToeicPdf);
+adminRouter.post('/toeic-tests/:id/import-pdf', importToeicPdf);
 adminRouter.post('/toeic-tests/:id/import-csv', importToeicCsv);
 adminRouter.post('/toeic-tests/:id/import-preview', (req, res, next) => {
   req.body.previewOnly = true;

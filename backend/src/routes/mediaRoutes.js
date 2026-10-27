@@ -1,9 +1,10 @@
 import express from 'express';
-import { handleMediaUpload, uploadMediaMiddleware } from '../controllers/mediaController.js';
+import { completeMediaUpload, uploadMediaMiddleware } from '../controllers/mediaController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.post('/upload', verifyToken, checkRole('admin', 'teacher'), uploadMediaMiddleware, handleMediaUpload);
+router.post('/upload', verifyToken, checkRole('admin', 'teacher'), uploadMediaMiddleware);
+router.post('/complete', verifyToken, checkRole('admin', 'teacher'), completeMediaUpload);
 
 export default router;

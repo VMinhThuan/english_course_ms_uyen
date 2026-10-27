@@ -23,7 +23,13 @@ const rejectDuringQuestionBankSelection = async (assessmentId, res) => {
 };
 import { DEFAULT_TOEIC_PARTS } from '../utils/toeicHelper.js';
 import { parseToeicPdf } from '../utils/toeicPdfParser.js';
-import { MAX_TOEIC_IMPORT_BYTES } from '../utils/uploadValidation.js';
+import { getSafeDisplayName, MAX_TOEIC_IMPORT_BYTES, TOEIC_UPLOAD_POLICIES, validateUploadSample } from '../utils/uploadValidation.js';
+import {
+  deleteFromBlob,
+  getPrivateBlobPathname,
+  readPrivateBlobBuffer,
+  readPrivateBlobSample,
+} from '../utils/blobStorage.js';
 import { normalizeToeicCrawlerExport, ToeicCrawlerImportError } from '../services/toeicCrawlerImport.js';
 import {
   generateToeicFullTests,
@@ -36,6 +42,14 @@ import {
   isTerminalAttempt,
   resolveAttemptEngine,
 } from '../utils/attemptLifecycle.js';
+
+const isOwnedToeicUploadPath = (pathname, purpose, userId, extension) => {
+  if (!pathname) return false;
+  const prefix = `uploads/${purpose}/${userId}/`;
+  if (!pathname.startsWith(prefix)) return false;
+  const escapedExtension = extension.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^[0-9a-f-]{36}${escapedExtension}$`, 'i').test(path.basename(pathname));
+};
 import {
   studentExplanationText,
   studentTopicLabel,
@@ -1172,15 +1186,28 @@ export const importToeicPdf = async (req, res, next) => {
   let createdQuestions = [];
   let extractedImagePaths = [];
   let uploadedPageImagePaths = [];
+  let uploadedPageImageBlobPaths = [];
   let persistedPageImagePaths = new Set();
   let keepExtractedImages = false;
+  let pdfBlobPath = null;
 
   try {
     const pdfFile = req.files?.file?.[0] || req.file;
     const pageImageFiles = req.files?.pageImages || [];
     uploadedPageImagePaths = pageImageFiles.map((file) => file.path).filter(Boolean);
+    const requestedPageImages = Array.isArray(req.body.pageImages) ? req.body.pageImages : [];
+    uploadedPageImageBlobPaths = requestedPageImages
+      .map((image) => getPrivateBlobPathname(image?.pathname || image?.storageUrl))
+      .filter((pathname) => isOwnedToeicUploadPath(pathname, 'toeic-page-image', String(req.user?._id || ''), '.jpg'));
+    const requestedPdfBlobPath = getPrivateBlobPathname(req.body.pdfBlobPath);
+    if (requestedPdfBlobPath) {
+      if (!isOwnedToeicUploadPath(requestedPdfBlobPath, 'toeic-pdf', String(req.user?._id || ''), '.pdf')) {
+        return res.status(400).json({ status: 'error', code: 'UPLOAD_REFERENCE_INVALID', message: 'Tham chiếu PDF tải lên không hợp lệ.' });
+      }
+      pdfBlobPath = requestedPdfBlobPath;
+    }
 
-    if (!pdfFile && !req.body.pdfBuffer) {
+    if (!pdfFile && !pdfBlobPath && !req.body.pdfBuffer) {
       return res.status(400).json({
         status: 'error',
         code: 'FILE_REQUIRED',
@@ -1194,6 +1221,16 @@ export const importToeicPdf = async (req, res, next) => {
     if (pdfFile) {
       pdfBuffer = fs.readFileSync(pdfFile.path);
       originalFilename = pdfFile.originalname;
+    } else if (pdfBlobPath) {
+      const storedPdf = await readPrivateBlobBuffer(pdfBlobPath, MAX_TOEIC_IMPORT_BYTES);
+      if (!storedPdf) {
+        return res.status(404).json({ status: 'error', code: 'UPLOADED_FILE_NOT_FOUND', message: 'Không tìm thấy PDF trong Blob.' });
+      }
+      pdfBuffer = storedPdf.buffer;
+      originalFilename = getSafeDisplayName(req.body.pdfOriginalName || 'toeic_import.pdf');
+      if (pdfBuffer.length < 5 || pdfBuffer.subarray(0, 5).toString('ascii') !== '%PDF-') {
+        return res.status(400).json({ status: 'error', code: 'FILE_CONTENT_INVALID', message: 'Nội dung tệp không phải PDF hợp lệ.' });
+      }
     } else if (req.body.pdfBuffer) {
       const encodedPdf = req.body.pdfBuffer;
       const validBase64 = typeof encodedPdf === 'string'
@@ -1238,6 +1275,28 @@ export const importToeicPdf = async (req, res, next) => {
       .map((value) => Number(value))
       .filter((value) => Number.isInteger(value) && value > 0);
     const pageImageUrlsByNumber = {};
+    if (requestedPageImages.length > 100) {
+      return res.status(400).json({ status: 'error', code: 'FILE_COUNT_EXCEEDED', message: 'Mỗi lần import tối đa 100 ảnh trang PDF.' });
+    }
+    for (const image of requestedPageImages) {
+      const pageNumber = Number(image?.pageNumber);
+      const pathname = getPrivateBlobPathname(image?.pathname || image?.storageUrl);
+      if (!Number.isInteger(pageNumber) || pageNumber <= 0
+        || !isOwnedToeicUploadPath(pathname, 'toeic-page-image', String(req.user?._id || ''), '.jpg')) {
+        return res.status(400).json({ status: 'error', code: 'UPLOAD_REFERENCE_INVALID', message: 'Tham chiếu ảnh trang PDF không hợp lệ.' });
+      }
+      const uploaded = await readPrivateBlobSample(pathname);
+      if (!uploaded) return res.status(404).json({ status: 'error', code: 'UPLOADED_FILE_NOT_FOUND', message: 'Không tìm thấy ảnh trang PDF trong Blob.' });
+      const validation = validateUploadSample({
+        originalName: `page-${pageNumber}.jpg`,
+        mimetype: uploaded.blob.contentType,
+        sample: uploaded.sample,
+      }, TOEIC_UPLOAD_POLICIES.pageImages);
+      if (!validation.valid) {
+        return res.status(400).json({ status: 'error', code: validation.code, message: validation.message });
+      }
+      pageImageUrlsByNumber[pageNumber] = { url: uploaded.blob.url, path: pathname };
+    }
     for (const file of pageImageFiles) {
       const pageNumber = Number(file.originalname.match(/^page-(\d+)\.jpg$/i)?.[1]);
       if (!Number.isInteger(pageNumber) || pageNumber <= 0 || !file.path) continue;
@@ -1479,6 +1538,11 @@ export const importToeicPdf = async (req, res, next) => {
     if (!keepExtractedImages) uploadedPageImagePaths.forEach(removeFile);
     else uploadedPageImagePaths.filter((filePath) => !persistedPageImagePaths.has(filePath)).forEach(removeFile);
     if (!keepExtractedImages) extractedImagePaths.forEach(removeFile);
+    if (pdfBlobPath) await deleteFromBlob(pdfBlobPath).catch(() => {});
+    const blobPathsToDelete = keepExtractedImages
+      ? uploadedPageImageBlobPaths.filter((pathname) => !persistedPageImagePaths.has(pathname))
+      : uploadedPageImageBlobPaths;
+    await Promise.all(blobPathsToDelete.map((pathname) => deleteFromBlob(pathname).catch(() => {})));
   }
 };
 

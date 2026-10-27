@@ -21,6 +21,17 @@ import {
   resolveMaterialDownloadMetadata,
   streamMaterialFile,
 } from '../utils/materialDownload.js';
+import { Readable } from 'node:stream';
+import {
+  deleteFromBlob,
+  getPrivateBlob,
+  getPrivateBlobMetadata,
+  getPrivateBlobPathname,
+  isPrivateBlobUrl,
+  normalizePrivateBlobUrl,
+  readPrivateBlobBuffer,
+  readPrivateBlobSample,
+} from '../utils/blobStorage.js';
 
 const MAX_INLINE_PDF_BYTES = 25 * 1024 * 1024;
 const MAX_INLINE_DOCUMENT_BYTES = 20 * 1024 * 1024;
@@ -58,6 +69,8 @@ const parseBooleanField = (value, defaultValue) => {
 const validateMaterialUrl = (value, { allowExistingUrl = '' } = {}) => {
   if (typeof value !== 'string' || !value.trim()) return null;
   const url = value.trim();
+  const privateBlobUrl = normalizePrivateBlobUrl(url);
+  if (privateBlobUrl) return privateBlobUrl;
   if (url.startsWith('/uploads/')) {
     const normalized = normalizeUploadRequestUrl(url);
     if (!normalized) return null;
@@ -74,7 +87,11 @@ const isTeacherOwner = (user, course) =>
   user?.role === 'teacher' && sameId(course?.teacher, user._id);
 
 const safeExternalUrlForStudent = (material) =>
-  material.allowDownload && isSafeExternalMaterialUrl(material.fileUrl) ? material.fileUrl : '';
+  material.allowDownload
+  && !isPrivateBlobUrl(material.fileUrl)
+  && isSafeExternalMaterialUrl(material.fileUrl)
+    ? material.fileUrl
+    : '';
 
 const hasLocalMaterialFile = async (material) => {
   const filePath = materialFilePath(material);
@@ -94,6 +111,7 @@ const hasLocalMaterialFile = async (material) => {
 
 const hasMaterialFile = async (material) => {
   const item = typeof material.toObject === 'function' ? material.toObject() : material;
+  if (isPrivateBlobUrl(item.fileUrl)) return Boolean(await getPrivateBlobMetadata(item.fileUrl));
   return Boolean(isSafeExternalMaterialUrl(item.fileUrl) || await hasLocalMaterialFile(material));
 };
 
@@ -113,6 +131,23 @@ const toAdminMaterialWithAvailability = async (material) => {
 };
 
 const cleanupMaterialFileIfUnreferenced = async (material) => {
+  const blobPath = getPrivateBlobPathname(material.fileUrl);
+  if (blobPath) {
+    try {
+      const otherMaterial = await Material.exists({
+        _id: { $ne: material._id },
+        fileUrl: material.fileUrl,
+      });
+      if (otherMaterial) return;
+      const attachmentReference = await Lesson.exists({ 'attachments.url': material.fileUrl });
+      if (attachmentReference) return;
+      await deleteFromBlob(blobPath);
+    } catch {
+      console.error('Unable to remove an unreferenced material Blob.');
+    }
+    return;
+  }
+
   const filePath = materialFilePath(material);
   if (!filePath || !isPathWithinRoot(getUploadDir(), filePath)) return;
 
@@ -193,6 +228,13 @@ export const createMaterial = async (req, res, next) => {
       fileUrl = validateMaterialUrl(req.body.fileUrl);
       if (!fileUrl) {
         return sendError(res, 400, 'MATERIAL_URL_NOT_ALLOWED', 'Tệp phải là URL HTTPS hoặc đường dẫn tải lên hợp lệ.');
+      }
+      if (isPrivateBlobUrl(fileUrl)) {
+        const blobMetadata = await getPrivateBlobMetadata(fileUrl);
+        if (!blobMetadata) return sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Không tìm thấy tệp trong Blob.');
+        originalName = getSafeDisplayName(req.body.originalName || path.basename(new URL(fileUrl).pathname));
+        fileType = blobMetadata.contentType || 'application/octet-stream';
+        fileSize = blobMetadata.size || 0;
       }
     }
 
@@ -357,8 +399,18 @@ export const updateMaterial = async (req, res, next) => {
       if (validatedUrl !== material.fileUrl) {
         updates.fileUrl = validatedUrl;
         updates.filePath = '';
-        updates.fileType = isSafeExternalMaterialUrl(validatedUrl) ? 'external' : 'application/octet-stream';
-        updates.fileSize = 0;
+        if (isPrivateBlobUrl(validatedUrl)) {
+          const blobMetadata = await getPrivateBlobMetadata(validatedUrl);
+          if (!blobMetadata) return sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Không tìm thấy tệp trong Blob.');
+          updates.originalName = getSafeDisplayName(
+            req.body.originalName || material.originalName || path.basename(new URL(validatedUrl).pathname),
+          );
+          updates.fileType = blobMetadata.contentType || 'application/octet-stream';
+          updates.fileSize = blobMetadata.size || 0;
+        } else {
+          updates.fileType = isSafeExternalMaterialUrl(validatedUrl) ? 'external' : 'application/octet-stream';
+          updates.fileSize = 0;
+        }
       }
     }
 
@@ -454,8 +506,9 @@ const getAuthorizedMaterialFile = async (req, res, { preview = false } = {}) => 
     }
 
     const externalUrl = isSafeExternalMaterialUrl(material.fileUrl) ? material.fileUrl : null;
+    const blobPath = getPrivateBlobPathname(material.fileUrl);
     const filePath = materialFilePath(material);
-    if (!filePath) {
+    if (!filePath && !blobPath) {
       if (externalUrl && !preview) {
         res.set('Cache-Control', 'private, no-store');
         res.redirect(302, externalUrl);
@@ -470,35 +523,45 @@ const getAuthorizedMaterialFile = async (req, res, { preview = false } = {}) => 
       return null;
     }
 
-    if (!isPathWithinRoot(getUploadDir(), filePath)) {
-      sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Material file not found.');
-      return null;
-    }
     let fileStat;
-    try {
-      const [rootRealPath, fileRealPath, stat] = await Promise.all([
-        fs.realpath(getUploadDir()),
-        fs.realpath(filePath),
-        fs.stat(filePath),
-      ]);
-      if (!isPathWithinRoot(rootRealPath, fileRealPath) || !stat.isFile()) {
+    let blobMetadata = null;
+    if (blobPath) {
+      blobMetadata = await getPrivateBlobMetadata(blobPath);
+      if (!blobMetadata) {
         sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Material file not found.');
         return null;
       }
-      fileStat = stat;
-    } catch (error) {
-      if (error.code === 'ENOENT') {
+      fileStat = { size: blobMetadata.size };
+    } else {
+      if (!isPathWithinRoot(getUploadDir(), filePath)) {
         sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Material file not found.');
         return null;
       }
-      throw error;
+      try {
+        const [rootRealPath, fileRealPath, stat] = await Promise.all([
+          fs.realpath(getUploadDir()),
+          fs.realpath(filePath),
+          fs.stat(filePath),
+        ]);
+        if (!isPathWithinRoot(rootRealPath, fileRealPath) || !stat.isFile()) {
+          sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Material file not found.');
+          return null;
+        }
+        fileStat = stat;
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Material file not found.');
+          return null;
+        }
+        throw error;
+      }
     }
 
     const metadata = resolveMaterialDownloadMetadata({
       originalName: material.originalName,
       title: material.title,
-      filePath,
-      fileType: material.fileType,
+      filePath: filePath || material.originalName || blobPath,
+      fileType: blobMetadata?.contentType || material.fileType,
     });
     if (preview) {
       if (!INLINE_PREVIEW_TYPES.has(metadata.contentType)) {
@@ -515,28 +578,39 @@ const getAuthorizedMaterialFile = async (req, res, { preview = false } = {}) => 
         return null;
       }
       if (metadata.contentType === 'application/pdf' || metadata.contentType === DOCX_CONTENT_TYPE) {
-        const handle = await fs.open(filePath, 'r');
-        try {
-          const signature = Buffer.alloc(5);
-          const { bytesRead } = await handle.read(signature, 0, signature.length, 0);
+        if (blobPath) {
+          const sample = await readPrivateBlobSample(blobPath, 8);
           const validSignature = metadata.contentType === 'application/pdf'
-            ? bytesRead === 5 && signature.toString('ascii') === '%PDF-'
-            : bytesRead >= 2 && signature[0] === 0x50 && signature[1] === 0x4b;
+            ? sample?.sample.subarray(0, 5).toString('ascii') === '%PDF-'
+            : sample?.sample.length >= 2 && sample.sample[0] === 0x50 && sample.sample[1] === 0x4b;
           if (!validSignature) {
             sendError(res, 415, 'MATERIAL_PREVIEW_UNSUPPORTED', 'Tệp không đúng định dạng hoặc bị hỏng.');
             return null;
           }
-        } finally {
-          await handle.close();
+        } else {
+          const handle = await fs.open(filePath, 'r');
+          try {
+            const signature = Buffer.alloc(5);
+            const { bytesRead } = await handle.read(signature, 0, signature.length, 0);
+            const validSignature = metadata.contentType === 'application/pdf'
+              ? bytesRead === 5 && signature.toString('ascii') === '%PDF-'
+              : bytesRead >= 2 && signature[0] === 0x50 && signature[1] === 0x4b;
+            if (!validSignature) {
+              sendError(res, 415, 'MATERIAL_PREVIEW_UNSUPPORTED', 'Tệp không đúng định dạng hoặc bị hỏng.');
+              return null;
+            }
+          } finally {
+            await handle.close();
+          }
         }
       }
     }
 
-    return { filePath, fileStat, ...metadata };
+    return { filePath, blobPath, fileStat, ...metadata };
 };
 
-const streamMaterialResponse = (file, res, disposition, next) =>
-  streamMaterialFile(file.filePath, res, {
+const streamMaterialResponse = async (file, res, disposition, next) => {
+  const headers = {
     'Cache-Control': 'private, no-store',
     'X-Content-Type-Options': 'nosniff',
     'Content-Type': file.contentType,
@@ -544,10 +618,31 @@ const streamMaterialResponse = (file, res, disposition, next) =>
     'Content-Disposition': disposition === 'inline'
       ? buildInlineContentDisposition(file.filename)
       : buildAttachmentContentDisposition(file.filename),
-  }, (error) => {
+  };
+
+  if (file.blobPath) {
+    try {
+      const blob = await getPrivateBlob(file.blobPath);
+      if (!blob) return sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Material file not found.');
+      res.set(headers);
+      const stream = Readable.fromWeb(blob.stream);
+      stream.once('error', (error) => {
+        if (!res.headersSent) next(error);
+        else res.destroy(error);
+      });
+      stream.pipe(res);
+      return;
+    } catch (error) {
+      if (!res.headersSent) return next(error);
+      return res.destroy(error);
+    }
+  }
+
+  return streamMaterialFile(file.filePath, res, headers, (error) => {
     if (!res.headersSent) next(error);
     else res.destroy(error);
   });
+};
 
 // @desc    Secure material download
 // @route   GET /api/v1/materials/:id/download
@@ -556,7 +651,7 @@ export const downloadMaterial = async (req, res, next) => {
   try {
     const file = await getAuthorizedMaterialFile(req, res);
     if (!file) return;
-    return streamMaterialResponse(file, res, 'attachment', next);
+    return await streamMaterialResponse(file, res, 'attachment', next);
   } catch (error) {
     return next(error);
   }
@@ -569,7 +664,7 @@ export const previewMaterial = async (req, res, next) => {
   try {
     const file = await getAuthorizedMaterialFile(req, res, { preview: true });
     if (!file) return;
-    return streamMaterialResponse(file, res, 'inline', next);
+    return await streamMaterialResponse(file, res, 'inline', next);
   } catch (error) {
     return next(error);
   }
@@ -586,7 +681,11 @@ export const renderMaterial = async (req, res, next) => {
       return sendError(res, 415, 'MATERIAL_RENDER_UNSUPPORTED', 'Chỉ hỗ trợ render tài liệu DOCX.');
     }
 
-    const buffer = await fs.readFile(file.filePath);
+    const blobFile = file.blobPath ? await readPrivateBlobBuffer(file.blobPath, MAX_INLINE_DOCUMENT_BYTES) : null;
+    if (file.blobPath && !blobFile) {
+      return sendError(res, 404, 'MATERIAL_FILE_NOT_FOUND', 'Material file not found.');
+    }
+    const buffer = blobFile?.buffer || await fs.readFile(file.filePath);
     const converted = await mammoth.convertToHtml({ buffer });
     const html = sanitizeLessonHtml(converted.value || '');
     if (!html.trim()) {

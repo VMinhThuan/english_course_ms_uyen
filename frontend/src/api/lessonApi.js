@@ -1,4 +1,20 @@
 import axiosInstance from './axiosConfig.js';
+import { uploadFileToBlob } from './blobUploadApi.js';
+
+const prepareLessonPayload = async (lessonData) => {
+  const attachments = Array.isArray(lessonData.attachments) ? lessonData.attachments : [];
+  if (attachments.length > 10) throw new Error('Mỗi bài học chỉ hỗ trợ tối đa 10 tệp đính kèm.');
+  const uploadedAttachments = await Promise.all(attachments.map(async (file) => {
+    const uploaded = await uploadFileToBlob(file, 'lesson-attachment');
+    return {
+      filename: uploaded.pathname.split('/').pop(),
+      originalName: uploaded.originalName,
+      url: uploaded.storageUrl,
+      type: uploaded.mimeType,
+    };
+  }));
+  return { ...lessonData, attachments: uploadedAttachments };
+};
 
 export const lessonApi = {
   getLessonsByCourse: async (courseId) => {
@@ -12,42 +28,14 @@ export const lessonApi = {
   },
 
   createLesson: async (lessonData) => {
-    const formData = new FormData();
-    Object.keys(lessonData).forEach((key) => {
-      if (key === 'attachments' && Array.isArray(lessonData[key])) {
-        lessonData[key].forEach((file) => {
-          formData.append('attachments', file);
-        });
-      } else {
-        formData.append(key, lessonData[key]);
-      }
-    });
-
-    const response = await axiosInstance.post('/admin/lessons', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const payload = await prepareLessonPayload(lessonData);
+    const response = await axiosInstance.post('/admin/lessons', payload);
     return response.data;
   },
 
   updateLesson: async (lessonId, lessonData) => {
-    const formData = new FormData();
-    Object.keys(lessonData).forEach((key) => {
-      if (key === 'attachments' && Array.isArray(lessonData[key])) {
-        lessonData[key].forEach((file) => {
-          formData.append('attachments', file);
-        });
-      } else {
-        formData.append(key, lessonData[key]);
-      }
-    });
-
-    const response = await axiosInstance.put(`/admin/lessons/${lessonId}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const payload = await prepareLessonPayload(lessonData);
+    const response = await axiosInstance.put(`/admin/lessons/${lessonId}`, payload);
     return response.data;
   },
 

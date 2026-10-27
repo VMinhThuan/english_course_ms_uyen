@@ -1,4 +1,21 @@
 import axiosInstance from './axiosConfig.js';
+import { uploadFileToBlob } from './blobUploadApi.js';
+
+const uploadPageImages = async (pageImages = []) => {
+  const uploaded = [];
+  for (let start = 0; start < pageImages.length; start += 4) {
+    const batch = pageImages.slice(start, start + 4);
+    const results = await Promise.all(batch.map(async ({ pageNumber, blob }) => {
+      if (!pageNumber || !blob) return null;
+      const file = await uploadFileToBlob(blob, 'toeic-page-image', {
+        originalName: `page-${pageNumber}.jpg`,
+      });
+      return { pageNumber, pathname: file.pathname };
+    }));
+    uploaded.push(...results.filter(Boolean));
+  }
+  return uploaded;
+};
 
 export const toeicApi = {
   // ==========================================
@@ -84,28 +101,34 @@ export const toeicApi = {
   },
 
   importToeicPdf: async (file, options = {}) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    if (options.title) formData.append('title', options.title);
-    if (options.toeicMode) formData.append('toeicMode', options.toeicMode);
-    if (options.durationMinutes) formData.append('durationMinutes', options.durationMinutes);
-    if (options.previewOnly) formData.append('previewOnly', 'true');
-    if (options.confirmOcrReview) formData.append('confirmOcrReview', 'true');
-    if (options.ocrText) formData.append('ocrText', options.ocrText);
-    if (options.ocrPageCount) formData.append('ocrPageCount', String(options.ocrPageCount));
-    if (options.imagePageNumbers?.length) formData.append('imagePageNumbers', options.imagePageNumbers.join(','));
-    if (options.passageImagePageNumbers?.length) formData.append('passageImagePageNumbers', options.passageImagePageNumbers.join(','));
-    if (!options.previewOnly) {
-      (options.pageImages || []).forEach(({ pageNumber, blob }) => {
-        if (pageNumber && blob) formData.append('pageImages', blob, `page-${pageNumber}.jpg`);
-      });
+    if (typeof options.ocrText === 'string' && new TextEncoder().encode(options.ocrText).length > 3_500_000) {
+      throw new Error('Nội dung OCR quá lớn để gửi cho API. Hãy giảm số trang OCR rồi thử lại.');
     }
+    const pdf = await uploadFileToBlob(file, 'toeic-pdf');
+    const pageImages = options.previewOnly ? [] : await uploadPageImages(options.pageImages);
+    const payload = {
+      pdfBlobPath: pdf.pathname,
+      pdfOriginalName: pdf.originalName,
+      ...(options.title ? { title: options.title } : {}),
+      ...(options.toeicMode ? { toeicMode: options.toeicMode } : {}),
+      ...(options.durationMinutes ? { durationMinutes: options.durationMinutes } : {}),
+      ...(options.previewOnly ? { previewOnly: true } : {}),
+      ...(options.confirmOcrReview ? { confirmOcrReview: true } : {}),
+      ...(options.ocrText ? { ocrText: options.ocrText } : {}),
+      ...(options.ocrPageCount ? { ocrPageCount: options.ocrPageCount } : {}),
+      ...(options.imagePageNumbers?.length ? { imagePageNumbers: options.imagePageNumbers.join(',') } : {}),
+      ...(options.passageImagePageNumbers?.length
+        ? { passageImagePageNumbers: options.passageImagePageNumbers.join(',') }
+        : {}),
+      ...(pageImages.length ? { pageImages } : {}),
+    };
     const endpoint = options.targetTestId
       ? `/admin/toeic-tests/${options.targetTestId}/import-pdf`
       : '/admin/toeic-tests/import-pdf';
-    const response = await axiosInstance.post(endpoint, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    if (new TextEncoder().encode(JSON.stringify(payload)).length > 3_900_000) {
+      throw new Error('Dữ liệu import quá lớn sau khi mã hóa JSON. Hãy giảm nội dung OCR hoặc số trang rồi thử lại.');
+    }
+    const response = await axiosInstance.post(endpoint, payload);
     return response.data;
   },
 

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { courseApi } from '../../api/courseApi.js';
 import { lessonApi } from '../../api/lessonApi.js';
 import { materialApi } from '../../api/materialApi.js';
+import { uploadFileToBlob } from '../../api/blobUploadApi.js';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import UiButton from '../../components/ui/UiButton.jsx';
 import DataTable from '../../components/ui/DataTable.jsx';
@@ -175,17 +176,20 @@ export default function AdminMaterialsPage() {
       setSubmitting(true);
       setFeedback({ type: '', text: '' });
 
-      const data = new FormData();
-      data.append('title', formData.title.trim());
-      data.append('description', formData.description.trim());
-      data.append('lessonId', formData.lessonId);
-      data.append('allowDownload', String(formData.allowDownload));
-      data.append('status', formData.status);
+      const data = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        lessonId: formData.lessonId,
+        allowDownload: formData.allowDownload,
+        status: formData.status,
+      };
 
       if (formData.file) {
-        data.append('file', formData.file);
+        const uploaded = await uploadFileToBlob(formData.file, 'material');
+        data.fileUrl = uploaded.storageUrl;
+        data.originalName = uploaded.originalName;
       } else if (formData.fileUrl) {
-        data.append('fileUrl', formData.fileUrl.trim());
+        data.fileUrl = formData.fileUrl.trim();
       }
 
       if (editingMaterial) {

@@ -18,8 +18,10 @@ import adminRoutes from './routes/adminRoutes.js';
 import questionImportRoutes from './routes/questionImportRoutes.js';
 import { adminToeicRoutes, studentToeicRoutes } from './routes/toeicRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
+import blobUploadRoutes from './routes/blobUploadRoutes.js';
 import { adminPart1DictationRoutes, studentPart1DictationRoutes } from './routes/part1DictationRoutes.js';
 import { verifyToken, checkRole } from './middlewares/auth.js';
+import { normalizePrivateBlobRequest, signPrivateBlobResponse } from './middlewares/privateBlobResponses.js';
 import { createVocabularyCatalogManagementPrototypeRouter } from './routes/vocabularyCatalogManagementPrototypeRoutes.js';
 import { createStudentVocabularyCatalogPrototypeRouter } from './routes/studentVocabularyCatalogPrototypeRoutes.js';
 
@@ -76,9 +78,11 @@ app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
 app.use('/api/v1/admin/vocabulary-catalog/import-docx/publish', express.json({ limit: '12mb', strict: true }));
+app.use('/api/v1/admin/toeic-tests', express.json({ limit: '4mb', strict: true }));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use('/api', normalizePrivateBlobRequest);
 
 const uploadStaticHeaders = (res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -134,6 +138,7 @@ app.use('/api', async (req, res, next) => {
 });
 
 // 4. API Routes
+app.use('/api', signPrivateBlobResponse);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin/vocabulary-catalog', createVocabularyCatalogManagementPrototypeRouter({
     authenticateAdmin: authenticateVocabularyCatalogAdmin,
@@ -148,6 +153,7 @@ app.use('/api/v1/admin/question-import-batches', questionImportRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/admin', adminToeicRoutes);
 app.use('/api/v1/admin/media', mediaRoutes);
+app.use('/api/v1/storage', blobUploadRoutes);
 app.use('/api/v1/toeic', studentToeicRoutes);
 app.use('/api/v1/admin/part1-dictations', adminPart1DictationRoutes);
 app.use('/api/v1/part1-dictations', studentPart1DictationRoutes);

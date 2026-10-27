@@ -1,14 +1,20 @@
-import axiosInstance from './axiosConfig.js';
+import { uploadFileToBlob } from './blobUploadApi.js';
 
 export const mediaApi = {
   uploadMedia: async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await axiosInstance.post('/admin/media/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const uploaded = await uploadFileToBlob(file, 'media');
+    return {
+      status: 'success',
+      data: {
+        fileUrl: uploaded.previewUrl,
+        storageUrl: uploaded.storageUrl,
+        pathname: uploaded.pathname,
+        filename: uploaded.pathname.split('/').pop(),
+        originalName: uploaded.originalName,
+        fileType: uploaded.fileType,
+        mimeType: uploaded.mimeType,
+        size: uploaded.size,
       },
-    });
-    return response.data;
+    };
   },
 };

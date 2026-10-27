@@ -12,8 +12,25 @@ import fs from 'fs';
 import { isPathWithinRoot, resolveStoredUploadPath } from '../security/materialAccessPolicy.js';
 import { sanitizeLessonRecord } from '../security/lessonHtml.js';
 import { getUploadDir } from '../utils/uploadConfig.js';
+import { deleteFromBlob, getPrivateBlobPathname } from '../utils/blobStorage.js';
 
 const removeMaterialFileIfUnreferenced = async (material) => {
+  const blobPath = getPrivateBlobPathname(material.fileUrl);
+  if (blobPath) {
+    const otherMaterial = await Material.exists({
+      _id: { $ne: material._id },
+      fileUrl: material.fileUrl,
+    });
+    if (otherMaterial) return;
+    if (await Lesson.exists({ 'attachments.url': material.fileUrl })) return;
+    try {
+      await deleteFromBlob(blobPath);
+    } catch {
+      console.error('Failed to delete an unreferenced course material Blob.');
+    }
+    return;
+  }
+
   const uploadRoot = getUploadDir();
   const filePath = resolveStoredUploadPath(material, uploadRoot);
   if (!filePath || !isPathWithinRoot(uploadRoot, filePath)) return;
@@ -31,6 +48,21 @@ const removeMaterialFileIfUnreferenced = async (material) => {
     } catch {
       console.error('Failed to delete an unreferenced course material file.');
     }
+  }
+};
+
+const removeLessonAttachmentBlobIfUnreferenced = async (lesson, attachment) => {
+  const blobPath = getPrivateBlobPathname(attachment?.url);
+  if (!blobPath) return;
+  const [materialReference, lessonReference] = await Promise.all([
+    Material.exists({ fileUrl: attachment.url }),
+    Lesson.exists({ _id: { $ne: lesson._id }, 'attachments.url': attachment.url }),
+  ]);
+  if (materialReference || lessonReference) return;
+  try {
+    await deleteFromBlob(blobPath);
+  } catch {
+    console.error('Failed to delete an unreferenced lesson attachment Blob.');
   }
 };
 
@@ -597,6 +629,9 @@ export const deleteCourse = async (req, res, next) => {
         await removeMaterialFileIfUnreferenced(mat);
       }
       await Material.deleteMany({ lesson: lesson._id });
+      for (const attachment of lesson.attachments || []) {
+        await removeLessonAttachmentBlobIfUnreferenced(lesson, attachment);
+      }
       await Vocabulary.deleteMany({ lesson: lesson._id, catalogOnly: { $ne: true } });
       await LearningProgress.deleteMany({ lesson: lesson._id });
     }

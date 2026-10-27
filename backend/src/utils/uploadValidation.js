@@ -112,6 +112,17 @@ export const getSafeDisplayName = (originalName) => {
   return cleaned || 'upload';
 };
 
+export const getUploadFileInfo = (originalName, policy) => {
+  const extension = getSafeOriginalExtension(originalName);
+  const fileInfo = FILE_TYPES[extension];
+  if (!policy?.extensions?.includes(extension) || !fileInfo) return null;
+  return {
+    extension,
+    mimeType: fileInfo.mime,
+    allowedMimeTypes: fileInfo.mimes,
+  };
+};
+
 export const createSafeDiskStorage = ({ directory, prefix }) => multer.diskStorage({
   destination: (req, file, callback) => {
     try {
