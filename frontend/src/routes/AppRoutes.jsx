@@ -29,6 +29,7 @@ import StudentHistoryPage from '../pages/StudentHistoryPage.jsx';
 import StudentResultDetailPage from '../pages/StudentResultDetailPage.jsx';
 import StudentProfilePage from '../pages/StudentProfilePage.jsx';
 import StudentVocabularyPage from '../pages/StudentVocabularyPage.jsx';
+import VocabularyDictationPage from '../pages/VocabularyDictationPage.jsx';
 import FlashcardPage from '../pages/FlashcardPage.jsx';
 import StudentVocabularyCatalogPage from '../features/vocabulary-catalog/StudentVocabularyCatalogPage.jsx';
 import VocabularyCatalogWorkspace from '../features/vocabulary-catalog/VocabularyCatalogWorkspace.jsx';
@@ -132,6 +133,7 @@ function AppRoutes() {
         <Route path="courses" element={<CourseListPage studentMode />} />
         <Route path="courses/:id" element={<CourseDetailPage />} />
         <Route path="assessments" element={<StudentAssessmentsPage />} />
+        <Route path="vocabulary-dictation" element={<VocabularyDictationPage />} />
         <Route path="toeic" element={<StudentToeicLibraryPage />} />
         <Route path="toeic/part-1" element={<StudentToeicPart1Page />} />
         <Route path="toeic/part-5" element={<StudentToeicPart5BankPage />} />
@@ -186,6 +188,7 @@ function AppRoutes() {
         <Route path="students/:id" element={<AdminStudentDetailPage />} />
         <Route path="lessons" element={<AdminLessonsPage />} />
         <Route path="part1-dictations" element={<ProtectedRoute requiredRole="admin"><AdminPart1DictationPage /></ProtectedRoute>} />
+        <Route path="vocabulary-dictation" element={<ProtectedRoute requiredRole="admin"><VocabularyDictationPage admin /></ProtectedRoute>} />
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyLanding />} />
         <Route path="vocabulary/quick" element={<ProtectedRoute requiredRole="admin"><AdminVocabularyQuickPage /></ProtectedRoute>} />

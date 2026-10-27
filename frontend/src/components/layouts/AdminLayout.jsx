@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore.js';
+import PracticeSidebarMenu from './PracticeSidebarMenu.jsx';
 import './AdminLayout.css';
 
 export default function AdminLayout() {
@@ -16,6 +17,7 @@ export default function AdminLayout() {
     const path = location.pathname;
     let pageTitle = 'Quản trị';
     if (path.includes('students')) pageTitle = 'Quản lý Học viên';
+    else if (path.includes('vocabulary-dictation')) pageTitle = 'Chép chính tả từ vựng';
     else if (path.includes('vocabulary')) pageTitle = 'Quản lý Từ vựng';
     else if (path.includes('part1-dictations')) pageTitle = 'Chép chính tả Part 1';
     else if (path.includes('questions')) pageTitle = isAdmin ? 'Ngân hàng Part 5' : 'Ngân hàng Câu hỏi';
@@ -128,16 +130,7 @@ export default function AdminLayout() {
             <span>Quản Lý Từ Vựng</span>
           </NavLink>
 
-          {isAdmin && <>
-            <NavLink
-              to="/admin/part1-dictations"
-              className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={closeMobileMenu}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-              <span>TOEIC Part 1 · Chép chính tả</span>
-            </NavLink>
-          </>}
+          <PracticeSidebarMenu variant="admin" showPart1={isAdmin} onNavigate={closeMobileMenu} />
 
           <NavLink
             to="/admin/questions"
@@ -150,18 +143,6 @@ export default function AdminLayout() {
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
             <span>{isAdmin ? 'Ngân hàng Part 5' : 'Ngân hàng câu hỏi'}</span>
-          </NavLink>
-
-          <NavLink
-            to="/admin/assessments"
-            className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 11l3 3L22 4"></path>
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-            </svg>
-            <span>Bài Tập</span>
           </NavLink>
 
           <NavLink

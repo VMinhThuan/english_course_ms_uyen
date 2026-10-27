@@ -133,10 +133,10 @@ export const createPrivateBlobReadUrl = async (
   return presignedUrl;
 };
 
-export const getPrivateBlob = async (value) => {
+export const getPrivateBlob = async (value, { useCache = true } = {}) => {
   const pathname = getPrivateBlobPathname(value);
   if (!pathname || !isBlobConfigured()) return null;
-  const result = await get(pathname, { access: 'private' });
+  const result = await get(pathname, { access: 'private', useCache });
   return result?.statusCode === 200 ? result : null;
 };
 
@@ -147,7 +147,9 @@ export const getPrivateBlobMetadata = async (value) => {
 };
 
 export const readPrivateBlobSample = async (value, maxBytes = 8192) => {
-  const result = await getPrivateBlob(value);
+  // Upload completion checks happen immediately after a write. Bypass the CDN
+  // so a cached 404 cannot hide a blob that has already reached origin storage.
+  const result = await getPrivateBlob(value, { useCache: false });
   if (!result) return null;
 
   const reader = result.stream.getReader();

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import { deleteFromBlob, isBlobConfigured, readPrivateBlobSample, createPrivateBlobUploadUrl, createPrivateBlobReadUrl } from '../utils/blobStorage.js';
 import {
   GENERAL_UPLOAD_POLICIES,
@@ -111,7 +112,13 @@ export const completeBlobUpload = async (req, res, next, forcedPurpose) => {
 
     let uploaded;
     try {
-      uploaded = await readPrivateBlobSample(pathname);
+      // The browser PUT goes directly to Blob storage. A short origin read
+      // retry covers propagation immediately after the upload completes.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        uploaded = await readPrivateBlobSample(pathname);
+        if (uploaded) break;
+        if (attempt < 2) await delay(200 * (attempt + 1));
+      }
     } catch (error) {
       return next(error);
     }

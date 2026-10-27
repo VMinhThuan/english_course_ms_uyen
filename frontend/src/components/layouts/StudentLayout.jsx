@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore.js';
 import { assessmentApi } from '../../api/assessmentApi.js';
+import PracticeSidebarMenu from './PracticeSidebarMenu.jsx';
 import './StudentLayout.css';
 
 export default function StudentLayout() {
@@ -26,9 +27,10 @@ export default function StudentLayout() {
     if (path.includes('dashboard')) pageTitle = 'Trang chủ';
     else if (path.includes('/courses/')) pageTitle = path.includes('/lessons/') ? 'Bài học' : 'Khóa học';
     else if (path === '/student/courses') pageTitle = 'Bài học';
+    else if (path.includes('vocabulary-dictation')) pageTitle = 'Chép chính tả từ vựng';
     else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
     else if (path.includes('/tests/')) pageTitle = 'Đang làm bài kiểm tra';
-    else if (path.includes('assessments')) pageTitle = 'Luyện tập';
+    else if (path.includes('assessments')) pageTitle = 'Bài tập ngữ pháp';
     else if (path === '/student/part-5') pageTitle = 'Luyện tập Part 5';
     else if (path === '/student/part-1') pageTitle = 'Chép chính tả Part 1';
     else if (path.includes('toeic/part-5')) pageTitle = 'Ngân hàng Part 5';
@@ -252,17 +254,7 @@ export default function StudentLayout() {
             <span>Bài Học</span>
           </NavLink>
 
-          <NavLink
-            to="/student/assessments"
-            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 11l3 3L22 4"></path>
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-            </svg>
-            <span>Bài Tập & Đề Thi</span>
-          </NavLink>
+          <PracticeSidebarMenu variant="student" onNavigate={closeMobileMenu} />
 
           <NavLink
             to="/student/vocabulary-catalog"
@@ -283,15 +275,6 @@ export default function StudentLayout() {
               <path d="M12 8v4l3 3"></path>
             </svg>
             <span>Luyện Thi TOEIC</span>
-          </NavLink>
-
-          <NavLink
-            to="/student/toeic/part-1"
-            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-            <span>Luyện nghe Part 1</span>
           </NavLink>
 
           <NavLink

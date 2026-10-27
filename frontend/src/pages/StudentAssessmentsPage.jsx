@@ -24,7 +24,7 @@ export default function StudentAssessmentsPage() {
       const response = await assessmentApi.getAvailableAssessments();
       if (response.status === 'success') setAssessments(response.data.assessments || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Không thể tải danh sách bài tập & đề thi');
+      setError(err.response?.data?.message || 'Không thể tải danh sách bài tập ngữ pháp');
     } finally {
       setLoading(false);
     }
@@ -44,9 +44,9 @@ export default function StudentAssessmentsPage() {
   return (
     <div className="assessment-page">
       <PageHeader
-        eyebrow="Luyện tập"
-        title="Bài tập & đề thi"
-        description="Các bài tập đã xuất bản sẽ xuất hiện tại đây cho toàn bộ học viên."
+        eyebrow="Bài tập"
+        title="Bài tập ngữ pháp"
+        description="Các bài tập ngữ pháp đã xuất bản sẽ xuất hiện tại đây cho học viên."
       />
 
       <label className="assessment-search">
