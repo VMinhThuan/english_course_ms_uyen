@@ -123,10 +123,10 @@ export default function RoadToPart7Page({ admin = false }) {
                   <span className="chapter-flash-kicker">ROAD TO PART 7 · BÀI {String(selected.order || 1).padStart(2, '0')}</span>
                   <h2>{selected.title}</h2>
                   <span className="chapter-flash-word-count">Mặt trước · Bài đọc tiếng Anh</span>
-                  <div className="road7-flash-scroll road7-flash-english" role="region" aria-label={`${selected.title}, bài đọc tiếng Anh`}>
+                  <div className="road7-flash-scroll road7-flash-english" role="region" tabIndex="0" aria-label={`${selected.title}, bài đọc tiếng Anh`}>
                     {selected.englishText}
                   </div>
-                  <i>Nhấn để xem bản dịch song ngữ</i>
+                  <i>Cuộn trong khung để đọc hết bài · Nhấn để xem bản dịch song ngữ</i>
                 </div>
                 <div className="flash-back chapter-flash-back road7-flash-back">
                   <header className="chapter-flash-back-head">
@@ -136,7 +136,7 @@ export default function RoadToPart7Page({ admin = false }) {
                     </div>
                     <strong>{(selected.bilingualPairs || []).length} câu</strong>
                   </header>
-                  <div className="road7-flash-scroll road7-flash-pairs" role="region" aria-label={`${selected.title}, bản dịch song ngữ`}>
+                  <div className="road7-flash-scroll road7-flash-pairs" role="region" tabIndex="0" aria-label={`${selected.title}, bản dịch song ngữ`}>
                     {(selected.bilingualPairs || []).map((pair, index) => (
                       <p key={`${pair.order || index}-${index}`}><strong>{pair.english}</strong> <span>({pair.vietnamese})</span></p>
                     ))}

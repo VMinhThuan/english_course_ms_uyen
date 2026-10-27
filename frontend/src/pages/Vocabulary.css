@@ -80,7 +80,7 @@
 .chapter-flash-back--single .chapter-flash-word-term>span { display:none; }
 .chapter-flash-back--single .chapter-flash-word-term h3 { font-size:clamp(22px,3vw,32px); line-height:1.35; }
 .chapter-flash-back--single .chapter-flash-word-term h3 em,.chapter-flash-back--single .chapter-flash-word-term small { font-size:14px; }
-.chapter-flash-back--single .chapter-flash-word-term p { font-size:clamp(19px,2.6vw,27px); font-weight:650; line-height:1.55; }
+.chapter-flash-back--single .chapter-flash-word-term p { max-width:100%; font-size:clamp(38px,6vw,62px); font-weight:600; line-height:1.25; overflow-wrap:anywhere; }
 .chapter-flash-back--single .chapter-flash-catalog-senses { width:100%; margin:0; }
 .chapter-flash-back--single .chapter-flash-catalog-sense { padding:14px 0; }
 .chapter-flash-back--single .chapter-flash-catalog-sense-heading { justify-content:center; }
@@ -109,6 +109,7 @@
 .chapter-flash-catalog-sense-heading { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
 .chapter-flash-catalog-sense-heading span { color:#F3C74F; font-size:10px; font-weight:800; }
 .chapter-flash-catalog-sense-heading p { margin:0; color:#fff; font-size:13px; font-weight:700; line-height:1.5; overflow-wrap:anywhere; }
+.chapter-flash-back--single .chapter-flash-catalog-sense-heading p { width:100%; max-width:100%; font-size:clamp(38px,6vw,62px); font-weight:600; line-height:1.25; overflow-wrap:anywhere; }
 .chapter-flash-catalog-usage { margin:4px 0 0; color:#E4D4BE; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
 .chapter-flash-catalog-note { margin:6px 0 0; color:#E4D4BE; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
 .chapter-flash-catalog-note--chapter { padding:8px 0 0; border-top:1px dashed rgba(255,255,255,.2); }
