@@ -184,6 +184,43 @@
 .toeic-exam-screen__question-tile { width: 100%; padding: .4rem 0; border: 1px solid var(--brand-border); border-radius: 6px; background: var(--brand-bg-sub); color: var(--brand-muted); font-size: .8rem; font-weight: 700; cursor: pointer; transition: transform .1s ease; }
 .toeic-exam-screen__question-tile--flagged { border-color: var(--brand-warning-border); background: var(--brand-warning-bg); color: var(--brand-warning); }
 .toeic-exam-screen__question-tile--answered { border-color: var(--brand-success-border); background: var(--brand-success-bg); color: var(--brand-success); }
+.toeic-exam-screen__question-tile--active { border-color: var(--brand-coffee); background: var(--brand-yellow-soft); color: var(--brand-coffee); box-shadow: inset 0 0 0 1px var(--brand-coffee); }
+.toeic-exam-room { overflow: hidden; border: 1px solid var(--brand-border); border-radius: var(--radius-card); background: var(--brand-surface); box-shadow: var(--shadow-subtle); }
+.toeic-exam-room__header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.35rem; border-bottom: 1px solid var(--brand-border); background: linear-gradient(90deg, var(--brand-surface), var(--brand-bg-sub)); }
+.toeic-exam-room__mode { display: inline-block; margin-bottom: .25rem; color: var(--brand-coffee); font-size: .68rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.toeic-exam-room__mode--reading { color: var(--brand-success); }
+.toeic-exam-room__header h2 { margin: 0; color: var(--brand-text); font-size: 1.65rem; font-weight: 850; }
+.toeic-exam-room__header p { margin: .15rem 0 0; color: var(--brand-muted); font-size: .86rem; }
+.toeic-exam-room__counter { display: flex; align-items: baseline; gap: .2rem; min-width: 92px; justify-content: center; padding: .75rem .9rem; border-radius: 10px; background: var(--brand-yellow); color: var(--brand-coffee); }
+.toeic-exam-room__counter strong { font-size: 1.35rem; }
+.toeic-exam-room__counter span { font-size: .8rem; font-weight: 800; }
+.toeic-exam-room__stage { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr); min-height: min(680px, calc(100vh - 220px)); }
+.toeic-exam-room__stimulus { min-width: 0; padding: 1.35rem; border-right: 1px solid var(--brand-border); background: var(--brand-bg-sub); overflow: auto; }
+.toeic-exam-room__answer { display: flex; min-width: 0; flex-direction: column; padding: 1.35rem; background: var(--brand-surface); }
+.toeic-exam-room__group-title { margin: 0 0 1rem; color: var(--brand-text); font-size: .88rem; font-weight: 750; }
+.toeic-exam-room__audio { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: .7rem  .8rem; margin-bottom: 1.25rem; padding: .8rem .9rem; border: 1px solid var(--brand-warning-border); border-radius: 10px; background: var(--brand-yellow-soft); }
+.toeic-exam-room__audio > span { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; background: var(--brand-yellow); color: var(--brand-coffee); font-size: 1.1rem; }
+.toeic-exam-room__audio strong,.toeic-exam-room__audio small { display: block; }
+.toeic-exam-room__audio strong { color: var(--brand-coffee); font-size: .84rem; }
+.toeic-exam-room__audio small { margin-top: .1rem; color: var(--brand-muted); font-size: .72rem; line-height: 1.35; }
+.toeic-exam-room__audio audio { grid-column: 1 / -1; width: 100%; height: 36px; }
+.toeic-exam-room__audio--tts { grid-template-columns: 36px minmax(0, 1fr) auto; }
+.toeic-exam-room__audio--tts button { border: 1px solid var(--brand-warning-border); background: var(--brand-surface); color: var(--brand-coffee); padding: .5rem .65rem; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.toeic-exam-room__audio--empty { border-color: var(--brand-border); background: var(--brand-surface); }
+.toeic-exam-room__document { display: grid; gap: 1rem; }
+.toeic-exam-room__document > .toeic-stimulus-image { width: 100%; max-height: min(62vh, 680px); border-radius: 6px; box-shadow: none; }
+.toeic-exam-room__passage { padding: 1.15rem; border: 1px solid var(--brand-border); border-radius: 8px; background: var(--brand-surface); color: var(--brand-text); font-size: .94rem; line-height: 1.7; white-space: pre-wrap; }
+.toeic-exam-room__passage h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.toeic-exam-room__passage .toeic-stimulus-image { margin: 0 0 .8rem; max-height: none; box-shadow: none; }
+.toeic-exam-room__listening-placeholder { display: grid; min-height: 360px; place-content: center; gap: .65rem; color: var(--brand-muted); text-align: center; }
+.toeic-exam-room__listening-placeholder span { font-size: 3.2rem; }
+.toeic-exam-room__listening-placeholder p { max-width: 240px; margin: 0; font-size: .9rem; line-height: 1.6; }
+.toeic-exam-room__answer [id^="question-"] { min-height: 0; padding: 0 !important; border: 0 !important; box-shadow: none !important; }
+.toeic-exam-room__question-nav { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-top: auto; padding-top: 1.25rem; }
+.toeic-exam-room__question-nav button { min-height: 40px; border: 1px solid var(--brand-border); background: var(--brand-bg-sub); color: var(--brand-text); padding: .55rem .8rem; font-size: .8rem; font-weight: 800; cursor: pointer; }
+.toeic-exam-room__question-nav button:last-child { border-color: var(--brand-coffee); background: var(--brand-coffee); color: var(--brand-surface); }
+.toeic-exam-room__question-nav button:disabled { opacity: .45; cursor: not-allowed; }
+.toeic-exam-room__question-nav span { color: var(--brand-muted); font-size: .72rem; font-weight: 700; text-align: center; }
 .toeic-result-screen__answer-option { border: 1px solid transparent; border-radius: var(--radius-xs); font-size: .9rem; color: var(--brand-muted); }
 .toeic-result-screen__answer-option--correct { border-color: var(--brand-success-border)!important; background: var(--brand-success-bg)!important; color: var(--brand-success)!important; }
 .toeic-result-screen__answer-option--incorrect { border-color: var(--brand-danger-border)!important; background: var(--brand-danger-bg)!important; color: var(--brand-danger)!important; }
@@ -209,6 +246,13 @@
   .toeic-exam-screen__header-actions > button { flex: 1; }
   .toeic-exam-screen__timer { order: 1; padding: .35rem .75rem; font-size: 1rem; }
   .toeic-exam-screen__part-nav { padding: .45rem .75rem; }
+  .toeic-exam-room__header { padding: 1rem; }
+  .toeic-exam-room__stage { grid-template-columns: 1fr; min-height: 0; }
+  .toeic-exam-room__stimulus { border-right: 0; border-bottom: 1px solid var(--brand-border); padding: 1rem; }
+  .toeic-exam-room__answer { padding: 1rem; }
+  .toeic-exam-room__listening-placeholder { min-height: 160px; }
+  .toeic-exam-room__question-nav span { display: none; }
+  .toeic-exam-room__question-nav button { flex: 1; }
 }
 
 @media (max-width: 1023px) {

@@ -41,6 +41,7 @@ export default function StudentToeicExamPage() {
   const [revisionConflict, setRevisionConflict] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [navFilter, setNavFilter] = useState('ALL'); // 'ALL' | 'UNANSWERED' | 'ANSWERED' | 'FLAGGED'
+  const [audioSequenceStarted, setAudioSequenceStarted] = useState(false);
 
   const autosaveTimerRef = useRef(null);
   const autosaveVersionRef = useRef(0);
@@ -49,6 +50,7 @@ export default function StudentToeicExamPage() {
   const autosaveQueueRef = useRef(Promise.resolve());
   const autoSubmitStartedRef = useRef(false);
   const autoSubmitHandlerRef = useRef(null);
+  const activeQuestionIdRef = useRef(activeQuestionId);
 
   useEffect(() => {
     const savedNavigation = readAttemptNavigation(attemptId);
@@ -56,6 +58,10 @@ export default function StudentToeicExamPage() {
     setActiveQuestionId(savedNavigation?.questionId || null);
     loadAttempt();
   }, [attemptId]);
+
+  useEffect(() => {
+    activeQuestionIdRef.current = activeQuestionId;
+  }, [activeQuestionId]);
 
   // Answers live on the server; this only restores the learner's place after
   // a refresh or a short connection interruption.
@@ -355,6 +361,27 @@ export default function StudentToeicExamPage() {
     return list;
   }, [parts]);
 
+  const activeQuestion = useMemo(() => {
+    if (!allQuestions.length) return null;
+    return allQuestions.find((question) => question.qId === activeQuestionId)
+      || allQuestions.find((question) => question.partNumber === activePartNumber)
+      || allQuestions[0];
+  }, [activePartNumber, activeQuestionId, allQuestions]);
+
+  const activeQuestionIndex = activeQuestion
+    ? allQuestions.findIndex((question) => question.qId === activeQuestion.qId)
+    : -1;
+  const activeGroup = activeQuestion?.group || null;
+  const questionPositionInGroup = activeGroup
+    ? (activeGroup.questions || []).findIndex((question) => (question.questionId || question._id) === activeQuestion?.qId) + 1
+    : 0;
+
+  useEffect(() => {
+    if (!activeQuestion || activeQuestionId === activeQuestion.qId) return;
+    setActivePartNumber(activeQuestion.partNumber);
+    setActiveQuestionId(activeQuestion.qId);
+  }, [activeQuestion, activeQuestionId]);
+
   const totalQuestions = allQuestions.length;
   const answeredCount = useMemo(() => {
     return allQuestions.filter((q) => {
@@ -386,13 +413,21 @@ export default function StudentToeicExamPage() {
     setActivePartNumber(partNumber);
     setActiveQuestionId(qId);
     setMobileDrawerOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-    setTimeout(() => {
-      const el = document.getElementById(`question-${qId}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 50);
+  const moveQuestion = (direction) => {
+    const target = allQuestions[activeQuestionIndex + direction];
+    if (!target) return;
+    jumpToQuestion(target.qId, target.partNumber);
+  };
+
+  const handleListeningAudioEnded = (completedQuestionId) => {
+    // Part 1 and Part 2 store one audio per question. For grouped listening
+    // (Parts 3–4), this moves to the next question in the same conversation.
+    window.setTimeout(() => {
+      if (activeQuestionIdRef.current === completedQuestionId) moveQuestion(1);
+    }, 250);
   };
 
   if (loading) {
@@ -488,205 +523,34 @@ export default function StudentToeicExamPage() {
       <div className="toeic-exam-container">
         {/* Left/Main Exam Content */}
         <main className="toeic-exam-main">
-          {activePart ? (
-            <div style={{ background: 'var(--brand-surface)', borderRadius: '16px', border: '1px solid var(--brand-border)', padding: '1.5rem', boxShadow: 'var(--shadow-subtle)' }}>
-              {/* Part Header */}
-              <div style={{ borderBottom: '1px solid var(--brand-border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                  <span
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 800,
-                      padding: '0.2rem 0.5rem',
-                      borderRadius: '4px',
-                      background: activePart.section === 'listening' ? 'var(--brand-yellow-soft)' : 'var(--brand-success-bg)',
-                      color: activePart.section === 'listening' ? 'var(--brand-coffee)' : 'var(--brand-success)',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {activePart.section === 'listening' ? '🎧 LISTENING' : '📖 READING'}
-                  </span>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-text)', margin: 0 }}>
-                    PART {activePart.partNumber}: {activePart.name}
-                  </h2>
+          {activePart && activeQuestion ? (
+            <section className="toeic-exam-room">
+              <header className="toeic-exam-room__header">
+                <div>
+                  <span className={`toeic-exam-room__mode toeic-exam-room__mode--${activePart.section}`}>{activePart.section === 'listening' ? 'Listening' : 'Reading'}</span>
+                  <h2>PART {activePart.partNumber}</h2>
+                  <p>{activePart.name}</p>
                 </div>
-                {activePart.instructions && (
-                  <p style={{ fontSize: '0.9rem', color: 'var(--brand-muted)', margin: '0.5rem 0 0 0', lineHeight: 1.5 }}>
-                    {activePart.instructions}
-                  </p>
-                )}
+                <div className="toeic-exam-room__counter"><strong>{activeQuestion.questionNumber || activeQuestionIndex + 1}</strong><span>/ {totalQuestions}</span></div>
+              </header>
+
+              <div className="toeic-exam-room__stage">
+                <section className="toeic-exam-room__stimulus" aria-label="Tài liệu câu hỏi">
+                  {activePart.section === 'listening' && renderListeningPlayer(activeGroup, activeQuestion)}
+                  {activeGroup?.title && <p className="toeic-exam-room__group-title">{activeGroup.title}</p>}
+                  {renderStimulus(activeGroup, activePart.partNumber)}
+                </section>
+
+                <section className="toeic-exam-room__answer">
+                  {renderQuestionCard(activeQuestion)}
+                  <footer className="toeic-exam-room__question-nav">
+                    <button type="button" onClick={() => moveQuestion(-1)} disabled={activeQuestionIndex <= 0}>← Câu trước</button>
+                    {questionPositionInGroup > 0 && <span>Câu {questionPositionInGroup} / {(activeGroup?.questions || []).length} trong nhóm</span>}
+                    <button type="button" onClick={() => moveQuestion(1)} disabled={activeQuestionIndex >= totalQuestions - 1}>Câu tiếp →</button>
+                  </footer>
+                </section>
               </div>
-
-              {/* Render Question Groups in this Part */}
-              {(activePart.questionGroups || []).map((group, gIdx) => {
-                const isReadingSplit = (activePart.partNumber === 6 || activePart.partNumber === 7) && group.passages && group.passages.length > 0;
-
-                return (
-                  <div
-                    key={group._id || gIdx}
-                    style={{
-                      marginBottom: '2rem',
-                      padding: '1.25rem',
-                      background: 'var(--brand-bg-sub)',
-                      borderRadius: '14px',
-                      border: '1px solid var(--brand-border)',
-                    }}
-                  >
-                    {/* Part Title / Instructions if given */}
-                    {group.title && (
-                      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-text)', marginBottom: '0.75rem' }}>
-                        {group.title}
-                      </h3>
-                    )}
-
-                    {/* Split Layout for Part 6 & 7 reading passages */}
-                    {isReadingSplit ? (
-                      <div className="toeic-split-layout">
-                        {/* Left Column: Shared Passages / Documents */}
-                        <div className="toeic-passage-panel">
-                          {(group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : [])).map((imageUrl, imageIndex) => (
-                            <div key={`${imageUrl}-${imageIndex}`} style={{ marginBottom: '1rem' }}>
-                              <img
-                                src={resolveMediaUrl(imageUrl)}
-                                alt={`Passage visual ${imageIndex + 1}`}
-                                className="toeic-stimulus-image"
-                                onError={(e) => {
-                                  if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
-                                    e.currentTarget.dataset.fallbackTried = 'true';
-                                    e.currentTarget.src = imageUrl;
-                                  }
-                                }}
-                              />
-                              {group.imagePageNumbers?.[imageIndex] && (
-                                <small style={{ display: 'block', textAlign: 'center', color: 'var(--brand-muted)' }}>
-                                  Hình từ trang {group.imagePageNumbers[imageIndex]} của PDF
-                                </small>
-                              )}
-                            </div>
-                          ))}
-                          <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--brand-coffee)', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-                            {group.passages.length > 1 ? `Đoạn văn đọc hiểu (${group.passages.length} tài liệu)` : 'Đoạn văn đọc hiểu'}
-                          </div>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                            {group.passages.map((pas, pIdx) => (
-                              <div
-                                key={pIdx}
-                                style={{
-                                  padding: '1.25rem',
-                                  background: 'var(--brand-bg-sub)',
-                                  borderRadius: '8px',
-                                  border: '1px solid var(--brand-border)',
-                                  fontSize: '0.95rem',
-                                  lineHeight: 1.7,
-                                  color: 'var(--brand-text)',
-                                }}
-                              >
-                                {pas.title && (
-                                  <h4 style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--brand-text)', marginBottom: '0.5rem' }}>
-                                    {pas.title}
-                                  </h4>
-                                )}
-                                {group.partNumber === 7 && (pas.imageUrls?.length || pas.imageUrl) ? (
-                                  <div style={{ display: 'grid', gap: '0.75rem' }}>
-                                    {(pas.imageUrls?.length ? pas.imageUrls : [pas.imageUrl]).map((imageUrl, imageIndex) => (
-                                      <img
-                                        key={`${imageUrl}-${imageIndex}`}
-                                        src={resolveMediaUrl(imageUrl)}
-                                        alt={`Passage ${pas.title || pIdx + 1}, trang ${imageIndex + 1}`}
-                                        className="toeic-stimulus-image"
-                                        onError={(e) => {
-                                          if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
-                                            e.currentTarget.dataset.fallbackTried = 'true';
-                                            e.currentTarget.src = imageUrl;
-                                          }
-                                        }}
-                                      />
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{pas.content}</div>
-                                )}
-                                {pas.imageUrl && group.partNumber !== 7 && (
-                                  <div style={{ marginTop: '0.75rem' }}>
-                                    <img
-                                      src={resolveMediaUrl(pas.imageUrl)}
-                                      alt={`Passage illustration ${pIdx + 1}`}
-                                      className="toeic-stimulus-image"
-                                      onError={(e) => {
-                                        if (pas.imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
-                                          e.currentTarget.dataset.fallbackTried = 'true';
-                                          e.currentTarget.src = pas.imageUrl;
-                                        }
-                                      }}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Right Column: Questions */}
-                        <div className="toeic-questions-panel">
-                          {(group.questions || []).map((q) => renderQuestionCard(q))}
-                        </div>
-                      </div>
-                    ) : (
-                      // Standard Layout for Parts 1, 2, 3, 4, 5
-                      <div>
-                        {/* Audio Stimulus */}
-                        {group.audioUrl && (
-                          <div style={{ marginBottom: '1.25rem', background: 'var(--brand-surface)', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid var(--brand-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <span style={{ fontSize: '1.2rem' }}>🎧</span>
-                            <audio
-                              controls
-                              src={resolveMediaUrl(group.audioUrl)}
-                              preload="metadata"
-                              style={{ width: '100%', maxWidth: '520px', height: '40px' }}
-                            />
-                          </div>
-                        )}
-                        {!group.audioUrl && group.audioText && (
-                          <div style={{ marginBottom: '1.25rem', background: 'var(--brand-surface)', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid var(--brand-border)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '1.2rem' }}>🔊</span>
-                            <button type="button" onClick={() => speakText(group.audioText)} style={{ border: '1px solid var(--brand-border)', borderRadius: '8px', padding: '0.55rem 0.8rem', background: 'var(--brand-yellow-soft)', color: 'var(--brand-coffee)', fontWeight: 700, cursor: 'pointer' }}>
-                              Nghe bằng giọng đọc trình duyệt (TTS)
-                            </button>
-                            <small style={{ color: 'var(--brand-muted)' }}>Nguồn không có file audio MP3.</small>
-                          </div>
-                        )}
-
-                        {/* Image Stimulus (Part 1 Photograph or Part 3/4 graphic) */}
-                        {(group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : [])).map((imageUrl, imageIndex) => (
-                          <div key={`${imageUrl}-${imageIndex}`} style={{ marginBottom: '1.25rem', textAlign: 'center' }}>
-                            <img
-                              src={resolveMediaUrl(imageUrl)}
-                              alt={`Question stimulus ${imageIndex + 1}`}
-                              className="toeic-stimulus-image"
-                              onError={(e) => {
-                                if (imageUrl.startsWith('/') && !e.currentTarget.dataset.fallbackTried) {
-                                  e.currentTarget.dataset.fallbackTried = 'true';
-                                  e.currentTarget.src = imageUrl;
-                                }
-                              }}
-                            />
-                            {group.imagePageNumbers?.[imageIndex] && (
-                              <small style={{ color: 'var(--brand-muted)' }}>Ảnh từ trang {group.imagePageNumbers[imageIndex]} của đề PDF</small>
-                            )}
-                          </div>
-                        ))}
-
-                        {/* Questions list */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                          {(group.questions || []).map((q) => renderQuestionCard(q))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            </section>
           ) : (
             <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--brand-muted)' }}>
               Không có câu hỏi nào thuộc phần này.
@@ -864,12 +728,77 @@ export default function StudentToeicExamPage() {
     </div>
   );
 
+  function renderListeningPlayer(group, question) {
+    const audioUrl = group?.audioUrl || question?.audioUrl || '';
+    const audioText = group?.audioText || question?.audioText || '';
+    if (audioUrl) {
+      return <div className="toeic-exam-room__audio">
+        <span aria-hidden="true">♫</span>
+        <div>
+          <strong>Audio đang phát</strong>
+          <small>Kết thúc audio sẽ chuyển sang câu tiếp theo.</small>
+        </div>
+        <audio
+          key={`${group?._id || question?.qId || question?.questionId}-${audioUrl}`}
+          controls
+          autoPlay={audioSequenceStarted}
+          src={resolveMediaUrl(audioUrl)}
+          preload="auto"
+          onPlay={() => setAudioSequenceStarted(true)}
+          onEnded={() => handleListeningAudioEnded(question?.qId || question?.questionId || question?._id)}
+        >Trình duyệt của bạn không hỗ trợ phát audio.</audio>
+      </div>;
+    }
+    if (audioText) {
+      return <div className="toeic-exam-room__audio toeic-exam-room__audio--tts">
+        <span aria-hidden="true">🔊</span>
+        <div><strong>Audio TTS</strong><small>Kết thúc giọng đọc sẽ chuyển sang câu tiếp theo.</small></div>
+        <button type="button" onClick={() => { setAudioSequenceStarted(true); speakText(audioText, () => handleListeningAudioEnded(question?.qId || question?.questionId || question?._id)); }}>Phát audio</button>
+      </div>;
+    }
+    return <div className="toeic-exam-room__audio toeic-exam-room__audio--empty"><span aria-hidden="true">🎧</span><div><strong>Listening</strong><small>Audio của câu này không khả dụng.</small></div></div>;
+  }
+
+  function renderStimulus(group, partNumber) {
+    if (!group) return null;
+    const groupImages = group.imageUrls?.length ? group.imageUrls : (group.imageUrl ? [group.imageUrl] : []);
+    const passages = group.passages || [];
+    const hasReadingMaterial = [6, 7].includes(partNumber) && passages.length > 0;
+
+    return <div className="toeic-exam-room__document">
+      {groupImages.map((imageUrl, imageIndex) => <img
+        key={`${imageUrl}-${imageIndex}`}
+        src={resolveMediaUrl(imageUrl)}
+        alt={`Tài liệu câu hỏi ${imageIndex + 1}`}
+        className="toeic-stimulus-image"
+        onError={(event) => {
+          if (imageUrl.startsWith('/') && !event.currentTarget.dataset.fallbackTried) {
+            event.currentTarget.dataset.fallbackTried = 'true';
+            event.currentTarget.src = imageUrl;
+          }
+        }}
+      />)}
+      {hasReadingMaterial && passages.map((passage, passageIndex) => <article className="toeic-exam-room__passage" key={passageIndex}>
+        {passage.title && <h3>{passage.title}</h3>}
+        {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => <img
+          key={`${imageUrl}-${imageIndex}`}
+          src={resolveMediaUrl(imageUrl)}
+          alt={`Tài liệu đọc ${passageIndex + 1}-${imageIndex + 1}`}
+          className="toeic-stimulus-image"
+        />)}
+        {passage.content && <div>{passage.content}</div>}
+      </article>)}
+      {!groupImages.length && !hasReadingMaterial && <div className="toeic-exam-room__listening-placeholder"><span>🎧</span><p>Nghe kỹ audio và chọn đáp án phù hợp nhất.</p></div>}
+    </div>;
+  }
+
   // Helper to render individual Question Card
-  function speakText(value) {
+  function speakText(value, onEnd) {
     if (typeof window === 'undefined' || !window.speechSynthesis || !String(value || '').trim()) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(String(value));
     utterance.lang = 'en-US';
+    if (onEnd) utterance.onend = onEnd;
     window.speechSynthesis.speak(utterance);
   }
 
@@ -1088,7 +1017,7 @@ export default function StudentToeicExamPage() {
                       <button
                         key={qId}
                         onClick={() => jumpToQuestion(qId, p.partNumber)}
-                        className={`toeic-exam-screen__question-tile${isFlagged ? ' toeic-exam-screen__question-tile--flagged' : isAnswered ? ' toeic-exam-screen__question-tile--answered' : ''}`}
+                        className={`toeic-exam-screen__question-tile${qId === activeQuestion?.qId ? ' toeic-exam-screen__question-tile--active' : isFlagged ? ' toeic-exam-screen__question-tile--flagged' : isAnswered ? ' toeic-exam-screen__question-tile--answered' : ''}`}
                       >
                         {qNum}
                       </button>
