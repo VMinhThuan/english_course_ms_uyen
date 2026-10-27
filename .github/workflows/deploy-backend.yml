@@ -1,0 +1,250 @@
+name: Deploy backend to Long Van
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy after verification (use only after the remote preflight has been approved)'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+# Do not allow two releases to overwrite each other or roll back a newer release.
+concurrency:
+  group: production-backend-deploy
+  cancel-in-progress: false
+
+env:
+  APP_ROOT: /home/toeicmsuyenvn/apps/english-course/backend
+  NODE_VENV: /home/toeicmsuyenvn/nodevenv/apps/english-course/backend/22
+  HEALTH_URL: https://api.toeicmsuyen.vn/health
+
+jobs:
+  verify:
+    name: Verify backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run offline security regression tests
+        run: npm run test:phase1
+
+  remote-preflight:
+    name: Check SSH and Node.js Selector
+    needs: verify
+    # Keep production deployment opt-in until SSH, cPanel registration, and the
+    # Passenger startup file have been verified. Set the repository variable to
+    # true only after the checklist in docs/DEPLOYMENT_LONGVAN.md is complete.
+    if: >-
+      vars.BACKEND_DEPLOY_ENABLED == 'true' ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.LONGVAN_SSH_HOST }}
+      SSH_PORT: ${{ secrets.LONGVAN_SSH_PORT }}
+      SSH_USER: ${{ secrets.LONGVAN_SSH_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.LONGVAN_SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.LONGVAN_SSH_KNOWN_HOSTS }}
+    steps:
+      - name: Configure verified SSH host key
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          : "${SSH_HOST:?Missing LONGVAN_SSH_HOST}"
+          : "${SSH_PORT:?Missing LONGVAN_SSH_PORT}"
+          : "${SSH_USER:?Missing LONGVAN_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing LONGVAN_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing LONGVAN_SSH_KNOWN_HOSTS}"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Verify remote path, permissions, and Node 22 virtual environment
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ssh -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" bash -s -- "$APP_ROOT" "$NODE_VENV" <<'REMOTE'
+          set -Eeuo pipefail
+          app_root="$1"
+          node_venv="$2"
+
+          test -d "$app_root" || { echo "Application root does not exist: $app_root" >&2; exit 10; }
+          test -w "$app_root" || { echo "Application root is not writable: $app_root" >&2; exit 11; }
+          test -r "$node_venv/bin/activate" || { echo "Node Selector activation script is missing: $node_venv/bin/activate" >&2; exit 12; }
+          command -v rsync >/dev/null || { echo "rsync is not available to the cPanel user; request it from Long Van before enabling deployment." >&2; exit 15; }
+          if [ -e "$app_root/tmp" ] && [ ! -w "$app_root/tmp" ]; then
+            echo "Passenger restart directory is not writable: $app_root/tmp" >&2
+            exit 13
+          fi
+
+          # shellcheck disable=SC1090
+          source "$node_venv/bin/activate"
+          node_version="$(node --version)"
+          npm_version="$(npm --version)"
+          node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major === 22 && minor >= 12 ? 0 : 1)' \
+            || { echo "Expected Node >=22.12 and <23 after activation; found $node_version" >&2; exit 14; }
+
+          printf 'Remote SSH, write access, Node Selector activation, and Node %s are ready (npm %s).\n' "$node_version" "$npm_version"
+          REMOTE
+
+  deploy:
+    name: Sync, install, and restart Passenger
+    needs: remote-preflight
+    if: >-
+      vars.BACKEND_DEPLOY_ENABLED == 'true' ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy == true)
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.LONGVAN_SSH_HOST }}
+      SSH_PORT: ${{ secrets.LONGVAN_SSH_PORT }}
+      SSH_USER: ${{ secrets.LONGVAN_SSH_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.LONGVAN_SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.LONGVAN_SSH_KNOWN_HOSTS }}
+      BACKUP_ID: ${{ github.run_id }}-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure verified SSH host key
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Prepare isolated remote staging directory
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ssh -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" mkdir -p "$APP_ROOT/.deploy-staging/$GITHUB_SHA"
+
+      - name: Upload release to an isolated staging directory
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rsync --archive --compress --delete \
+            --exclude '.env' \
+            --exclude 'node_modules/' \
+            --exclude 'uploads/' \
+            --exclude 'data/' \
+            --exclude 'logs/' \
+            --exclude 'tmp/' \
+            --exclude '.git/' \
+            --exclude '.deploy-backups/' \
+            --exclude '.deploy-staging/' \
+            -e "ssh -p $SSH_PORT -o BatchMode=yes -o StrictHostKeyChecking=yes" \
+            backend/ "$SSH_USER@$SSH_HOST:$APP_ROOT/.deploy-staging/$GITHUB_SHA/"
+
+      - name: Back up code, synchronize release, install production dependencies, and restart Passenger
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ssh -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" bash -s -- "$APP_ROOT" "$NODE_VENV" "$GITHUB_SHA" "$BACKUP_ID" <<'REMOTE'
+          set -Eeuo pipefail
+          app_root="$1"
+          node_venv="$2"
+          revision="$3"
+          backup_id="$4"
+          staging_dir="$app_root/.deploy-staging/$revision"
+          backup_dir="$app_root/.deploy-backups/$backup_id"
+
+          exclude_args=(
+            --exclude=.env --exclude=node_modules/ --exclude=uploads/ --exclude=data/
+            --exclude=logs/ --exclude=tmp/ --exclude=.git/ --exclude=.deploy-backups/ --exclude=.deploy-staging/
+          )
+          test -d "$staging_dir" || { echo "Release staging directory is missing: $staging_dir" >&2; exit 20; }
+          test ! -e "$backup_dir" || { echo "Refusing to overwrite existing backup: $backup_dir" >&2; exit 21; }
+
+          rollback() {
+            echo "Deployment failed; restoring code backup $backup_id" >&2
+            rsync --archive --delete "${exclude_args[@]}" "$backup_dir/code/" "$app_root/"
+            cd "$app_root"
+            # shellcheck disable=SC1090
+            source "$node_venv/bin/activate"
+            npm ci --omit=dev
+            mkdir -p tmp
+            touch tmp/restart.txt
+            echo "Rollback completed; Passenger restart requested." >&2
+          }
+          trap 'status=$?; trap - ERR; rollback || { echo "Rollback failed; inspect the backup above immediately." >&2; exit 2; }; exit "$status"' ERR
+
+          mkdir -p "$backup_dir/code"
+          rsync --archive "${exclude_args[@]}" "$app_root/" "$backup_dir/code/"
+          rsync --archive --delete "${exclude_args[@]}" "$staging_dir/" "$app_root/"
+
+          cd "$app_root"
+          # shellcheck disable=SC1090
+          source "$node_venv/bin/activate"
+          node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major === 22 && minor >= 12 ? 0 : 1)' \
+            || { echo "Activated Node is not >=22.12 and <23: $(node --version)" >&2; exit 22; }
+          npm ci --omit=dev
+
+          # cPanel/Passenger restarts a user application through this touch file;
+          # no PM2, Docker, sudo, or server-wide Apache restart is required.
+          mkdir -p tmp
+          touch tmp/restart.txt
+          trap - ERR
+          printf 'Release %s installed. Backup retained at %s\n' "$revision" "$backup_dir"
+          REMOTE
+
+      - name: Wait for Passenger and verify public health endpoint
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 \
+            --connect-timeout 10 --max-time 20 "$HEALTH_URL" | grep -q '"status":"success"'
+
+      - name: Roll back when public health verification fails
+        if: failure()
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          echo "Health check failed; restoring backup $BACKUP_ID."
+          ssh -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" bash -s -- "$APP_ROOT" "$NODE_VENV" "$BACKUP_ID" <<'REMOTE'
+          set -Eeuo pipefail
+          app_root="$1"
+          node_venv="$2"
+          backup_id="$3"
+          backup_dir="$app_root/.deploy-backups/$backup_id"
+          test -d "$backup_dir/code" || { echo "No rollback backup found at $backup_dir/code" >&2; exit 30; }
+          exclude_args=(
+            --exclude=.env --exclude=node_modules/ --exclude=uploads/ --exclude=data/
+            --exclude=logs/ --exclude=tmp/ --exclude=.git/ --exclude=.deploy-backups/ --exclude=.deploy-staging/
+          )
+          rsync --archive --delete "${exclude_args[@]}" "$backup_dir/code/" "$app_root/"
+          cd "$app_root"
+          # shellcheck disable=SC1090
+          source "$node_venv/bin/activate"
+          npm ci --omit=dev
+          mkdir -p tmp
+          touch tmp/restart.txt
+          echo "Rollback completed and Passenger restart requested."
+          REMOTE

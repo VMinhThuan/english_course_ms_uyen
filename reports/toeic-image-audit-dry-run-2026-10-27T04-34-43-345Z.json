@@ -1,0 +1,4593 @@
+{
+  "generatedAt": "2026-10-27T04:34:43.338Z",
+  "dryRun": true,
+  "scope": {
+    "assessmentCount": 21,
+    "groupCount": 1019,
+    "questionCount": 2001,
+    "htmlFiles": []
+  },
+  "summary": {
+    "Ảnh URL duy nhất đã quét": 82,
+    "Lượt tham chiếu ảnh": 140,
+    "Tải được": 58,
+    "Không tải được / file thiếu": 24,
+    "OCR hoàn tất": 58,
+    "Tên trung tâm được OCR xác nhận": 0,
+    "Dấu hiệu Zenlish từ URL nguồn (cần kiểm tra)": 33,
+    "Được phép chỉnh sửa (xác nhận riêng trong dữ liệu)": 0,
+    "Hiển thị hợp lệ, chưa kết luận quyền sử dụng": 25,
+    "Cần kiểm tra dấu hiệu thương hiệu": 33,
+    "Cần thay thế hoặc kiểm tra thủ công": 24
+  },
+  "images": [
+    {
+      "url": "/uploads/images/sample_p1.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/images/sample_p1.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (published)",
+          "partNumber": 1,
+          "groupId": "6ad5a304a935051238df5caf",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf90c98a47db46d188d70b",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (Bản sao) (draft)",
+          "partNumber": 1,
+          "groupId": "6adf90cdbd2c513814c12023",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf90eb2c6659f405ae5a99",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (Bản sao) (draft)",
+          "partNumber": 1,
+          "groupId": "6adf90efbd2c513814c12223",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf912fda651a8692c11a49",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (Bản sao) (draft)",
+          "partNumber": 1,
+          "groupId": "6adf9133bd2c513814c1242d",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf914acbfe64aae1df41b9",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "ETS Practice 2026 Test 1 (Bản sao) (draft)",
+          "partNumber": 1,
+          "groupId": "6adf914fbd2c513814c1265e",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/images/sample_part1.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/images/sample_part1.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Comprehensive 7-Part Exam 1793036733112 (published)",
+          "partNumber": 1,
+          "groupId": "6adf91be90d61e99adf05d58",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Comprehensive 7-Part Exam 1793036753736 (published)",
+          "partNumber": 1,
+          "groupId": "6adf91d30ad3eba09cf35fdc",
+          "questionNumbers": [],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/access-badge-ai-v5.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 219101,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/access-badge-ai-v5.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "|\nyy 1% -\ni de d 4 od\n= yr is he;\nP EN #5. 2\ny.- ou mao df EN -\niN B le 3\nFr a | —\n: y\nEE . | rr SEE g =r\n| TIE |\n\\ . N |\nQ- | =\nSE — \\ 3 =",
+        "confidence": 39,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 19,
+          "groupId": "6adf8c24ae2b2766f21a3f4e",
+          "questionNumbers": [
+            19
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f4e",
+          "questionNumbers": [
+            19
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/airport.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 144840,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/airport.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "— i [pie\n/ | Ti EEA\nHl BT of RT <P\ng ies\n* \\ 9",
+        "confidence": 34,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "Pexels License"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 3,
+          "groupId": "6adf8c24ae2b2766f21a3f3e",
+          "questionNumbers": [
+            3
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "questionNumber": 3,
+          "groupId": "6adf8cbcbe0e746fa5baf41b",
+          "questionNumbers": [
+            3
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f3e",
+          "questionNumbers": [
+            3
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8cbcbe0e746fa5baf41b",
+          "questionNumbers": [
+            3
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/barcode-ai-v3.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 250573,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/barcode-ai-v3.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Eg: ¢) f , x I .\nBogiid, = =\n= gi fe: Bf\nER PE. |. mo Em 2m B\nNY aE] rl IY RE —1TN\nLS Id A V A\\\\y —\nI 4 ™ =\"'a a TEE ER\n: | \\ — Ii —_ a\nI : i E \\ \" S LUT\nd IN w <r E\" |\n’ I J wy | a. = -—\n- uy Ee is\nCa",
+        "confidence": 32,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 11,
+          "groupId": "6adf8c24ae2b2766f21a3f46",
+          "questionNumbers": [
+            11
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "questionNumber": 11,
+          "groupId": "6adf8ccebe0e746fa5bafaac",
+          "questionNumbers": [
+            11
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f46",
+          "questionNumbers": [
+            11
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8ccebe0e746fa5bafaac",
+          "questionNumbers": [
+            11
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/bicycle-lock-ai-v5.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 337314,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/bicycle-lock-ai-v5.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "SR hh. GAR ARR\nSS | N # en? ENS ORY\nBb Wo ey\nS 2 EB par”, Bro a AS\n( Cod LL Ney rag a f\nJIRTRES 5,5.\" AN 5\n\ngyre - Ry. E\n\n; : . Re Ap .e , ! x\nd= COR. TER] EE\nIa J : \\ WP NG . ? | 5\nShe sig BN FAN 7 RC \\\na NA Wk | | =\nCO = ‘@ \\ |/& WEE Wie\noo Ta | A Sle\nSte : = : Re 7 as oR: =n\n\ni : 7 / :",
+        "confidence": 32,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 23,
+          "groupId": "6adf8c24ae2b2766f21a3f52",
+          "questionNumbers": [
+            23
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f52",
+          "questionNumbers": [
+            23
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/cable-coil-ai-v5.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 288292,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/cable-coil-ai-v5.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "¢ :\n4\n= A\nNN\nANN\n— WAN\nA \\\\\\ \"2\nf- | _—\nEL ald -\nip a = he | \\ =\n\\ — ee To =\nWIN\n\\L\n\\ - if —\"\n£\nNf lis a ART\nE- a > 577 a A Be OST A 4 5 3 EARNER\ngE Pome el eit lL er Sad PERE ERATE RRR\nSo a i Ge Tn et Ri EE A GER R REE\nla CT Seams 7 : Gl Pla FR RR HIS RACER NRE\neR ed a ae ER, <i ps os AE CRE NS SEES BRN LCE NEE REARS\nER NN AG a ER nt i Ri # Ro a Te es EERE EE GAR ARR AA SNe Se ae Sb oS",
+        "confidence": 27,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 25,
+          "groupId": "6adf8c24ae2b2766f21a3f54",
+          "questionNumbers": [
+            25
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f54",
+          "questionNumbers": [
+            25
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/cafe-chairs-ai-v4.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 349307,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/cafe-chairs-ai-v4.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "we r\n| : ig\n| po os\ni ad\ni ao\n| = 3 #7\ni pen WE PACT CE ORR deena\n\\\\ AN \\\\ on gprs JETER Res\n\\\\ Lesa WN ZN VEE ENE\n/ | ———— Brit.\nSu mah BEES ON Bay -—————\ni \\§ av Ee \\ ik wre\nJ\\ ¢ | 4 Gl i ant\n[A BY wrzimniy] | Lz o\n£ JR 7 \\\\ me fi —\nEs : Te |\nER NL |\nEo ] EL i 4 E | J ie Ea\nSEN EE =3 EL > - =\nCL [ fa =\na a meen Sui = ers Ee\nee\n7 ans =\neee Se Se ama",
+        "confidence": 32,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 18,
+          "groupId": "6adf8c24ae2b2766f21a3f4d",
+          "questionNumbers": [
+            18
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f4d",
+          "questionNumbers": [
+            18
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/construction.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 217635,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/construction.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "fae i./\n——— A ry I i\na li 1\n= ~N | I $i Fete Hore NO.2905 3 Bi i 110\n= n / Ny - “] - a Pop. “Ther rs) [i\nRR\nLooe BERR ba THT 0\n\" Pe — = iain oe\n— es = —\" | 1 mE\n—— Efe HE JR— Sr\nhe Tg EARN\n——R JR— FA\ngm —_ 0) AE = =A\nBee. YN ——— 7 \\\n== 4 =S BT\nSm Re — ow 1\n- \\ b- 4 | —N == or [ CB S A\n; ERT wy © ;\nSS ie | 2\ni hs 4 )",
+        "confidence": 30,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "Pexels License"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 4,
+          "groupId": "6adf8c24ae2b2766f21a3f3f",
+          "questionNumbers": [
+            4
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "questionNumber": 4,
+          "groupId": "6adf8cbcbe0e746fa5baf424",
+          "questionNumbers": [
+            4
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f3f",
+          "questionNumbers": [
+            4
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8cbcbe0e746fa5baf424",
+          "questionNumbers": [
+            4
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/delivery.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 88075,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/delivery.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "- am i |\n\nIr y p | \\\n\n| » { |\n\n| ij |\n\n\\ | |\n\n=| ‘ f\nb hl “ou \\\nFEE <i |\n\n| f { |",
+        "confidence": 47,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "Pexels License"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 7,
+          "groupId": "6adf8c24ae2b2766f21a3f42",
+          "questionNumbers": [
+            7
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "questionNumber": 7,
+          "groupId": "6adf8ccdbe0e746fa5bafa88",
+          "questionNumbers": [
+            7
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f42",
+          "questionNumbers": [
+            7
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8ccdbe0e746fa5bafa88",
+          "questionNumbers": [
+            7
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/ev-charging-ai-v4.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 215111,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/ev-charging-ai-v4.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "il B p TH\na lie\n: 5\n{ - E i - : he\n| = at —\nLS —— | (4 TE\n= PA —\ni (\\ h = | ec - —— - Tr\noe: 5 pe SS sei Sey = % pron T\nBi : : -\nTL x a",
+        "confidence": 31,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 13,
+          "groupId": "6adf8c24ae2b2766f21a3f48",
+          "questionNumbers": [
+            13
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f48",
+          "questionNumbers": [
+            13
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/high-shelf-ai-v4.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 247073,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/high-shelf-ai-v4.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "—— iy 2 » Ki M i |\nYd | J | R—\ni f 9 : nN. LN um\net — - ob ) Lg Z| gd = a i\nf WT a wl i\n- - a \"5 i & A |= |\n4 — ME = 1 L\nMm ly (ass MES\nNTT ILL ey\n| Sen = |\n—_ Chl ~~ WT g \\\noN —- 1 EE Ce EE i [1 1 ==\n=-TTH J ep ==\nSLTCM | 1\n\"1 Eo — EE\n3 S i) A i = = » oa\naly I :\ng QL P=\n/ Ws L t\n. BN 4\nTY A Po",
+        "confidence": 34,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 15,
+          "groupId": "6adf8c24ae2b2766f21a3f4a",
+          "questionNumbers": [
+            15
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f4a",
+          "questionNumbers": [
+            15
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/housekeeping-ai-v4.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 309078,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/housekeeping-ai-v4.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "\"1 — i |\n| |\nNn :\nIN 3 >\nG4\n4\n~\n\\ |\n: oR \\ ¢\nAY 4 — Al\n[1 \\ /\n4 [ > = > -_ Ps\n| J 4 r ee RRRREBiB 2 cd -\n|\nEES ; EATER\n: \\\n, SSIAFEE GST\n{ 15 - | | ERIE FE SR\n— = i UL RT geen\nys EE\n| EY a a  ] \\ | SEER ge ee on\n3 Be. ~— SE alae. eS UEERE ERIS ER le\nA Tram bE CRO Cae aan a a\n| Borsa mc die sl eta eae aes\n5 oA ra sEsten agen Ee SS SE Ses EE ee te\n> - © SETI BER Te A hia) tT i a i ~ NET 3a Th Tp er GT et BS Ca Li",
+        "confidence": 31,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 14,
+          "groupId": "6adf8c24ae2b2766f21a3f49",
+          "questionNumbers": [
+            14
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f49",
+          "questionNumbers": [
+            14
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/library-cart-ai-v5.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 339696,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/library-cart-ai-v5.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "| all —————\n. Wp gy’\nri] E— (lL i Ne Ls\nI! I 4 J i » A\n= IR a |\n- 4 A. WH i ul wn\npr! I: 0 2/0 iy\n| Lr",
+        "confidence": 37,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 24,
+          "groupId": "6adf8c24ae2b2766f21a3f53",
+          "questionNumbers": [
+            24
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f53",
+          "questionNumbers": [
+            24
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/meeting-ai-v2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 279344,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/meeting-ai-v2.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "-\np= | Ez\n: we | — i\n) = — iH\n| ak\n| | | a | NS\n: 4 N= ¢ oo x — oN\npS WIP 3 SF y ul 7 - 4\n; , 0) N \\ v \\ / ) = / -—— - F nN\n| 2 y i b y )\nao ’ SE IN ; /\n} 1 o ay — — 4\nEE / - = a Cy\n= _ gs —_—-\n8 == pr 2 % _— we fl\n— PLAN\n= a\n= — w= es \\\n= == == 7, CC RE\n= - yd EA . ie\n= 3 ro “AEE EER\n= } w 7 hit EE\n= EEE\nfF EA a.",
+        "confidence": 38,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f3c",
+          "questionNumbers": [
+            1
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "questionNumber": 1,
+          "groupId": "6adf8cbbbe0e746fa5baf409",
+          "questionNumbers": [
+            1
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f3c",
+          "questionNumbers": [
+            1
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8cbbbe0e746fa5baf409",
+          "questionNumbers": [
+            1
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/package-tape-ai-v5.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 236720,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/package-tape-ai-v5.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "3 :\n4 |\n“a \\ : = i |\nVe “+f | I og i\n-\n) ;\n2 Le v5 !\n\\ \\ ou\nFe SE. J| i\nPy =a | R*) ——, 2 m= _—\n- Ea > I i\n=— = | 4 hy _- i\n== i = Zi.\nT= =|\n= — A | Ea = =\n: - =\na | Se",
+        "confidence": 43,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 20,
+          "groupId": "6adf8c24ae2b2766f21a3f4f",
+          "questionNumbers": [
+            20
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f4f",
+          "questionNumbers": [
+            20
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/plants-ai-v3.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 292526,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/plants-ai-v3.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "py | ——\n= : J y) 'A Vi 5 B-| |, - - | -\n‘ : ve » d 14 L \\\ni | \"1B ay / p= If = ==\nS$ all LA i IN\nL 4 =] 3 J = |\nEg / = | : he 179) 985.\n4 Fo | ER. N I =1\niN y WW PN Pr /,\nRB | [VE WEN, TL /-.\nEs » ON \\ i 7 2 - “= ZB\na1 | 5 A [ip 7 a CT a 3 : # z\n; al | g= Pm. Zi\nny . aN > .\n| | ! —— ’] |\n<= : QC — \". —\na. I.",
+        "confidence": 34,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 12,
+          "groupId": "6adf8c24ae2b2766f21a3f47",
+          "questionNumbers": [
+            12
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "questionNumber": 12,
+          "groupId": "6adf8ccebe0e746fa5bafab5",
+          "questionNumbers": [
+            12
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f47",
+          "questionNumbers": [
+            12
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8ccebe0e746fa5bafab5",
+          "questionNumbers": [
+            12
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/printer-ai-v2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 232417,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/printer-ai-v2.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "¥ RR\n|\n| &\n?\n\\ Cd | ]\n—\n— oe\nx |\nnam : ]\n| an\n—= - Foy / A\n= / 5 I / SP 8\n| F\n| | a,\n( I i a\n1 i\nEa ede Smee Se er oad\nPP CENT RR a gs ae ERNE 3\nSE aa en ee a a] aN\nJoa eee =\ncE es a a 0. ; |\n=e J Raiden, x 2\n-. Sa — Fa oT. SE and\nahaa aan 0 cn TR To Co CS ee SE Ea\naE oes nn Se ea le Bae a",
+        "confidence": 26,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 6,
+          "groupId": "6adf8c24ae2b2766f21a3f41",
+          "questionNumbers": [
+            6
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "questionNumber": 6,
+          "groupId": "6adf8cbcbe0e746fa5baf436",
+          "questionNumbers": [
+            6
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f41",
+          "questionNumbers": [
+            6
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8cbcbe0e746fa5baf436",
+          "questionNumbers": [
+            6
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/reception-ai-v3.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 221273,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/reception-ai-v3.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "| 2 «7 > = b-\ni | 5 E>\nal lh je 4\n- va Sy | EN)\npe) | Yaa “NW\nml \\ fo = | |Z\na i \\ a “i\n. A ha f 3 3 : 55 p y\n= 5 : . S.\\ en — S.\n5\n? ond] a5 £3",
+        "confidence": 38,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 9,
+          "groupId": "6adf8c24ae2b2766f21a3f44",
+          "questionNumbers": [
+            9
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "questionNumber": 9,
+          "groupId": "6adf8ccdbe0e746fa5bafa9a",
+          "questionNumbers": [
+            9
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f44",
+          "questionNumbers": [
+            9
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8ccdbe0e746fa5bafa9a",
+          "questionNumbers": [
+            9
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/restaurant-ai-v2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 252888,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/restaurant-ai-v2.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "F “- E -—, 4\ney ~ - ==\ni = - —— o> - ~\na =¥\n| | 5 ST i ) | |\nid ST § J Wes J\n| | TE og,\n2 7 14 adh 5 ) A\nAN = w A\n- | 1 — — E | 3 a = BA u\n7 rr — q i/ ! Sa \\ |\nLs ¥ __ ag TT [ | : im\ni —\ndE | {| | ——\nly A 7 A \\ ) | | pe \\ ———\nLo Pf | 1 & —\n: : i\n141\" Eau",
+        "confidence": 40,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 5,
+          "groupId": "6adf8c24ae2b2766f21a3f40",
+          "questionNumbers": [
+            5
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "questionNumber": 5,
+          "groupId": "6adf8cbcbe0e746fa5baf42d",
+          "questionNumbers": [
+            5
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f40",
+          "questionNumbers": [
+            5
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8cbcbe0e746fa5baf42d",
+          "questionNumbers": [
+            5
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/solar-ai-v3.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 402130,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/solar-ai-v3.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "= . = a\nee vk — Ta a\n> ui a 7 7;\n: 7% ~~ rE EY ev’ re. fs",
+        "confidence": 26,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 10,
+          "groupId": "6adf8c24ae2b2766f21a3f45",
+          "questionNumbers": [
+            10
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "questionNumber": 10,
+          "groupId": "6adf8ccebe0e746fa5bafaa3",
+          "questionNumbers": [
+            10
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f45",
+          "questionNumbers": [
+            10
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8ccebe0e746fa5bafaa3",
+          "questionNumbers": [
+            10
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/station.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 299567,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/station.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "% VS NE RT Rea\n\"Sy %. JZ > - S&e & \\, —\nBa SZ Ko Xg =\n/ 8 = z re RN —]\nSete p<? ah rN —\nnm -§ - u = 7 Py | ae . \\ ===\n| Is I & 2  < ———=\n1 fomsiy ok ID £4 ; 7) = Se, > Se a, =\nCrem 3 71 en IS Pe CT SG TG, ees —\noe lf mmm BES co BL C 45 =t¢ LE: a . . Ls 550\n+. [amma ipsa vo fl CL AC 7 TNL Re :\nmusa QW), a WEE Ol J eS es ee LL ERAS\n= Lee bl ( Riel GL | aN ee 5 TT Se Ea\ney | SASS 3 TERE a a Airis.\ni |X mrs % Wi Jog alll chi [ff , Bip BL ie ED\nSO == | Jr (8a i = o LEE) Tay EE Wh ,\n“28 bs ¥ Rl TREE k= HH) Miele\n<2 J is bE - Fe il [ || EAs ae ==,\n1 a4 ef OL EE ah Ls Ll — =a “8\n—_— ih : x od Ripe 47 =x » TT aaa i\n: — a re 4\nmally EEE Ae a\n? en U2 iE — at) WL\npa 8 nL = —— = Lag od\nwd 8 2 = mm lB\na — Eg = Ha ’ oa Ds Sr ——\nES oe PARENTS / 2 ii\nae 4 EA\nee Wis le. Cl",
+        "confidence": 28,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "Pexels License"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 8,
+          "groupId": "6adf8c24ae2b2766f21a3f43",
+          "questionNumbers": [
+            8
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "questionNumber": 8,
+          "groupId": "6adf8ccdbe0e746fa5bafa91",
+          "questionNumbers": [
+            8
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f43",
+          "questionNumbers": [
+            8
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 2 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8ccdbe0e746fa5bafa91",
+          "questionNumbers": [
+            8
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/thermostat-ai-v5.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 213016,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/thermostat-ai-v5.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "| — a\n-\n\\ al N\nB -\n| y 2\n1 a /\ny\n»’ 4\n— &\n= —\n- -\n5 “- at\nRSL =\n- ™ A ed -—\n| 7\ngf go LV 3,\nAREAS Se NG op SA I Sad ome\npi EEE NN “A\nDUNE ERR ~~\nBRR CE NGS = ye\ni EE TR a 33\nEA EE RR EEN\ni fic FRE ERD Nrzema NRE A\nes EE EE EET REE SE TY\nHn % IRR ANY NRE REE =\nEEE SO ERR RE pe ;\nch EERE EE Re =\nrE AR ERE ET RR ER = eed\ni rg BE TH EE EE ARRAN ERY ae\n[HERE SEAR oh A LLL Sao\nFo SE ERNIE Re et Piae  i\nJ lee a EE EERO RE EN\ndete a ENTER HE RNR LW\nfea ER ERR TTR hs TA = N\nJ sea EE ERR AE ER TR ER RR RE ERR ER a Ne a at a",
+        "confidence": 27,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 21,
+          "groupId": "6adf8c24ae2b2766f21a3f50",
+          "questionNumbers": [
+            21
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f50",
+          "questionNumbers": [
+            21
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/training-room-ai-v5.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 403264,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/training-room-ai-v5.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "es SN EN >”\n— = > = 2\n. — :\n. a ee a ee —\n~\n— _ |\n5 [\npL |\n|\ng\nFD |\n— —\n—_— mmm— —\n- = 1 ; ml | [ Fro\n& = i i i\na § abs En)\n= | | or | a\na | AN Ji | en Lah fas\n— A VE [AN =\n] -—— | 4 RE hay\nZ| vr J gg BVA AA\nwe 2 ose on) Oh Eee\nTAD gS i el i fiir idl DOH AY Er ERAT ORR\nve. se 4 Se a EEE GREER BRR\nae gd ne NR RNR EN\n= Me co ce eT ERO RE RRR\n_ ~ i rr ol Zi oo i Foy ARE \\ NL Lo\na gl a ne EE ERA\noo fF ob ERE AS\n- . a hn dl NE Re NERS\na hi ba RY LOAN RR\nco Le NSE\n- . a 1 SRT AE ARR\nge NL",
+        "confidence": 29,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 22,
+          "groupId": "6adf8c24ae2b2766f21a3f51",
+          "questionNumbers": [
+            22
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f51",
+          "questionNumbers": [
+            22
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/transit-map-ai-v4.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 327031,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/transit-map-ai-v4.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "[ | a. a\nmF Ee ET i SAL : 7 Xe ; Xe Be sf\n- 1o4 Es & i» sR ww a ! 1 3 .\n> it 3 x For ‘4 y e oe\non A FF 23 = i) 1 %a XA -\n| he 2, ol i [Aa | » - ash as / Pls: Vil — =\n— on - # V1 E& 7 : me | —— [8\n1 ~Ta bh \\ 0\n== { | \\ i 3 / [3 |\n-~ i i 7 sik : ‘ [ e 3 bE |\na EY Oe i I — : |\n| T=. i — -— | 1\n| | We\n— | | | { r Jo = -\nwm —_—— eS\nA —",
+        "confidence": 37,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 16,
+          "groupId": "6adf8c24ae2b2766f21a3f4b",
+          "questionNumbers": [
+            16
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f4b",
+          "questionNumbers": [
+            16
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/warehouse.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 176022,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/warehouse.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "ws — i A\nae LN ORD i, rt\n\n| AER BY 7a\n\n- I Rk A - an / J >\nVEE: a = NO PB\nE\\ sat n % £ CAN Sf\n— al | ay as AFT AN fe\n\n_ RES , HAY\n\n\\ REE ro? 3 LM WAS 4a \\\nA Kadai f/x\na = ih » ah\n\n: dhe 9",
+        "confidence": 31,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "Pexels License"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 2,
+          "groupId": "6adf8c24ae2b2766f21a3f3d",
+          "questionNumbers": [
+            2
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "questionNumber": 2,
+          "groupId": "6adf8cbbbe0e746fa5baf412",
+          "questionNumbers": [
+            2
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "Pexels License"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f3d",
+          "questionNumbers": [
+            2
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Full Test · 1 (published)",
+          "partNumber": 1,
+          "groupId": "6adf8cbbbe0e746fa5baf412",
+          "questionNumbers": [
+            2
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/public/toeic-question-ocean/part1/window-measure-ai-v4.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "local",
+        "mime": "",
+        "bytes": 242910,
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/public/toeic-question-ocean/part1/window-measure-ai-v4.jpg"
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "| | ii I\n| { a ERURRARRLY I |\ni | | 0 pn’ ii wl\nRS i ge | Wo i —— - | /\nYe ol 1B a: 3 | i of | 3\nCai x v oy | - LE | 4\nom ™ \\ | 5, SAFES Kole ol | | ’\n| & fs ,\n| B _— a",
+        "confidence": 40,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [
+          "本專案原創模擬素材"
+        ],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "question",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "questionNumber": 17,
+          "groupId": "6adf8c24ae2b2766f21a3f4c",
+          "questionNumbers": [
+            17
+          ],
+          "passageIndex": null,
+          "imageLicenses": [
+            "本專案原創模擬素材"
+          ],
+          "explicitEditPermission": false
+        },
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC Question Ocean · a940bb8b479e (draft)",
+          "partNumber": 1,
+          "groupId": "6adf8c24ae2b2766f21a3f4c",
+          "questionNumbers": [
+            17
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Hiển thị hợp lệ, chưa kết luận quyền sử dụng",
+        "reason": "NO_TEXT_DETECTED"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816621-935989622-4.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816621-935989622-4.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 1,
+          "groupId": "6ad4ff083ebf566e83d39092",
+          "questionNumbers": [
+            1,
+            1,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            4,
+            4,
+            4,
+            4,
+            5,
+            5,
+            6,
+            6
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816622-851070012-5.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816622-851070012-5.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 1,
+          "groupId": "6ad4ff083ebf566e83d39092",
+          "questionNumbers": [
+            1,
+            1,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            4,
+            4,
+            4,
+            4,
+            5,
+            5,
+            6,
+            6
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816623-366739800-6.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816623-366739800-6.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 1,
+          "groupId": "6ad4ff083ebf566e83d39092",
+          "questionNumbers": [
+            1,
+            1,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            4,
+            4,
+            4,
+            4,
+            5,
+            5,
+            6,
+            6
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816637-702976372-7.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816637-702976372-7.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 1,
+          "groupId": "6ad4ff083ebf566e83d39092",
+          "questionNumbers": [
+            1,
+            1,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            4,
+            4,
+            4,
+            4,
+            5,
+            5,
+            6,
+            6
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816638-456873727-23.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816638-456873727-23.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff083ebf566e83d3937d",
+          "questionNumbers": [
+            147,
+            148
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816638-99173173-24.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816638-99173173-24.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff083ebf566e83d3938c",
+          "questionNumbers": [
+            149,
+            150
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816639-286086787-26.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816639-286086787-26.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff083ebf566e83d393a6",
+          "questionNumbers": [
+            153,
+            154
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816639-722249727-25.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816639-722249727-25.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff083ebf566e83d39397",
+          "questionNumbers": [
+            151,
+            152
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816640-789960293-27.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816640-789960293-27.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff083ebf566e83d393b5",
+          "questionNumbers": [
+            155,
+            156,
+            157
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816640-886163996-28.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816640-886163996-28.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff083ebf566e83d393ca",
+          "questionNumbers": [
+            158,
+            159,
+            160
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816655-526461325-29.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816655-526461325-29.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d393df",
+          "questionNumbers": [
+            162,
+            163
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816655-627381416-30.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816655-627381416-30.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d393ee",
+          "questionNumbers": [
+            164,
+            165,
+            166,
+            167
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816656-85559750-32.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816656-85559750-32.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d39409",
+          "questionNumbers": [
+            169,
+            170,
+            171
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816657-269863811-34.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816657-269863811-34.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d39439",
+          "questionNumbers": [
+            178,
+            179,
+            180
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816657-907672687-33.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816657-907672687-33.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d3941e",
+          "questionNumbers": [
+            172,
+            173,
+            174,
+            175
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816658-211967064-36.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816658-211967064-36.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d3944e",
+          "questionNumbers": [
+            183,
+            184,
+            185
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816658-636470058-38.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816658-636470058-38.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d39463",
+          "questionNumbers": [
+            188,
+            189,
+            190
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816659-679209497-39.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816659-679209497-39.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d39463",
+          "questionNumbers": [
+            188,
+            189,
+            190
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816660-221111681-40.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816660-221111681-40.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d39478",
+          "questionNumbers": [
+            193,
+            195
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816661-195123749-41.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816661-195123749-41.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d39478",
+          "questionNumbers": [
+            193,
+            195
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816662-964362144-42.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816662-964362144-42.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d39487",
+          "questionNumbers": [
+            198,
+            199,
+            200
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "/uploads/toeic-page-1792343816666-215296619-43.jpg",
+      "fetch": {
+        "ok": false,
+        "source": "local",
+        "code": "LOCAL_FILE_MISSING",
+        "error": "ENOENT",
+        "localPath": "/Users/vuthuan/english-course-web/backend/uploads/toeic-page-1792343816666-215296619-43.jpg"
+      },
+      "ocr": {
+        "state": "not-run",
+        "error": "",
+        "text": "",
+        "confidence": 0,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "Actual Test (published)",
+          "partNumber": 7,
+          "groupId": "6ad4ff093ebf566e83d39487",
+          "questionNumbers": [
+            198,
+            199,
+            200
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra thủ công",
+        "reason": "LOCAL_FILE_MISSING"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p1-1-1.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 68568
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Zenlish - Hoc a 1an Ia Dat\n= 3 | iE\nSN\nLN mm—\nBN CE. | »\nBe Ea A 4 g Eg a!\na -\n|\na |\nve. ll\nFAIA TELS",
+        "confidence": 41,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 1,
+          "groupId": "6ae0167d76808cbec843c759",
+          "questionNumbers": [
+            1
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p1-2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 113797
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "iL —— i T= To Ting\nal DEERE TE\nEE i=1 oo 51 I i Arr 7\nEe |= HraNE EYE 5 bi :\nB | RINE ET\n[ETE a Pe Mea\nCA ==. a BE\nWest AE hare = 1 2 iE\ni won LE S i gl\naks =\nTT Zenlish - Hoc rote S for\n/ | Se Yo y",
+        "confidence": 28,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 1,
+          "groupId": "6ae0167d76808cbec843c763",
+          "questionNumbers": [
+            2
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p1-3-1.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 110454
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "i =e oi = Pa To) = Ee\nby iE EET =r BE\nElon Saw [mal jad ~d\nSER, 7 LL RT) | Said\nBl ha Rn £.\n\n“> 3 , b-— \\ | gy S ~ WL 1\nahi 85 | © amp\n\nA { OT eee WS |\nTe = ae 1B",
+        "confidence": 32,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 1,
+          "groupId": "6ae0167e76808cbec843c76d",
+          "questionNumbers": [
+            3
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p1-4-1.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 113542
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Pra A die :\nKs a8, ERAT nn NY meg gle Pre\naia fc | EEE Tn\na SSS 4 gat = IE By Ee =\nRAH % mt Co —\nhee Nay si | i] I J 0)\nar 98 Ie TRE\nsell] i : TY\npr 4 ee ; Shs i oe A\n\n~ El 52a Pi Cie Ye\nzits SEE i he |\n: x T5 atl 1\n& SAN \"\n4 : : alk\n: — SUES) uy ais",
+        "confidence": 28,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 1,
+          "groupId": "6ae0167f76808cbec843c777",
+          "questionNumbers": [
+            4
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p1-5.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 87081
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "FES al\nWw U3 EE\n& (EEN\nr S——\nZenlish - Hoc TOEIC 1 14n la Dat ow\niad\ncome — 2X\na: es wr ba\n[+ U's Ca : =\ney far” PoSie ThE.\nEe 8 wee. Zl RZ",
+        "confidence": 32,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 1,
+          "groupId": "6ae0167f76808cbec843c781",
+          "questionNumbers": [
+            5
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p1-6.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 102187
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Cia AE\nEE EEE eG ee a\nAEE Le CE ERR Lae 4 s\ni SE\nPa § a a\ny Sy Ny Re r 5 =P\neo eR . -\nE> = LIM wg “i TL op ee\n< ne” NY Mag nimi ei =D A ~ EY\nSATIRE 15 A 208 aN ~ a a,\nRN Te\n— SE SRR\nme —\na\n‘ SE :",
+        "confidence": 23,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 1,
+          "groupId": "6ae0168076808cbec843c78b",
+          "questionNumbers": [
+            6
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": null
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p6-131-134.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 61921
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 131-134 refer to the following flyer.\nLook to Riessler Landscaping for your Garden Needs\nRiessler Landscaping has everything you need to create your dream garden. We wil listen to your\nideas and offer suggestions thal mach your gardening desires. ~=- . The nursery here at\nRiessler Landscaping includes plants of many varieties and sizes that burst with eye-catching\ncolors year-round. You are guaranteed to find something that will add = to your garden. We\nare oa equipped to construct small ponds or other water features. And as our name suggests,\nwe can take on more ambitious landscaping projects—whatever you need! With more than 40\nyears in the landscape—design business, kts expertise is unmatched.",
+        "confidence": 90,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 6,
+          "groupId": "6ae016ad76808cbec843cbca",
+          "questionNumbers": [
+            131,
+            132,
+            133,
+            134
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p6-135-138.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 64910
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 135-138 refer to the following letter.\n\n10 January\nCindy Mulligan\n88 Manchester Road\n\nZanlsh Hoc TOEIC 1 tin a Dat\nHARROGATE\nHG82 2MJ\nDear Ms. Mulligan,\nWe are delighted to celebrate your 30th anniversary with Brandrix Distribution Centre. -—- . Your\ndedication, loyalty, and hard work have contributed greatly to our success over the years. We\nappreciate your commitment to excellence. Over the years, you = great nitive, creativity.\nand leadership.\nYou il be receiving a commemorative plague by post. We hope this token of our gratitude\nreminds you how much you mean to us.\nCongratulations on reaching this -=-. . Thank you for being part of our Brandi family.\nSincerely,\nLance Powar, Vice President of Human Resources\nBrandrix Distribution Centre",
+        "confidence": 84,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 6,
+          "groupId": "6ae016ad76808cbec843cbea",
+          "questionNumbers": [
+            135,
+            136,
+            137,
+            138
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p6-139-142.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 56667
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 139-142 refer to the following e-mail.\nTo: Kay Berman <kberman@xmail.com>\nFrom: Ali Chaleby <achaleby@ralenciadesign.com>\nDate: August 21\nSubject: Plans for living room\nAttachment: Samples\nDear Ms. Berman,\nMy design team is in the process of —r=- the plans for your living room. Based on cur last\nconversation, | have chosen different paints for the walls and borders. Please review the attached\nfile and decide whether you like those new If not, itis not oo late to make a change.\n7+ Your review will help us refine the design before we start.\nPlease lot know if you have any questions. | look forward to hearing from you.\nKind regards,\nAli Chaleby, Ralencia Design",
+        "confidence": 86,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 6,
+          "groupId": "6ae016ae76808cbec843cc0a",
+          "questionNumbers": [
+            139,
+            140,
+            141,
+            142
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p6-143-146.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 70342
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 143-146 refer to the following e-mail\nTo: Marsha Zalen <mzalen@mansfield.com>\nFrom: Kaymar PCP <info@kaymarpcp.com>\nDate: September 8\nSubject: Your recent office visit\nDear Ms. Zalen,\nThank you for your recent visit to Kaymar Primary Care Practice. We hope you found our\nservices =, and we welcome suggestions for improvement\nWe have posted a YVE of your consultation on our portal. Please take a moment to go through it\nand let us know if you have any questions.\nAs a reminder, you can log in o the portal fo various activites. ~~, you can make\nappointments and payments, view your medical history, review lab results, and request\nmedication refills “Je. + Rest assured that your personal information is safe and secure.\nWe thank you for your business and look forward to serving you again.\nKaymar Primary Care Practice",
+        "confidence": 89,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 6,
+          "groupId": "6ae016ae76808cbec843cc2a",
+          "questionNumbers": [
+            143,
+            144,
+            145,
+            146
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-147-148.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 53685
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 147-148 refer to the following notice.\nDear High View Apartments Resident,\nRiverside Paving Company is coming to High View Apartments on May 3 and 4 to\nresurface the parking area. All vehicles must be removed by 8 AM. on May 3 for the\nwork to commence. Residents may use the parking area again starting on May 5 at\n8 AM. We realize that trying to find another place to park is inconvenient, but it is\nnecessary for the hid to be completed in the two days scheduled. Note that all\nParking spaces will be widened. and some spaces could be moved during the work\nYou will receive an e-mail if your parking space is moved more than 20 meters\nfrom your previous one.\nThank you for your cooperation,\nJudith Alvarez, Property Manager",
+        "confidence": 93,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016af76808cbec843cc4a",
+          "questionNumbers": [
+            147,
+            148
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-149-150.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 87185
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 149-150 refer to the following text-message chain.\n°\nCarol Barger (10:45 A.M.)\nHello, Ms. Seang.\nLeakhena Seang (10:55 A.M.)\nGood morning!\nCarol Berger (11:15 A.M.)\nWe have fifteen participants enrolled in\nyour mosaic workshop tomorrow. That\nis five more than last summer. Your\nworkshops get more popular every\nyear! Do you have enough materials on\nand for that many participants?\nLeakhena Seang (11:23 A.M.)\nI'have plenty to go around. We'll be\ncreating mosaic designs using bits of\nsea glass | collected on my vacation last\nsummer. They are pieces of brown,\ngreen, and blue bottles that have\nwashed up on the beach. The sand has\nsmoothed all the sharp edges, so they're\nperfectly safe for everyone to use.\nCarol Barger (11:30 A.M.)\nSounds good. See you tomorrow at\nbreakfast.",
+        "confidence": 90,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016af76808cbec843cc5c",
+          "questionNumbers": [
+            149,
+            150
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-151-152.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 89660
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 151-152 refer to the following e-mail.\nFrom:\nDate:\nSuet:\nDear Team,\nAs announced in the Brighter Sails September newsletter, our performance has been\nconsistently strong this year. This is an accomplishment we can all be proud of. Please\ntake a moment to congratulate each other. We will continue to dream up new and\nexciting plans for the future!\nIn other news, Jasen Norton will transfer to our Kingston headquarters next month. We\nare sad to lose Mr. Norton, but we gratefully acknowledge his excellent work and wish\nhim continued success in his new role.\nThere will be a farewell luncheon for Mr. Norton on 28 October at 1 00 PM. in the\nsecond-floor conference room. Bring your good cheer and perhaps a story to share. The\ncompany will supply lunch, a cake, and decorations. Let me know by 12 October\nwhether you will be able to attend.\nSincerely,\nLaura Correa, Sales Manager\nBrighter Sails Ltd.",
+        "confidence": 93,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b076808cbec843cc6e",
+          "questionNumbers": [
+            151,
+            152
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-153-154.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 65746
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 153-154 refer to the following article.\n\nRefurbished Theater Gives\nTown a Boost\nBEACHVILLE (February 24)—Beachville\nresidents and tourists have a good reason to\ncelebrate. The 40-year-old Crown Coastal\n‘Theater is scheduled to reopen in June. Many\nwere saddened when the former theater\nowners decided to close the venue over a year\nago, citing the cost of needed renovations.\nFortunately, the theater has new owners who\nhave spent the last year updating the interior\n\nand the projection system.\n\nChristine Lafferty said that she and her\nchildhood friend Morgan Flanagan spent\nplenty of time at the theater while growing up.\n“Going to the movies is the thing to do on a\nrainy day in a seaside town. We were sorry to\nsee it close.” The friends, who also own the\npopular Blue Bay Bistro, decided to buy the\ntheater and make the necessary repairs to keep\nit a thriving business. For more information\nabout the theater and its upcoming events,\nvisit www.crowncoastaltheater.com.\nee",
+        "confidence": 91,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b076808cbec843cc80",
+          "questionNumbers": [
+            153,
+            154
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-155-157.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 106110
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 155-157 refer to the following e-mail.\nTo: Randi Longfellow <rlongfellow @sapphiremail.com.au>\nFrom: Deon Welman <deonwelman@ skyviewscopes.com.au>\nDate:\nSubject: Makatasi model METX-33948\nDear Ms. Longfellow,\nThank you for ordering the Makatasi ETX-Triple Refracting Telescope, model\nMETX33948. Unfortunately, the item you requested is on back order. — [1] —. If you\nwould prefer not to wait, we have a similar telescope made by another manufacturer,\nBelter Telescopes. Like the Makatasi model you ordered, the Belter BTR-1483 has a\n120 mm aperture and a retractable lens hood. — [2] —. In addition, all Belter telescopes\ninclude a padded carrying case. The Belier BTR-1483 costs $200 less than the Makatasi\nMETX-33948\nIf you wish to revise your order, simply reply to this e-mail within 48 hours or go to\nour Web site to chat with a representative at hitp://www.skyviewscopes.com.au. We will\nthen change your order, refund $200 to your credit card, and ship your new telescope\novernight at no extra charge. — [3] —. Otherwise, we will notify you when the\nMakatasi model METX-33948 is back in stock and provide delivery information at that\npoint. — [4] —.\nBest regards.\nDeon Welman\nSales Representative, Skyview Scopes",
+        "confidence": 90,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b076808cbec843cc92",
+          "questionNumbers": [
+            155,
+            156,
+            157
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-158-160.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 87377
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 158-160 refer to the following e-mail.\nTo: Sun-Hi Myo <shmyo@sunmail.co.nz>\nFrom: Jan Delpit <jdelpit@hamerkoptech.co.nz>\nDate: |\nSubject: RE: Inquiry about job opening\nHello,\nThank you for your e-mail. I am currently on holiday and will return to the office on\n15 March. I wil respond to your message as soon as possible after I return,\nIf you require general assistance during my absence or have questions about the open\nposition in our sales department, please contact my assistant Sita Viswan at 04 555 0193 or\nsviswan@hamerkoptech.co.nz. For questions about specific Hamerkoptech software\nproducts, contact the customer service department at customerservice@hamerkoptech.co.nz.\nAdditionally, I am happy to announce that our new graphic design software program will\nbe released on 2 April. You can read more about the program at Hamerkoptech's newly\nredesigned Web site. www.hamerkoptech.co.nz. There, you may also sign up to receive our\nweekly newsletter by following the instructions on the home page.\nSincerely,\nJan Delpit",
+        "confidence": 91,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b176808cbec843ccab",
+          "questionNumbers": [
+            158,
+            159,
+            160
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-161-163.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 74742
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 161-163 refer to the following article\nVimalo Brands Enters a New Era vitamins and minerals. Now our customers\ncan enjoy the convenience of frozen food\nBy Yvette Maurer without sacrificing quality”\nVANCOUVER (2 August)—Vimalo Brands, Vimalo Brands has partnered with\nthe large consumer goods company thai Vancouver-area farms to obtain produce and\nmarkets popular nutritional-support and meat for the Nutridinna line. “By keeping\npersonal-care products, including our operations local, we avoid shipping\nPowerburst breakfast drinks and Honeysoft delays and can flash-freeze freshly harvested\nsoups and lotions, will soon offer something vegetables at their peak of ripeness.”\nnew for its customers: frozen foods. “Our Martens said. “Our customers benefit\nnew Nutridinna line is not just about further, since our products can be kept in the\nconvenience.” CEO Danitza Martens said freezer for up to six months.\" Nutridinna\nduring a press conference earlier today. foods will be available in supermarkets\n“Froren foods are not a new concept, but our _ beginning in November. Frozen fish and\nmethod of flash-freczing fresh produce and other seafood will be added early next year.\nmeats ensures that our products retain their\ntexture and flavour as well as their healthy",
+        "confidence": 83,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b176808cbec843ccc4",
+          "questionNumbers": [
+            161,
+            162,
+            163
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-164-167.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 111715
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 164-167 refer to the following advertisement.\nS ©\n\na NE. wie 4] i: rd\nAre you ready to work hard as part of a team of like-minded individuals? Are\nyou willing to put your education, your experience, and your imagination to\ngreat use? If 50, then we have the job for you. Karning Creative Designs is\nexpanding, and with our success comes your opportunity.\nKarning Creative Designs began ten years ago as a two-person operation set\nup in the home of our current CEO and founder Shirin Navani. Now located in\na beautiful loft in downtown Hollinson, our firm currently employs 25 full-time\nstaff members. At Karning, we design paper-based brochures, catalogs, ads,\nand posters for our clients. We are currently seeking qualified designers and\nartists who will shine in a fast-paced, collaborative environment.\nThe ideal candidate\n\n* Holds a degree in design, advertising, or graphic art—although several\n\nyears of direct experience may substitute for a degree\n\n+ Demonstrates a strong ability to work closely with colleagues\n\n* Maintains a critical eye for detail and precision\n\n* Consistently meets deadlines and can flourish under pressure\nGraphic design or related experience is a plus but not strictly necessary.\nIf you are ready to join our team, we want to meet you! Contact Salvador\nTomassin at 608-555-0144 for further details. All applications must be\nreceived by March 31.",
+        "confidence": 91,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b276808cbec843ccdd",
+          "questionNumbers": [
+            164,
+            165,
+            166,
+            167
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-168-171.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 73597
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 168-171 refer to the following article.\nNEW HAVEN (une )—Marco's Malian\nRestaurant on Frontage Road will be\nreopening in late June. It closed three months\nago after a water leak caused extensive\ndamage to the kitchen. A significant amount of\nwork needed to be done in the kitchen and\ndining areas. — [1] —. The restaurant will\naccommodate larger parties when it reopens\nDuring the past three months, many of the\nrestaurant’s employees were able to work at\nMarco's Italian Market, which is located on\nthe opposite side of the street. — [2] —. “The\nleak happened right before the market's busy\nseason started,” said Tom Marco, who owns\nboth businesses. “We needed to add staff there\ntemporarily, and I was happy to keep my\nrestaurant crew employed.” Most of those\nemployees have now returned to work in the\nrestaurant. — [3] —.\nMr. Marco has planned a grand reopening for\nJune 25. Guests will enjoy live music and a\nnew tasting menu. — [4] —. Reservations are\nrequired for the day of the celebration and can\nbe made by calling 203-555-0124. “We are\nexcited to be able to prepare our traditional\ndishes and welcome the community back\nagain,” stated Mr. Marco.",
+        "confidence": 88,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b276808cbec843ccfd",
+          "questionNumbers": [
+            168,
+            169,
+            170,
+            171
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-172-175.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 102129
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 172-175 refer to the following online chat discussion.\n[2]\nMarlys Barry (10:17 A.M.)\nThis is Ms. Barry from the data analysis department. | have included my colleague,\nMs. Choi. We're contacting you about your data request for the e-mail addresses of\nall account holders, sorted by age.\nAlexander Kubelski (10:17 A.M.)\nYes, how soon can you complete the request?\nMarlys Barry (10:18 A.M.)\nI have a question for you first. Do you really need the e-mail addresses of all\naccount holders? That would be a huge file. Or do you need the e-mail addresses\nof account holders only within a certain age-group?\nAlexander Kubelski (10:19 A.M.)\nI see what you mean. | want to e-mail account holders aged 55 to 65 to invite them\nto meet with a retirement planning expert. Do | have to submit a new project\nrequest form?\nBora Choi (10:21 A.M.)\nThat's not necessary, Mr. Kubelski. We can update your current request form for\nyou. You do not want to lose your place in the queue.\nAlexander Kubelski (10:21 A.M.)\nGreat, thank youl Is it possible for you to get me that list right away?\nMarlys Barry (10:22 A.M.)\nThere are several projects ahead of yours.\nAlexander Kubelski (10:23 A.M.)\n| was hoping to send out the e-mail invitations tomorrow.\nMarlys Barry (10:24 A.M.)\nWe will get to it as soon as we can.\n[¥]\n[# [+]",
+        "confidence": 92,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b376808cbec843cd1d",
+          "questionNumbers": [
+            172,
+            173,
+            174,
+            175
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-176-180-1.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 102831
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 176-180 refer to the following article and e-mail.\nTips for designing a Web site for a food-truch business\nOwners of food trucks move from place to place, within and between cities, as they\ncarry out their business, so they often rely on word of mouth or social media to\nattract customers. As a result, they may not build a Web site of their own. But in\nfact, by the very nature of their business, it is crucial that food truck owners have\na fixed place for the public to learn about them, order from them, contact them, etc.\nFurthermore, market research shows that a Web site can help build a loyal\ncustomer base. So, here are some tips for developing a great Web site for your food\ntruck.\nThe Home page should have bold graphics with your food truck's name. The text\nmust prominently display key information, such as your truck's locations and\noperating hours. Online forms with fields to fill out, such as reservation requests\nfor special events or services, give new visitors too much visual information. They\nare better incorporated as links or pop-up windows.\nThe Food Menu page needs attractive, high-definition images along with vivid and\nprecise text that describes each menu item in detail. Remember that your photos\nshould be big enough to look appealing on larger computer monitors.\nThe About Us page should include some text explaining your food truck's theme\nand concept, and some biographical data detailing your background in the food\nindustry.\nThe News page can include text informing visitors about seasonal food items and\n‘upcoming promotions or special events such as food festivals.",
+        "confidence": 92,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b376808cbec843cd3d",
+          "questionNumbers": [
+            176,
+            177,
+            178,
+            179,
+            180
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-176-180-2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 62856
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "To: Doug Abruzzo <dabruzzo@dzacreative.com>\n\nFrom: Ed Vale <evale@saffronmail.com>\n\nDate: March 29\n\nSubject: Feedback\n\nDear Mr. Abruzzo,\n\n‘Thank you again for creating the prototype Web site for my food-truck business. I just\nwanted to reiterate that it has gotten positive feedback from customers who have tested it.\n1 am so glad we followed the advice in that article you sent me about Web site design for\nfood trucks!\n\nAs we discussed in our phone call yesterday, we will move forward with the prototype\nWeb site and launch it as the official site on April 5. However, I still do not see the\ninformation I sent about our new promotion that will begin in mid-April, a free dessert\nwith any sandwich purchase. Please be sure to add this important information before we\nlaunch the site.\n\nRegards,\n\nEd",
+        "confidence": 91,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b376808cbec843cd3d",
+          "questionNumbers": [
+            176,
+            177,
+            178,
+            179,
+            180
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-181-185-1.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 106659
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 181-185 refer to the following e-mail and press release.\nTo: Manny Green <mgreen@rhba.com>\nFrom: John LaRose <jlarose @rilamore.edu>\nDue:\nSubject: Drilling notice\nDear Mr. Green:\nAs a courtesy, I am writing to you at the Red Hills Business Association, asking you to\nhelp me get the word out to your membership. It was announced in last month's Daily\nGazerte that Rilamore University is moving forward with its Net Zero Initiative. Within\nthree years, we expect to have geothermal wells installed and operational for the heating\nand cooling of our entire campus. Limiting the institution's reliance on fossil fuels has\nlong been a goal, and the new system is a significant step toward achieving that goal.\nOver the next month, we will conduct test drilling in several campus locations. If all\ngoes according to schedule, the crew will be drilling adjacent to the Red Hills Business\nDistrict and Oak Street Apartments starting Wednesday, June 5. We want to tell business\nowners and residents near the campus to expect a higher-than-usual noise level during\nthe two weeks we estimate it will take to complete the work. The work hours for the\ndrilling crew are 10 AM. to 3 PM. each day, Monday through Friday.\nWe apologize in advance for the inconvenience this may cause to our neighbors. Any\nquestions or concerns should be directed to me at 813-555-0123.\nJohn LaRose\nCommunity Liaison, Rilamore University Office of Communications",
+        "confidence": 92,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b476808cbec843cd64",
+          "questionNumbers": [
+            181,
+            182,
+            183,
+            184,
+            185
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-181-185-2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 47720
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "FOR IMMEDIATE RELEASE\n\nContact: Manny Green, mgreen@rhba.com\n\nRED HILLS (May 25)—The Red Hills Business Association is shifting the dates of\nits much-anticipated Lunch Hour Concert Series. Normally presented each Thursday\nin June, the four free concerts will instead take place cach Thursday in July. The\nlineup of artists remains unchanged—the Jaystone Jazz Trio will open the series on\nJuly 4, followed on successive Thursdays by Joss and the Jaybirds, Ray Starform, and\nthe Barklay Bass Quintet.\n\nAs usual, all three blocks of Oak Street will be closed to traffic, restaurants will serve\nlunch at outdoor tables, and local arts-and-crafts vendors will display their work on\nthe lawn of the Cultural Center. It is a beautiful celebration in the heart of a popular\nRed Hills neighborhood. We hope to sce you there!",
+        "confidence": 90,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b476808cbec843cd64",
+          "questionNumbers": [
+            181,
+            182,
+            183,
+            184,
+            185
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-186-190-1.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 72624
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 186-190 refer to the following advertisement, form, and review.\nLawal Home Service: Serving Southern California for over 40 years\n\nLawal Home Service provides roofing and solar solutions for Southern California\nresidents in Inglewood and the surrounding areas. In addition to roof replacement,\nwe offer a wide array of services, from attic insulation and gutter restoration to fixing\nleaks and installing solar panels.\n\nLawal Home Service prides itself on transparent communication and attention to\ndetail. Our project supervisors are always on-site to answer client questions, provide\nupdates, and ensure a safe and clean worksite. To request a free roofing diagnosis,\nvisit www.lawalhomeservice.com or call our booking agent at 310-555-0108.",
+        "confidence": 95,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b576808cbec843cd8b",
+          "questionNumbers": [
+            186,
+            187,
+            188,
+            189,
+            190
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-186-190-2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 119219
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Lawal Home Service Contact Form\nTrust the experts at Lawal Home Service to diagnose your roofing needs promptly\nand professionally. Please take a few minutes to complete the form with as much\ndetail as possible. Remember, all roofs installed by Lawal have a 25-year warranty.\ndgerson95@onyxmail.com\nAddress 820 North Acacia Street\nInglewood, CA 90301\nHow may we | During last week's windstorm, several roof shingles were torn\nhelp you? loose and need replacing. I am considering replacing the entire\nroof as it is over 30 years old, and water has begun to drip\nthrough the section over the patio. I would appreciate talking to\nsomeone who could tell me my options and provide an estimate.",
+        "confidence": 94,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b576808cbec843cd8b",
+          "questionNumbers": [
+            186,
+            187,
+            188,
+            189,
+            190
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-186-190-3.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 93383
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "= EE [4]\n\nNeighborhood Reviews: Lawal Home Service =\nKh kkk\n“I was very pleased with the thoroughness of their work.”\n\n| left a description of my problem with Lawal Home Service, and one of the company's\n\nestimators came to inspect my roof the very next day. After | decided to replace the\n\nroof, the Lawal Home Service crew was able to get to work the following week. Diana\n\nPerez was on-site for the whole job as promised and answered all my questions. Work\n\nwas started on December 19, and it was finished on December 20. Once the roofing\n\nwas finished, the crew did a great job cleaning up. They used two magnetic devices\n\nresembling lawnmowers and swept over my entire lawn to find any dropped roofing\n\nnails. | had never seen anything like that! | was very pleased with the thoroughness of\n\ntheir work.\n\n— Drew Gerson, Inglewood, CA o",
+        "confidence": 92,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b576808cbec843cd8b",
+          "questionNumbers": [
+            186,
+            187,
+            188,
+            189,
+            190
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-191-195-1.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 114283
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 191-195 refer to the following e-mails and form.\nOmar Balaji <obalaji@darbourycompany.com>\nJuanita Pereira <jpereira@bunbunbooks.com>\nDear Mr. Balaji,\nWe are expanding our office supply section at Bun Bun Books and would like to offer\na selection of blank notebooks with lined pages. We would like your help creating the\nfollowing cover designs.\nCover Design Central Image Background\nName Color\nGreat Thoughts | Lightbulb, lightning bolt, and star icons [Bue |\nWorld Suitcase Suitcase with country name travel stickers\nLavender Bouquet | Large bunch of lavender on tall, pale green stems\nSail Away Sun setting in the sky above a sailboat on a lake\nWe need to have notebooks in stock in time for our annual sale starting August 1.\nAfter approving the sample covers, when would we need to place our order?\nThank you,\nJuanita Pereira 5",
+        "confidence": 92,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b576808cbec843cdb2",
+          "questionNumbers": [
+            191,
+            192,
+            193,
+            194,
+            195
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-191-195-2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 88808
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "To: Juanita Pereira <jpereira@bunbunbooks.com>\n\nFrom: Omar Balaji <obalaji@darbourycompany.com>\n\nDate:\nSubject: Re: Notebook inquiry\n\nHello, Ms. Pereira,\n\n1 have shipped some sample notebook covers for your inspection. Unfortunately, I was not\nable to include one of the designs for your approval because it needed a late-stage change\nto the background color. The sticker art did not show up well against the original black\nbackground. We are testing a light-beige color. and I will send the updated sample cover\nto you after it has been approved internally.\n\n1 should have the last sample to you by the end of this week. As long as you send your\napproval of all covers by June 11, we will be able to ship your entire order of bound\nnotebooks before July 20. You will have everything before\"your sale that begins on\nAugust I. Please contact me if you have any questions.\n\nBest regards,\n\nOmar Balaji, Darboury Company",
+        "confidence": 92,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b576808cbec843cdb2",
+          "questionNumbers": [
+            191,
+            192,
+            193,
+            194,
+            195
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-191-195-3.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 59206
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Darboury Company\nOrder Form\n\nCustomer: Bun Bun Books\nShip by: July 15\nShipping method: Standard\nRequested delivery date: July 20\n\nProduct Description\nN3-GT | Standard-size spiral notebook Great Thoughts\nN3-WS Standard-size spiral notebook World Suitcase\nH3-LB | Small hardbound journal notebook | Lavender Bouquet\nH3-SA | Small hardbound journal notebook | Sail Away 150\nD1 Large metal display rack —- 1\n\n(holds standard-size spiral notebooks)",
+        "confidence": 88,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b576808cbec843cdb2",
+          "questionNumbers": [
+            191,
+            192,
+            193,
+            194,
+            195
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-196-200-1.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 96313
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "Questions 196-200 refer to the following e-mail, review, and notice.\nwe Ee\nFrom: Charlotte Black\nDate:\nSubjects\nDear Managers,\nIt is time to vote for the Wilson Autos Employee of the Month for September. Here are the\nnominees.\nErica Boyd has been with us for only a few months but has already shown great promise\nand is eager to learn new things.\nLauren Almahdi is very proactive. If something needs to be done, she will point it out to\na manager and volunteer to take care of it herself.\nNick Salehi found a glitch in our computer system and stopped us from incorrectly\nordering unnecessary inventory (thus saving us money).\nMax Rhodes has been especially helpful with training new hires. He is calm and patient\nand explains our procedures well.\nPlease respond to this e-mail by Friday with your vote. The winner must receive at least\nthree votes. The winner will be posted at our front desk and on our Web site next Monday.\nThanks,\nCharlotte Black\nGeneral Manager, Wilson Autos",
+        "confidence": 93,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b676808cbec843cdd9",
+          "questionNumbers": [
+            196,
+            197,
+            198,
+            199,
+            200
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-196-200-2.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 69780
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "https:/www.westchesterreviews.com —\n[a]\n\nWilson Autos (Westchester) |\n\nFkkkk\n\nMy wife and T just bought a new Excelera truck at the Wilson Autos Westchester\n\nlocation with the help of Erica Boyd. Even though she was new, she was very |\n\nknowledgeable about all the trucks on the lot that we wanted to test drive. The few |\n\nquestions she was unable to answer were quickly addressed by her mentor, Max.\n\nWe were very pleased with the customer service and even more delighted when the | |\n\ngeneral manager agreed to sell us the Excelera for the same price that a competing [|\n\ndealership was advertising. I highly recommend Wilson Autos if you are in the =|\n\nmarket for a new vehicle!\n\n—Henry Riggs, August 22\n\nZenlish - Hoc TOEIC 1 14n 12 Dat I=\n\n — 5 EE",
+        "confidence": 88,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b676808cbec843cdd9",
+          "questionNumbers": [
+            196,
+            197,
+            198,
+            199,
+            200
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    },
+    {
+      "url": "https://zenlishtoeic.vn/wp-content/uploads/2025/12/zenlish-p7-196-200-3.jpg",
+      "fetch": {
+        "ok": true,
+        "source": "remote",
+        "mime": "image/jpeg",
+        "bytes": 45057
+      },
+      "ocr": {
+        "state": "completed",
+        "text": "The employee of the month for September is ERICA BOYD!\n\nIn her three months at Wilson Autos, Erica has picked up new skills quickly and is\nalways trying to learn more. She has become very knowledgeable about our inventory\nand is able to share her knowledge with customers to complete sales. She has also\nbeen instrumental in encouraging satisfied customers to post comments on our social\nmedia pages. We received more great reviews in the past month than we did in the\nfour previous months combined!\n\nErica has received a $50 gift card to Alonzo's Restaurant as a thank-you for her\nexcellent work. Congratulations, Erica!",
+        "confidence": 92,
+        "averageWordConfidence": 0,
+        "words": [],
+        "brandWords": []
+      },
+      "brandDetections": [],
+      "permissions": {
+        "licenses": [],
+        "explicitEditPermission": false
+      },
+      "references": [
+        {
+          "kind": "group",
+          "assessmentTitle": "TOEIC TEST 1 - 2026 (published)",
+          "partNumber": 7,
+          "groupId": "6ae016b676808cbec843cdd9",
+          "questionNumbers": [
+            196,
+            197,
+            198,
+            199,
+            200
+          ],
+          "imageLicenses": [
+            ""
+          ],
+          "explicitEditPermission": false,
+          "passageIndex": 0
+        }
+      ],
+      "classification": {
+        "status": "Cần kiểm tra: dấu hiệu thương hiệu",
+        "reason": "BRAND_IN_SOURCE_URL"
+      }
+    }
+  ]
+}
