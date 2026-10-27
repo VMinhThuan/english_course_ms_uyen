@@ -1,9 +1,13 @@
 import axiosInstance from './axiosConfig.js';
 
-export const uploadFileToBlob = async (file, purpose, { originalName = file?.name } = {}) => {
+export const uploadFileToBlob = async (file, purpose, {
+  originalName = file?.name,
+  ticketPath = '/storage/uploads',
+  completePath = '/storage/uploads/complete',
+} = {}) => {
   if (!(file instanceof Blob)) throw new Error('Vui lòng chọn tệp hợp lệ.');
 
-  const ticketResponse = await axiosInstance.post('/storage/uploads', {
+  const ticketResponse = await axiosInstance.post(ticketPath, {
     purpose,
     originalName,
     mimeType: file.type,
@@ -23,7 +27,7 @@ export const uploadFileToBlob = async (file, purpose, { originalName = file?.nam
     throw new Error('Không thể tải tệp lên Vercel Blob. Hãy thử lại.');
   }
 
-  const completeResponse = await axiosInstance.post('/storage/uploads/complete', {
+  const completeResponse = await axiosInstance.post(completePath, {
     purpose,
     pathname: ticket.pathname,
     originalName,
