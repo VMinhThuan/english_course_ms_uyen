@@ -5,6 +5,8 @@ import {
   API_BASE_URL,
   PRODUCTION_API_URL,
   DEVELOPMENT_API_URL,
+  isAllowedApiUrl,
+  resolveApiBaseUrl,
 } from '../src/api/apiBaseUrl.js';
 
 test('apiBaseUrl exports valid defaults and resolves without trailing slashes', () => {
@@ -13,6 +15,47 @@ test('apiBaseUrl exports valid defaults and resolves without trailing slashes', 
   assert.ok(typeof API_BASE_URL === 'string' && API_BASE_URL.length > 0);
   assert.equal(API_BASE_URL.endsWith('/'), false, 'Base URL must not end with trailing slash');
 });
+
+test('isAllowedApiUrl filters out deprecated Vercel backend URLs', () => {
+  assert.equal(isAllowedApiUrl('https://english-course-ms-uyen.vercel.app/api/v1'), false);
+  assert.equal(isAllowedApiUrl('https://frontend-ru4l.vercel.app/api/v1'), false);
+  assert.equal(isAllowedApiUrl(''), false);
+  assert.equal(isAllowedApiUrl(null), false);
+  assert.equal(isAllowedApiUrl('https://api.toeicmsuyen.vn/api/v1'), true);
+  assert.equal(isAllowedApiUrl('http://localhost:5000/api/v1'), true);
+});
+
+test('resolveApiBaseUrl falls back to production API when legacy Vercel URL is passed in env', () => {
+  // Production with legacy Vercel env
+  const legacyProd = resolveApiBaseUrl({
+    PROD: true,
+    VITE_API_URL: 'https://english-course-ms-uyen.vercel.app/api/v1',
+  });
+  assert.equal(legacyProd, PRODUCTION_API_URL);
+
+  // Development with legacy Vercel env
+  const legacyDev = resolveApiBaseUrl({
+    PROD: false,
+    VITE_API_URL: 'https://english-course-ms-uyen.vercel.app/api/v1',
+  });
+  assert.equal(legacyDev, DEVELOPMENT_API_URL);
+
+  // Production without VITE_API_URL
+  const defaultProd = resolveApiBaseUrl({ PROD: true });
+  assert.equal(defaultProd, PRODUCTION_API_URL);
+
+  // Development without VITE_API_URL
+  const defaultDev = resolveApiBaseUrl({ PROD: false });
+  assert.equal(defaultDev, DEVELOPMENT_API_URL);
+
+  // Valid custom URL in dev or staging
+  const custom = resolveApiBaseUrl({
+    PROD: false,
+    VITE_API_URL: 'http://localhost:5000/api/v1/',
+  });
+  assert.equal(custom, 'http://localhost:5000/api/v1');
+});
+
 
 test('resolveMediaUrl correctly handles empty, external, local audio, and backend upload paths', () => {
   // Empty values
