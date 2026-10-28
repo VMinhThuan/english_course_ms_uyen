@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
-let cachedConnection = null;
+let connectingPromise = null;
 
 export const getDatabaseConnectionOptions = (env = process.env) => ({
     serverSelectionTimeoutMS: Number(env.MONGODB_TIMEOUT_MS) || (String(env.NODE_ENV || '').toLowerCase() === 'test' ? 5000 : 30000),
     connectTimeoutMS: Number(env.MONGODB_CONNECT_TIMEOUT_MS) || (String(env.NODE_ENV || '').toLowerCase() === 'test' ? 5000 : 30000),
-    bufferCommands: false,
+    bufferCommands: true,
     autoIndex: ['development', 'test'].includes(String(env.NODE_ENV || '').toLowerCase())
       && String(env.MONGOOSE_AUTO_INDEX || '').toLowerCase() === 'true',
 });
@@ -16,8 +16,8 @@ const connectDB = async () => {
         return mongoose.connection;
     }
 
-    if (cachedConnection) {
-        return cachedConnection;
+    if (connectingPromise) {
+        return connectingPromise;
     }
 
     const mongoURI = process.env.MONGODB_URI;
@@ -28,15 +28,19 @@ const connectDB = async () => {
         throw new Error(errorMsg);
     }
 
-    try {
-        const conn = await mongoose.connect(mongoURI, getDatabaseConnectionOptions());
-        cachedConnection = conn;
-        console.log(`✅ MongoDB Connected: ${conn.connection.name || conn.connection.host || 'ready'}`);
-        return conn;
-    } catch (error) {
-        console.error(`❌ MongoDB Connection Error: ${error.message}`);
-        throw error;
-    }
+    connectingPromise = mongoose.connect(mongoURI, getDatabaseConnectionOptions())
+        .then((conn) => {
+            connectingPromise = null;
+            console.log(`✅ MongoDB Connected: ${conn.connection.name || conn.connection.host || 'ready'}`);
+            return conn;
+        })
+        .catch((error) => {
+            connectingPromise = null;
+            console.error(`❌ MongoDB Connection Error: ${error.message}`);
+            throw error;
+        });
+
+    return connectingPromise;
 };
 
 export default connectDB;
