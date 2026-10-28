@@ -80,7 +80,7 @@ try {
   ]);
   const allVerified = verifiedItems.length === 110
     && seedItems.every((item) => hasSameContent(verifiedItems.find(({ number }) => number === item.number), item));
-  if (applying && (!allVerified || total !== 110 || visible !== 110)) {
+  if (applying && (!allVerified || total < 110 || visible < 110)) {
     throw new Error(`Post-import verification failed (total=${total}, visible=${visible}, verified=${verifiedItems.length}).`);
   }
 

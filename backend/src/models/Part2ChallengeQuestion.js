@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const part2ChallengeQuestionSchema = new mongoose.Schema({
-  number: { type: Number, required: true, min: 1, max: 110 },
+  number: { type: Number, required: true, min: 1, max: 9999 },
   questionText: { type: String, required: true, trim: true, maxlength: 1000 },
   choices: [{
     _id: false,
@@ -11,7 +11,7 @@ const part2ChallengeQuestionSchema = new mongoose.Schema({
   correctAnswer: { type: String, required: true, enum: ['A', 'B', 'C'] },
   script: { type: String, required: true, trim: true, maxlength: 4000 },
   translation: { type: String, required: true, trim: true, maxlength: 4000 },
-  audioFilename: { type: String, required: true, trim: true },
+  audioFilename: { type: String, default: '', trim: true },
   audioUrl: { type: String, default: '', trim: true },
   isVisible: { type: Boolean, default: true },
 }, { timestamps: true });

@@ -1,5 +1,6 @@
 export const BLOB_UPLOAD_FOLDERS = Object.freeze({
   part1Audio: 'audio-part1',
+  part2ChallengeAudio: 'audio-part2-challenge',
   vocabularyAudio: 'audio-voc',
   toeicTestImage: 'toeic-test-image',
   toeicTestAudio: 'toeic-test-audio',
@@ -8,6 +9,7 @@ export const BLOB_UPLOAD_FOLDERS = Object.freeze({
 
 const MEDIA_FOLDERS = Object.freeze([
   BLOB_UPLOAD_FOLDERS.part1Audio,
+  BLOB_UPLOAD_FOLDERS.part2ChallengeAudio,
   BLOB_UPLOAD_FOLDERS.vocabularyAudio,
   BLOB_UPLOAD_FOLDERS.toeicTestImage,
   BLOB_UPLOAD_FOLDERS.toeicTestAudio,

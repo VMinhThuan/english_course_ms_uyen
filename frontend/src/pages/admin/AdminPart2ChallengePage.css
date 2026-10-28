@@ -38,3 +38,19 @@
 .admin-part2-state{padding:24px;color:var(--brand-muted);text-align:center}
 .admin-part2-question :is(button,input,summary):focus-visible{outline:3px solid var(--brand-yellow);outline-offset:2px}
 @media(max-width:600px){.admin-part2-summary{grid-template-columns:1fr}.admin-part2-list{padding:15px}.admin-part2-question>summary{flex-wrap:wrap;gap:7px}.admin-part2-question>summary>small{width:100%;margin-left:25px}.admin-part2-question__body{padding:13px}}
+.admin-part2-editor{align-items:start}
+.admin-part2-editor form>label{display:grid;gap:7px;color:var(--brand-coffee);font-size:12px;font-weight:800}
+.admin-part2-editor :is(input,select,textarea){box-sizing:border-box;width:100%;min-width:0;min-height:42px;padding:9px 11px;border:1px solid var(--brand-border);border-radius:9px;background:#fffefa;color:var(--brand-text);font:13px var(--font-sans)}
+.admin-part2-editor input[type=file]{padding:8px;background:var(--brand-bg-sub)}
+.admin-part2-editor textarea{resize:vertical;line-height:1.55}
+.admin-part2-editor :is(input,select,textarea):focus-visible,.admin-part2-search input:focus-visible{outline:3px solid var(--brand-yellow);outline-offset:2px}
+.admin-part2-form-row{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(150px,1fr);gap:12px}
+.admin-part2-form-row label{display:grid;gap:7px;color:var(--brand-coffee);font-size:12px;font-weight:800}
+.admin-part2-editor input:disabled{background:var(--brand-bg-sub);color:var(--brand-muted)}
+.admin-part2-choice-fields>label{display:grid;grid-template-columns:32px minmax(0,1fr);align-items:center;gap:9px;color:var(--brand-coffee);font-size:12px;font-weight:800}
+.admin-part2-choice-fields>label span{display:grid;width:28px;height:28px;place-items:center;border-radius:50%;background:var(--brand-bg-sub)}
+.admin-part2-choice-fields input{font-weight:400!important}
+.admin-part2-editor .part1-editor-actions{flex-wrap:wrap}
+.admin-part2-item-actions{justify-content:flex-start}
+.admin-part2-item-actions .ds-button--danger{border:1px solid var(--brand-danger-border)}
+@media(max-width:600px){.admin-part2-form-row{grid-template-columns:1fr}.admin-part2-editor .part1-editor-actions{flex-direction:column-reverse;align-items:stretch}.admin-part2-item-actions{flex-direction:column}.admin-part2-item-actions button{width:100%}}
