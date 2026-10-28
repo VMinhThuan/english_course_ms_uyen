@@ -73,7 +73,22 @@ const useAuthStore = create((set) => ({
 
   restoreSession: async () => {
     set({ isLoading: true });
+    const localToken = localStorage.getItem('accessToken');
     try {
+      if (localToken) {
+        // If an access token exists, verify it with getMe() first.
+        // If expired, axiosInstance response interceptor automatically handles refresh and retries.
+        const response = await authApi.getMe();
+        set({
+          user: response.data.user,
+          isAuthenticated: true,
+          isLoading: false,
+          hasInitializedAuth: true,
+        });
+        return { success: true };
+      }
+
+      // If no local access token, try restoring from httpOnly refresh cookie
       await authApi.refreshToken();
       const response = await authApi.getMe();
       set({
