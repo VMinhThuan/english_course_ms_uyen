@@ -1,4 +1,4 @@
-name: Deploy backend to Long Van
+name: Deploy backend to Long Van via Explicit FTPS
 
 on:
   push:
@@ -9,37 +9,45 @@ on:
   workflow_dispatch:
     inputs:
       deploy:
-        description: 'Deploy after verification (use only after the remote preflight has been approved)'
+        description: 'Upload after the read-only preflight and cPanel confirmation.'
         required: true
         default: false
         type: boolean
+      release_ref:
+        description: 'Optional known-good commit SHA for a controlled redeploy.'
+        required: false
+        type: string
 
 permissions:
   contents: read
 
-# Do not allow two releases to overwrite each other or roll back a newer release.
 concurrency:
-  group: production-backend-deploy
+  group: production-backend-ftps-deploy
   cancel-in-progress: false
 
 env:
-  APP_ROOT: /home/toeicmsuyenvn/apps/english-course/backend
-  NODE_VENV: /home/toeicmsuyenvn/nodevenv/apps/english-course/backend/22
+  # FTP paths are relative to the authenticated FTP account home directory.
+  APP_PATH_RELATIVE: apps/english-course/backend
+  EXPECTED_DOMAIN: api.toeicmsuyen.vn
+  EXPECTED_STARTUP_FILE: app.js
+  EXPECTED_NODE_VERSION: 22.23.4
   HEALTH_URL: https://api.toeicmsuyen.vn/health
 
 jobs:
   verify:
-    name: Verify backend
+    name: Verify backend on Node 22.23.4
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_ref || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.12.0'
+          node-version: '22.23.4'
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
@@ -49,202 +57,131 @@ jobs:
       - name: Run offline security regression tests
         run: npm run test:phase1
 
-  remote-preflight:
-    name: Check SSH and Node.js Selector
+  preflight:
+    name: Verify CloudLinux target, FTPS mapping, and public domain
     needs: verify
-    # Keep production deployment opt-in until SSH, cPanel registration, and the
-    # Passenger startup file have been verified. Set the repository variable to
-    # true only after the checklist in docs/DEPLOYMENT_LONGVAN.md is complete.
+    # A manual run with deploy=false is read-only. Pushes only reach this job
+    # after the separate production gate has been enabled deliberately.
     if: >-
-      vars.BACKEND_DEPLOY_ENABLED == 'true' ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch' ||
+      vars.BACKEND_FTPS_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     env:
-      SSH_HOST: ${{ secrets.LONGVAN_SSH_HOST }}
-      SSH_PORT: ${{ secrets.LONGVAN_SSH_PORT }}
-      SSH_USER: ${{ secrets.LONGVAN_SSH_USER }}
-      SSH_PRIVATE_KEY: ${{ secrets.LONGVAN_SSH_PRIVATE_KEY }}
-      SSH_KNOWN_HOSTS: ${{ secrets.LONGVAN_SSH_KNOWN_HOSTS }}
+      FTPS_HOST: ${{ secrets.LONGVAN_FTPS_HOST }}
+      FTPS_USER: ${{ secrets.LONGVAN_FTPS_USER }}
+      FTPS_PASSWORD: ${{ secrets.LONGVAN_FTPS_PASSWORD }}
+      # These values are an explicit, reviewed record of the configuration
+      # shown in cPanel -> Setup Node.js App. CloudLinux Node.js Selector does
+      # not expose that registration through cPanel PassengerApps UAPI.
+      SELECTOR_DOMAIN: ${{ vars.CLOUDLINUX_NODE_SELECTOR_DOMAIN }}
+      SELECTOR_APP_ROOT: ${{ vars.CLOUDLINUX_NODE_SELECTOR_APP_ROOT }}
+      SELECTOR_STARTUP_FILE: ${{ vars.CLOUDLINUX_NODE_SELECTOR_STARTUP_FILE }}
+      SELECTOR_NODE_VERSION: ${{ vars.CLOUDLINUX_NODE_SELECTOR_NODE_VERSION }}
+      SELECTOR_MODE: ${{ vars.CLOUDLINUX_NODE_SELECTOR_MODE }}
+      SELECTOR_VERIFIED: ${{ vars.CLOUDLINUX_NODE_SELECTOR_VERIFIED }}
     steps:
-      - name: Configure verified SSH host key
+      - name: Check required secrets and reviewed Node.js Selector target
         shell: bash
         run: |
           set -Eeuo pipefail
-          : "${SSH_HOST:?Missing LONGVAN_SSH_HOST}"
-          : "${SSH_PORT:?Missing LONGVAN_SSH_PORT}"
-          : "${SSH_USER:?Missing LONGVAN_SSH_USER}"
-          : "${SSH_PRIVATE_KEY:?Missing LONGVAN_SSH_PRIVATE_KEY}"
-          : "${SSH_KNOWN_HOSTS:?Missing LONGVAN_SSH_KNOWN_HOSTS}"
-          install -d -m 700 ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
+          : "${FTPS_HOST:?Missing LONGVAN_FTPS_HOST}"
+          : "${FTPS_USER:?Missing LONGVAN_FTPS_USER}"
+          : "${FTPS_PASSWORD:?Missing LONGVAN_FTPS_PASSWORD}"
 
-      - name: Verify remote path, permissions, and Node 22 virtual environment
+          [[ "$SELECTOR_VERIFIED" == 'true' ]] \
+            || { echo 'CloudLinux configuration has not been explicitly reviewed in cPanel.' >&2; exit 21; }
+          [[ "$SELECTOR_DOMAIN" == "$EXPECTED_DOMAIN" ]] \
+            || { echo "Refusing target: expected Node.js Selector domain $EXPECTED_DOMAIN." >&2; exit 22; }
+          [[ "$SELECTOR_APP_ROOT" == "$APP_PATH_RELATIVE" ]] \
+            || { echo "Refusing target: expected application root $APP_PATH_RELATIVE." >&2; exit 23; }
+          [[ "$SELECTOR_STARTUP_FILE" == "$EXPECTED_STARTUP_FILE" ]] \
+            || { echo "Refusing target: expected startup file $EXPECTED_STARTUP_FILE." >&2; exit 24; }
+          [[ "$SELECTOR_NODE_VERSION" == "$EXPECTED_NODE_VERSION" ]] \
+            || { echo "Refusing target: expected Node.js $EXPECTED_NODE_VERSION." >&2; exit 25; }
+          [[ "$SELECTOR_MODE" == 'production' ]] \
+            || { echo 'Refusing target: Node.js Selector must be in production mode.' >&2; exit 26; }
+
+      - name: Verify authenticated explicit-FTPS path mapping without writing
         shell: bash
         run: |
           set -Eeuo pipefail
-          ssh -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" bash -s -- "$APP_ROOT" "$NODE_VENV" <<'REMOTE'
-          set -Eeuo pipefail
-          app_root="$1"
-          node_venv="$2"
+          # curl validates the FTPS certificate; do not add --insecure/-k.
+          # A successful listing proves that this authenticated FTP home maps
+          # exactly to apps/english-course/backend, not merely to a similarly
+          # named local path.
+          curl --fail --silent --show-error --ftp-ssl-reqd --list-only \
+            --user "$FTPS_USER:$FTPS_PASSWORD" \
+            "ftp://$FTPS_HOST:21/$APP_PATH_RELATIVE/" >/dev/null
 
-          test -d "$app_root" || { echo "Application root does not exist: $app_root" >&2; exit 10; }
-          test -w "$app_root" || { echo "Application root is not writable: $app_root" >&2; exit 11; }
-          test -r "$node_venv/bin/activate" || { echo "Node Selector activation script is missing: $node_venv/bin/activate" >&2; exit 12; }
-          command -v rsync >/dev/null || { echo "rsync is not available to the cPanel user; request it from Long Van before enabling deployment." >&2; exit 15; }
-          if [ -e "$app_root/tmp" ] && [ ! -w "$app_root/tmp" ]; then
-            echo "Passenger restart directory is not writable: $app_root/tmp" >&2
-            exit 13
+          # Confirm the actual upload target contains the Selector startup
+          # file. This is read-only and never reads .env.
+          curl --fail --silent --show-error --ftp-ssl-reqd \
+            --user "$FTPS_USER:$FTPS_PASSWORD" \
+            "ftp://$FTPS_HOST:21/$APP_PATH_RELATIVE/$EXPECTED_STARTUP_FILE" \
+            | grep -Fq "./src/server.js"
+
+      - name: Verify the configured domain reaches the expected Node.js runtime
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          response="$(curl --fail --silent --show-error --connect-timeout 10 --max-time 20 "$HEALTH_URL")"
+          if printf '%s' "$response" | jq -e \
+            '.status == "success" and .env == "production"' >/dev/null 2>&1; then
+            echo 'Domain is already serving the backend production health route.'
+          elif [[ "$response" == *'It works!'* && "$response" == *"NodeJS $EXPECTED_NODE_VERSION"* ]]; then
+            # CloudLinux Selector's initial response is accepted only for the
+            # first code upload. The cPanel UI review and exact FTPS mapping
+            # above still bind this release to the reviewed application.
+            echo 'Domain is serving the CloudLinux Node.js Selector default response.'
+          else
+            echo 'Domain did not return the backend health JSON or the expected CloudLinux Node.js Selector response.' >&2
+            exit 27
           fi
 
-          # shellcheck disable=SC1090
-          source "$node_venv/bin/activate"
-          node_version="$(node --version)"
-          npm_version="$(npm --version)"
-          node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major === 22 && minor >= 12 ? 0 : 1)' \
-            || { echo "Expected Node >=22.12 and <23 after activation; found $node_version" >&2; exit 14; }
-
-          printf 'Remote SSH, write access, Node Selector activation, and Node %s are ready (npm %s).\n' "$node_version" "$npm_version"
-          REMOTE
-
   deploy:
-    name: Sync, install, and restart Passenger
-    needs: remote-preflight
+    name: Upload backend through explicit FTPS
+    needs: preflight
+    # Both gates are required. The default/unset value of either one prevents
+    # production writes, including on a push to main.
     if: >-
-      vars.BACKEND_DEPLOY_ENABLED == 'true' ||
-      (github.event_name == 'workflow_dispatch' && inputs.deploy == true)
+      vars.BACKEND_FTPS_DEPLOY_ENABLED == 'true' &&
+      vars.CLOUDLINUX_NODE_SELECTOR_VERIFIED == 'true' &&
+      (github.event_name == 'push' || inputs.deploy == true)
     runs-on: ubuntu-latest
-    env:
-      SSH_HOST: ${{ secrets.LONGVAN_SSH_HOST }}
-      SSH_PORT: ${{ secrets.LONGVAN_SSH_PORT }}
-      SSH_USER: ${{ secrets.LONGVAN_SSH_USER }}
-      SSH_PRIVATE_KEY: ${{ secrets.LONGVAN_SSH_PRIVATE_KEY }}
-      SSH_KNOWN_HOSTS: ${{ secrets.LONGVAN_SSH_KNOWN_HOSTS }}
-      BACKUP_ID: ${{ github.run_id }}-${{ github.sha }}
+    environment: longvan-production
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_ref || github.sha }}
 
-      - name: Configure verified SSH host key
+      - name: Upload backend through explicit FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.LONGVAN_FTPS_HOST }}
+          username: ${{ secrets.LONGVAN_FTPS_USER }}
+          password: ${{ secrets.LONGVAN_FTPS_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./backend/
+          server-dir: ./apps/english-course/backend/
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.env
+            **/.env/**
+            **/node_modules/**
+            **/uploads/**
+            **/data/**
+            **/logs/**
+            **/tmp/**
+            **/.deploy-backups/**
+            **/.deploy-staging/**
+
+      - name: State required CloudLinux Node.js Selector actions
         shell: bash
         run: |
           set -Eeuo pipefail
-          install -d -m 700 ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-      - name: Prepare isolated remote staging directory
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          ssh -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" mkdir -p "$APP_ROOT/.deploy-staging/$GITHUB_SHA"
-
-      - name: Upload release to an isolated staging directory
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          rsync --archive --compress --delete \
-            --exclude '.env' \
-            --exclude 'node_modules/' \
-            --exclude 'uploads/' \
-            --exclude 'data/' \
-            --exclude 'logs/' \
-            --exclude 'tmp/' \
-            --exclude '.git/' \
-            --exclude '.deploy-backups/' \
-            --exclude '.deploy-staging/' \
-            -e "ssh -p $SSH_PORT -o BatchMode=yes -o StrictHostKeyChecking=yes" \
-            backend/ "$SSH_USER@$SSH_HOST:$APP_ROOT/.deploy-staging/$GITHUB_SHA/"
-
-      - name: Back up code, synchronize release, install production dependencies, and restart Passenger
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          ssh -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" bash -s -- "$APP_ROOT" "$NODE_VENV" "$GITHUB_SHA" "$BACKUP_ID" <<'REMOTE'
-          set -Eeuo pipefail
-          app_root="$1"
-          node_venv="$2"
-          revision="$3"
-          backup_id="$4"
-          staging_dir="$app_root/.deploy-staging/$revision"
-          backup_dir="$app_root/.deploy-backups/$backup_id"
-
-          exclude_args=(
-            --exclude=.env --exclude=node_modules/ --exclude=uploads/ --exclude=data/
-            --exclude=logs/ --exclude=tmp/ --exclude=.git/ --exclude=.deploy-backups/ --exclude=.deploy-staging/
-          )
-          test -d "$staging_dir" || { echo "Release staging directory is missing: $staging_dir" >&2; exit 20; }
-          test ! -e "$backup_dir" || { echo "Refusing to overwrite existing backup: $backup_dir" >&2; exit 21; }
-
-          rollback() {
-            echo "Deployment failed; restoring code backup $backup_id" >&2
-            rsync --archive --delete "${exclude_args[@]}" "$backup_dir/code/" "$app_root/"
-            cd "$app_root"
-            # shellcheck disable=SC1090
-            source "$node_venv/bin/activate"
-            npm ci --omit=dev
-            mkdir -p tmp
-            touch tmp/restart.txt
-            echo "Rollback completed; Passenger restart requested." >&2
-          }
-          trap 'status=$?; trap - ERR; rollback || { echo "Rollback failed; inspect the backup above immediately." >&2; exit 2; }; exit "$status"' ERR
-
-          mkdir -p "$backup_dir/code"
-          rsync --archive "${exclude_args[@]}" "$app_root/" "$backup_dir/code/"
-          rsync --archive --delete "${exclude_args[@]}" "$staging_dir/" "$app_root/"
-
-          cd "$app_root"
-          # shellcheck disable=SC1090
-          source "$node_venv/bin/activate"
-          node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major === 22 && minor >= 12 ? 0 : 1)' \
-            || { echo "Activated Node is not >=22.12 and <23: $(node --version)" >&2; exit 22; }
-          npm ci --omit=dev
-
-          # cPanel/Passenger restarts a user application through this touch file;
-          # no PM2, Docker, sudo, or server-wide Apache restart is required.
-          mkdir -p tmp
-          touch tmp/restart.txt
-          trap - ERR
-          printf 'Release %s installed. Backup retained at %s\n' "$revision" "$backup_dir"
-          REMOTE
-
-      - name: Wait for Passenger and verify public health endpoint
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 \
-            --connect-timeout 10 --max-time 20 "$HEALTH_URL" | grep -q '"status":"success"'
-
-      - name: Roll back when public health verification fails
-        if: failure()
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          echo "Health check failed; restoring backup $BACKUP_ID."
-          ssh -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" bash -s -- "$APP_ROOT" "$NODE_VENV" "$BACKUP_ID" <<'REMOTE'
-          set -Eeuo pipefail
-          app_root="$1"
-          node_venv="$2"
-          backup_id="$3"
-          backup_dir="$app_root/.deploy-backups/$backup_id"
-          test -d "$backup_dir/code" || { echo "No rollback backup found at $backup_dir/code" >&2; exit 30; }
-          exclude_args=(
-            --exclude=.env --exclude=node_modules/ --exclude=uploads/ --exclude=data/
-            --exclude=logs/ --exclude=tmp/ --exclude=.git/ --exclude=.deploy-backups/ --exclude=.deploy-staging/
-          )
-          rsync --archive --delete "${exclude_args[@]}" "$backup_dir/code/" "$app_root/"
-          cd "$app_root"
-          # shellcheck disable=SC1090
-          source "$node_venv/bin/activate"
-          npm ci --omit=dev
-          mkdir -p tmp
-          touch tmp/restart.txt
-          echo "Rollback completed and Passenger restart requested."
-          REMOTE
+          echo 'Upload completed. No PassengerApps API, npm install, or restart was attempted.'
+          echo 'In cPanel -> Setup Node.js App, select api.toeicmsuyen.vn / apps/english-course/backend, click Run NPM Install if dependencies changed, then click Restart.'
+          echo "Finally verify $HEALTH_URL returns status=success and env=production."

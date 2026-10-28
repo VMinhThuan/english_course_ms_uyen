@@ -1,77 +1,68 @@
-# Deploy backend to Long Vân (cPanel, CloudLinux Node.js Selector, Passenger)
+# Deploy backend to Long Vân through CloudLinux Node.js Selector
 
-The workflow at `.github/workflows/deploy-backend.yml` deploys only `backend/` to:
+The production workflow is [`deploy-backend.yml`](../.github/workflows/deploy-backend.yml). It uploads only `backend/` by **Explicit FTPS on port 21** to the cPanel-account-relative directory:
 
 ```text
-/home/toeicmsuyenvn/apps/english-course/backend
+apps/english-course/backend
 ```
 
-It is deliberately disabled until the hosting setup has been checked. It neither runs seeders/migrations nor connects to the database beyond the normal application start. It does not use Docker, PM2, `sudo`, or a server-wide Apache restart.
+It is deliberately fail-closed. Neither a push nor a manual run can write production unless both repository variables below equal `true` and the `longvan-production` GitHub Environment approves the job:
 
-## One-time hosting setup
+```text
+BACKEND_FTPS_DEPLOY_ENABLED=true
+CLOUDLINUX_NODE_SELECTOR_VERIFIED=true
+```
 
-Ask Long Vân to confirm all of the following for the **cPanel user `toeicmsuyenvn`**:
+## Why this does not call `PassengerApps`
 
-1. SSH/SFTP shell access is enabled for this user and allows public-key authentication from GitHub-hosted runners on the selected SSH port.
-2. CloudLinux **Node.js Selector** is available and supports Node.js **22.12+**.
-3. The application is registered for `api.toeicmsuyen.vn`, has application root `apps/english-course/backend`, and has Node.js 22 selected.
-4. Passenger is enabled for Node.js Selector, and the startup file is `app.js`. This repository supplies `backend/app.js`, which starts the existing `src/server.js` bootstrap.
-5. The virtual-environment activation file exists at `/home/toeicmsuyenvn/nodevenv/apps/english-course/backend/22/bin/activate`, and the cPanel user can read it.
-6. The cPanel user owns and can write the application root and its `tmp/` directory. Passenger must honor `tmp/restart.txt`; that is the restart mechanism used by this workflow.
-7. HTTPS for `https://api.toeicmsuyen.vn/health` routes to this application. The endpoint must return HTTP 200 with JSON containing `"status":"success"`.
+The account uses **CloudLinux Node.js Selector**, not cPanel Application Manager. `PassengerApps/list_applications` is therefore not an authoritative list of these applications: the observed success response (`status: 1`, empty `data`) does not prove that the Selector application is absent. The workflow does not call `PassengerApps/list_applications` or `PassengerApps/ensure_deps`.
 
-cPanel documents `tmp/restart.txt` as the user-level Passenger restart mechanism; touching it avoids requiring `sudo` or an Apache restart. See [cPanel’s Node.js installation guide](https://docs.cpanel.net/knowledge-base/web-services/how-to-install-a-node.js-application/).
+CloudLinux's supported controls are the **Setup Node.js App** UI, or (where a shell is available) `cloudlinux-selector`. The latter can list an account's Node apps, install their modules, and restart an app. See [CloudLinux command-line tools](https://docs.cloudlinux.com/cloudlinuxos/command-line_tools/) and [Node.js Selector UI](https://docs.cloudlinux.com/cloudlinuxos/lve_manager/).
 
-Configure the production runtime variables in the cPanel Node.js application environment, or retain the already-existing production `.env` in the application root. At minimum, this backend needs `MONGODB_URI`, `JWT_SECRET`, and `JWT_REFRESH_SECRET`; production CORS must also set `NODE_ENV=production` and the appropriate `FRONTEND_URL`/`FRONTEND_ORIGINS`. Do not put any of those values in GitHub Actions workflow files or in Git.
+## Required one-time cPanel review and GitHub variables
 
-## GitHub Actions configuration
+In cPanel **Software → Setup Node.js App**, open the existing application and verify these exact values before setting the variables:
 
-In GitHub, open **Settings → Secrets and variables → Actions**. Create these repository secrets:
+| cPanel field | Required value | GitHub repository variable |
+| --- | --- | --- |
+| Application URL | `api.toeicmsuyen.vn` | `CLOUDLINUX_NODE_SELECTOR_DOMAIN=api.toeicmsuyen.vn` |
+| Application root | `apps/english-course/backend` | `CLOUDLINUX_NODE_SELECTOR_APP_ROOT=apps/english-course/backend` |
+| Application startup file | `app.js` | `CLOUDLINUX_NODE_SELECTOR_STARTUP_FILE=app.js` |
+| Node.js version | `22.23.4` | `CLOUDLINUX_NODE_SELECTOR_NODE_VERSION=22.23.4` |
+| Mode | Production | `CLOUDLINUX_NODE_SELECTOR_MODE=production` |
+
+Set `CLOUDLINUX_NODE_SELECTOR_VERIFIED=true` only after that review. If any cPanel value changes, first reset it to `false`, update the matching variables, review again, and then re-enable it. This is a deliberate human confirmation because the available cPanel token API cannot read CloudLinux Selector registrations.
+
+The workflow also performs two independent, read-only checks on every preflight:
+
+1. Authenticated Explicit FTPS with normal certificate validation lists `apps/english-course/backend/` and reads `app.js` there. This verifies the FTP-account mapping to the exact application root; it never reads `.env`.
+2. `https://api.toeicmsuyen.vn/health` must return either the backend production health JSON or CloudLinux's `It works!` response for Node.js `22.23.4`. The second form is accepted only to permit the first source upload to an already-created Selector app; any other response fails the preflight.
+
+Together with the cPanel UI review, these checks prevent a similarly named FTP directory or an empty `PassengerApps` response from authorizing deployment to a different hosting target.
+
+## GitHub secrets
 
 | Secret | Value |
 | --- | --- |
-| `LONGVAN_SSH_HOST` | Long Vân SSH host name or IP address |
-| `LONGVAN_SSH_PORT` | SSH port, normally `22` but use the value from Long Vân |
-| `LONGVAN_SSH_USER` | `toeicmsuyenvn` |
-| `LONGVAN_SSH_PRIVATE_KEY` | A dedicated deploy-only Ed25519 private key; do not use a personal key |
-| `LONGVAN_SSH_KNOWN_HOSTS` | The verified host-key line(s) for `host:port`, obtained from Long Vân through a trusted channel |
+| `LONGVAN_FTPS_HOST` | `cpanelhn1.longvan.net` (or the hostname Long Vân supplies whose certificate matches) |
+| `LONGVAN_FTPS_USER` | A restricted deployment FTP account |
+| `LONGVAN_FTPS_PASSWORD` | Password for that account |
 
-Generate the dedicated key locally, then give **only its public key** to Long Vân for `~toeicmsuyenvn/.ssh/authorized_keys`:
+The preflight uses `curl --ftp-ssl-reqd`, so certificate validation remains enabled. Do not replace it with plain FTP or add `-k`/`--insecure`.
 
-```bash
-ssh-keygen -t ed25519 -a 100 -f ~/.ssh/toeicmsuyen_github_deploy -C github-actions-toeic-backend
-```
+## Safe release procedure
 
-Do not accept a host key merely by copying unauthenticated `ssh-keyscan` output. Obtain and verify the SSH host-key fingerprint with Long Vân first, then place the matching `known_hosts` line in `LONGVAN_SSH_KNOWN_HOSTS`.
+1. Run the workflow manually with `deploy=false`. It runs tests plus read-only Selector, FTPS, and health checks; it uploads nothing.
+2. After reviewing the result and the `longvan-production` approval policy, run it with `deploy=true`, or enable the two gates for controlled push deployment.
+3. Open the same application in cPanel **Setup Node.js App**. Click **Run NPM Install** if `package.json` or `package-lock.json` changed, then click **Restart**.
+4. Verify `https://api.toeicmsuyen.vn/health` reports `status: success` and `env: production`. The CloudLinux default response is not a completed release verification.
 
-Finally create repository variable `BACKEND_DEPLOY_ENABLED` with value `false` (or leave it unset). Once the first preflight is approved, change it to `true`. A push to `main` that changes `backend/**` then verifies the code and deploys automatically. Until then, workflow runs only the local `npm ci` and offline security tests.
+There is intentionally no automatic dependency installation or restart. CloudLinux documents **Run NPM Install** and **Restart** in the Selector UI; `cloudlinux-selector install-modules` and `cloudlinux-selector restart` are the shell equivalents. With only FTPS, GitHub Actions cannot invoke either command safely. It also does not send a `tmp/restart.txt` signal, because that signal has not been confirmed by this hosting configuration as the supported Selector restart mechanism.
 
-For the first remote check, use **Actions → Deploy backend to Long Van → Run workflow**, leave `deploy` set to `false`, and inspect the `Check SSH and Node.js Selector` job. It verifies SSH, exact paths, write access, `rsync`, the restart directory, activation script, and activated Node version before any code is uploaded. After reviewing that successful run and confirming the cPanel registration, enable automatic deployment with `BACKEND_DEPLOY_ENABLED=true`. A manual run with `deploy=true` also deploys after preflight, so use it only after the setup has been confirmed.
+The upload uses no clean slate and excludes `.env`, `node_modules`, `uploads`, `data`, `logs`, `tmp`, and old deployment directories. No database operation, migration, seeder, `.env` write, or automatic production deployment was performed while preparing this workflow.
 
-## Release safety and rollback
+## Recovery
 
-Before synchronization the workflow copies deployable code to:
+FTPS cannot provide a server-side atomic release switch or safe automatic rollback. If a release fails after the manual restart, leave the production gate disabled, inspect the Selector/Passenger logs in cPanel, and redeploy a known-good commit with `workflow_dispatch` and `release_ref`. Do not erase application data or regenerate `.env` as part of recovery.
 
-```text
-/home/toeicmsuyenvn/apps/english-course/backend/.deploy-backups/<GitHub-run-id>-<commit-sha>/code
-```
-
-It uses `rsync --delete` only for deployable code and always excludes `.env`, `.git/`, `uploads/`, `data/`, `logs/`, `tmp/`, `node_modules/`, and the deployment directories. Therefore environment secrets and mutable uploads/storage are retained. It installs locked production packages using the activated Node Selector environment and `npm ci --omit=dev`, then touches `tmp/restart.txt`.
-
-An install/sync failure restores the saved code automatically. A public health-check failure also restores it, reinstalls its locked production dependencies, and requests a Passenger restart. The workflow leaves the backup intact and prints its path. To perform the same rollback manually over SSH, replace `BACKUP_ID` with the failed run’s value:
-
-```bash
-APP_ROOT=/home/toeicmsuyenvn/apps/english-course/backend
-NODE_VENV=/home/toeicmsuyenvn/nodevenv/apps/english-course/backend/22
-BACKUP_ID='<run-id>-<commit-sha>'
-rsync -a --delete \
-  --exclude='.env' --exclude='node_modules/' --exclude='uploads/' --exclude='data/' \
-  --exclude='logs/' --exclude='tmp/' --exclude='.git/' --exclude='.deploy-backups/' --exclude='.deploy-staging/' \
-  "$APP_ROOT/.deploy-backups/$BACKUP_ID/code/" "$APP_ROOT/"
-cd "$APP_ROOT"
-source "$NODE_VENV/bin/activate"
-npm ci --omit=dev
-mkdir -p tmp && touch tmp/restart.txt
-```
-
-If the health endpoint does not recover after a rollback, inspect the application’s Passenger logs in the application `logs/` directory and ask Long Vân to verify the cPanel Node.js Selector/Passenger registration. Do not run database seeders, migrations, or destructive cleanup as part of recovery.
+If Long Vân later grants an SSH shell, use the supported CloudLinux commands to make the same root/domain verification and restart automatable; do not reintroduce `PassengerApps` as a proxy for the Selector application.
