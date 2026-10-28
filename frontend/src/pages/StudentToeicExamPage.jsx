@@ -782,7 +782,7 @@ export default function StudentToeicExamPage() {
           }
         }}
       />)}
-      {hasReadingMaterial && passages.map((passage, passageIndex) => <article className="toeic-exam-room__passage" key={passageIndex}>
+      {hasReadingMaterial && passages.map((passage, passageIndex) => <article className={`toeic-exam-room__passage toeic-exam-room__passage--part-${partNumber}`} key={passageIndex}>
         {passage.title && <h3>{passage.title}</h3>}
         {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => <ToeicImageWithBrandOverlay
           key={`${imageUrl}-${imageIndex}`}

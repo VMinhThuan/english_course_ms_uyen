@@ -18,6 +18,17 @@ const chapterKey = (card) => card?.catalogChapterId
   ? `catalog:${card.catalogTagId}:${card.catalogChapterId}`
   : String(card?.lesson?._id || card?.lesson?.id || '');
 
+const shuffle = (items) => {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled.every((item, index) => item === items[index])
+    ? [...items.slice(1), items[0]]
+    : shuffled;
+};
+
 async function loadCatalogChapters(tagId) {
   const first = await studentVocabularyCatalogApi.listChapters(tagId, { page: 1, limit: 100 });
   const chapters = [...(first.items || [])];
@@ -259,6 +270,18 @@ export default function FlashcardPage() {
     setFlipped(false);
   };
 
+  const shuffleCards = () => {
+    if (visibleCards.length < 2) return;
+    const shuffledVisibleCards = shuffle(visibleCards);
+    setCards((current) => {
+      if (!reviewOnly) return shuffledVisibleCards;
+      const reviewQueue = [...shuffledVisibleCards];
+      return current.map((item) => (bookmarked.has(chapterKey(item)) ? reviewQueue.shift() : item));
+    });
+    setIndex(0);
+    setFlipped(false);
+  };
+
   if (loading) return <div className="vocab-page"><div className="vocab-state" role="status">Đang tải flashcard...</div></div>;
   if (error && !cards.length) return <div className="vocab-page"><div className="vocab-error" role="alert">{error}</div><Link to={backHref}>{backLabel}</Link></div>;
   if (!cards.length) return <div className="vocab-page"><div className="vocab-state">{isCatalogContext ? 'Bộ từ vựng này chưa có Chapter được mở.' : isLessonContext ? 'Bài học này chưa có từ vựng.' : 'Bộ từ vựng này chưa có chapter.'}</div><Link to={backHref}>{backLabel}</Link></div>;
@@ -277,6 +300,9 @@ export default function FlashcardPage() {
           </button>
           <button type="button" className={reviewOnly ? 'active' : ''} aria-pressed={reviewOnly} onClick={() => changeView(true)}>
             ★ Đã đánh dấu <span>{markedCount}</span>
+          </button>
+          <button type="button" className="flashcard-shuffle-button" onClick={shuffleCards} disabled={visibleCards.length < 2} title="Trộn thứ tự để học ngẫu nhiên">
+            ↻ Trộn {card?.word ? 'từ' : 'chapter'}
           </button>
           {card && (
             <button type="button" className="chapter-bookmark-button" aria-pressed={isBookmarked} onClick={toggleBookmark}>

@@ -6,6 +6,9 @@
 .flashcard-view-controls button { min-height: 32px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; color: var(--brand-muted); font: 800 12px var(--font-sans); cursor: pointer; }
 .flashcard-view-controls button.active { background: var(--brand-surface); color: var(--brand-coffee); box-shadow: var(--shadow-subtle); }
 .flashcard-view-controls span { display: inline-grid; min-width: 17px; height: 17px; margin-left: 4px; place-items: center; border-radius: 999px; background: var(--brand-yellow-soft); color: var(--brand-warning); font-size: 10px; }
+.flashcard-view-controls .flashcard-shuffle-button { border:1px solid var(--brand-border); background:var(--brand-surface); color:var(--brand-coffee); }
+.flashcard-view-controls .flashcard-shuffle-button:hover:not(:disabled) { border-color:#e8c26f; background:var(--brand-yellow-soft); }
+.flashcard-view-controls .flashcard-shuffle-button:disabled { cursor:not-allowed; opacity:.48; }
 .flashcard { overflow: hidden; }
 .flashcard-bookmark { position: absolute; z-index: 3; top: 18px; right: 18px; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 11px; border: 1px solid var(--brand-border); border-radius: 999px; background: rgba(255,255,255,.94); color: var(--brand-muted); font: 800 12px var(--font-sans); box-shadow: 0 4px 14px rgba(75,64,53,.08); cursor: pointer; }
 .flashcard-bookmark:hover { border-color: #e8c26f; color: var(--brand-warning); }

@@ -210,7 +210,13 @@
 .toeic-exam-room__document { display: grid; gap: 1rem; }
 .toeic-exam-room__document > .toeic-stimulus-image { width: 100%; max-height: min(62vh, 680px); border-radius: 6px; box-shadow: none; }
 .toeic-exam-room__passage { padding: 1.15rem; border: 1px solid var(--brand-border); border-radius: 8px; background: var(--brand-surface); color: var(--brand-text); font-size: .94rem; line-height: 1.7; white-space: pre-wrap; }
+/* Part 6/7 passages are the learner's primary reading surface. Keep their
+   larger type scoped to reading material, without changing other stimuli. */
+.toeic-exam-room__passage--part-6,
+.toeic-exam-room__passage--part-7 { font-size: clamp(1rem, .88rem + .28vw, 1.12rem); line-height: 1.82; letter-spacing: .004em; }
 .toeic-exam-room__passage h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.toeic-exam-room__passage--part-6 h3,
+.toeic-exam-room__passage--part-7 h3 { font-size: 1.12em; }
 .toeic-exam-room__passage .toeic-stimulus-image { margin: 0 0 .8rem; max-height: none; box-shadow: none; }
 .toeic-exam-room__listening-placeholder { display: grid; min-height: 360px; place-content: center; gap: .65rem; color: var(--brand-muted); text-align: center; }
 .toeic-exam-room__listening-placeholder span { font-size: 3.2rem; }
