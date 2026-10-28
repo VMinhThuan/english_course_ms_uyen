@@ -441,7 +441,7 @@ export default function Part2ChallengePage() {
               {answerError && <p className="part2-challenge-answer__error" role="alert">{answerError}</p>}
               {isAnswerOpen && currentAnswer && (
                 <div className="part2-challenge-answer__content">
-                  <p><strong>Đáp án đúng: {currentAnswer.correctAnswer}</strong></p>
+                  <p className="part2-challenge-answer__correct"><strong>Đáp án đúng</strong><span>{currentAnswer.correctAnswer}</span></p>
                   <p><strong>Script</strong><span>{currentAnswer.script}</span></p>
                   <p><strong>Dịch nghĩa</strong><span>{currentAnswer.translation}</span></p>
                 </div>
@@ -467,7 +467,7 @@ export default function Part2ChallengePage() {
       )}
 
       {!isLoading && !loadError && sessionState === 'results' && (
-        <section className="part2-challenge-results">
+        <section className={`part2-challenge-results ${selectedMode === 'practice' ? 'is-practice' : 'is-exam'}`}>
           <header className="part2-challenge-results__header">
             <p className="part2-challenge-eyebrow">KẾT QUẢ BÀI LÀM</p>
             <h1>{selectedMode === 'practice' ? 'Kết quả các câu đã làm' : 'Đáp án Part 2 Challange'}</h1>
@@ -480,7 +480,7 @@ export default function Part2ChallengePage() {
             <article className="is-score"><span>Điểm</span><strong>{resultCounts.correct} / {reviewRows.length}</strong></article>
             <article className="is-correct"><span>Đúng</span><strong>{resultCounts.correct}</strong></article>
             <article className="is-incorrect"><span>Chưa đúng</span><strong>{resultCounts.incorrect}</strong></article>
-            <article><span>Chưa chọn</span><strong>{resultCounts.unanswered}</strong></article>
+            {selectedMode !== 'practice' && <article><span>Chưa chọn</span><strong>{resultCounts.unanswered}</strong></article>}
           </div>
 
           <div className="part2-challenge-review-tools">
@@ -491,7 +491,7 @@ export default function Part2ChallengePage() {
               {[
                 ['all', `Tất cả ${reviewRows.length}`],
                 ['incorrect', `Chưa đúng ${resultCounts.incorrect}`],
-                ['unanswered', `Chưa chọn ${resultCounts.unanswered}`],
+                ...(selectedMode === 'practice' ? [] : [['unanswered', `Chưa chọn ${resultCounts.unanswered}`]]),
                 ['correct', `Đúng ${resultCounts.correct}`],
               ].map(([filter, label]) => (
                 <button type="button" key={filter} aria-pressed={reviewFilter === filter} className={reviewFilter === filter ? 'is-active' : ''} onClick={() => setReviewFilter(filter)}>{label}</button>
@@ -506,8 +506,8 @@ export default function Part2ChallengePage() {
                 <div className="part2-challenge-review-item__top">
                   <strong>Câu {row.number}</strong>
                   <span className="part2-challenge-review-status">{answerStatuses[row.status]}</span>
-                  <span>Bạn chọn: <b>{row.selectedAnswer || '—'}</b></span>
-                  <span>Đáp án đúng: <b>{row.correctAnswer || '—'}</b></span>
+                  <span className="part2-challenge-review-answer is-selected">Bạn chọn <b>{row.selectedAnswer || '—'}</b></span>
+                  <span className="part2-challenge-review-answer is-correct">Đáp án đúng <b>{row.correctAnswer || '—'}</b></span>
                 </div>
                 {row.questionText && <p className="part2-challenge-review-question">{row.questionText}</p>}
                 <details>
