@@ -55,7 +55,7 @@ The preflight uses `curl --ftp-ssl-reqd`, so certificate validation remains enab
 1. Run the workflow manually with `deploy=false`. It runs tests plus read-only Selector, FTPS, and health checks; it uploads nothing.
 2. After reviewing the result and the `longvan-production` approval policy, run it with `deploy=true`, or enable the two gates for controlled push deployment.
 3. Open the same application in cPanel **Setup Node.js App**. Click **Run NPM Install** if `package.json` or `package-lock.json` changed, then click **Restart**.
-4. Verify `https://api.toeicmsuyen.vn/health` reports `status: success` and `env: production`. The CloudLinux default response is not a completed release verification.
+4. Verify `https://api.toeicmsuyen.vn/health` reports `status: success` and `env: production`, then verify `https://api.toeicmsuyen.vn/ready` returns HTTP 200 with `database: ready`. The health route is liveness-only; `/ready` is the required check that MongoDB is connected. The CloudLinux default response is not a completed release verification.
 
 There is intentionally no automatic dependency installation or restart. CloudLinux documents **Run NPM Install** and **Restart** in the Selector UI; `cloudlinux-selector install-modules` and `cloudlinux-selector restart` are the shell equivalents. With only FTPS, GitHub Actions cannot invoke either command safely. It also does not send a `tmp/restart.txt` signal, because that signal has not been confirmed by this hosting configuration as the supported Selector restart mechanism.
 

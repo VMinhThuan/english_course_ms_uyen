@@ -5,7 +5,11 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandler.js';
-import connectDB from './configs/database.js';
+import connectDB, {
+    createDatabaseReadinessMiddleware,
+    databaseUnavailableResponse,
+    isDatabaseReady,
+} from './configs/database.js';
 import { protectLegacyUpload, protectPrivateUpload, protectPublicUpload } from './middlewares/protectedUploads.js';
 import { getPublicUploadDir, getUploadDir } from './utils/uploadConfig.js';
 
@@ -126,24 +130,28 @@ app.get('/health', (req, res) => {
     });
 });
 
-// 3. Database connection middleware for API routes only
-app.use('/api', async (req, res, next) => {
-    // OPTIONS already handled by cors middleware
-    if (req.method === 'OPTIONS') {
-        return next();
-    }
+// Readiness is separate from liveness: a process can be healthy enough to
+// receive diagnostics while all database-backed API routes consistently 503.
+app.get('/ready', async (req, res) => {
     try {
-        await connectDB();
-        next();
-    } catch (err) {
-        console.error('Database connection error in /api middleware:', err.message);
-        return res.status(500).json({
-            status: 'error',
-            message: 'Database connection failed. Please check MONGODB_URI and ensure 0.0.0.0/0 is whitelisted in MongoDB Atlas Network Access.',
-            error: err.message,
+        // A readiness probe also makes a recovery attempt after an outage;
+        // it never runs an application query.
+        if (!isDatabaseReady()) await connectDB();
+        return res.json({ status: 'success', database: 'ready' });
+    } catch (error) {
+        console.error('Database is unavailable for readiness probe', {
+            errorName: error?.name || 'Error',
+            errorCode: typeof error?.code === 'string' ? error.code : undefined,
         });
+        res.set('Retry-After', '5');
+        return res.status(503).json(databaseUnavailableResponse);
     }
 });
+
+// 3. No database-backed route is allowed to reach a controller until Mongoose
+// confirms an active connection. In particular, login/register cannot call
+// User.findOne() during startup or an outage.
+app.use('/api', createDatabaseReadinessMiddleware());
 
 // 4. API Routes
 app.use('/api', signPrivateBlobResponse);

@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test:phase1": "node --test tests/phase1Security.test.js",
+    "test:database-readiness": "node --test tests/databaseReadiness.test.js tests/databaseReadinessApp.integration.test.js",
     "test:phase2": "node --test tests/phase2ExamEngine.test.js tests/phase2MaterialDownload.test.js tests/phase2FrontendDownload.test.js",
     "test:phase3": "node --test tests/phase3AttemptReporting.test.js tests/phase3Admin.integration.test.js",
     "test:phase4": "node --test tests/phase4Learning.integration.test.js",

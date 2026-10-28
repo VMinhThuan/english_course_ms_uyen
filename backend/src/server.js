@@ -22,7 +22,9 @@ if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
 
 const PORT = process.env.PORT || 3000;
 
-// Connect to database and start server
+// Attempt the initial connection before accepting traffic. We still open the
+// listener after a failed attempt so the readiness/API gates can return an
+// explicit 503 instead of leaving clients with a connection-refused error.
 connectDB()
     .then(() => {
         app.listen(PORT, () => {
@@ -31,9 +33,8 @@ connectDB()
         });
     })
     .catch((err) => {
-        console.error('Failed to connect to MongoDB:', err.message);
-        // Start server anyway in dev so endpoints can be tested or show error
+        console.error('Failed to connect to MongoDB; database-backed routes will return 503 until it recovers:', err.message);
         app.listen(PORT, () => {
-            console.log(`🚀 Server running on port ${PORT} (without DB connection)`);
+            console.log(`🚀 Server running on port ${PORT} (database unavailable)`);
         });
     });
