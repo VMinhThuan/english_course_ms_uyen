@@ -20,6 +20,7 @@ import { adminToeicRoutes, studentToeicRoutes } from './routes/toeicRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
 import { createBlobUploadTicket, completeBlobUpload } from './controllers/blobUploadController.js';
 import { adminPart1DictationRoutes, studentPart1DictationRoutes } from './routes/part1DictationRoutes.js';
+import studentPart2ChallengeRoutes from './routes/part2ChallengeRoutes.js';
 import { adminVocabularyDictationRoutes, studentVocabularyDictationRoutes } from './routes/vocabularyDictationRoutes.js';
 import { adminHardWordsDictationRoutes, studentHardWordsDictationRoutes } from './routes/hardWordsDictationRoutes.js';
 import { adminRoadToPart7Routes, studentRoadToPart7Routes } from './routes/roadToPart7Routes.js';
@@ -163,6 +164,7 @@ app.post('/api/v1/storage/uploads/complete', verifyToken, checkRole('admin', 'te
 app.use('/api/v1/toeic', studentToeicRoutes);
 app.use('/api/v1/admin/part1-dictations', adminPart1DictationRoutes);
 app.use('/api/v1/part1-dictations', studentPart1DictationRoutes);
+app.use('/api/v1/part2-challenge', studentPart2ChallengeRoutes);
 app.use('/api/v1/admin/vocabulary-dictations', adminVocabularyDictationRoutes);
 app.use('/api/v1/vocabulary-dictations', studentVocabularyDictationRoutes);
 app.use('/api/v1/admin/hard-words-dictations', adminHardWordsDictationRoutes);

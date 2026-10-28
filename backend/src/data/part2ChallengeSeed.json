@@ -1,0 +1,2642 @@
+[
+  {
+    "number": 1,
+    "questionText": "Do you need help with this computer?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, I’m having trouble running this program."
+      },
+      {
+        "letter": "B",
+        "text": "Well, I usually take a commuter train."
+      },
+      {
+        "letter": "C",
+        "text": "The one over there isn’t being used."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Do you need help with this computer?\n\n(A) Yes, I’m having trouble running this program.\n(B) Well, I usually take a commuter train.\n(C) The one over there isn’t being used.",
+    "translation": "Bạn có cần giúp đỡ với chiếc máy tính này không?\n\n(A) Có, tôi đang gặp khó khăn khi chạy chương trình này.\n(B) À, tôi thường đi tàu đi làm.\n(C) Chiếc ở đằng kia hiện không được sử dụng.",
+    "audioFilename": "Cau_001.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_001.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 2,
+    "questionText": "Does Ken work in the accounting or sales department?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "My e-mail account still works."
+      },
+      {
+        "letter": "B",
+        "text": "I think he’s in sales."
+      },
+      {
+        "letter": "C",
+        "text": "He preferred the first apartment."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Does Ken work in the accounting or sales department?\n\n(A) My e-mail account still works.\n(B) I think he’s in sales.\n(C) He preferred the first apartment.",
+    "translation": "Ken làm ở phòng kế toán hay phòng kinh doanh?\n\n(A) Tài khoản email của tôi vẫn hoạt động.\n(B) Tôi nghĩ anh ấy làm ở phòng kinh doanh.\n(C) Anh ấy thích căn hộ đầu tiên hơn.",
+    "audioFilename": "Cau_002.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_002.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 3,
+    "questionText": "Do I need to attend the safety training?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, it’s a requirement."
+      },
+      {
+        "letter": "B",
+        "text": "I’ll put it in the safe."
+      },
+      {
+        "letter": "C",
+        "text": "The company headquarters."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Do I need to attend the safety training?\n\n(A) Yes, it’s a requirement.\n(B) I’ll put it in the safe.\n(C) The company headquarters.",
+    "translation": "Tôi có cần tham gia buổi đào tạo an toàn không?\n\n(A) Có, đó là yêu cầu bắt buộc.\n(B) Tôi sẽ cất nó vào két sắt.\n(C) Trụ sở chính của công ty.",
+    "audioFilename": "Cau_003.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_003.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 4,
+    "questionText": "Will you be here tomorrow, or are you working at the branch office?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Because there’s a lot to do."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, they liked the work."
+      },
+      {
+        "letter": "C",
+        "text": "I’m here all week."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Will you be here tomorrow, or are you working at the branch office?\n\n(A) Because there’s a lot to do.\n(B) Yes, they liked the work.\n(C) I’m here all week.",
+    "translation": "Ngày mai bạn sẽ ở đây hay làm việc tại văn phòng chi nhánh?\n\n(A) Vì có nhiều việc phải làm.\n(B) Có, họ thích công việc đó.\n(C) Tôi ở đây cả tuần.",
+    "audioFilename": "Cau_004.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_004.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 5,
+    "questionText": "Did you ask Kelly if you could borrow the projector?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "This month’s projections seem low."
+      },
+      {
+        "letter": "B",
+        "text": "Take as much as you need."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, I asked her last week."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Did you ask Kelly if you could borrow the projector?\n\n(A) This month’s projections seem low.\n(B) Take as much as you need.\n(C) Yes, I asked her last week.",
+    "translation": "Bạn đã hỏi Kelly xem bạn có thể mượn máy chiếu không?\n\n(A) Các số liệu dự báo của tháng này có vẻ thấp.\n(B) Cứ lấy bao nhiêu tùy bạn cần.\n(C) Rồi, tôi đã hỏi cô ấy tuần trước.",
+    "audioFilename": "Cau_005.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_005.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 6,
+    "questionText": "Will you be paying with cash or by credit card?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "We play every Saturday."
+      },
+      {
+        "letter": "B",
+        "text": "I’ll use my credit card."
+      },
+      {
+        "letter": "C",
+        "text": "Let’s go by car."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Will you be paying with cash or by credit card?\n\n(A) We play every Saturday.\n(B) I’ll use my credit card.\n(C) Let’s go by car.",
+    "translation": "Bạn sẽ thanh toán bằng tiền mặt hay thẻ tín dụng?\n\n(A) Chúng tôi chơi vào mỗi thứ Bảy.\n(B) Tôi sẽ dùng thẻ tín dụng.\n(C) Chúng ta đi bằng ô tô nhé.",
+    "audioFilename": "Cau_006.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_006.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 7,
+    "questionText": "Will you be checking any baggage for today’s flight?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, I have one suitcase."
+      },
+      {
+        "letter": "B",
+        "text": "A one-way flight."
+      },
+      {
+        "letter": "C",
+        "text": "No, I bring food from home."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Will you be checking any baggage for today’s flight?\n\n(A) Yes, I have one suitcase.\n(B) A one-way flight.\n(C) No, I bring food from home.",
+    "translation": "Bạn có ký gửi hành lý cho chuyến bay hôm nay không?\n\n(A) Có, tôi có một chiếc va li.\n(B) Một chuyến bay một chiều.\n(C) Không, tôi mang thức ăn từ nhà.",
+    "audioFilename": "Cau_007.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_007.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 8,
+    "questionText": "Can you discuss the production quotas now or should we meet during lunch?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "The discussion was productive."
+      },
+      {
+        "letter": "B",
+        "text": "It’s about to launch."
+      },
+      {
+        "letter": "C",
+        "text": "Now is all right with me."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Can you discuss the production quotas now or should we meet during lunch?\n\n(A) The discussion was productive.\n(B) It’s about to launch.\n(C) Now is all right with me.",
+    "translation": "Bạn có thể thảo luận về chỉ tiêu sản xuất ngay bây giờ hay chúng ta nên gặp nhau vào giờ ăn trưa?\n\n(A) Cuộc thảo luận đã mang lại kết quả tốt.\n(B) Nó sắp được ra mắt.\n(C) Bây giờ thì tôi thấy được.",
+    "audioFilename": "Cau_008.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_008.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 9,
+    "questionText": "Did you go sightseeing when you were in Switzerland?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "That would be great."
+      },
+      {
+        "letter": "B",
+        "text": "I was too busy."
+      },
+      {
+        "letter": "C",
+        "text": "The Metropolitan Hotel."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Did you go sightseeing when you were in Switzerland?\n\n(A) That would be great.\n(B) I was too busy.\n(C) The Metropolitan Hotel.",
+    "translation": "Bạn có đi tham quan khi ở Thụy Sĩ không?\n\n(A) Như vậy thì tuyệt quá.\n(B) Tôi đã quá bận.\n(C) Khách sạn Metropolitan.",
+    "audioFilename": "Cau_009.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_009.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 10,
+    "questionText": "Are you interested in renting a place in the city or farther out of town?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "The rental price includes all utilities."
+      },
+      {
+        "letter": "B",
+        "text": "Somewhere near my office would be best."
+      },
+      {
+        "letter": "C",
+        "text": "It was a very interesting location."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Are you interested in renting a place in the city or farther out of town?\n\n(A) The rental price includes all utilities.\n(B) Somewhere near my office would be best.\n(C) It was a very interesting location.",
+    "translation": "Bạn muốn thuê một chỗ ở trong thành phố hay xa hơn ở ngoài thành phố?\n\n(A) Giá thuê đã bao gồm tất cả các khoản điện, nước và tiện ích.\n(B) Một nơi gần văn phòng của tôi là tốt nhất.\n(C) Đó là một địa điểm rất thú vị.",
+    "audioFilename": "Cau_010.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_010.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 11,
+    "questionText": "Will we need to make changes to the budget?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Here’s your change."
+      },
+      {
+        "letter": "B",
+        "text": "I couldn’t make it yesterday."
+      },
+      {
+        "letter": "C",
+        "text": "I think this is fine."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Will we need to make changes to the budget?\n\n(A) Here’s your change.\n(B) I couldn’t make it yesterday.\n(C) I think this is fine.",
+    "translation": "Chúng ta có cần điều chỉnh ngân sách không?\n\n(A) Đây là tiền thừa của bạn.\n(B) Hôm qua tôi không thể đến được.\n(C) Tôi nghĩ như thế này là ổn rồi.",
+    "audioFilename": "Cau_011.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_011.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 12,
+    "questionText": "Should we plan the company picnic for July, or wait until August?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Later would be better."
+      },
+      {
+        "letter": "B",
+        "text": "The service was great."
+      },
+      {
+        "letter": "C",
+        "text": "Sure, I’ll go with you."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Should we plan the company picnic for July, or wait until August?\n\n(A) Later would be better.\n(B) The service was great.\n(C) Sure, I’ll go with you.",
+    "translation": "Chúng ta nên lên kế hoạch tổ chức buổi dã ngoại công ty vào tháng Bảy hay đợi đến tháng Tám?\n\n(A) Để muộn hơn thì tốt hơn.\n(B) Dịch vụ rất tốt.\n(C) Được chứ, tôi sẽ đi cùng bạn.",
+    "audioFilename": "Cau_012.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_012.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 13,
+    "questionText": "Do you happen to know where the fitness center is?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "No, it doesn’t fit."
+      },
+      {
+        "letter": "B",
+        "text": "He’s in good condition."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, it’s around the corner."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Do you happen to know where the fitness center is?\n\n(A) No, it doesn’t fit.\n(B) He’s in good condition.\n(C) Yes, it’s around the corner.",
+    "translation": "Bạn có biết trung tâm thể hình ở đâu không?\n\n(A) Không, nó không vừa.\n(B) Anh ấy có thể trạng tốt.\n(C) Có, nó ở ngay chỗ rẽ góc phố.",
+    "audioFilename": "Cau_013.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_013.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 14,
+    "questionText": "Should we try to find this book at the store, or just buy it online?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I put them all up on the top shelf."
+      },
+      {
+        "letter": "B",
+        "text": "It’ll be hard to find in a local shop."
+      },
+      {
+        "letter": "C",
+        "text": "The author has written several books."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Should we try to find this book at the store, or just buy it online?\n\n(A) I put them all up on the top shelf.\n(B) It’ll be hard to find in a local shop.\n(C) The author has written several books.",
+    "translation": "Chúng ta nên thử tìm cuốn sách này ở cửa hàng hay mua trực tuyến luôn?\n\n(A) Tôi đã đặt tất cả chúng lên kệ trên cùng.\n(B) Sẽ khó tìm được nó ở cửa hàng địa phương.\n(C) Tác giả đã viết một vài cuốn sách.",
+    "audioFilename": "Cau_014.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_014.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 15,
+    "questionText": "Did Ms. Yang give you a copy of the sales report?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, but I haven’t looked at it yet."
+      },
+      {
+        "letter": "B",
+        "text": "I’ll see if the room is free."
+      },
+      {
+        "letter": "C",
+        "text": "Oh, is it on sale?"
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Did Ms. Yang give you a copy of the sales report?\n\n(A) Yes, but I haven’t looked at it yet.\n(B) I’ll see if the room is free.\n(C) Oh, is it on sale?",
+    "translation": "Cô Yang đã đưa cho bạn một bản báo cáo doanh số chưa?\n\n(A) Rồi, nhưng tôi vẫn chưa xem.\n(B) Tôi sẽ kiểm tra xem phòng có trống không.\n(C) Ồ, nó đang được giảm giá à?",
+    "audioFilename": "Cau_015.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_015.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 16,
+    "questionText": "Do I need a special pass to view this film screening, or is it open to the public?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "No, it’s at the same time."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, maybe a larger screen."
+      },
+      {
+        "letter": "C",
+        "text": "Everyone’s welcome to attend."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Do I need a special pass to view this film screening, or is it open to the public?\n\n(A) No, it’s at the same time.\n(B) Yes, maybe a larger screen.\n(C) Everyone’s welcome to attend.",
+    "translation": "Tôi có cần vé vào cửa đặc biệt để xem buổi chiếu phim này không, hay buổi chiếu mở cửa cho công chúng?\n\n(A) Không, nó diễn ra cùng thời điểm.\n(B) Có, có lẽ là một màn hình lớn hơn.\n(C) Mọi người đều được chào đón đến tham dự.",
+    "audioFilename": "Cau_016.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_016.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 17,
+    "questionText": "Is Doctor Jenkins accepting new patients?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Fourth door on the left."
+      },
+      {
+        "letter": "B",
+        "text": "No, but Doctor Smith is."
+      },
+      {
+        "letter": "C",
+        "text": "Oh, were they?"
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Is Doctor Jenkins accepting new patients?\n\n(A) Fourth door on the left.\n(B) No, but Doctor Smith is.\n(C) Oh, were they?",
+    "translation": "Bác sĩ Jenkins có nhận bệnh nhân mới không?\n\n(A) Cửa thứ tư bên trái.\n(B) Không, nhưng bác sĩ Smith thì có.\n(C) Ồ, họ đã như vậy à?",
+    "audioFilename": "Cau_017.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_017.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 18,
+    "questionText": "Do you want to sit in the cafeteria or on the patio outside?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "This is very good coffee."
+      },
+      {
+        "letter": "B",
+        "text": "Let’s stay indoors."
+      },
+      {
+        "letter": "C",
+        "text": "Pizza and a soda, please."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Do you want to sit in the cafeteria or on the patio outside?\n\n(A) This is very good coffee.\n(B) Let’s stay indoors.\n(C) Pizza and a soda, please.",
+    "translation": "Bạn muốn ngồi trong căng tin hay ở khu sân ngoài trời?\n\n(A) Cà phê này rất ngon.\n(B) Chúng ta ở trong nhà nhé.\n(C) Cho tôi pizza và một ly nước ngọt có ga.",
+    "audioFilename": "Cau_018.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_018.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 19,
+    "questionText": "Are you interested in joining the employee fitness center?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Three times a week."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, a membership fee."
+      },
+      {
+        "letter": "C",
+        "text": "I’ll think about it."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Are you interested in joining the employee fitness center?\n\n(A) Three times a week.\n(B) Yes, a membership fee.\n(C) I’ll think about it.",
+    "translation": "Bạn có muốn đăng ký tham gia trung tâm thể hình dành cho nhân viên không?\n\n(A) Ba lần một tuần.\n(B) Có, phí thành viên.\n(C) Tôi sẽ suy nghĩ về việc đó.",
+    "audioFilename": "Cau_019.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_019.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 20,
+    "questionText": "Do you want me to send Mr. Foster an e-mail or give him a call?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "It’s on the Web site."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, I know him."
+      },
+      {
+        "letter": "C",
+        "text": "Do you have his phone number?"
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Do you want me to send Mr. Foster an e-mail or give him a call?\n\n(A) It’s on the Web site.\n(B) Yes, I know him.\n(C) Do you have his phone number?",
+    "translation": "Bạn muốn tôi gửi email cho ông Foster hay gọi điện cho ông ấy?\n\n(A) Nó có trên trang web.\n(B) Có, tôi biết ông ấy.\n(C) Bạn có số điện thoại của ông ấy không?",
+    "audioFilename": "Cau_020.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_020.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 21,
+    "questionText": "Do you have any large cars available for rent?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’m sorry, we don’t."
+      },
+      {
+        "letter": "B",
+        "text": "Two forms of identification."
+      },
+      {
+        "letter": "C",
+        "text": "Fifty liters of petrol."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Do you have any large cars available for rent?\n\n(A) I’m sorry, we don’t.\n(B) Two forms of identification.\n(C) Fifty liters of petrol.",
+    "translation": "Bên bạn có xe ô tô cỡ lớn nào cho thuê không?\n\n(A) Xin lỗi, chúng tôi không có.\n(B) Hai loại giấy tờ tùy thân.\n(C) Năm mươi lít xăng.",
+    "audioFilename": "Cau_021.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_021.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 22,
+    "questionText": "Should I fold the newsletters in half, or leave them unfolded?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’ve only read half of it."
+      },
+      {
+        "letter": "B",
+        "text": "I usually fold them."
+      },
+      {
+        "letter": "C",
+        "text": "She’ll leave the file with you."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Should I fold the newsletters in half, or leave them unfolded?\n\n(A) I’ve only read half of it.\n(B) I usually fold them.\n(C) She’ll leave the file with you.",
+    "translation": "Tôi nên gấp đôi các bản tin hay để chúng không gấp?\n\n(A) Tôi mới chỉ đọc được một nửa.\n(B) Tôi thường gấp chúng lại.\n(C) Cô ấy sẽ để hồ sơ lại cho bạn.",
+    "audioFilename": "Cau_022.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_022.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 23,
+    "questionText": "Are you registered for the seminar on nutrition or the one on fitness?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’m hoping to go to both."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, it’s very healthy."
+      },
+      {
+        "letter": "C",
+        "text": "In the fitting room."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Are you registered for the seminar on nutrition or the one on fitness?\n\n(A) I’m hoping to go to both.\n(B) Yes, it’s very healthy.\n(C) In the fitting room.",
+    "translation": "Bạn đã đăng ký hội thảo về dinh dưỡng hay hội thảo về thể hình?\n\n(A) Tôi hy vọng sẽ tham dự cả hai.\n(B) Có, nó rất tốt cho sức khỏe.\n(C) Trong phòng thử đồ.",
+    "audioFilename": "Cau_023.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_023.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 24,
+    "questionText": "Has the budget estimate changed since we last discussed it?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "An interesting discussion."
+      },
+      {
+        "letter": "B",
+        "text": "The financial department."
+      },
+      {
+        "letter": "C",
+        "text": "Not that I know of."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Has the budget estimate changed since we last discussed it?\n\n(A) An interesting discussion.\n(B) The financial department.\n(C) Not that I know of.",
+    "translation": "Bản dự toán ngân sách có thay đổi gì kể từ lần cuối chúng ta thảo luận về nó không?\n\n(A) Một cuộc thảo luận thú vị.\n(B) Phòng tài chính.\n(C) Theo tôi được biết thì không.",
+    "audioFilename": "Cau_024.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_024.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 25,
+    "questionText": "Should we throw out these files or archive them for later use?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Let’s get rid of them."
+      },
+      {
+        "letter": "B",
+        "text": "Bernadette has one you can borrow."
+      },
+      {
+        "letter": "C",
+        "text": "I prepared it this afternoon."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Should we throw out these files or archive them for later use?\n\n(A) Let’s get rid of them.\n(B) Bernadette has one you can borrow.\n(C) I prepared it this afternoon.",
+    "translation": "Chúng ta nên bỏ những hồ sơ này đi hay lưu trữ chúng để dùng sau?\n\n(A) Chúng ta bỏ chúng đi nhé.\n(B) Bernadette có một cái mà bạn có thể mượn.\n(C) Tôi đã chuẩn bị nó chiều nay.",
+    "audioFilename": "Cau_025.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_025.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 26,
+    "questionText": "The lights will be replaced, won’t they?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "A lighter workload."
+      },
+      {
+        "letter": "B",
+        "text": "The supply cabinet."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, I’ll take care of it."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "The lights will be replaced, won’t they?\n\n(A) A lighter workload.\n(B) The supply cabinet.\n(C) Yes, I’ll take care of it.",
+    "translation": "Đèn sẽ được thay, đúng không?\n\n(A) Khối lượng công việc nhẹ hơn.\n(B) Tủ đựng vật tư.\n(C) Đúng, tôi sẽ lo việc đó.",
+    "audioFilename": "Cau_026.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_026.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 27,
+    "questionText": "Didn’t you send out the invitations already?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’d love to, thanks."
+      },
+      {
+        "letter": "B",
+        "text": "The last meeting of the year."
+      },
+      {
+        "letter": "C",
+        "text": "No, I’m doing it now."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Didn’t you send out the invitations already?\n\n(A) I’d love to, thanks.\n(B) The last meeting of the year.\n(C) No, I’m doing it now.",
+    "translation": "Chẳng phải bạn đã gửi thiệp mời đi rồi sao?\n\n(A) Tôi rất sẵn lòng, cảm ơn.\n(B) Cuộc họp cuối cùng của năm.\n(C) Chưa, tôi đang làm đây.",
+    "audioFilename": "Cau_027.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_027.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 28,
+    "questionText": "Haven’t you already been to that exhibition?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I didn’t see everything last time."
+      },
+      {
+        "letter": "B",
+        "text": "No, I put it in the bin."
+      },
+      {
+        "letter": "C",
+        "text": "I’d like to visit Egypt."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Haven’t you already been to that exhibition?\n\n(A) I didn’t see everything last time.\n(B) No, I put it in the bin.\n(C) I’d like to visit Egypt.",
+    "translation": "Bạn đã đến triển lãm đó rồi mà, phải không?\n\n(A) Lần trước tôi chưa xem hết mọi thứ.\n(B) Không, tôi đã bỏ nó vào thùng rác.\n(C) Tôi muốn đến thăm Ai Cập.",
+    "audioFilename": "Cau_028.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_028.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 29,
+    "questionText": "Shouldn’t we purchase more ink for the printer?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "It is getting low, isn’t it?"
+      },
+      {
+        "letter": "B",
+        "text": "On the bottom of each page."
+      },
+      {
+        "letter": "C",
+        "text": "She put them in alphabetical order."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Shouldn’t we purchase more ink for the printer?\n\n(A) It is getting low, isn’t it?\n(B) On the bottom of each page.\n(C) She put them in alphabetical order.",
+    "translation": "Chẳng phải chúng ta nên mua thêm mực cho máy in sao?\n\n(A) Mực sắp hết rồi, đúng không?\n(B) Ở cuối mỗi trang.\n(C) Cô ấy đã xếp chúng theo thứ tự bảng chữ cái.",
+    "audioFilename": "Cau_029.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_029.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 30,
+    "questionText": "You’ll be recruiting new employees at the convention, right?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "A series of workshops."
+      },
+      {
+        "letter": "B",
+        "text": "No, you turn left."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, we’re planning to."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "You’ll be recruiting new employees at the convention, right?\n\n(A) A series of workshops.\n(B) No, you turn left.\n(C) Yes, we’re planning to.",
+    "translation": "Bạn sẽ tuyển nhân viên mới tại hội nghị, đúng không?\n\n(A) Một loạt các buổi hội thảo chuyên đề.\n(B) Không, bạn rẽ trái.\n(C) Đúng, chúng tôi đang có kế hoạch làm vậy.",
+    "audioFilename": "Cau_030.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_030.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 31,
+    "questionText": "There’s a bank on Delmont Street, isn’t there?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "John was planning to."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, near the electronics store."
+      },
+      {
+        "letter": "C",
+        "text": "To deposit some money."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "There’s a bank on Delmont Street, isn’t there?\n\n(A) John was planning to.\n(B) Yes, near the electronics store.\n(C) To deposit some money.",
+    "translation": "Có một ngân hàng trên phố Delmont, đúng không?\n\n(A) John đã định làm vậy.\n(B) Đúng, gần cửa hàng đồ điện tử.\n(C) Để gửi một ít tiền.",
+    "audioFilename": "Cau_031.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_031.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 32,
+    "questionText": "The art museum is open late tonight, isn’t it?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Several new exhibitions."
+      },
+      {
+        "letter": "B",
+        "text": "No, only on Fridays."
+      },
+      {
+        "letter": "C",
+        "text": "I don’t think it’s far away."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "The art museum is open late tonight, isn’t it?\n\n(A) Several new exhibitions.\n(B) No, only on Fridays.\n(C) I don’t think it’s far away.",
+    "translation": "Tối nay bảo tàng nghệ thuật mở cửa đến muộn, đúng không?\n\n(A) Một vài triển lãm mới.\n(B) Không, chỉ vào các ngày thứ Sáu thôi.\n(C) Tôi không nghĩ nó ở xa.",
+    "audioFilename": "Cau_032.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_032.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 33,
+    "questionText": "Can’t this document be printed on one page?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, a lot of paper."
+      },
+      {
+        "letter": "B",
+        "text": "No, it’s too long."
+      },
+      {
+        "letter": "C",
+        "text": "Please print your name."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Can’t this document be printed on one page?\n\n(A) Yes, a lot of paper.\n(B) No, it’s too long.\n(C) Please print your name.",
+    "translation": "Không thể in tài liệu này trên một trang sao?\n\n(A) Có, rất nhiều giấy.\n(B) Không, nó dài quá.\n(C) Vui lòng viết tên của bạn bằng chữ in.",
+    "audioFilename": "Cau_033.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_033.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 34,
+    "questionText": "You’ll be setting up the product display in the store, won’t you?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Let’s sit together."
+      },
+      {
+        "letter": "B",
+        "text": "Organic skin-care products."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, later today."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "You’ll be setting up the product display in the store, won’t you?\n\n(A) Let’s sit together.\n(B) Organic skin-care products.\n(C) Yes, later today.",
+    "translation": "Bạn sẽ sắp xếp khu trưng bày sản phẩm trong cửa hàng, đúng không?\n\n(A) Chúng ta ngồi cùng nhau nhé.\n(B) Các sản phẩm chăm sóc da hữu cơ.\n(C) Đúng, lát nữa trong hôm nay.",
+    "audioFilename": "Cau_034.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_034.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 35,
+    "questionText": "Haven’t you seen the results of the customer surveys?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Several months of research."
+      },
+      {
+        "letter": "B",
+        "text": "Why, was there a problem?"
+      },
+      {
+        "letter": "C",
+        "text": "Please call customer service for help."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Haven’t you seen the results of the customer surveys?\n\n(A) Several months of research.\n(B) Why, was there a problem?\n(C) Please call customer service for help.",
+    "translation": "Bạn chưa xem kết quả khảo sát khách hàng sao?\n\n(A) Vài tháng nghiên cứu.\n(B) Sao vậy, có vấn đề gì à?\n(C) Vui lòng gọi bộ phận chăm sóc khách hàng để được giúp đỡ.",
+    "audioFilename": "Cau_035.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_035.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 36,
+    "questionText": "Don’t you think we should take a short break?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "OK, but just ten minutes."
+      },
+      {
+        "letter": "B",
+        "text": "He can fix it."
+      },
+      {
+        "letter": "C",
+        "text": "It’s pretty tall."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Don’t you think we should take a short break?\n\n(A) OK, but just ten minutes.\n(B) He can fix it.\n(C) It’s pretty tall.",
+    "translation": "Bạn không nghĩ chúng ta nên nghỉ một lát sao?\n\n(A) Được, nhưng chỉ mười phút thôi.\n(B) Anh ấy có thể sửa nó.\n(C) Nó khá cao.",
+    "audioFilename": "Cau_036.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_036.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 37,
+    "questionText": "The new interns have had a tour of the facilities, haven’t they?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I believe they just finished."
+      },
+      {
+        "letter": "B",
+        "text": "A map of the city center."
+      },
+      {
+        "letter": "C",
+        "text": "Pick up your name tag here."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "The new interns have had a tour of the facilities, haven’t they?\n\n(A) I believe they just finished.\n(B) A map of the city center.\n(C) Pick up your name tag here.",
+    "translation": "Các thực tập sinh mới đã tham quan cơ sở rồi, đúng không?\n\n(A) Tôi nghĩ họ vừa tham quan xong.\n(B) Một tấm bản đồ trung tâm thành phố.\n(C) Nhận thẻ tên của bạn ở đây.",
+    "audioFilename": "Cau_037.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_037.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 38,
+    "questionText": "Didn’t we go over the building specifications already?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "We should do it again now that everyone’s here."
+      },
+      {
+        "letter": "B",
+        "text": "He only designs large office buildings."
+      },
+      {
+        "letter": "C",
+        "text": "It was working yesterday."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Didn’t we go over the building specifications already?\n\n(A) We should do it again now that everyone’s here.\n(B) He only designs large office buildings.\n(C) It was working yesterday.",
+    "translation": "Chẳng phải chúng ta đã xem xét các thông số kỹ thuật của tòa nhà rồi sao?\n\n(A) Giờ mọi người đã có mặt đầy đủ, chúng ta nên xem lại lần nữa.\n(B) Anh ấy chỉ thiết kế những tòa nhà văn phòng lớn.\n(C) Hôm qua nó vẫn hoạt động.",
+    "audioFilename": "Cau_038.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_038.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 39,
+    "questionText": "You have my eyeglass prescription on file here, don’t you?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "No thanks, I have some."
+      },
+      {
+        "letter": "B",
+        "text": "That’s a good description."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, but it’s from last year."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "You have my eyeglass prescription on file here, don’t you?\n\n(A) No thanks, I have some.\n(B) That’s a good description.\n(C) Yes, but it’s from last year.",
+    "translation": "Ở đây có lưu đơn kính mắt của tôi, đúng không?\n\n(A) Không, cảm ơn, tôi có một ít rồi.\n(B) Đó là một lời mô tả hay.\n(C) Có, nhưng đó là đơn từ năm ngoái.",
+    "audioFilename": "Cau_039.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_039.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 40,
+    "questionText": "Hasn’t your relocation to Beijing been delayed?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I can locate it for you."
+      },
+      {
+        "letter": "B",
+        "text": "Not that I’ve heard."
+      },
+      {
+        "letter": "C",
+        "text": "It’s quite close to here."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Hasn’t your relocation to Beijing been delayed?\n\n(A) I can locate it for you.\n(B) Not that I’ve heard.\n(C) It’s quite close to here.",
+    "translation": "Chẳng phải việc chuyển đến Bắc Kinh của bạn đã bị hoãn sao?\n\n(A) Tôi có thể tìm nó giúp bạn.\n(B) Tôi chưa nghe nói như vậy.\n(C) Nó khá gần đây.",
+    "audioFilename": "Cau_040.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_040.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 41,
+    "questionText": "You made extra copies of the agenda, didn’t you?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Oh, but I forgot to bring them."
+      },
+      {
+        "letter": "B",
+        "text": "Thanks for doing that."
+      },
+      {
+        "letter": "C",
+        "text": "No, the exit’s on the left."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "You made extra copies of the agenda, didn’t you?\n\n(A) Oh, but I forgot to bring them.\n(B) Thanks for doing that.\n(C) No, the exit’s on the left.",
+    "translation": "Bạn đã sao thêm các bản chương trình nghị sự, đúng không?\n\n(A) Ồ, nhưng tôi quên mang chúng theo.\n(B) Cảm ơn bạn đã làm việc đó.\n(C) Không, lối ra ở bên trái.",
+    "audioFilename": "Cau_041.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_041.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 42,
+    "questionText": "Don’t you want to attend the tourism trade fair this year?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "A family holiday."
+      },
+      {
+        "letter": "B",
+        "text": "I do, but I’m busy."
+      },
+      {
+        "letter": "C",
+        "text": "There were many attendees."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Don’t you want to attend the tourism trade fair this year?\n\n(A) A family holiday.\n(B) I do, but I’m busy.\n(C) There were many attendees.",
+    "translation": "Bạn không muốn tham dự hội chợ thương mại du lịch năm nay sao?\n\n(A) Một kỳ nghỉ gia đình.\n(B) Tôi có muốn, nhưng tôi bận.\n(C) Đã có nhiều người tham dự.",
+    "audioFilename": "Cau_042.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_042.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 43,
+    "questionText": "Aren’t you attending the employee awards ceremony tomorrow?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "The position has been filled."
+      },
+      {
+        "letter": "B",
+        "text": "That event’s next week."
+      },
+      {
+        "letter": "C",
+        "text": "Two hundred people attended."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Aren’t you attending the employee awards ceremony tomorrow?\n\n(A) The position has been filled.\n(B) That event’s next week.\n(C) Two hundred people attended.",
+    "translation": "Chẳng phải ngày mai bạn sẽ tham dự lễ trao thưởng cho nhân viên sao?\n\n(A) Vị trí đó đã có người đảm nhận.\n(B) Sự kiện đó diễn ra vào tuần sau.\n(C) Hai trăm người đã tham dự.",
+    "audioFilename": "Cau_043.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_043.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 44,
+    "questionText": "You returned the merchandise at the checkout counter, didn’t you?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I counted them twice."
+      },
+      {
+        "letter": "B",
+        "text": "I turned it on this morning."
+      },
+      {
+        "letter": "C",
+        "text": "No, I had to speak with the manager."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "You returned the merchandise at the checkout counter, didn’t you?\n\n(A) I counted them twice.\n(B) I turned it on this morning.\n(C) No, I had to speak with the manager.",
+    "translation": "Bạn đã trả lại hàng tại quầy thanh toán, đúng không?\n\n(A) Tôi đã đếm chúng hai lần.\n(B) Tôi đã bật nó sáng nay.\n(C) Không, tôi đã phải nói chuyện với người quản lý.",
+    "audioFilename": "Cau_044.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_044.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 45,
+    "questionText": "Doesn’t Luis work at the Prague branch?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "To the sales manager."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, since September."
+      },
+      {
+        "letter": "C",
+        "text": "I’ll find it later."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Doesn’t Luis work at the Prague branch?\n\n(A) To the sales manager.\n(B) Yes, since September.\n(C) I’ll find it later.",
+    "translation": "Chẳng phải Luis làm việc tại chi nhánh Prague sao?\n\n(A) Cho trưởng phòng kinh doanh.\n(B) Đúng, từ tháng Chín.\n(C) Tôi sẽ tìm nó sau.",
+    "audioFilename": "Cau_045.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_045.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 46,
+    "questionText": "We’ve just ordered several new fax machines, haven’t we?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, we should get them tomorrow."
+      },
+      {
+        "letter": "B",
+        "text": "They should be in alphabetical order."
+      },
+      {
+        "letter": "C",
+        "text": "The facts I reported were correct."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "We’ve just ordered several new fax machines, haven’t we?\n\n(A) Yes, we should get them tomorrow.\n(B) They should be in alphabetical order.\n(C) The facts I reported were correct.",
+    "translation": "Chúng ta vừa đặt mua vài máy fax mới rồi, đúng không?\n\n(A) Đúng, chắc ngày mai chúng ta sẽ nhận được chúng.\n(B) Chúng nên được xếp theo thứ tự bảng chữ cái.\n(C) Những thông tin thực tế tôi đã báo cáo là chính xác.",
+    "audioFilename": "Cau_046.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_046.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 47,
+    "questionText": "They haven’t finished repairing Atley Street yet, have they?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "No, it’s still closed to traffic."
+      },
+      {
+        "letter": "B",
+        "text": "An old pair of shoes."
+      },
+      {
+        "letter": "C",
+        "text": "May I have another?"
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "They haven’t finished repairing Atley Street yet, have they?\n\n(A) No, it’s still closed to traffic.\n(B) An old pair of shoes.\n(C) May I have another?",
+    "translation": "Họ vẫn chưa sửa xong phố Atley, đúng không?\n\n(A) Chưa, đường vẫn đang cấm xe lưu thông.\n(B) Một đôi giày cũ.\n(C) Tôi có thể lấy thêm một cái nữa không?",
+    "audioFilename": "Cau_047.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_047.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 48,
+    "questionText": "Haven’t you been in contact with the landscaping company?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "By the garden."
+      },
+      {
+        "letter": "B",
+        "text": "I’m waiting for a response."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, I wear contact lenses."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Haven’t you been in contact with the landscaping company?\n\n(A) By the garden.\n(B) I’m waiting for a response.\n(C) Yes, I wear contact lenses.",
+    "translation": "Bạn chưa liên hệ với công ty cảnh quan sao?\n\n(A) Ở cạnh khu vườn.\n(B) Tôi đang chờ phản hồi.\n(C) Có, tôi đeo kính áp tròng.",
+    "audioFilename": "Cau_048.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_048.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 49,
+    "questionText": "The hotel has a wireless Internet connection, doesn’t it?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "A reservation for two nights."
+      },
+      {
+        "letter": "B",
+        "text": "Of course—and it’s free for guests."
+      },
+      {
+        "letter": "C",
+        "text": "On a connecting flight."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "The hotel has a wireless Internet connection, doesn’t it?\n\n(A) A reservation for two nights.\n(B) Of course—and it’s free for guests.\n(C) On a connecting flight.",
+    "translation": "Khách sạn có kết nối Internet không dây, đúng không?\n\n(A) Đặt phòng cho hai đêm.\n(B) Tất nhiên, và khách lưu trú được sử dụng miễn phí.\n(C) Trên một chuyến bay nối chuyến.",
+    "audioFilename": "Cau_049.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_049.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 50,
+    "questionText": "Wasn’t that new bridge supposed to be open by now?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I believe she’s on vacation."
+      },
+      {
+        "letter": "B",
+        "text": "The keys should be in Ms. Hallibeck’s office."
+      },
+      {
+        "letter": "C",
+        "text": "The construction was delayed because of bad weather."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Wasn’t that new bridge supposed to be open by now?\n\n(A) I believe she’s on vacation.\n(B) The keys should be in Ms. Hallibeck’s office.\n(C) The construction was delayed because of bad weather.",
+    "translation": "Chẳng phải cây cầu mới đó lẽ ra phải được thông xe vào lúc này rồi sao?\n\n(A) Tôi nghĩ cô ấy đang đi nghỉ.\n(B) Chìa khóa chắc ở trong văn phòng của cô Hallibeck.\n(C) Việc xây dựng đã bị trì hoãn do thời tiết xấu.",
+    "audioFilename": "Cau_050.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_050.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 51,
+    "questionText": "I’d like you to fill this order by tomorrow.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Kurt says he likes it too."
+      },
+      {
+        "letter": "B",
+        "text": "That shouldn’t be a problem."
+      },
+      {
+        "letter": "C",
+        "text": "We feel it’s very new."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "I’d like you to fill this order by tomorrow.\n\n(A) Kurt says he likes it too.\n(B) That shouldn’t be a problem.\n(C) We feel it’s very new.",
+    "translation": "Tôi muốn bạn hoàn tất đơn hàng này trước ngày mai.\n\n(A) Kurt nói anh ấy cũng thích nó.\n(B) Việc đó chắc không thành vấn đề.\n(C) Chúng tôi cảm thấy nó rất mới.",
+    "audioFilename": "Cau_051.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_051.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 52,
+    "questionText": "Can you make the dinner reservations?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "He stayed at the new hotel."
+      },
+      {
+        "letter": "B",
+        "text": "Sure, I don’t mind doing that."
+      },
+      {
+        "letter": "C",
+        "text": "Two weeks of vacation time."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Can you make the dinner reservations?\n\n(A) He stayed at the new hotel.\n(B) Sure, I don’t mind doing that.\n(C) Two weeks of vacation time.",
+    "translation": "Bạn có thể đặt chỗ ăn tối được không?\n\n(A) Anh ấy đã ở khách sạn mới.\n(B) Được chứ, tôi sẵn lòng làm việc đó.\n(C) Hai tuần nghỉ phép.",
+    "audioFilename": "Cau_052.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_052.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 53,
+    "questionText": "We’re planning on hiring a salesperson.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Where can I find an application?"
+      },
+      {
+        "letter": "B",
+        "text": "The building for sale."
+      },
+      {
+        "letter": "C",
+        "text": "No, thanks—I called a car service."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "We’re planning on hiring a salesperson.\n\n(A) Where can I find an application?\n(B) The building for sale.\n(C) No, thanks—I called a car service.",
+    "translation": "Chúng tôi đang có kế hoạch tuyển một nhân viên bán hàng.\n\n(A) Tôi có thể tìm mẫu đơn ứng tuyển ở đâu?\n(B) Tòa nhà đang được rao bán.\n(C) Không, cảm ơn — tôi đã gọi dịch vụ xe rồi.",
+    "audioFilename": "Cau_053.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_053.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 54,
+    "questionText": "We should consider expanding our warehouse space.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Our production has been increasing steadily."
+      },
+      {
+        "letter": "B",
+        "text": "Actually, I usually wear business attire."
+      },
+      {
+        "letter": "C",
+        "text": "A ten-kilometer race."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "We should consider expanding our warehouse space.\n\n(A) Our production has been increasing steadily.\n(B) Actually, I usually wear business attire.\n(C) A ten-kilometer race.",
+    "translation": "Chúng ta nên cân nhắc mở rộng diện tích kho hàng.\n\n(A) Sản lượng của chúng ta đang tăng đều đặn.\n(B) Thực ra, tôi thường mặc trang phục công sở.\n(C) Một cuộc đua dài mười ki-lô-mét.",
+    "audioFilename": "Cau_054.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_054.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 55,
+    "questionText": "Could I discuss the budget proposal with you later today?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Twenty copies, please."
+      },
+      {
+        "letter": "B",
+        "text": "I’ll be leaving early."
+      },
+      {
+        "letter": "C",
+        "text": "That can’t be right."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Could I discuss the budget proposal with you later today?\n\n(A) Twenty copies, please.\n(B) I’ll be leaving early.\n(C) That can’t be right.",
+    "translation": "Lát nữa trong hôm nay tôi có thể thảo luận với bạn về bản đề xuất ngân sách không?\n\n(A) Vui lòng cho tôi hai mươi bản.\n(B) Tôi sẽ về sớm.\n(C) Điều đó không thể đúng được.",
+    "audioFilename": "Cau_055.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_055.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 56,
+    "questionText": "I can’t figure out how to assemble this bicycle.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "It didn’t come with instructions?"
+      },
+      {
+        "letter": "B",
+        "text": "Several business cycles."
+      },
+      {
+        "letter": "C",
+        "text": "An employee discount, I think."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "I can’t figure out how to assemble this bicycle.\n\n(A) It didn’t come with instructions?\n(B) Several business cycles.\n(C) An employee discount, I think.",
+    "translation": "Tôi không biết cách lắp ráp chiếc xe đạp này.\n\n(A) Nó không đi kèm hướng dẫn à?\n(B) Một vài chu kỳ kinh doanh.\n(C) Tôi nghĩ đó là khoản giảm giá dành cho nhân viên.",
+    "audioFilename": "Cau_056.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_056.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 57,
+    "questionText": "Would you mind e-mailing me that attachment again?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "The post office closes at three."
+      },
+      {
+        "letter": "B",
+        "text": "I read that, too."
+      },
+      {
+        "letter": "C",
+        "text": "I’ll resend it after my next meeting."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Would you mind e-mailing me that attachment again?\n\n(A) The post office closes at three.\n(B) I read that, too.\n(C) I’ll resend it after my next meeting.",
+    "translation": "Bạn có phiền gửi lại tệp đính kèm đó cho tôi qua email không?\n\n(A) Bưu điện đóng cửa lúc ba giờ.\n(B) Tôi cũng đã đọc cái đó.\n(C) Tôi sẽ gửi lại sau cuộc họp tiếp theo của tôi.",
+    "audioFilename": "Cau_057.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_057.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 58,
+    "questionText": "Would you like to take a short break?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "We threw the broken ones away."
+      },
+      {
+        "letter": "B",
+        "text": "Richard asked for this report by noon."
+      },
+      {
+        "letter": "C",
+        "text": "Check the higher shelf."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Would you like to take a short break?\n\n(A) We threw the broken ones away.\n(B) Richard asked for this report by noon.\n(C) Check the higher shelf.",
+    "translation": "Bạn có muốn nghỉ một lát không?\n\n(A) Chúng tôi đã vứt những cái bị hỏng đi.\n(B) Richard yêu cầu nộp báo cáo này trước buổi trưa.\n(C) Hãy kiểm tra kệ cao hơn.",
+    "audioFilename": "Cau_058.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_058.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 59,
+    "questionText": "That company’s new smartphone was launched today!",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "No, I can’t make it in time."
+      },
+      {
+        "letter": "B",
+        "text": "The previous model is just as good."
+      },
+      {
+        "letter": "C",
+        "text": "He’s on the phone right now."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "That company’s new smartphone was launched today!\n\n(A) No, I can’t make it in time.\n(B) The previous model is just as good.\n(C) He’s on the phone right now.",
+    "translation": "Điện thoại thông minh mới của công ty đó đã được ra mắt hôm nay!\n\n(A) Không, tôi không thể đến kịp.\n(B) Mẫu trước cũng tốt như vậy.\n(C) Anh ấy đang nói chuyện điện thoại.",
+    "audioFilename": "Cau_059.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_059.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 60,
+    "questionText": "Why don’t you offer an internship program?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I already have a membership card."
+      },
+      {
+        "letter": "B",
+        "text": "Thanks for the offer."
+      },
+      {
+        "letter": "C",
+        "text": "That’s still being discussed."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Why don’t you offer an internship program?\n\n(A) I already have a membership card.\n(B) Thanks for the offer.\n(C) That’s still being discussed.",
+    "translation": "Sao bên bạn không tổ chức một chương trình thực tập?\n\n(A) Tôi đã có thẻ thành viên rồi.\n(B) Cảm ơn lời đề nghị của bạn.\n(C) Việc đó vẫn đang được thảo luận.",
+    "audioFilename": "Cau_060.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_060.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 61,
+    "questionText": "There’s a pottery workshop at our art studio.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "She doesn’t enjoy shopping."
+      },
+      {
+        "letter": "B",
+        "text": "A lot of people have asked about that."
+      },
+      {
+        "letter": "C",
+        "text": "A box of paints."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "There’s a pottery workshop at our art studio.\n\n(A) She doesn’t enjoy shopping.\n(B) A lot of people have asked about that.\n(C) A box of paints.",
+    "translation": "Có một buổi thực hành làm gốm tại xưởng nghệ thuật của chúng tôi.\n\n(A) Cô ấy không thích mua sắm.\n(B) Nhiều người đã hỏi về việc đó.\n(C) Một hộp màu vẽ.",
+    "audioFilename": "Cau_061.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_061.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 62,
+    "questionText": "Please tell Sunita to park near the Weber Building.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "There’s some on the fifth floor."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, the rent is high."
+      },
+      {
+        "letter": "C",
+        "text": "She’s taking the train."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Please tell Sunita to park near the Weber Building.\n\n(A) There’s some on the fifth floor.\n(B) Yes, the rent is high.\n(C) She’s taking the train.",
+    "translation": "Vui lòng bảo Sunita đỗ xe gần tòa nhà Weber.\n\n(A) Có một ít ở tầng năm.\n(B) Đúng, tiền thuê cao.\n(C) Cô ấy sẽ đi tàu.",
+    "audioFilename": "Cau_062.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_062.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 63,
+    "questionText": "Would you be willing to pick up the food order for the party?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "The break room is downstairs."
+      },
+      {
+        "letter": "B",
+        "text": "A table for two, please."
+      },
+      {
+        "letter": "C",
+        "text": "I have a client call in ten minutes."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Would you be willing to pick up the food order for the party?\n\n(A) The break room is downstairs.\n(B) A table for two, please.\n(C) I have a client call in ten minutes.",
+    "translation": "Bạn có sẵn lòng đi lấy phần đồ ăn đã đặt cho bữa tiệc không?\n\n(A) Phòng nghỉ ở tầng dưới.\n(B) Vui lòng cho tôi một bàn dành cho hai người.\n(C) Mười phút nữa tôi có một cuộc gọi với khách hàng.",
+    "audioFilename": "Cau_063.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_063.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 64,
+    "questionText": "There isn’t enough light in this office.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "There’s a sale at the lamp store this weekend."
+      },
+      {
+        "letter": "B",
+        "text": "The second office on the left."
+      },
+      {
+        "letter": "C",
+        "text": "No, the box isn’t light enough to carry."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "There isn’t enough light in this office.\n\n(A) There’s a sale at the lamp store this weekend.\n(B) The second office on the left.\n(C) No, the box isn’t light enough to carry.",
+    "translation": "Văn phòng này không đủ ánh sáng.\n\n(A) Cuối tuần này cửa hàng đèn có đợt giảm giá.\n(B) Văn phòng thứ hai bên trái.\n(C) Không, chiếc hộp không đủ nhẹ để mang.",
+    "audioFilename": "Cau_064.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_064.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 65,
+    "questionText": "Can you give me the new employee’s contact information?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "It should be in her file."
+      },
+      {
+        "letter": "B",
+        "text": "The contract will expire in November."
+      },
+      {
+        "letter": "C",
+        "text": "Are these discounted?"
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Can you give me the new employee’s contact information?\n\n(A) It should be in her file.\n(B) The contract will expire in November.\n(C) Are these discounted?",
+    "translation": "Bạn có thể cho tôi thông tin liên hệ của nhân viên mới không?\n\n(A) Thông tin đó chắc có trong hồ sơ của cô ấy.\n(B) Hợp đồng sẽ hết hạn vào tháng Mười một.\n(C) Những món này có được giảm giá không?",
+    "audioFilename": "Cau_065.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_065.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 66,
+    "questionText": "The new menu needs to be sent to the print shop this morning.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "That tastes delicious."
+      },
+      {
+        "letter": "B",
+        "text": "We haven’t chosen a layout yet."
+      },
+      {
+        "letter": "C",
+        "text": "I usually eat at home."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "The new menu needs to be sent to the print shop this morning.\n\n(A) That tastes delicious.\n(B) We haven’t chosen a layout yet.\n(C) I usually eat at home.",
+    "translation": "Thực đơn mới cần được gửi đến tiệm in trong sáng nay.\n\n(A) Món đó có vị rất ngon.\n(B) Chúng ta vẫn chưa chọn cách bố trí.\n(C) Tôi thường ăn ở nhà.",
+    "audioFilename": "Cau_066.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_066.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 67,
+    "questionText": "We could conduct your next appointment over the phone.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I can point you in the right direction."
+      },
+      {
+        "letter": "B",
+        "text": "An application for a smartphone."
+      },
+      {
+        "letter": "C",
+        "text": "It doesn’t take me much time to come to your office."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "We could conduct your next appointment over the phone.\n\n(A) I can point you in the right direction.\n(B) An application for a smartphone.\n(C) It doesn’t take me much time to come to your office.",
+    "translation": "Chúng ta có thể thực hiện buổi hẹn tiếp theo của bạn qua điện thoại.\n\n(A) Tôi có thể chỉ đúng hướng cho bạn.\n(B) Một ứng dụng dành cho điện thoại thông minh.\n(C) Tôi không mất nhiều thời gian để đến văn phòng của bạn.",
+    "audioFilename": "Cau_067.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_067.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 68,
+    "questionText": "Why don’t we drive to the train station together?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "At the end of the platform."
+      },
+      {
+        "letter": "B",
+        "text": "Yesterday’s training seminar."
+      },
+      {
+        "letter": "C",
+        "text": "Let’s see if Antonio wants to join us."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Why don’t we drive to the train station together?\n\n(A) At the end of the platform.\n(B) Yesterday’s training seminar.\n(C) Let’s see if Antonio wants to join us.",
+    "translation": "Hay là chúng ta cùng đi ô tô đến ga tàu?\n\n(A) Ở cuối sân ga.\n(B) Buổi hội thảo đào tạo hôm qua.\n(C) Để xem Antonio có muốn đi cùng chúng ta không.",
+    "audioFilename": "Cau_068.mp3",
+    "audioUrl": "",
+    "isVisible": true
+  },
+  {
+    "number": 69,
+    "questionText": "The system updates are taking a long time to install.",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I have something you can work on in the meantime."
+      },
+      {
+        "letter": "B",
+        "text": "I thought the buses were on time today."
+      },
+      {
+        "letter": "C",
+        "text": "No, they’re loading packages."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "The system updates are taking a long time to install.\n\n(A) I have something you can work on in the meantime.\n(B) I thought the buses were on time today.\n(C) No, they’re loading packages.",
+    "translation": "Các bản cập nhật hệ thống đang mất nhiều thời gian để cài đặt.\n\n(A) Trong lúc chờ, tôi có việc bạn có thể làm.\n(B) Tôi tưởng hôm nay các xe buýt chạy đúng giờ.\n(C) Không, họ đang chất các kiện hàng lên xe.",
+    "audioFilename": "Cau_069.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_069.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 70,
+    "questionText": "Would you be willing to give the keynote speech at the trade fair?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’ll be hosting our board members on that day."
+      },
+      {
+        "letter": "B",
+        "text": "Do you have the key to the supply cabinet?"
+      },
+      {
+        "letter": "C",
+        "text": "Yes, I gave them their gifts."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Would you be willing to give the keynote speech at the trade fair?\n\n(A) I’ll be hosting our board members on that day.\n(B) Do you have the key to the supply cabinet?\n(C) Yes, I gave them their gifts.",
+    "translation": "Bạn có sẵn lòng phát biểu bài diễn văn chính tại hội chợ thương mại không?\n\n(A) Hôm đó tôi sẽ tiếp đón các thành viên hội đồng quản trị của chúng ta.\n(B) Bạn có chìa khóa tủ đựng vật tư không?\n(C) Rồi, tôi đã trao quà cho họ.",
+    "audioFilename": "Cau_070.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_070.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 71,
+    "questionText": "Aren’t there any front row seats left?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "These are the closest, I’m afraid."
+      },
+      {
+        "letter": "B",
+        "text": "I’ll bring it back."
+      },
+      {
+        "letter": "C",
+        "text": "No, they haven’t left yet."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Aren’t there any front row seats left?\n\n(A) These are the closest, I’m afraid.\n(B) I’ll bring it back.\n(C) No, they haven’t left yet.",
+    "translation": "Không còn ghế nào ở hàng đầu sao?\n\n(A) Rất tiếc, đây là những ghế gần nhất rồi.\n(B) Tôi sẽ mang nó trả lại.\n(C) Không, họ vẫn chưa rời đi.",
+    "audioFilename": "Cau_071.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_071.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 72,
+    "questionText": "The concert tickets are for reserved seats, aren’t they?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, our seats are next to each other."
+      },
+      {
+        "letter": "B",
+        "text": "An international tour."
+      },
+      {
+        "letter": "C",
+        "text": "No, they’re still here."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "The concert tickets are for reserved seats, aren’t they?\n\n(A) Yes, our seats are next to each other.\n(B) An international tour.\n(C) No, they’re still here.",
+    "translation": "Vé hòa nhạc là vé có chỗ ngồi được đặt trước, đúng không?\n\n(A) Đúng, chỗ ngồi của chúng ta ở cạnh nhau.\n(B) Một chuyến lưu diễn quốc tế.\n(C) Không, họ vẫn ở đây.",
+    "audioFilename": "Cau_072.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_072.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 73,
+    "questionText": "Don’t you have any available doctor appointments next week?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "No, unfortunately the doctor doesn’t have any openings."
+      },
+      {
+        "letter": "B",
+        "text": "Over there in the corner."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, it’s closed."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Don’t you have any available doctor appointments next week?\n\n(A) No, unfortunately the doctor doesn’t have any openings.\n(B) Over there in the corner.\n(C) Yes, it’s closed.",
+    "translation": "Bên bạn không còn lịch hẹn khám bác sĩ nào trống vào tuần sau sao?\n\n(A) Không, rất tiếc bác sĩ không còn khung giờ trống nào.\n(B) Ở góc đằng kia.\n(C) Đúng, nó đã đóng cửa.",
+    "audioFilename": "Cau_073.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_073.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 74,
+    "questionText": "We have one more job candidate to interview today, right?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "There aren’t any more résumés."
+      },
+      {
+        "letter": "B",
+        "text": "It’s actually on the right."
+      },
+      {
+        "letter": "C",
+        "text": "An interesting experience."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "We have one more job candidate to interview today, right?\n\n(A) There aren’t any more résumés.\n(B) It’s actually on the right.\n(C) An interesting experience.",
+    "translation": "Hôm nay chúng ta còn một ứng viên nữa cần phỏng vấn, đúng không?\n\n(A) Không còn hồ sơ ứng tuyển nào nữa.\n(B) Thực ra nó ở bên phải.\n(C) Một trải nghiệm thú vị.",
+    "audioFilename": "Cau_074.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_074.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 75,
+    "questionText": "You reserved the audiovisual equipment for the meeting, didn’t you?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "No, I forgot to do that."
+      },
+      {
+        "letter": "B",
+        "text": "Your hotel reservation is confirmed."
+      },
+      {
+        "letter": "C",
+        "text": "I’ll ask the server to bring us some menus."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "You reserved the audiovisual equipment for the meeting, didn’t you?\n\n(A) No, I forgot to do that.\n(B) Your hotel reservation is confirmed.\n(C) I’ll ask the server to bring us some menus.",
+    "translation": "Bạn đã đặt trước thiết bị nghe nhìn cho cuộc họp rồi, đúng không?\n\n(A) Chưa, tôi quên làm việc đó.\n(B) Việc đặt phòng khách sạn của bạn đã được xác nhận.\n(C) Tôi sẽ nhờ nhân viên phục vụ mang thực đơn cho chúng ta.",
+    "audioFilename": "Cau_075.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_075.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 76,
+    "questionText": "Weren’t our dinner reservations originally for six people?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Michelle won’t be able to come."
+      },
+      {
+        "letter": "B",
+        "text": "With the corporate group discount."
+      },
+      {
+        "letter": "C",
+        "text": "A larger table than we thought."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Weren’t our dinner reservations originally for six people?\n\n(A) Michelle won’t be able to come.\n(B) With the corporate group discount.\n(C) A larger table than we thought.",
+    "translation": "Chẳng phải ban đầu chúng ta đặt chỗ ăn tối cho sáu người sao?\n\n(A) Michelle sẽ không thể đến.\n(B) Với mức giảm giá dành cho đoàn của công ty.\n(C) Một chiếc bàn lớn hơn chúng ta nghĩ.",
+    "audioFilename": "Cau_076.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_076.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 77,
+    "questionText": "Didn’t we spend over a thousand dollars on advertising?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Sure, I’ll buy a few more of them."
+      },
+      {
+        "letter": "B",
+        "text": "Well, you’ll have to submit a request."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, but it was a necessary expense."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Didn’t we spend over a thousand dollars on advertising?\n\n(A) Sure, I’ll buy a few more of them.\n(B) Well, you’ll have to submit a request.\n(C) Yes, but it was a necessary expense.",
+    "translation": "Chẳng phải chúng ta đã chi hơn một nghìn đô la cho quảng cáo sao?\n\n(A) Được chứ, tôi sẽ mua thêm vài cái.\n(B) À, bạn sẽ phải nộp đơn yêu cầu.\n(C) Đúng, nhưng đó là khoản chi cần thiết.",
+    "audioFilename": "Cau_077.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_077.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 78,
+    "questionText": "I don’t owe a library fine, do I?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Not unless your book is overdue."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, I’m planning to read it."
+      },
+      {
+        "letter": "C",
+        "text": "The library’s closed on Sundays."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "I don’t owe a library fine, do I?\n\n(A) Not unless your book is overdue.\n(B) Yes, I’m planning to read it.\n(C) The library’s closed on Sundays.",
+    "translation": "Tôi không nợ tiền phạt thư viện, đúng không?\n\n(A) Không, trừ khi sách của bạn đã quá hạn trả.\n(B) Đúng, tôi đang định đọc nó.\n(C) Thư viện đóng cửa vào các ngày Chủ nhật.",
+    "audioFilename": "Cau_078.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_078.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 79,
+    "questionText": "The grand opening for the store is tomorrow, isn’t it?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "No, it’s been postponed until next month."
+      },
+      {
+        "letter": "B",
+        "text": "A lot of great promotions and sales."
+      },
+      {
+        "letter": "C",
+        "text": "I closed the filing cabinet."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "The grand opening for the store is tomorrow, isn’t it?\n\n(A) No, it’s been postponed until next month.\n(B) A lot of great promotions and sales.\n(C) I closed the filing cabinet.",
+    "translation": "Lễ khai trương cửa hàng là ngày mai, đúng không?\n\n(A) Không, nó đã được hoãn đến tháng sau.\n(B) Rất nhiều chương trình khuyến mãi và giảm giá hấp dẫn.\n(C) Tôi đã đóng tủ hồ sơ.",
+    "audioFilename": "Cau_079.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_079.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 80,
+    "questionText": "Won’t you be attending our morning business meeting?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’ll be conducting a building inspection."
+      },
+      {
+        "letter": "B",
+        "text": "It was a very informative meeting."
+      },
+      {
+        "letter": "C",
+        "text": "Three flight attendants on duty."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Won’t you be attending our morning business meeting?\n\n(A) I’ll be conducting a building inspection.\n(B) It was a very informative meeting.\n(C) Three flight attendants on duty.",
+    "translation": "Bạn sẽ không tham dự cuộc họp công việc buổi sáng của chúng ta sao?\n\n(A) Tôi sẽ tiến hành kiểm tra tòa nhà.\n(B) Đó là một cuộc họp cung cấp nhiều thông tin hữu ích.\n(C) Ba tiếp viên hàng không đang làm nhiệm vụ.",
+    "audioFilename": "Cau_080.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_080.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 81,
+    "questionText": "You’ve been notified about the shipping delay, haven’t you?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "An additional charge."
+      },
+      {
+        "letter": "B",
+        "text": "Let’s update our billing information."
+      },
+      {
+        "letter": "C",
+        "text": "No, when is the estimated delivery date?"
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "You’ve been notified about the shipping delay, haven’t you?\n\n(A) An additional charge.\n(B) Let’s update our billing information.\n(C) No, when is the estimated delivery date?",
+    "translation": "Bạn đã được thông báo về việc giao hàng chậm rồi, đúng không?\n\n(A) Một khoản phí bổ sung.\n(B) Chúng ta cập nhật thông tin thanh toán nhé.\n(C) Chưa, ngày giao hàng dự kiến là khi nào?",
+    "audioFilename": "Cau_081.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_081.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 82,
+    "questionText": "You can help me upload this photograph to the Web site, can’t you?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’m not sure I know how."
+      },
+      {
+        "letter": "B",
+        "text": "Yes, he’s the senior editor."
+      },
+      {
+        "letter": "C",
+        "text": "It’s been very helpful."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "You can help me upload this photograph to the Web site, can’t you?\n\n(A) I’m not sure I know how.\n(B) Yes, he’s the senior editor.\n(C) It’s been very helpful.",
+    "translation": "Bạn có thể giúp tôi tải bức ảnh này lên trang web, đúng không?\n\n(A) Tôi không chắc mình biết cách làm.\n(B) Đúng, anh ấy là biên tập viên cấp cao.\n(C) Nó đã rất hữu ích.",
+    "audioFilename": "Cau_082.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_082.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 83,
+    "questionText": "Wouldn’t it be nice if today’s meeting ended early?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "They go there every year."
+      },
+      {
+        "letter": "B",
+        "text": "There’s not much on the agenda."
+      },
+      {
+        "letter": "C",
+        "text": "Nice to meet you."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Wouldn’t it be nice if today’s meeting ended early?\n\n(A) They go there every year.\n(B) There’s not much on the agenda.\n(C) Nice to meet you.",
+    "translation": "Nếu cuộc họp hôm nay kết thúc sớm thì tốt quá, phải không?\n\n(A) Họ đến đó mỗi năm.\n(B) Chương trình nghị sự không có nhiều nội dung.\n(C) Rất vui được gặp bạn.",
+    "audioFilename": "Cau_083.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_083.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 84,
+    "questionText": "The bank isn’t still looking for tellers, is it?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I believe the positions have all been filled."
+      },
+      {
+        "letter": "B",
+        "text": "More than three years of experience."
+      },
+      {
+        "letter": "C",
+        "text": "We offer competitive employee benefits."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "The bank isn’t still looking for tellers, is it?\n\n(A) I believe the positions have all been filled.\n(B) More than three years of experience.\n(C) We offer competitive employee benefits.",
+    "translation": "Ngân hàng không còn tuyển giao dịch viên nữa, đúng không?\n\n(A) Tôi nghĩ tất cả các vị trí đều đã có người đảm nhận.\n(B) Hơn ba năm kinh nghiệm.\n(C) Chúng tôi cung cấp chế độ phúc lợi cạnh tranh cho nhân viên.",
+    "audioFilename": "Cau_084.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_084.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 85,
+    "questionText": "Haven’t you been certified to conduct inspections?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "She wasn’t asked to stay later than usual."
+      },
+      {
+        "letter": "B",
+        "text": "I’ve already shipped the package."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, but certifications expire every two years."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Haven’t you been certified to conduct inspections?\n\n(A) She wasn’t asked to stay later than usual.\n(B) I’ve already shipped the package.\n(C) Yes, but certifications expire every two years.",
+    "translation": "Chẳng phải bạn đã được cấp chứng nhận để tiến hành kiểm tra rồi sao?\n\n(A) Cô ấy không được yêu cầu ở lại muộn hơn thường lệ.\n(B) Tôi đã gửi kiện hàng đi rồi.\n(C) Đúng, nhưng chứng nhận hết hạn hai năm một lần.",
+    "audioFilename": "Cau_085.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_085.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 86,
+    "questionText": "Isn’t today your day off?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Alex wasn’t able to cover his shift."
+      },
+      {
+        "letter": "B",
+        "text": "Next to the filing cabinet."
+      },
+      {
+        "letter": "C",
+        "text": "The light can stay on."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Isn’t today your day off?\n\n(A) Alex wasn’t able to cover his shift.\n(B) Next to the filing cabinet.\n(C) The light can stay on.",
+    "translation": "Chẳng phải hôm nay là ngày nghỉ của bạn sao?\n\n(A) Alex không thể đảm nhận ca trực của anh ấy.\n(B) Bên cạnh tủ hồ sơ.\n(C) Đèn có thể cứ để bật.",
+    "audioFilename": "Cau_086.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_086.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 87,
+    "questionText": "Felipe knows how to fix this computer problem, right?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Just six pages, please."
+      },
+      {
+        "letter": "B",
+        "text": "He’s going to a training session this afternoon."
+      },
+      {
+        "letter": "C",
+        "text": "Oh, I know that book."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Felipe knows how to fix this computer problem, right?\n\n(A) Just six pages, please.\n(B) He’s going to a training session this afternoon.\n(C) Oh, I know that book.",
+    "translation": "Felipe biết cách khắc phục sự cố máy tính này, đúng không?\n\n(A) Chỉ sáu trang thôi, làm ơn.\n(B) Chiều nay anh ấy sẽ tham gia một buổi đào tạo.\n(C) Ồ, tôi biết cuốn sách đó.",
+    "audioFilename": "Cau_087.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_087.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 88,
+    "questionText": "Didn’t Trevor say he was going to turn in those reports today?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "On the evening news report."
+      },
+      {
+        "letter": "B",
+        "text": "He said he had a lot of work to finish."
+      },
+      {
+        "letter": "C",
+        "text": "But you drove last time."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Didn’t Trevor say he was going to turn in those reports today?\n\n(A) On the evening news report.\n(B) He said he had a lot of work to finish.\n(C) But you drove last time.",
+    "translation": "Chẳng phải Trevor đã nói hôm nay anh ấy sẽ nộp những báo cáo đó sao?\n\n(A) Trong bản tin buổi tối.\n(B) Anh ấy nói mình còn nhiều việc phải hoàn thành.\n(C) Nhưng lần trước bạn đã lái xe rồi.",
+    "audioFilename": "Cau_088.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_088.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 89,
+    "questionText": "Aren’t you going to apply for more research funding?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "The research assistant."
+      },
+      {
+        "letter": "B",
+        "text": "I thought the party was really fun."
+      },
+      {
+        "letter": "C",
+        "text": "This year’s deadline’s already passed."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Aren’t you going to apply for more research funding?\n\n(A) The research assistant.\n(B) I thought the party was really fun.\n(C) This year’s deadline’s already passed.",
+    "translation": "Bạn không định xin thêm kinh phí nghiên cứu sao?\n\n(A) Trợ lý nghiên cứu.\n(B) Tôi thấy bữa tiệc rất vui.\n(C) Hạn chót của năm nay đã qua rồi.",
+    "audioFilename": "Cau_089.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_089.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 90,
+    "questionText": "All the employees have received orientation packets, haven’t they?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Sure, I can work at the career fair next week."
+      },
+      {
+        "letter": "B",
+        "text": "Some new hires don’t start until tomorrow."
+      },
+      {
+        "letter": "C",
+        "text": "The next stop on the tour is the Shipping Department."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "All the employees have received orientation packets, haven’t they?\n\n(A) Sure, I can work at the career fair next week.\n(B) Some new hires don’t start until tomorrow.\n(C) The next stop on the tour is the Shipping Department.",
+    "translation": "Tất cả nhân viên đều đã nhận được bộ tài liệu định hướng rồi, đúng không?\n\n(A) Được chứ, tôi có thể làm việc tại hội chợ việc làm vào tuần sau.\n(B) Một số nhân viên mới phải đến ngày mai mới bắt đầu làm việc.\n(C) Điểm dừng tiếp theo trong chuyến tham quan là bộ phận vận chuyển.",
+    "audioFilename": "Cau_090.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_090.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 91,
+    "questionText": "Did you read the newspaper this morning?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Two dollars and fifty cents per issue."
+      },
+      {
+        "letter": "B",
+        "text": "She’s the new publisher."
+      },
+      {
+        "letter": "C",
+        "text": "Only the front page."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Did you read the newspaper this morning?\n\n(A) Two dollars and fifty cents per issue.\n(B) She’s the new publisher.\n(C) Only the front page.",
+    "translation": "Sáng nay bạn đã đọc báo chưa?\n\n(A) Hai đô la năm mươi xu mỗi số báo.\n(B) Cô ấy là nhà xuất bản mới.\n(C) Tôi chỉ đọc trang nhất.",
+    "audioFilename": "Cau_091.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_091.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 92,
+    "questionText": "Would you like to purchase a ticket for the seven o’clock flight or the nine o’clock flight?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "For the earlier one, please."
+      },
+      {
+        "letter": "B",
+        "text": "Of course he does."
+      },
+      {
+        "letter": "C",
+        "text": "Here’s my credit card."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Would you like to purchase a ticket for the seven o’clock flight or the nine o’clock flight?\n\n(A) For the earlier one, please.\n(B) Of course he does.\n(C) Here’s my credit card.",
+    "translation": "Bạn muốn mua vé cho chuyến bay lúc bảy giờ hay chuyến lúc chín giờ?\n\n(A) Cho tôi vé chuyến sớm hơn nhé.\n(B) Tất nhiên là anh ấy có.\n(C) Đây là thẻ tín dụng của tôi.",
+    "audioFilename": "Cau_092.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_092.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 93,
+    "questionText": "Should I order the supplies now, or wait until next week?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "A total of seventy-five dollars."
+      },
+      {
+        "letter": "B",
+        "text": "Actually, I already sent the order."
+      },
+      {
+        "letter": "C",
+        "text": "It’s in the supply closet."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Should I order the supplies now, or wait until next week?\n\n(A) A total of seventy-five dollars.\n(B) Actually, I already sent the order.\n(C) It’s in the supply closet.",
+    "translation": "Tôi nên đặt mua vật tư ngay bây giờ hay đợi đến tuần sau?\n\n(A) Tổng cộng bảy mươi lăm đô la.\n(B) Thực ra, tôi đã gửi đơn đặt hàng rồi.\n(C) Nó ở trong tủ đựng vật tư.",
+    "audioFilename": "Cau_093.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_093.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 94,
+    "questionText": "Have you called tech support for help?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Until next Monday."
+      },
+      {
+        "letter": "B",
+        "text": "That table is made of wood."
+      },
+      {
+        "letter": "C",
+        "text": "Rita knows how to fix this."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Have you called tech support for help?\n\n(A) Until next Monday.\n(B) That table is made of wood.\n(C) Rita knows how to fix this.",
+    "translation": "Bạn đã gọi bộ phận hỗ trợ kỹ thuật để nhờ giúp đỡ chưa?\n\n(A) Đến thứ Hai tuần sau.\n(B) Chiếc bàn đó được làm bằng gỗ.\n(C) Rita biết cách sửa cái này.",
+    "audioFilename": "Cau_094.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_094.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 95,
+    "questionText": "Do you have this shirt in a larger size?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Two skirts and a jacket."
+      },
+      {
+        "letter": "B",
+        "text": "We only accept cash payments."
+      },
+      {
+        "letter": "C",
+        "text": "A new shipment comes in tomorrow."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Do you have this shirt in a larger size?\n\n(A) Two skirts and a jacket.\n(B) We only accept cash payments.\n(C) A new shipment comes in tomorrow.",
+    "translation": "Bên bạn có chiếc áo sơ mi này với cỡ lớn hơn không?\n\n(A) Hai chiếc chân váy và một chiếc áo khoác.\n(B) Chúng tôi chỉ nhận thanh toán bằng tiền mặt.\n(C) Một lô hàng mới sẽ về vào ngày mai.",
+    "audioFilename": "Cau_095.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_095.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 96,
+    "questionText": "Would you like to pay cash or use a credit card?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, I play soccer."
+      },
+      {
+        "letter": "B",
+        "text": "I never carry cash with me."
+      },
+      {
+        "letter": "C",
+        "text": "Fifteen dollars."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Would you like to pay cash or use a credit card?\n\n(A) Yes, I play soccer.\n(B) I never carry cash with me.\n(C) Fifteen dollars.",
+    "translation": "Bạn muốn thanh toán bằng tiền mặt hay dùng thẻ tín dụng?\n\n(A) Có, tôi chơi bóng đá.\n(B) Tôi không bao giờ mang tiền mặt theo người.\n(C) Mười lăm đô la.",
+    "audioFilename": "Cau_096.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_096.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 97,
+    "questionText": "Do you want to schedule the inspection for the morning or the afternoon?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Safety gloves and goggles."
+      },
+      {
+        "letter": "B",
+        "text": "The parking lot in the back."
+      },
+      {
+        "letter": "C",
+        "text": "The afternoon would be best."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Do you want to schedule the inspection for the morning or the afternoon?\n\n(A) Safety gloves and goggles.\n(B) The parking lot in the back.\n(C) The afternoon would be best.",
+    "translation": "Bạn muốn lên lịch kiểm tra vào buổi sáng hay buổi chiều?\n\n(A) Găng tay và kính bảo hộ.\n(B) Bãi đỗ xe ở phía sau.\n(C) Buổi chiều là phù hợp nhất.",
+    "audioFilename": "Cau_097.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_097.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 98,
+    "questionText": "Can you tell me where booth 219 is located?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Of course, third row on your right."
+      },
+      {
+        "letter": "B",
+        "text": "Some local musicians."
+      },
+      {
+        "letter": "C",
+        "text": "Unfortunately, it isn’t."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Can you tell me where booth 219 is located?\n\n(A) Of course, third row on your right.\n(B) Some local musicians.\n(C) Unfortunately, it isn’t.",
+    "translation": "Bạn có thể cho tôi biết gian hàng 219 ở đâu không?\n\n(A) Được chứ, ở dãy thứ ba bên phải bạn.\n(B) Một vài nhạc sĩ địa phương.\n(C) Rất tiếc là không.",
+    "audioFilename": "Cau_098.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_098.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 99,
+    "questionText": "Will the fliers be ready today, or do you need more time to finish them?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’ll start work on them now."
+      },
+      {
+        "letter": "B",
+        "text": "I don’t know who’s going."
+      },
+      {
+        "letter": "C",
+        "text": "Her flight’s late."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Will the fliers be ready today, or do you need more time to finish them?\n\n(A) I’ll start work on them now.\n(B) I don’t know who’s going.\n(C) Her flight’s late.",
+    "translation": "Hôm nay các tờ rơi sẽ xong chứ, hay bạn cần thêm thời gian để hoàn thành chúng?\n\n(A) Tôi sẽ bắt tay làm chúng ngay bây giờ.\n(B) Tôi không biết ai sẽ đi.\n(C) Chuyến bay của cô ấy bị trễ.",
+    "audioFilename": "Cau_099.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_099.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 100,
+    "questionText": "Would you rather troubleshoot your software issues by phone or in person?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Yes, once the trouble’s been sorted out."
+      },
+      {
+        "letter": "B",
+        "text": "They issued me a new passport."
+      },
+      {
+        "letter": "C",
+        "text": "I’d like to talk to someone face-to-face."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Would you rather troubleshoot your software issues by phone or in person?\n\n(A) Yes, once the trouble’s been sorted out.\n(B) They issued me a new passport.\n(C) I’d like to talk to someone face-to-face.",
+    "translation": "Bạn muốn xử lý sự cố phần mềm qua điện thoại hay gặp trực tiếp?\n\n(A) Có, khi vấn đề đã được giải quyết xong.\n(B) Họ đã cấp cho tôi một hộ chiếu mới.\n(C) Tôi muốn nói chuyện trực tiếp với một người.",
+    "audioFilename": "Cau_100.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_100.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 101,
+    "questionText": "Will our proposal get to the city council on time?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "In the central square."
+      },
+      {
+        "letter": "B",
+        "text": "A ten percent increase."
+      },
+      {
+        "letter": "C",
+        "text": "I sent it by overnight mail."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Will our proposal get to the city council on time?\n\n(A) In the central square.\n(B) A ten percent increase.\n(C) I sent it by overnight mail.",
+    "translation": "Bản đề xuất của chúng ta có đến hội đồng thành phố đúng hạn không?\n\n(A) Ở quảng trường trung tâm.\n(B) Mức tăng mười phần trăm.\n(C) Tôi đã gửi nó bằng dịch vụ chuyển phát qua đêm.",
+    "audioFilename": "Cau_101.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_101.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 102,
+    "questionText": "Will you be leading the budgeting workshop or the database training?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "On the desk by the window, thanks."
+      },
+      {
+        "letter": "B",
+        "text": "By commuter train every morning."
+      },
+      {
+        "letter": "C",
+        "text": "I still have to complete these monthly reports."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Will you be leading the budgeting workshop or the database training?\n\n(A) On the desk by the window, thanks.\n(B) By commuter train every morning.\n(C) I still have to complete these monthly reports.",
+    "translation": "Bạn sẽ phụ trách buổi hội thảo về lập ngân sách hay buổi đào tạo về cơ sở dữ liệu?\n\n(A) Trên bàn cạnh cửa sổ nhé, cảm ơn.\n(B) Bằng tàu đi làm mỗi sáng.\n(C) Tôi vẫn phải hoàn thành những báo cáo tháng này.",
+    "audioFilename": "Cau_102.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_102.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 103,
+    "questionText": "Will there be a fee if I have to cancel my hotel reservation?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "You can make a reservation on our Web site."
+      },
+      {
+        "letter": "B",
+        "text": "Did you enjoy your stay?"
+      },
+      {
+        "letter": "C",
+        "text": "Not if you give 24 hours’ notice."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Will there be a fee if I have to cancel my hotel reservation?\n\n(A) You can make a reservation on our Web site.\n(B) Did you enjoy your stay?\n(C) Not if you give 24 hours’ notice.",
+    "translation": "Tôi có bị tính phí nếu phải hủy đặt phòng khách sạn không?\n\n(A) Bạn có thể đặt phòng trên trang web của chúng tôi.\n(B) Bạn có hài lòng với kỳ lưu trú của mình không?\n(C) Không, nếu bạn thông báo trước 24 giờ.",
+    "audioFilename": "Cau_103.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_103.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 104,
+    "questionText": "Do you know who was hired as the new program director?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "It hasn’t been decided yet."
+      },
+      {
+        "letter": "B",
+        "text": "No, he didn’t direct the show."
+      },
+      {
+        "letter": "C",
+        "text": "I think Ms. Shin likes that program."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Do you know who was hired as the new program director?\n\n(A) It hasn’t been decided yet.\n(B) No, he didn’t direct the show.\n(C) I think Ms. Shin likes that program.",
+    "translation": "Bạn có biết ai được tuyển làm giám đốc chương trình mới không?\n\n(A) Việc đó vẫn chưa được quyết định.\n(B) Không, anh ấy không đạo diễn chương trình đó.\n(C) Tôi nghĩ cô Shin thích chương trình đó.",
+    "audioFilename": "Cau_104.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_104.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 105,
+    "questionText": "Are we producing these parts ourselves, or are we getting them from a supplier?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "To calculate the shipping costs."
+      },
+      {
+        "letter": "B",
+        "text": "We’re buying them from a vendor."
+      },
+      {
+        "letter": "C",
+        "text": "I need a different part."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Are we producing these parts ourselves, or are we getting them from a supplier?\n\n(A) To calculate the shipping costs.\n(B) We’re buying them from a vendor.\n(C) I need a different part.",
+    "translation": "Chúng ta tự sản xuất những linh kiện này hay lấy từ một nhà cung cấp?\n\n(A) Để tính chi phí vận chuyển.\n(B) Chúng ta đang mua chúng từ một nhà cung cấp.\n(C) Tôi cần một linh kiện khác.",
+    "audioFilename": "Cau_105.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_105.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 106,
+    "questionText": "Did they have the opening ceremony for the new bridge?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "The start button."
+      },
+      {
+        "letter": "B",
+        "text": "There was a thunderstorm that day."
+      },
+      {
+        "letter": "C",
+        "text": "The office is on the tenth floor."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Did they have the opening ceremony for the new bridge?\n\n(A) The start button.\n(B) There was a thunderstorm that day.\n(C) The office is on the tenth floor.",
+    "translation": "Họ đã tổ chức lễ khánh thành cây cầu mới chưa?\n\n(A) Nút khởi động.\n(B) Hôm đó có một trận giông bão.\n(C) Văn phòng ở tầng mười.",
+    "audioFilename": "Cau_106.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_106.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 107,
+    "questionText": "Is Ms. Choi attending the product launch tomorrow?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "The stairs on your right."
+      },
+      {
+        "letter": "B",
+        "text": "Diego has the guest list."
+      },
+      {
+        "letter": "C",
+        "text": "Because it was too crowded."
+      }
+    ],
+    "correctAnswer": "B",
+    "script": "Is Ms. Choi attending the product launch tomorrow?\n\n(A) The stairs on your right.\n(B) Diego has the guest list.\n(C) Because it was too crowded.",
+    "translation": "Ngày mai cô Choi có tham dự buổi ra mắt sản phẩm không?\n\n(A) Cầu thang ở bên phải bạn.\n(B) Diego đang giữ danh sách khách mời.\n(C) Vì nơi đó quá đông.",
+    "audioFilename": "Cau_107.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_107.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 108,
+    "questionText": "Did the bank offer you the position verbally or in writing?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "Please deposit this in my savings account."
+      },
+      {
+        "letter": "B",
+        "text": "I’ll have some herbal tea."
+      },
+      {
+        "letter": "C",
+        "text": "I accepted an offer in Tokyo, actually."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Did the bank offer you the position verbally or in writing?\n\n(A) Please deposit this in my savings account.\n(B) I’ll have some herbal tea.\n(C) I accepted an offer in Tokyo, actually.",
+    "translation": "Ngân hàng đã đề nghị bạn nhận vị trí đó bằng lời nói hay bằng văn bản?\n\n(A) Vui lòng gửi khoản tiền này vào tài khoản tiết kiệm của tôi.\n(B) Tôi sẽ dùng một ít trà thảo mộc.\n(C) Thực ra, tôi đã nhận một lời mời làm việc ở Tokyo.",
+    "audioFilename": "Cau_108.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_108.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 109,
+    "questionText": "Have you been to the medical clinic’s new location?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "You’re right about that!"
+      },
+      {
+        "letter": "B",
+        "text": "A health certificate."
+      },
+      {
+        "letter": "C",
+        "text": "My appointment isn’t until tomorrow."
+      }
+    ],
+    "correctAnswer": "C",
+    "script": "Have you been to the medical clinic’s new location?\n\n(A) You’re right about that!\n(B) A health certificate.\n(C) My appointment isn’t until tomorrow.",
+    "translation": "Bạn đã đến địa điểm mới của phòng khám chưa?\n\n(A) Bạn nói đúng về điều đó!\n(B) Giấy chứng nhận sức khỏe.\n(C) Phải đến ngày mai tôi mới có lịch hẹn.",
+    "audioFilename": "Cau_109.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_109.mp3",
+    "isVisible": true
+  },
+  {
+    "number": 110,
+    "questionText": "Would you rather meet in person or by video conference?",
+    "choices": [
+      {
+        "letter": "A",
+        "text": "I’d prefer to be in the same room."
+      },
+      {
+        "letter": "B",
+        "text": "No, we haven’t met yet."
+      },
+      {
+        "letter": "C",
+        "text": "Yes, I liked that movie."
+      }
+    ],
+    "correctAnswer": "A",
+    "script": "Would you rather meet in person or by video conference?\n\n(A) I’d prefer to be in the same room.\n(B) No, we haven’t met yet.\n(C) Yes, I liked that movie.",
+    "translation": "Bạn muốn gặp trực tiếp hay họp qua video?\n\n(A) Tôi muốn mọi người ở cùng một phòng hơn.\n(B) Chưa, chúng tôi vẫn chưa gặp nhau.\n(C) Có, tôi thích bộ phim đó.",
+    "audioFilename": "Cau_110.mp3",
+    "audioUrl": "/audio/part-2-challenge/Cau_110.mp3",
+    "isVisible": true
+  }
+]

@@ -32,6 +32,7 @@ import StudentVocabularyPage from '../pages/StudentVocabularyPage.jsx';
 import StudentVocabularyDictationPage from '../pages/StudentVocabularyDictationPage.jsx';
 import AdminVocabularyDictationPage from '../pages/AdminVocabularyDictationPage.jsx';
 import HardWordsDictationPage from '../pages/HardWordsDictationPage.jsx';
+import Part2ChallengePage from '../pages/Part2ChallengePage.jsx';
 import AdminHardWordsDictationPage from '../pages/admin/AdminHardWordsDictationPage.jsx';
 import RoadToPart7Page from '../features/road-to-part-7/RoadToPart7Page.jsx';
 import FlashcardPage from '../pages/FlashcardPage.jsx';
@@ -138,6 +139,7 @@ function AppRoutes() {
         <Route path="assessments" element={<StudentAssessmentsPage />} />
         <Route path="vocabulary-dictation" element={<StudentVocabularyDictationPage />} />
         <Route path="hard-words-dictation" element={<HardWordsDictationPage />} />
+        <Route path="part-2-challenge" element={<Part2ChallengePage />} />
         <Route path="road-to-part-7" element={<RoadToPart7Page />} />
         <Route path="toeic" element={<StudentToeicLibraryPage />} />
         <Route path="toeic/part-1" element={<Navigate to="/student/part-1" replace />} />

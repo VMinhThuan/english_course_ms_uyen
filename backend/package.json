@@ -36,7 +36,8 @@
     "vocabulary:indexes:apply": "node src/scripts/ensureVocabularyCatalogIndexes.js --apply",
     "vocabulary:inventory:readonly": "node src/scripts/inventoryVocabularyCatalogReadOnly.js",
     "migrate:standalone-learning-data": "node src/scripts/migrateStandaloneLearningData.js",
-    "hard-words:import-seed": "node src/scripts/importHardWordsDictationSeed.js"
+    "hard-words:import-seed": "node src/scripts/importHardWordsDictationSeed.js",
+    "part2-challenge:import-seed": "node src/scripts/importPart2ChallengeSeed.js"
   },
   "keywords": [
     "english",
