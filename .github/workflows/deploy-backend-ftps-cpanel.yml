@@ -84,7 +84,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           # curl verifies the FTPS certificate. Do not weaken this with -k.
-          curl --fail --silent --show-error --ftp-ssl --user "$FTPS_USER:$FTPS_PASSWORD" \
+          curl --fail --silent --show-error --ftp-ssl-reqd --list-only --user "$FTPS_USER:$FTPS_PASSWORD" \
             "ftp://$FTPS_HOST:21/$APP_PATH_RELATIVE/" >/dev/null
 
       - name: Verify cPanel account can see the Passenger application
