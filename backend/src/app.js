@@ -56,6 +56,8 @@ const allowedOrigins = new Set([
     process.env.FRONTEND_URL,
     ...(process.env.FRONTEND_ORIGINS || '').split(','),
     'https://frontend-ru4l.vercel.app',
+    'https://toeicmsuyen.vn',
+    'https://www.toeicmsuyen.vn',
 ].filter((origin) => typeof origin === 'string' && origin.trim()).map(normalizeOrigin));
 
 const corsOptions = {

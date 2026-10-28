@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 let cachedConnection = null;
 
 export const getDatabaseConnectionOptions = (env = process.env) => ({
-    serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 5000,
+    serverSelectionTimeoutMS: Number(env.MONGODB_TIMEOUT_MS) || (String(env.NODE_ENV || '').toLowerCase() === 'test' ? 5000 : 30000),
+    connectTimeoutMS: Number(env.MONGODB_CONNECT_TIMEOUT_MS) || (String(env.NODE_ENV || '').toLowerCase() === 'test' ? 5000 : 30000),
     bufferCommands: false,
     autoIndex: ['development', 'test'].includes(String(env.NODE_ENV || '').toLowerCase())
       && String(env.MONGOOSE_AUTO_INDEX || '').toLowerCase() === 'true',
@@ -31,7 +31,7 @@ const connectDB = async () => {
     try {
         const conn = await mongoose.connect(mongoURI, getDatabaseConnectionOptions());
         cachedConnection = conn;
-        console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+        console.log(`✅ MongoDB Connected: ${conn.connection.name || conn.connection.host || 'ready'}`);
         return conn;
     } catch (error) {
         console.error(`❌ MongoDB Connection Error: ${error.message}`);
