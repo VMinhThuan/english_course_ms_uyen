@@ -67,8 +67,10 @@ jobs:
     env:
       # These two guards are deliberately Secrets because that is where the
       # repository's deployment authority is held. GitHub does not allow
-      # secrets directly in a job-level if expression, so expose only boolean
-      # outputs from this job to control subsequent jobs.
+      # secrets directly in a job-level if expression. The output tokens below
+      # intentionally are not `true`/`false`: GitHub suppresses a job output
+      # that equals a Secret value, and both deploy Secrets legitimately use
+      # the value `true`.
       DEPLOY_ENABLED: ${{ secrets.BACKEND_FTPS_DEPLOY_ENABLED }}
       SELECTOR_VERIFIED: ${{ secrets.CLOUDLINUX_NODE_SELECTOR_VERIFIED }}
       REQUESTED_DEPLOY: ${{ inputs.deploy }}
@@ -77,15 +79,15 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          run_preflight=false
-          run_deploy=false
+          run_preflight=preflight-blocked
+          run_deploy=deploy-blocked
 
           if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' || "$DEPLOY_ENABLED" == 'true' ]]; then
-            run_preflight=true
+            run_preflight=preflight-approved
           fi
           if [[ ( "$GITHUB_EVENT_NAME" == 'push' || "$REQUESTED_DEPLOY" == 'true' ) \
             && "$DEPLOY_ENABLED" == 'true' && "$SELECTOR_VERIFIED" == 'true' ]]; then
-            run_deploy=true
+            run_deploy=deploy-approved
           fi
 
           printf 'run_preflight=%s\n' "$run_preflight" >> "$GITHUB_OUTPUT"
@@ -97,7 +99,7 @@ jobs:
     # A manual run with deploy=false is read-only. Pushes only reach this job
     # after the separate production gate has been enabled deliberately.
     if: >-
-      needs.authorize.outputs.run_preflight == 'true'
+      needs.authorize.outputs.run_preflight == 'preflight-approved'
     runs-on: ubuntu-latest
     env:
       FTPS_HOST: ${{ secrets.LONGVAN_FTPS_HOST }}
@@ -161,7 +163,7 @@ jobs:
     # Both gates are required. The default/unset value of either one prevents
     # production writes, including on a push to main.
     if: >-
-      needs.authorize.outputs.run_deploy == 'true'
+      needs.authorize.outputs.run_deploy == 'deploy-approved'
     runs-on: ubuntu-latest
     environment: longvan-production
     steps:
