@@ -57,28 +57,55 @@ jobs:
       - name: Run offline security regression tests
         run: npm run test:phase1
 
+  authorize:
+    name: Authorize read-only preflight and production upload
+    needs: verify
+    runs-on: ubuntu-latest
+    outputs:
+      run_preflight: ${{ steps.gate.outputs.run_preflight }}
+      run_deploy: ${{ steps.gate.outputs.run_deploy }}
+    env:
+      # These two guards are deliberately Secrets because that is where the
+      # repository's deployment authority is held. GitHub does not allow
+      # secrets directly in a job-level if expression, so expose only boolean
+      # outputs from this job to control subsequent jobs.
+      DEPLOY_ENABLED: ${{ secrets.BACKEND_FTPS_DEPLOY_ENABLED }}
+      SELECTOR_VERIFIED: ${{ secrets.CLOUDLINUX_NODE_SELECTOR_VERIFIED }}
+      REQUESTED_DEPLOY: ${{ inputs.deploy }}
+    steps:
+      - id: gate
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          run_preflight=false
+          run_deploy=false
+
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' || "$DEPLOY_ENABLED" == 'true' ]]; then
+            run_preflight=true
+          fi
+          if [[ ( "$GITHUB_EVENT_NAME" == 'push' || "$REQUESTED_DEPLOY" == 'true' ) \
+            && "$DEPLOY_ENABLED" == 'true' && "$SELECTOR_VERIFIED" == 'true' ]]; then
+            run_deploy=true
+          fi
+
+          printf 'run_preflight=%s\n' "$run_preflight" >> "$GITHUB_OUTPUT"
+          printf 'run_deploy=%s\n' "$run_deploy" >> "$GITHUB_OUTPUT"
+
   preflight:
     name: Verify CloudLinux target, FTPS mapping, and public domain
-    needs: verify
+    needs: authorize
     # A manual run with deploy=false is read-only. Pushes only reach this job
     # after the separate production gate has been enabled deliberately.
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      vars.BACKEND_FTPS_DEPLOY_ENABLED == 'true'
+      needs.authorize.outputs.run_preflight == 'true'
     runs-on: ubuntu-latest
     env:
       FTPS_HOST: ${{ secrets.LONGVAN_FTPS_HOST }}
       FTPS_USER: ${{ secrets.LONGVAN_FTPS_USER }}
       FTPS_PASSWORD: ${{ secrets.LONGVAN_FTPS_PASSWORD }}
-      # These values are an explicit, reviewed record of the configuration
-      # shown in cPanel -> Setup Node.js App. CloudLinux Node.js Selector does
-      # not expose that registration through cPanel PassengerApps UAPI.
-      SELECTOR_DOMAIN: ${{ vars.CLOUDLINUX_NODE_SELECTOR_DOMAIN }}
-      SELECTOR_APP_ROOT: ${{ vars.CLOUDLINUX_NODE_SELECTOR_APP_ROOT }}
-      SELECTOR_STARTUP_FILE: ${{ vars.CLOUDLINUX_NODE_SELECTOR_STARTUP_FILE }}
-      SELECTOR_NODE_VERSION: ${{ vars.CLOUDLINUX_NODE_SELECTOR_NODE_VERSION }}
-      SELECTOR_MODE: ${{ vars.CLOUDLINUX_NODE_SELECTOR_MODE }}
-      SELECTOR_VERIFIED: ${{ vars.CLOUDLINUX_NODE_SELECTOR_VERIFIED }}
+      # CloudLinux Selector is reviewed in cPanel before this Secret is set.
+      # The expected target configuration remains immutable in workflow env.
+      SELECTOR_VERIFIED: ${{ secrets.CLOUDLINUX_NODE_SELECTOR_VERIFIED }}
     steps:
       - name: Check required secrets and reviewed Node.js Selector target
         shell: bash
@@ -90,16 +117,6 @@ jobs:
 
           [[ "$SELECTOR_VERIFIED" == 'true' ]] \
             || { echo 'CloudLinux configuration has not been explicitly reviewed in cPanel.' >&2; exit 21; }
-          [[ "$SELECTOR_DOMAIN" == "$EXPECTED_DOMAIN" ]] \
-            || { echo "Refusing target: expected Node.js Selector domain $EXPECTED_DOMAIN." >&2; exit 22; }
-          [[ "$SELECTOR_APP_ROOT" == "$APP_PATH_RELATIVE" ]] \
-            || { echo "Refusing target: expected application root $APP_PATH_RELATIVE." >&2; exit 23; }
-          [[ "$SELECTOR_STARTUP_FILE" == "$EXPECTED_STARTUP_FILE" ]] \
-            || { echo "Refusing target: expected startup file $EXPECTED_STARTUP_FILE." >&2; exit 24; }
-          [[ "$SELECTOR_NODE_VERSION" == "$EXPECTED_NODE_VERSION" ]] \
-            || { echo "Refusing target: expected Node.js $EXPECTED_NODE_VERSION." >&2; exit 25; }
-          [[ "$SELECTOR_MODE" == 'production' ]] \
-            || { echo 'Refusing target: Node.js Selector must be in production mode.' >&2; exit 26; }
 
       - name: Verify authenticated explicit-FTPS path mapping without writing
         shell: bash
@@ -140,13 +157,11 @@ jobs:
 
   deploy:
     name: Upload backend through explicit FTPS
-    needs: preflight
+    needs: [authorize, preflight]
     # Both gates are required. The default/unset value of either one prevents
     # production writes, including on a push to main.
     if: >-
-      vars.BACKEND_FTPS_DEPLOY_ENABLED == 'true' &&
-      vars.CLOUDLINUX_NODE_SELECTOR_VERIFIED == 'true' &&
-      (github.event_name == 'push' || inputs.deploy == true)
+      needs.authorize.outputs.run_deploy == 'true'
     runs-on: ubuntu-latest
     environment: longvan-production
     steps:

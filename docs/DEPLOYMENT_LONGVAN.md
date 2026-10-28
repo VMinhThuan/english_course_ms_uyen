@@ -6,7 +6,7 @@ The production workflow is [`deploy-backend.yml`](../.github/workflows/deploy-ba
 apps/english-course/backend
 ```
 
-It is deliberately fail-closed. Neither a push nor a manual run can write production unless both repository variables below equal `true` and the `longvan-production` GitHub Environment approves the job:
+It is deliberately fail-closed. Neither a push nor a manual run can write production unless both GitHub Actions **Secrets** below equal `true` and the `longvan-production` GitHub Environment approves the job:
 
 ```text
 BACKEND_FTPS_DEPLOY_ENABLED=true
@@ -19,19 +19,19 @@ The account uses **CloudLinux Node.js Selector**, not cPanel Application Manager
 
 CloudLinux's supported controls are the **Setup Node.js App** UI, or (where a shell is available) `cloudlinux-selector`. The latter can list an account's Node apps, install their modules, and restart an app. See [CloudLinux command-line tools](https://docs.cloudlinux.com/cloudlinuxos/command-line_tools/) and [Node.js Selector UI](https://docs.cloudlinux.com/cloudlinuxos/lve_manager/).
 
-## Required one-time cPanel review and GitHub variables
+## Required one-time cPanel review and GitHub Secrets
 
-In cPanel **Software → Setup Node.js App**, open the existing application and verify these exact values before setting the variables:
+In cPanel **Software → Setup Node.js App**, open the existing application and verify these exact values before setting the confirmation Secret:
 
-| cPanel field | Required value | GitHub repository variable |
-| --- | --- | --- |
-| Application URL | `api.toeicmsuyen.vn` | `CLOUDLINUX_NODE_SELECTOR_DOMAIN=api.toeicmsuyen.vn` |
-| Application root | `apps/english-course/backend` | `CLOUDLINUX_NODE_SELECTOR_APP_ROOT=apps/english-course/backend` |
-| Application startup file | `app.js` | `CLOUDLINUX_NODE_SELECTOR_STARTUP_FILE=app.js` |
-| Node.js version | `22.23.4` | `CLOUDLINUX_NODE_SELECTOR_NODE_VERSION=22.23.4` |
-| Mode | Production | `CLOUDLINUX_NODE_SELECTOR_MODE=production` |
+| cPanel field | Required value |
+| --- | --- |
+| Application URL | `api.toeicmsuyen.vn` |
+| Application root | `apps/english-course/backend` |
+| Application startup file | `app.js` |
+| Node.js version | `22.23.4` |
+| Mode | Production |
 
-Set `CLOUDLINUX_NODE_SELECTOR_VERIFIED=true` only after that review. If any cPanel value changes, first reset it to `false`, update the matching variables, review again, and then re-enable it. This is a deliberate human confirmation because the available cPanel token API cannot read CloudLinux Selector registrations.
+Set the GitHub Actions Secret `CLOUDLINUX_NODE_SELECTOR_VERIFIED=true` only after that review. If any cPanel value changes, first replace it with `false`, review again, and then re-enable it. This is a deliberate human confirmation because the available cPanel token API cannot read CloudLinux Selector registrations. The expected values are fixed in the workflow, rather than copied through mutable repository variables.
 
 The workflow also performs two independent, read-only checks on every preflight:
 
