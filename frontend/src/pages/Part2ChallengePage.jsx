@@ -20,7 +20,8 @@ export default function Part2ChallengePage() {
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [sessionState, setSessionState] = useState('instructions');
+  const [sessionState, setSessionState] = useState('mode-select');
+  const [selectedMode, setSelectedMode] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [audioState, setAudioState] = useState('idle');
   const [secondsLeft, setSecondsLeft] = useState(ANSWER_SECONDS);
@@ -32,6 +33,7 @@ export default function Part2ChallengePage() {
   const [reviewFilter, setReviewFilter] = useState('all');
   const [reviewSearch, setReviewSearch] = useState('');
   const audioRef = useRef(null);
+  const practiceAudioRef = useRef(null);
   const playbackVersion = useRef(0);
   const answerRequestVersion = useRef(0);
 
@@ -53,6 +55,7 @@ export default function Part2ChallengePage() {
   useEffect(() => () => {
     playbackVersion.current += 1;
     audioRef.current?.pause();
+    practiceAudioRef.current?.pause();
   }, []);
 
   const currentQuestion = questions[currentIndex];
@@ -105,19 +108,31 @@ export default function Part2ChallengePage() {
   const openQuestion = useCallback((index) => {
     if (!questions[index]) return;
     setCurrentIndex(index);
-    playQuestion(questions[index]);
+    if (selectedMode === 'exam') {
+      playQuestion(questions[index]);
+    } else {
+      practiceAudioRef.current?.pause();
+      playbackVersion.current += 1;
+      answerRequestVersion.current += 1;
+      setTimerActive(false);
+      setAwaitingSubmit(false);
+      setAudioState('answering');
+      setIsAnswerOpen(false);
+      setIsAnswerLoading(false);
+      setAnswerError('');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [questions, playQuestion]);
+  }, [questions, playQuestion, selectedMode]);
 
   const handleAudioEnded = () => {
-    if (sessionState !== 'active') return;
+    if (sessionState !== 'active' || selectedMode !== 'exam') return;
     setAudioState('answering');
     setSecondsLeft(ANSWER_SECONDS);
     setTimerActive(true);
   };
 
   const handleAudioError = () => {
-    if (sessionState !== 'active' || audioState === 'answering' || audioState === 'unavailable') return;
+    if (sessionState !== 'active' || selectedMode !== 'exam' || audioState === 'answering' || audioState === 'unavailable') return;
     setAudioState('unavailable');
     setSecondsLeft(ANSWER_SECONDS);
     setTimerActive(true);
@@ -146,16 +161,25 @@ export default function Part2ChallengePage() {
     setSubmitError('');
     setCurrentIndex(0);
     setSessionState('active');
-    playQuestion(questions[0]);
+    if (selectedMode === 'exam') playQuestion(questions[0]);
+    else {
+      answerRequestVersion.current += 1;
+      setTimerActive(false);
+      setAwaitingSubmit(false);
+      setAudioState('answering');
+      setIsAnswerOpen(false);
+      setIsAnswerLoading(false);
+      setAnswerError('');
+    }
   };
 
   const selectAnswer = (letter) => {
-    if (!currentQuestion || !answerWindowOpen) return;
+    if (!currentQuestion || (selectedMode === 'exam' && !answerWindowOpen)) return;
     setSelectedAnswers((current) => ({ ...current, [currentQuestion.number]: letter }));
   };
 
   const toggleAnswer = async () => {
-    if (!currentQuestion || !answerWindowOpen) return;
+    if (!currentQuestion || (selectedMode === 'exam' && !answerWindowOpen)) return;
     if (isAnswerOpen) {
       setIsAnswerOpen(false);
       return;
@@ -182,12 +206,15 @@ export default function Part2ChallengePage() {
     setIsSubmitting(true);
     setSubmitError('');
     try {
-      const response = await part2ChallengeApi.submit(questions.map((question) => ({
+      const attemptQuestions = selectedMode === 'practice'
+        ? questions.filter((question) => selectedAnswers[question.number])
+        : questions;
+      const response = await part2ChallengeApi.submit(attemptQuestions.map((question) => ({
         number: question.number,
         selectedAnswer: selectedAnswers[question.number] || '',
       })));
       const answersByNumber = new Map((response.data?.items || []).map((item) => [item.number, item]));
-      const rows = questions.map((question) => {
+      const rows = attemptQuestions.map((question) => {
         const answer = answersByNumber.get(question.number) || revealedAnswers[question.number];
         const selectedAnswer = selectedAnswers[question.number] || '';
         const correctAnswer = answer?.correctAnswer || '';
@@ -208,6 +235,7 @@ export default function Part2ChallengePage() {
       setSessionState('results');
       setTimerActive(false);
       audioRef.current?.pause();
+      practiceAudioRef.current?.pause();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
       setSubmitError('Chưa tải được bảng đáp án. Kiểm tra kết nối rồi thử nộp lại.');
@@ -217,9 +245,17 @@ export default function Part2ChallengePage() {
   };
 
   const nextQuestion = () => {
-    if (!answerWindowOpen) return;
+    if (selectedMode !== 'exam' || !answerWindowOpen) return;
     if (currentIndex + 1 < questions.length) openQuestion(currentIndex + 1);
     else submitSession();
+  };
+
+  const previousPracticeQuestion = () => {
+    if (selectedMode === 'practice' && currentIndex > 0) openQuestion(currentIndex - 1);
+  };
+
+  const nextPracticeQuestion = () => {
+    if (selectedMode === 'practice' && currentIndex + 1 < questions.length) openQuestion(currentIndex + 1);
   };
 
   const resultCounts = useMemo(() => reviewRows.reduce((counts, row) => {
@@ -258,7 +294,9 @@ export default function Part2ChallengePage() {
           <div>
             <p className="part2-challenge-eyebrow">TOEIC LISTENING PART 2</p>
             <h1>Part 2 Challange</h1>
-            <p>{sessionState === 'active' ? 'Nghe từng câu, chọn đáp án rồi chuyển câu tiếp theo.' : 'Luyện nghe và chọn đáp án theo nhịp thời gian của từng câu.'}</p>
+            <p>{sessionState === 'active'
+              ? selectedMode === 'exam' ? 'Nghe từng câu và chọn đáp án trước khi chuyển câu tiếp theo.' : 'Chọn câu bất kỳ, nghe lại audio và làm theo tốc độ của bạn.'
+              : sessionState === 'mode-select' ? 'Chọn cách làm bài phù hợp với mục tiêu luyện tập.' : 'Đọc hướng dẫn của chế độ đã chọn trước khi bắt đầu.'}</p>
           </div>
           {sessionState === 'active' && (
             <div className="part2-challenge-progress" role="status" aria-live="polite">
@@ -274,39 +312,101 @@ export default function Part2ChallengePage() {
         <div className="part2-challenge-state">Hiện chưa có câu hỏi nào được mở.</div>
       )}
 
+      {!isLoading && !loadError && questions.length > 0 && sessionState === 'mode-select' && (
+        <section className="part2-challenge-mode-select">
+          <div>
+            <p className="part2-challenge-eyebrow">CHỌN CÁCH LUYỆN TẬP</p>
+            <h2>Chọn chế độ làm bài</h2>
+            <p>Bạn có thể làm như thi thử hoặc luyện từng câu theo tốc độ của mình.</p>
+          </div>
+          <div className="part2-challenge-mode-cards">
+            <button type="button" className="part2-challenge-mode-card" onClick={() => { setSelectedMode('exam'); setSessionState('instructions'); }}>
+              <span className="part2-challenge-mode-card__icon">30s</span>
+              <strong>Thi thử tự động</strong>
+              <span>Audio tự phát từng câu. Sau audio có 30 giây chọn đáp án rồi hệ thống tự chuyển tiếp. Không quay lại câu trước.</span>
+              <b>Chọn chế độ này</b>
+            </button>
+            <button type="button" className="part2-challenge-mode-card" onClick={() => { setSelectedMode('practice'); setSessionState('instructions'); }}>
+              <span className="part2-challenge-mode-card__icon">A·B·C</span>
+              <strong>Luyện tập từng câu</strong>
+              <span>Tự chọn câu trong danh sách, nghe lại audio, xem đáp án và script, rồi chuyển câu trước hoặc câu tiếp theo.</span>
+              <b>Chọn chế độ này</b>
+            </button>
+          </div>
+        </section>
+      )}
+
       {!isLoading && !loadError && questions.length > 0 && sessionState === 'instructions' && (
         <section className="part2-challenge-instructions">
           <div className="part2-challenge-instructions__intro">
-            <p className="part2-challenge-eyebrow">TRƯỚC KHI BẮT ĐẦU</p>
-            <h2>Hướng dẫn làm bài</h2>
+            <p className="part2-challenge-eyebrow">{selectedMode === 'exam' ? 'HƯỚNG DẪN THI THỬ' : 'HƯỚNG DẪN LUYỆN TẬP'}</p>
+            <h2>{selectedMode === 'exam' ? 'Làm bài tự động' : 'Luyện tập từng câu'}</h2>
             <p>Bài luyện gồm <strong>{questions.length} câu</strong>. Hãy chuẩn bị âm thanh trước khi bắt đầu.</p>
           </div>
-          <ol className="part2-challenge-instructions__steps">
-            <li><strong>Nghe audio</strong><span>Bấm Bắt đầu để phát lần lượt từng câu. Audio tự chạy và không có nút tua hoặc quay lại câu trước.</span></li>
-            <li><strong>Chọn đáp án</strong><span>Khi audio kết thúc, bạn có 30 giây để chọn A, B hoặc C. Bạn cũng có thể chủ động bấm Next.</span></li>
-            <li><strong>Xem lời giải</strong><span>Trong mỗi câu, nút Hiện đáp án và script sẽ mở đáp án đúng, script và bản dịch.</span></li>
-            <li><strong>Nộp bài</strong><span>Ở câu cuối, bấm Nộp bài để xem lại đáp án của toàn bộ câu hỏi.</span></li>
-          </ol>
-          <button type="button" className="ds-button ds-button--primary part2-challenge-start" onClick={startSession}>Bắt đầu</button>
+          {selectedMode === 'exam' ? (
+            <ol className="part2-challenge-instructions__steps">
+              <li><strong>Nghe audio</strong><span>Bấm Bắt đầu để phát lần lượt từng câu. Audio tự chạy và không có nút tua hoặc quay lại câu trước.</span></li>
+              <li><strong>Chọn đáp án</strong><span>Khi audio kết thúc, bạn có 30 giây để chọn A, B hoặc C. Bạn cũng có thể chủ động bấm Next.</span></li>
+              <li><strong>Xem lời giải</strong><span>Trong mỗi câu, nút Hiện đáp án và script sẽ mở đáp án đúng, script và bản dịch.</span></li>
+              <li><strong>Nộp bài</strong><span>Ở câu cuối, bấm Nộp bài để xem lại đáp án của toàn bộ câu hỏi.</span></li>
+            </ol>
+          ) : (
+            <ol className="part2-challenge-instructions__steps">
+              <li><strong>Chọn câu cần làm</strong><span>Danh sách số câu luôn hiển thị. Chọn câu nào thì nội dung câu đó mở ra; câu đã chọn đáp án sẽ được đánh dấu màu xanh.</span></li>
+              <li><strong>Nghe lại audio</strong><span>Thanh media cho phép phát, tạm dừng và nghe lại audio nhiều lần.</span></li>
+              <li><strong>Làm và xem lời giải</strong><span>Chọn A, B hoặc C. Nút Hiện đáp án và script nằm bên dưới lựa chọn.</span></li>
+              <li><strong>Di chuyển và nộp bài</strong><span>Dùng Câu trước/Câu tiếp theo hoặc chọn số câu trong danh sách. Khi nộp, kết quả chỉ gồm những câu bạn đã chọn đáp án.</span></li>
+            </ol>
+          )}
+          <div className="part2-challenge-instructions__actions">
+            <button type="button" className="ds-button ds-button--secondary" onClick={() => { setSessionState('mode-select'); setSelectedMode(''); }}>Chọn lại chế độ</button>
+            <button type="button" className="ds-button ds-button--primary part2-challenge-start" onClick={startSession}>Bắt đầu</button>
+          </div>
         </section>
       )}
 
       {!isLoading && !loadError && sessionState === 'active' && currentQuestion && (
-        <section className="part2-challenge-test" aria-label="Đang làm Part 2 Challenge">
+        <section className={`part2-challenge-test ${selectedMode === 'practice' ? 'is-practice' : 'is-exam'}`} aria-label="Đang làm Part 2 Challenge">
           <div className="part2-challenge-test__progress">
             <div><span>Câu {currentIndex + 1} / {questions.length}</span><span>{selectedCount} câu đã chọn</span></div>
             <progress max="100" value={progressPercent} aria-label={`Tiến độ ${currentIndex + 1} trên ${questions.length}`} />
           </div>
 
+          {selectedMode === 'practice' && (
+            <nav className="part2-challenge-question-nav" aria-label="Danh sách câu hỏi">
+              <div className="part2-challenge-question-nav__heading"><strong>Danh sách câu</strong><span>{selectedCount}/{questions.length} đã làm</span></div>
+              <div className="part2-challenge-question-nav__grid">
+                {questions.map((question, index) => {
+                  const isAnswered = Boolean(selectedAnswers[question.number]);
+                  return (
+                    <button
+                      type="button"
+                      key={question.number}
+                      className={`${isAnswered ? 'is-answered' : ''} ${index === currentIndex ? 'is-current' : ''}`}
+                      aria-current={index === currentIndex ? 'step' : undefined}
+                      aria-label={`Câu ${question.number}${isAnswered ? ', đã làm' : ', chưa làm'}${index === currentIndex ? ', đang chọn' : ''}`}
+                      onClick={() => openQuestion(index)}
+                    >{question.number}</button>
+                  );
+                })}
+              </div>
+              <p><span className="part2-challenge-question-nav__legend is-done" />Đã chọn đáp án <span className="part2-challenge-question-nav__legend" />Chưa làm</p>
+            </nav>
+          )}
+
           <article className="part2-challenge-question part2-challenge-question--active">
             <div className="part2-challenge-question__heading">
               <h2>Câu số {currentQuestion.number}</h2>
-              {audioState === 'playing' && <span className="part2-challenge-audio-status is-playing" role="status" aria-live="polite">Đang phát audio</span>}
-              {audioState === 'loading' && <span className="part2-challenge-audio-status" role="status" aria-live="polite">Đang tải audio…</span>}
-              {answerWindowOpen && <span className="part2-challenge-audio-status is-answering" role="timer" aria-live="off">{timerActive ? `Còn ${secondsLeft} giây` : 'Có thể chọn đáp án'}</span>}
+              {selectedMode === 'practice' && <span className="part2-challenge-audio-status is-answering">Luyện tập</span>}
+              {selectedMode === 'exam' && audioState === 'playing' && <span className="part2-challenge-audio-status is-playing" role="status" aria-live="polite">Đang phát audio</span>}
+              {selectedMode === 'exam' && audioState === 'loading' && <span className="part2-challenge-audio-status" role="status" aria-live="polite">Đang tải audio…</span>}
+              {selectedMode === 'exam' && answerWindowOpen && <span className="part2-challenge-audio-status is-answering" role="timer" aria-live="off">{timerActive ? `Còn ${secondsLeft} giây` : 'Có thể chọn đáp án'}</span>}
             </div>
 
-            {audioState === 'playing' || audioState === 'loading'
+            {selectedMode === 'practice' ? currentQuestion.audioUrl
+              ? <audio key={currentQuestion.number} ref={practiceAudioRef} className="part2-challenge-audio" controls preload="metadata" src={currentQuestion.audioUrl}>Trình duyệt không hỗ trợ phát audio.</audio>
+              : <p className="part2-challenge-audio-missing">Audio câu này chưa có file hợp lệ.</p>
+              : audioState === 'playing' || audioState === 'loading'
               ? <p className="part2-challenge-audio-message">Hãy nghe audio. Thời gian chọn đáp án bắt đầu khi audio kết thúc.</p>
               : audioState === 'unavailable'
                 ? <p className="part2-challenge-audio-message is-warning">Không phát được audio câu này. Thời gian chọn đáp án 30 giây đã bắt đầu.</p>
@@ -320,7 +420,7 @@ export default function Part2ChallengePage() {
                   className={`part2-challenge-option ${selectedAnswers[currentQuestion.number] === choice.letter ? 'is-selected' : ''}`}
                   aria-pressed={selectedAnswers[currentQuestion.number] === choice.letter}
                   aria-label={`Đáp án ${choice.letter}`}
-                  disabled={!answerWindowOpen}
+                  disabled={selectedMode === 'exam' && !answerWindowOpen}
                   onClick={() => selectAnswer(choice.letter)}
                 >
                   <span>{choice.letter}</span>
@@ -333,7 +433,7 @@ export default function Part2ChallengePage() {
                 type="button"
                 className="part2-challenge-reveal"
                 aria-expanded={isAnswerOpen}
-                disabled={!answerWindowOpen || isAnswerLoading}
+                disabled={(selectedMode === 'exam' && !answerWindowOpen) || isAnswerLoading}
                 onClick={toggleAnswer}
               >
                 {isAnswerLoading ? 'Đang tải đáp án…' : isAnswerOpen ? 'Ẩn đáp án và script' : 'Hiện đáp án và script'}
@@ -348,14 +448,20 @@ export default function Part2ChallengePage() {
               )}
             </div>
 
-            {awaitingSubmit && <p className="part2-challenge-submit-hint" role="status">Đã hết thời gian câu cuối. Nộp bài để xem kết quả và toàn bộ đáp án.</p>}
+            {selectedMode === 'exam' && awaitingSubmit && <p className="part2-challenge-submit-hint" role="status">Đã hết thời gian câu cuối. Nộp bài để xem kết quả và toàn bộ đáp án.</p>}
             {submitError && <p className="part2-challenge-answer__error" role="alert">{submitError}</p>}
-            <div className="part2-challenge-test__actions">
+            {selectedMode === 'exam' ? <div className="part2-challenge-test__actions">
               <span>{selectedAnswers[currentQuestion.number] ? `Bạn đã chọn ${selectedAnswers[currentQuestion.number]}` : 'Chưa chọn đáp án'}</span>
               <button type="button" className="ds-button ds-button--primary" disabled={!answerWindowOpen || isSubmitting || isAnswerLoading} onClick={nextQuestion}>
                 {isSubmitting ? 'Đang nộp bài…' : currentIndex + 1 === questions.length ? 'Nộp bài' : 'Next'}
               </button>
-            </div>
+            </div> : <div className="part2-challenge-practice-actions">
+              <button type="button" className="ds-button ds-button--secondary" disabled={currentIndex === 0} onClick={previousPracticeQuestion}>Câu trước</button>
+              <button type="button" className="ds-button ds-button--secondary" disabled={currentIndex + 1 === questions.length} onClick={nextPracticeQuestion}>Câu tiếp theo</button>
+              <button type="button" className="ds-button ds-button--primary" disabled={isSubmitting || isAnswerLoading || selectedCount === 0} onClick={submitSession}>
+                {isSubmitting ? 'Đang nộp bài…' : `Nộp bài · ${selectedCount} câu đã làm`}
+              </button>
+            </div>}
           </article>
         </section>
       )}
@@ -364,8 +470,10 @@ export default function Part2ChallengePage() {
         <section className="part2-challenge-results">
           <header className="part2-challenge-results__header">
             <p className="part2-challenge-eyebrow">KẾT QUẢ BÀI LÀM</p>
-            <h1>Đáp án Part 2 Challange</h1>
-            <p>Đáp án đúng được hiển thị ngay bên cạnh lựa chọn của bạn. Mở từng câu để xem đủ lựa chọn, script và bản dịch.</p>
+            <h1>{selectedMode === 'practice' ? 'Kết quả các câu đã làm' : 'Đáp án Part 2 Challange'}</h1>
+            <p>{selectedMode === 'practice'
+              ? `Chỉ hiển thị ${reviewRows.length} câu bạn đã chọn đáp án. Mở từng câu để xem script và bản dịch.`
+              : 'Đáp án đúng được hiển thị ngay bên cạnh lựa chọn của bạn. Mở từng câu để xem script và bản dịch.'}</p>
           </header>
 
           <div className="part2-challenge-result-summary" aria-label="Tổng kết kết quả">
