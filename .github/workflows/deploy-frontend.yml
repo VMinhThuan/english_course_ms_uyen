@@ -84,6 +84,7 @@ jobs:
         with:
           name: frontend-dist
           path: frontend/dist/
+          include-hidden-files: true
           retention-days: 1
 
   authorize:
@@ -190,6 +191,13 @@ jobs:
         with:
           name: frontend-dist
           path: ./frontend/dist/
+
+      - name: Verify .htaccess exists in downloaded dist
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -f ./frontend/dist/.htaccess || { echo "ERROR: .htaccess was not downloaded!" >&2; exit 14; }
+          echo "Verified .htaccess is ready in ./frontend/dist/"
 
       - name: Upload frontend via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
