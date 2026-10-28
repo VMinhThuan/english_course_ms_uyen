@@ -6,6 +6,7 @@ import {
   listAdminPart2ChallengeQuestions,
   listStudentPart2ChallengeQuestions,
   setPart2ChallengeQuestionVisibility,
+  submitStudentPart2Challenge,
   updateAdminPart2ChallengeQuestion,
 } from '../controllers/part2ChallengeController.js';
 import { checkRole, requireActiveStudent, verifyToken } from '../middlewares/auth.js';
@@ -21,6 +22,7 @@ adminRouter.delete('/:number', deleteAdminPart2ChallengeQuestion);
 const studentRouter = express.Router();
 studentRouter.use(verifyToken, requireActiveStudent);
 studentRouter.get('/', listStudentPart2ChallengeQuestions);
+studentRouter.post('/submit', submitStudentPart2Challenge);
 studentRouter.get('/:number/answer', getStudentPart2ChallengeAnswer);
 
 export { adminRouter as adminPart2ChallengeRoutes, studentRouter as studentPart2ChallengeRoutes };

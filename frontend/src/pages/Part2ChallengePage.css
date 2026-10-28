@@ -30,3 +30,82 @@
 .part2-challenge-answer__error{margin:0;padding:8px 10px;border:1px solid;border-radius:8px;font-size:12px}
 .part2-challenge-complete{margin:0;padding:12px;color:var(--brand-muted);font-size:13px;text-align:center;scroll-margin-top:24px}
 @media(max-width:650px){.part2-challenge-header{align-items:flex-start;flex-direction:column;padding:19px}.part2-challenge-header h1{font-size:26px}.part2-challenge-question{padding:16px}.part2-challenge-option{font-size:13px}}
+
+.part2-challenge-audio-engine{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
+.part2-challenge-instructions,.part2-challenge-test__progress,.part2-challenge-results__header,.part2-challenge-review-tools{border:1px solid var(--brand-border);border-radius:var(--radius-card);background:var(--brand-surface);box-shadow:var(--shadow-subtle)}
+.part2-challenge-instructions{display:grid;gap:20px;padding:26px}
+.part2-challenge-instructions__intro h2{margin:7px 0;color:var(--brand-text);font-family:var(--font-serif);font-size:26px;font-weight:600}
+.part2-challenge-instructions__intro>p:last-child{margin:0;color:var(--brand-muted);font-size:14px;line-height:1.6}
+.part2-challenge-instructions__intro strong{color:var(--brand-coffee)}
+.part2-challenge-instructions__steps{display:grid;gap:10px;margin:0;padding:0;list-style:none;counter-reset:instructions}
+.part2-challenge-instructions__steps li{display:grid;grid-template-columns:38px minmax(0,1fr);gap:3px 12px;align-items:start;padding:13px;border:1px solid var(--brand-border-light);border-radius:11px;background:#fffdfa;counter-increment:instructions}
+.part2-challenge-instructions__steps li::before{content:counter(instructions);display:grid;grid-row:span 2;width:30px;height:30px;place-items:center;border-radius:50%;background:var(--brand-yellow-soft);color:var(--brand-coffee);font-size:12px;font-weight:800}
+.part2-challenge-instructions__steps strong{color:var(--brand-text);font-size:13px}
+.part2-challenge-instructions__steps span{color:var(--brand-muted);font-size:12px;line-height:1.55}
+.part2-challenge-start{justify-self:start;min-width:150px;min-height:44px}
+.part2-challenge-test{display:grid;gap:14px}
+.part2-challenge-test__progress{position:sticky;top:12px;z-index:2;display:grid;gap:9px;padding:13px 16px}
+.part2-challenge-test__progress>div{display:flex;justify-content:space-between;gap:10px;color:var(--brand-coffee);font-size:12px;font-weight:750}
+.part2-challenge-test__progress progress{width:100%;height:8px;overflow:hidden;border:0;border-radius:999px;background:var(--brand-bg-sub);accent-color:var(--brand-brown-sec)}
+.part2-challenge-test__progress progress::-webkit-progress-bar{border-radius:999px;background:var(--brand-bg-sub)}
+.part2-challenge-test__progress progress::-webkit-progress-value{border-radius:999px;background:var(--brand-brown-sec)}
+.part2-challenge-test__progress progress::-moz-progress-bar{border-radius:999px;background:var(--brand-brown-sec)}
+.part2-challenge-question--active{gap:16px}
+.part2-challenge-audio-status{padding:5px 9px;border-radius:999px;background:var(--brand-bg-sub);color:var(--brand-muted);font-size:11px;font-weight:750}
+.part2-challenge-audio-status.is-playing{background:var(--brand-yellow-soft);color:var(--brand-coffee)}
+.part2-challenge-audio-status.is-answering{background:var(--brand-success-bg);color:var(--brand-success)}
+.part2-challenge-audio-message{margin:0;padding:10px 12px;border-radius:9px;background:var(--brand-bg-sub);color:var(--brand-muted);font-size:12px;line-height:1.5}
+.part2-challenge-audio-message.is-warning{background:var(--brand-warning-bg);color:var(--brand-warning)}
+.part2-challenge-option:disabled{opacity:.68;cursor:default}
+.part2-challenge-option:disabled:hover{border-color:var(--brand-border);background:#fffefa}
+.part2-challenge-option.is-selected:disabled{border-color:var(--brand-brown-sec);background:var(--brand-yellow-soft);opacity:1}
+.part2-challenge-option:disabled:focus-visible{outline:none}
+.part2-challenge-answer .part2-challenge-reveal:disabled{opacity:.55;cursor:default}
+.part2-challenge-test__actions{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:14px;border-top:1px solid var(--brand-border-light)}
+.part2-challenge-test__actions>span{color:var(--brand-muted);font-size:12px}
+.part2-challenge-submit-hint{margin:0;padding:11px 13px;border:1px solid var(--brand-success-border);border-radius:9px;background:var(--brand-success-bg);color:var(--brand-success);font-size:13px;line-height:1.5}
+.part2-challenge-results{display:grid;gap:15px}
+.part2-challenge-results__header{padding:22px 24px}
+.part2-challenge-results__header h1{margin:7px 0;color:var(--brand-text);font-family:var(--font-serif);font-size:28px;font-weight:600}
+.part2-challenge-results__header>p:last-child{margin:0;color:var(--brand-muted);font-size:13px;line-height:1.6}
+.part2-challenge-result-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.part2-challenge-result-summary article{display:grid;gap:7px;padding:14px 16px;border:1px solid var(--brand-border);border-radius:12px;background:var(--brand-surface)}
+.part2-challenge-result-summary span{color:var(--brand-muted);font-size:11px}
+.part2-challenge-result-summary strong{color:var(--brand-coffee);font-family:var(--font-serif);font-size:23px;font-weight:650}
+.part2-challenge-result-summary .is-correct strong{color:var(--brand-success)}
+.part2-challenge-result-summary .is-incorrect strong{color:var(--brand-danger)}
+.part2-challenge-result-summary .is-score{background:var(--brand-yellow-soft)}
+.part2-challenge-review-tools{position:sticky;top:10px;z-index:2;display:grid;gap:12px;padding:14px}
+.part2-challenge-review-search{display:grid;max-width:420px;gap:6px;color:var(--brand-coffee);font-size:11px;font-weight:800}
+.part2-challenge-review-search input{box-sizing:border-box;width:100%;min-height:40px;padding:8px 10px;border:1px solid var(--brand-border);border-radius:9px;background:#fffefa;color:var(--brand-text);font:13px var(--font-sans)}
+.part2-challenge-review-filters{display:flex;flex-wrap:wrap;gap:7px}
+.part2-challenge-review-filters button{min-height:34px;padding:6px 10px;border:1px solid var(--brand-border);border-radius:999px;background:#fffdfa;color:var(--brand-coffee);font:700 11px var(--font-sans);cursor:pointer}
+.part2-challenge-review-filters button.is-active{border-color:var(--brand-coffee);background:var(--brand-coffee);color:#fff}
+.part2-challenge-review-filters button:focus-visible,.part2-challenge-review-search input:focus-visible,.part2-challenge-review-item summary:focus-visible{outline:3px solid var(--brand-yellow);outline-offset:2px}
+.part2-challenge-review-tools>p{margin:0;color:var(--brand-muted);font-size:11px}
+.part2-challenge-review-list{display:grid;gap:7px}
+.part2-challenge-review-item{overflow:hidden;border:1px solid var(--brand-border);border-left:4px solid var(--brand-border);border-radius:10px;background:var(--brand-surface)}
+.part2-challenge-review-item.is-correct{border-left-color:var(--brand-success)}
+.part2-challenge-review-item.is-incorrect{border-left-color:var(--brand-danger)}
+.part2-challenge-review-item.is-unanswered,.part2-challenge-review-item.is-unavailable{border-left-color:var(--brand-muted)}
+.part2-challenge-review-item__top{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:11px 13px}
+.part2-challenge-review-item__top>strong{min-width:58px;color:var(--brand-text);font-size:12px}
+.part2-challenge-review-item__top>span{color:var(--brand-muted);font-size:11px}
+.part2-challenge-review-item__top b{color:var(--brand-text)}
+.part2-challenge-review-status{padding:4px 7px;border-radius:999px;background:var(--brand-bg-sub);font-size:10px!important;font-weight:800}
+.is-correct>.part2-challenge-review-item__top .part2-challenge-review-status{background:var(--brand-success-bg);color:var(--brand-success)}
+.is-incorrect>.part2-challenge-review-item__top .part2-challenge-review-status{background:var(--brand-danger-bg);color:var(--brand-danger)}
+.part2-challenge-review-question{margin:0;padding:0 13px 9px;color:var(--brand-muted);font-size:11px;line-height:1.5}
+.part2-challenge-review-item details{border-top:1px solid var(--brand-border-light)}
+.part2-challenge-review-item details>summary{padding:8px 13px;color:var(--brand-coffee);font-size:11px;font-weight:750;cursor:pointer;list-style-position:inside}
+.part2-challenge-review-item__details{display:grid;gap:10px;padding:0 13px 13px}
+.part2-challenge-review-choices{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+.part2-challenge-review-choices li{display:grid;grid-template-columns:25px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--brand-border-light);border-radius:8px;color:var(--brand-muted);font-size:11px;line-height:1.45}
+.part2-challenge-review-choices li.is-correct{border-color:var(--brand-success-border);background:var(--brand-success-bg);color:var(--brand-text)}
+.part2-challenge-review-choices li.is-picked:not(.is-correct){border-color:var(--brand-danger-border);background:var(--brand-danger-bg)}
+.part2-challenge-review-choices li>strong{color:var(--brand-coffee)}
+.part2-challenge-review-choices li em{color:var(--brand-muted);font-size:9px;font-style:normal;font-weight:750;white-space:nowrap}
+.part2-challenge-review-choices li.is-correct em:first-of-type{color:var(--brand-success)}
+.part2-challenge-review-item__details>p{display:grid;gap:4px;margin:0;padding:10px;border-radius:8px;background:var(--brand-bg-sub);font-size:11px;line-height:1.55;white-space:pre-line}
+.part2-challenge-review-item__details>p strong{color:var(--brand-coffee)}
+@media(max-width:650px){.part2-challenge-instructions{padding:18px}.part2-challenge-instructions__steps li{grid-template-columns:32px minmax(0,1fr);gap:3px 8px;padding:11px}.part2-challenge-instructions__steps li::before{width:26px;height:26px}.part2-challenge-start{width:100%}.part2-challenge-test__progress{top:6px}.part2-challenge-test__actions{align-items:stretch;flex-direction:column}.part2-challenge-test__actions button{width:100%}.part2-challenge-result-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.part2-challenge-results__header{padding:18px}.part2-challenge-results__header h1{font-size:24px}.part2-challenge-review-tools{top:6px}.part2-challenge-review-item__top{align-items:flex-start;gap:7px 9px}.part2-challenge-review-item__top>span:last-child{width:100%;padding-left:0}.part2-challenge-review-choices li{grid-template-columns:20px minmax(0,1fr);gap:6px}.part2-challenge-review-choices li em{grid-column:2;justify-self:start}}

@@ -164,3 +164,63 @@ export const getStudentPart2ChallengeAnswer = async (req, res, next) => {
     next(error);
   }
 };
+
+export const submitStudentPart2Challenge = async (req, res, next) => {
+  try {
+    if (!Array.isArray(req.body?.answers) || req.body.answers.length === 0) {
+      return res.status(400).json({ status: 'error', message: 'Danh sách câu trả lời không hợp lệ.' });
+    }
+
+    const submittedByNumber = new Map();
+    for (const entry of req.body.answers) {
+      const number = parseQuestionNumber(entry?.number);
+      const selectedAnswer = typeof entry?.selectedAnswer === 'string' ? entry.selectedAnswer.trim().toUpperCase() : '';
+      if (!number || (selectedAnswer && !['A', 'B', 'C'].includes(selectedAnswer))) {
+        return res.status(400).json({ status: 'error', message: 'Có câu trả lời không hợp lệ.' });
+      }
+      if (submittedByNumber.has(number)) {
+        return res.status(400).json({ status: 'error', message: `Câu số ${number} xuất hiện nhiều lần.` });
+      }
+      submittedByNumber.set(number, selectedAnswer);
+    }
+
+    const items = await Part2ChallengeQuestion.find({
+      isVisible: true,
+      number: { $in: [...submittedByNumber.keys()] },
+    })
+      .select('number questionText choices correctAnswer script translation')
+      .sort({ number: 1 })
+      .lean();
+
+    const results = items.map((item) => {
+      const selectedAnswer = submittedByNumber.get(item.number) || '';
+      const correctChoice = item.choices.find(({ letter }) => letter === item.correctAnswer)?.text || '';
+      const status = !selectedAnswer ? 'unanswered'
+        : selectedAnswer === item.correctAnswer ? 'correct' : 'incorrect';
+      return {
+        number: item.number,
+        questionText: item.questionText,
+        choices: item.choices.map(({ letter, text }) => ({ letter, text })),
+        selectedAnswer,
+        correctAnswer: item.correctAnswer,
+        correctChoice,
+        script: item.script,
+        translation: item.translation,
+        status,
+      };
+    });
+
+    res.json({
+      status: 'success',
+      data: {
+        items: results,
+        total: results.length,
+        correctCount: results.filter(({ status }) => status === 'correct').length,
+        incorrectCount: results.filter(({ status }) => status === 'incorrect').length,
+        unansweredCount: results.filter(({ status }) => status === 'unanswered').length,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
