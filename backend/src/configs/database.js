@@ -24,6 +24,38 @@ export const databaseUnavailableResponse = {
     message: 'Dịch vụ cơ sở dữ liệu hiện chưa sẵn sàng. Vui lòng thử lại sau.',
 };
 
+const redactDatabaseErrorText = (value) => {
+    if (typeof value !== 'string') return undefined;
+    return value
+        .replace(/(mongodb(?:\+srv)?:\/\/)([^@/\s]+)@/gi, '$1<credentials>@')
+        .replace(/([?&](?:password|pwd|token)=)[^&\s]+/gi, '$1<redacted>');
+};
+
+const getErrorSummary = (error) => ({
+    name: error?.name || 'Error',
+    ...(typeof error?.code === 'string' ? { code: error.code } : {}),
+    ...(redactDatabaseErrorText(error?.message) ? { message: redactDatabaseErrorText(error.message) } : {}),
+});
+
+// MongoDB's ServerSelectionError carries per-node failures in reason.servers.
+// Keep that signal in server logs, while redacting any accidental credentials.
+export const getDatabaseErrorDiagnostic = (error) => {
+    const servers = error?.reason?.servers instanceof Map
+        ? [...error.reason.servers.entries()].map(([address, server]) => ({
+            address,
+            type: server?.type,
+            ...(server?.error ? { error: getErrorSummary(server.error) } : {}),
+        }))
+        : [];
+
+    return {
+        timestamp: new Date().toISOString(),
+        error: getErrorSummary(error),
+        ...(error?.reason?.type ? { topologyType: error.reason.type } : {}),
+        ...(servers.length ? { servers } : {}),
+    };
+};
+
 // This is deliberately a middleware factory so it can be tested without a
 // network connection and reused by any future router mounted outside /api.
 export const createDatabaseReadinessMiddleware = ({ connect = connectDB, logger = console } = {}) => async (req, res, next) => {
@@ -35,10 +67,7 @@ export const createDatabaseReadinessMiddleware = ({ connect = connectDB, logger 
     } catch (error) {
         // Keep connection details (and any URI parsing details) out of HTTP
         // responses. The server log retains the error needed for operations.
-        logger.error('Database is unavailable for API request', {
-            errorName: error?.name || 'Error',
-            errorCode: typeof error?.code === 'string' ? error.code : undefined,
-        });
+        logger.error('Database is unavailable for API request', getDatabaseErrorDiagnostic(error));
         res.set('Retry-After', '5');
         return res.status(503).json(databaseUnavailableResponse);
     }
@@ -70,7 +99,7 @@ const connectDB = async () => {
         })
         .catch((error) => {
             connectingPromise = null;
-            console.error(`❌ MongoDB Connection Error: ${error.message}`);
+            console.error('❌ MongoDB Connection Error', JSON.stringify(getDatabaseErrorDiagnostic(error)));
             throw error;
         });
 

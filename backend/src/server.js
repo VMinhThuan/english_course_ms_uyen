@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '../.env') });
 
 import app from './app.js';
-import connectDB from './configs/database.js';
+import connectDB, { getDatabaseErrorDiagnostic } from './configs/database.js';
 
 // Validate required environment variables in local dev
 if (!process.env.MONGODB_URI) {
@@ -33,7 +33,7 @@ connectDB()
         });
     })
     .catch((err) => {
-        console.error('Failed to connect to MongoDB; database-backed routes will return 503 until it recovers:', err.message);
+        console.error('Failed to connect to MongoDB; database-backed routes will return 503 until it recovers:', JSON.stringify(getDatabaseErrorDiagnostic(err)));
         app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT} (database unavailable)`);
         });

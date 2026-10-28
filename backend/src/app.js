@@ -8,6 +8,7 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import connectDB, {
     createDatabaseReadinessMiddleware,
     databaseUnavailableResponse,
+    getDatabaseErrorDiagnostic,
     isDatabaseReady,
 } from './configs/database.js';
 import { protectLegacyUpload, protectPrivateUpload, protectPublicUpload } from './middlewares/protectedUploads.js';
@@ -139,10 +140,7 @@ app.get('/ready', async (req, res) => {
         if (!isDatabaseReady()) await connectDB();
         return res.json({ status: 'success', database: 'ready' });
     } catch (error) {
-        console.error('Database is unavailable for readiness probe', {
-            errorName: error?.name || 'Error',
-            errorCode: typeof error?.code === 'string' ? error.code : undefined,
-        });
+        console.error('Database is unavailable for readiness probe', JSON.stringify(getDatabaseErrorDiagnostic(error)));
         res.set('Retry-After', '5');
         return res.status(503).json(databaseUnavailableResponse);
     }
