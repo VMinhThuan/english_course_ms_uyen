@@ -312,17 +312,18 @@ export default function Part2ChallengePage() {
                 ? <p className="part2-challenge-audio-message is-warning">Không phát được audio câu này. Thời gian chọn đáp án 30 giây đã bắt đầu.</p>
                 : <p className="part2-challenge-audio-message">Audio đã kết thúc. Chọn đáp án trước khi thời gian hết.</p>}
 
-            <div className="part2-challenge-options" role="group" aria-label={`Đáp án cho câu ${currentQuestion.number}`}>
+            <div className="part2-challenge-options" role="group" aria-label={`Lựa chọn A, B hoặc C cho câu ${currentQuestion.number}`}>
               {(currentQuestion.choices || []).map((choice) => (
                 <button
                   type="button"
                   key={choice.letter}
                   className={`part2-challenge-option ${selectedAnswers[currentQuestion.number] === choice.letter ? 'is-selected' : ''}`}
                   aria-pressed={selectedAnswers[currentQuestion.number] === choice.letter}
+                  aria-label={`Đáp án ${choice.letter}`}
                   disabled={!answerWindowOpen}
                   onClick={() => selectAnswer(choice.letter)}
                 >
-                  <span>{choice.letter}</span><span>{choice.text}</span>
+                  <span>{choice.letter}</span>
                 </button>
               ))}
             </div>
@@ -340,7 +341,7 @@ export default function Part2ChallengePage() {
               {answerError && <p className="part2-challenge-answer__error" role="alert">{answerError}</p>}
               {isAnswerOpen && currentAnswer && (
                 <div className="part2-challenge-answer__content">
-                  <p><strong>Đáp án đúng: {currentAnswer.correctAnswer}</strong>{currentAnswer.correctChoice ? ` — ${currentAnswer.correctChoice}` : ''}</p>
+                  <p><strong>Đáp án đúng: {currentAnswer.correctAnswer}</strong></p>
                   <p><strong>Script</strong><span>{currentAnswer.script}</span></p>
                   <p><strong>Dịch nghĩa</strong><span>{currentAnswer.translation}</span></p>
                 </div>
@@ -398,7 +399,7 @@ export default function Part2ChallengePage() {
                   <strong>Câu {row.number}</strong>
                   <span className="part2-challenge-review-status">{answerStatuses[row.status]}</span>
                   <span>Bạn chọn: <b>{row.selectedAnswer || '—'}</b></span>
-                  <span>Đáp án đúng: <b>{row.correctAnswer || '—'}</b>{row.correctChoice ? ` · ${row.correctChoice}` : ''}</span>
+                  <span>Đáp án đúng: <b>{row.correctAnswer || '—'}</b></span>
                 </div>
                 {row.questionText && <p className="part2-challenge-review-question">{row.questionText}</p>}
                 <details>
@@ -407,7 +408,7 @@ export default function Part2ChallengePage() {
                     <ul className="part2-challenge-review-choices">
                       {(row.choices || []).map((choice) => (
                         <li className={`${choice.letter === row.correctAnswer ? 'is-correct' : ''} ${choice.letter === row.selectedAnswer ? 'is-picked' : ''}`} key={choice.letter}>
-                          <strong>{choice.letter}</strong><span>{choice.text}</span>
+                          <strong>{choice.letter}</strong>
                           {choice.letter === row.correctAnswer && <em>Đáp án đúng</em>}
                           {choice.letter === row.selectedAnswer && <em>Bạn chọn</em>}
                         </li>
