@@ -2,15 +2,18 @@ import { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import { part1DictationApi } from '../../api/part1DictationApi.js';
 import { vocabularyDictationApi } from '../../api/vocabularyDictationApi.js';
+import { hardWordsDictationApi } from '../../api/hardWordsDictationApi.js';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
 import '../../pages/Part1Dictation.css';
 
-const dictationApis = { part1: part1DictationApi, vocabulary: vocabularyDictationApi };
+const dictationApis = { part1: part1DictationApi, vocabulary: vocabularyDictationApi, hardWords: hardWordsDictationApi };
 
 export default function StudentDictationPage({ kind = 'part1' }) {
   const isVocabulary = kind === 'vocabulary';
+  const isHardWords = kind === 'hardWords';
+  const isWordDictation = isVocabulary || isHardWords;
   const api = dictationApis[kind] || dictationApis.part1;
-  const pageTitle = isVocabulary ? 'Chép chính tả từ vựng' : 'Chép chính tả Part 1';
+  const pageTitle = isHardWords ? 'Hard Words Dictation' : isVocabulary ? 'Chép chính tả từ vựng' : 'Chép chính tả Part 1';
   const [items, setItems] = useState([]);
   const [active, setActive] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -65,11 +68,13 @@ export default function StudentDictationPage({ kind = 'part1' }) {
     }
   };
 
-  return <main className="part1-page" data-testid={isVocabulary ? 'vocabulary-dictation-student-page' : 'part1-dictation-student-page'}>
+  return <main className="part1-page" data-testid={isHardWords ? 'hard-words-dictation-student-page' : isVocabulary ? 'vocabulary-dictation-student-page' : 'part1-dictation-student-page'}>
     <PageHeader
-      eyebrow={isVocabulary ? 'Vocabulary · Dictation' : 'TOEIC · Part 1'}
+      eyebrow={isHardWords ? 'HARD WORDS · DICTATION' : isVocabulary ? 'Vocabulary · Dictation' : 'TOEIC · Part 1'}
       title={pageTitle}
-      description={isVocabulary
+      description={isHardWords
+        ? 'Nghe từng nhóm từ khó, điền đáp án tiếng Anh và xem nghĩa sau khi nộp.'
+        : isVocabulary
         ? 'Luyện từng nhóm từ, nhập đáp án tiếng Anh và xem nghĩa sau khi nộp.'
         : 'Nghe audio, chép lại từng câu và xem đáp án mẫu sau khi nộp.'}
     />
@@ -80,18 +85,18 @@ export default function StudentDictationPage({ kind = 'part1' }) {
             <aside className="part1-playlist" aria-label="Danh sách bài nghe">
               <p className="part1-playlist__eyebrow">BÀI LUYỆN ĐANG MỞ</p>
               {items.map((item, index) => <button type="button" key={item._id} className={`part1-playlist__item${active?._id === item._id ? ' is-active' : ''}`} onClick={() => chooseItem(item._id)}>
-                <span>{String(index + 1).padStart(2, '0')}</span><strong>{item.title}</strong><small>{item.answerCount} {isVocabulary ? 'từ cần chép' : 'câu cần chép'}</small>
+                <span>{String(index + 1).padStart(2, '0')}</span><strong>{item.title}</strong><small>{item.answerCount} {isWordDictation ? 'từ cần chép' : 'câu cần chép'}</small>
               </button>)}
             </aside>
             {active && <section className="part1-listening-card">
-              <div className="part1-listening-card__header"><div><p className="part1-playlist__eyebrow">{active.audioUrl ? 'NGHE VÀ CHÉP LẠI' : 'ÔN TẬP VÀ ĐIỀN ĐÁP ÁN'}</p><h2>{active.title}</h2></div><span>{active.answerCount} {isVocabulary ? 'từ' : 'câu'}</span></div>
+              <div className="part1-listening-card__header"><div><p className="part1-playlist__eyebrow">{active.audioUrl ? 'NGHE VÀ CHÉP LẠI' : 'ÔN TẬP VÀ ĐIỀN ĐÁP ÁN'}</p><h2>{active.title}</h2></div><span>{active.answerCount} {isWordDictation ? 'từ' : 'câu'}</span></div>
               <div className="part1-audio"><span aria-hidden="true">♫</span>{active.audioUrl
                 ? <audio controls preload="metadata" src={resolveMediaUrl(active.audioUrl)}>Trình duyệt của bạn không hỗ trợ phát audio.</audio>
                 : <p className="part1-audio__missing">Audio chưa được cập nhật. Bạn vẫn có thể làm bài và xem đáp án sau khi nộp.</p>}
               </div>
               <form onSubmit={submit} className="part1-answer-form">
                 <p>{active.audioUrl
-                  ? (isVocabulary ? 'Nghe audio và nhập từ hoặc cụm từ tiếng Anh tương ứng.' : 'Nhập câu bạn nghe được. Hệ thống không phân biệt chữ hoa và chữ thường.')
+                  ? (isWordDictation ? 'Nghe audio và nhập từ hoặc cụm từ tiếng Anh tương ứng.' : 'Nhập câu bạn nghe được. Hệ thống không phân biệt chữ hoa và chữ thường.')
                   : 'Nhập đáp án theo từng dòng. Hệ thống không phân biệt chữ hoa và chữ thường.'}</p>
                 {answers.map((answer, index) => {
                   const result = results?.results[index];
@@ -103,15 +108,15 @@ export default function StudentDictationPage({ kind = 'part1' }) {
                           value={answer}
                           disabled={submitting}
                           onChange={(event) => { const next = [...answers]; next[index] = event.target.value; setAnswers(next); setResults(null); }}
-                          placeholder={isVocabulary ? `Nhập từ ${index + 1}` : `Nhập câu ${index + 1}`}
-                          aria-label={isVocabulary ? `Đáp án từ ${index + 1}` : `Đáp án câu ${index + 1}`}
+                          placeholder={isWordDictation ? `Nhập từ ${index + 1}` : `Nhập câu ${index + 1}`}
+                          aria-label={isWordDictation ? `Đáp án từ ${index + 1}` : `Đáp án câu ${index + 1}`}
                         />
                         {result && <b className="part1-answer-status">{result.isCorrect ? '✓ Đúng' : '× Chưa đúng'}</b>}
                       </div>
                       {result && <div className={`part1-answer-correction${result.isCorrect ? ' is-correct' : ''}`}>
                         <strong>{result.isCorrect ? 'Đáp án của bạn' : 'Đáp án đúng'}</strong>
                         <span className="part1-answer-correction__text">{result.correctAnswer}</span>
-                        {result.correctTranslation && <span className="part1-answer-correction__translation">{isVocabulary ? 'Nghĩa' : 'Bản dịch'}: {result.correctTranslation}</span>}
+                        {result.correctTranslation && <span className="part1-answer-correction__translation">{isWordDictation ? 'Nghĩa' : 'Bản dịch'}: {result.correctTranslation}</span>}
                       </div>}
                     </div>
                   </label>;

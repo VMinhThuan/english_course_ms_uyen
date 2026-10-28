@@ -3,20 +3,24 @@ import PageHeader from '../../components/ui/PageHeader.jsx';
 import { mediaApi } from '../../api/mediaApi.js';
 import { part1DictationApi } from '../../api/part1DictationApi.js';
 import { vocabularyDictationApi } from '../../api/vocabularyDictationApi.js';
+import { hardWordsDictationApi } from '../../api/hardWordsDictationApi.js';
 import { learningContentApi } from '../../api/learningContentApi.js';
 import vocabularySeed from '../../data/vocabularyDictationSeed.json';
+import hardWordsSeed from '../../data/hardWordsDictationSeed.json';
 import roadToPart7Seed from '../../data/roadToPart7Seed.json';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
 import '../../pages/Part1Dictation.css';
 import './DictationAdminPage.css';
 
 const emptyForm = () => ({ title: '', audioUrl: '', answers: [{ text: '', translation: '' }], isVisible: false });
-const dictationApis = { part1: part1DictationApi, vocabulary: vocabularyDictationApi };
+const dictationApis = { part1: part1DictationApi, vocabulary: vocabularyDictationApi, hardWords: hardWordsDictationApi };
 
 export default function AdminDictationPage({ kind = 'part1' }) {
   const isVocabulary = kind === 'vocabulary';
+  const isHardWords = kind === 'hardWords';
+  const isWordDictation = isVocabulary || isHardWords;
   const api = dictationApis[kind] || dictationApis.part1;
-  const title = isVocabulary ? 'Chép chính tả từ vựng' : 'Chép chính tả Part 1';
+  const title = isHardWords ? 'Hard Words Dictation' : isVocabulary ? 'Chép chính tả từ vựng' : 'Chép chính tả Part 1';
   const [items, setItems] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
@@ -28,8 +32,8 @@ export default function AdminDictationPage({ kind = 'part1' }) {
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
 
-  const expectedAudio = useMemo(() => vocabularySeed.filter((item) => item.audioAvailable), []);
-  const missingAudioNames = useMemo(() => vocabularySeed.filter((item) => !item.audioAvailable).map((item) => item.audioFilename), []);
+  const expectedAudio = useMemo(() => (isHardWords ? hardWordsSeed : vocabularySeed.filter((item) => item.audioAvailable)), [isHardWords]);
+  const missingAudioNames = useMemo(() => (isVocabulary ? vocabularySeed.filter((item) => !item.audioAvailable).map((item) => item.audioFilename) : []), [isVocabulary]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,7 +65,7 @@ export default function AdminDictationPage({ kind = 'part1' }) {
     if (!file) return;
     setUploading(true); setNotice({ type: '', text: '' });
     try {
-      const response = await mediaApi.uploadMedia(file, isVocabulary ? 'audio-voc' : 'audio-part1');
+      const response = await mediaApi.uploadMedia(file, isWordDictation ? 'audio-voc' : 'audio-part1');
       if (response.data.fileType !== 'audio') throw new Error('Hãy chọn một file audio hợp lệ.');
       setForm((current) => ({ ...current, audioUrl: response.data.storageUrl || response.data.fileUrl }));
     } catch (error) {
@@ -122,6 +126,21 @@ export default function AdminDictationPage({ kind = 'part1' }) {
         audioUrls[seed.audioFilename] = response.data.storageUrl;
       }
 
+      if (isHardWords) {
+        const itemsToImport = hardWordsSeed.map((seed) => ({
+          ...seed,
+          audioUrl: audioUrls[seed.audioFilename] || '',
+        }));
+        const response = await api.importSeed(itemsToImport);
+        await load();
+        const result = response.data;
+        setNotice({
+          type: 'success',
+          text: `Đã nhập ${result.total} mục Hard Words với ${result.answers} từ và ${result.withAudio} audio.`,
+        });
+        return;
+      }
+
       const vocabularyItems = vocabularySeed.map((seed) => ({
         ...seed,
         audioUrl: audioUrls[seed.audioFilename] || '',
@@ -143,23 +162,25 @@ export default function AdminDictationPage({ kind = 'part1' }) {
 
   return <main className="admin-page-container part1-admin-page">
     <PageHeader
-      eyebrow={isVocabulary ? 'VOCABULARY · DICTATION' : 'TOEIC · PART 1'}
-      title={isVocabulary ? 'Quản lý chép chính tả từ vựng' : 'Bài chép chính tả Part 1'}
-      description={isVocabulary
+      eyebrow={isHardWords ? 'HARD WORDS · DICTATION' : isVocabulary ? 'VOCABULARY · DICTATION' : 'TOEIC · PART 1'}
+      title={isHardWords ? 'Quản lý Hard Words Dictation' : isVocabulary ? 'Quản lý chép chính tả từ vựng' : 'Bài chép chính tả Part 1'}
+      description={isWordDictation
         ? 'Quản lý từng nhóm audio, từ đáp án và nghĩa tiếng Việt.'
         : 'Mỗi bài gồm một audio và nhiều câu đáp án, độc lập với Course và Lesson.'}
     />
     {notice.text && <div className={`part1-notice ${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
 
-    {isVocabulary && <section className="dictation-import-panel">
+    {isWordDictation && <section className="dictation-import-panel">
       <div>
         <p className="part1-playlist__eyebrow">NHẬP TỪ EXCEL</p>
-        <h2>Test 7–8 và Road to Part 7</h2>
-        <p>Chọn thư mục audio-voc. Hệ thống tải 15 audio hợp lệ lên Blob rồi nhập 16 nhóm từ và 26 bài đọc đã đọc từ hai workbook.</p>
+        <h2>{isHardWords ? 'Hard Words Test 7–8' : 'Test 7–8 và Road to Part 7'}</h2>
+        <p>{isHardWords
+          ? 'Chọn thư mục hard-words-dictation. Hệ thống tải 16 audio vào audio-voc rồi nhập 16 mục và 160 từ từ workbook.'
+          : 'Chọn thư mục audio-voc. Hệ thống tải 15 audio hợp lệ lên Blob rồi nhập 16 nhóm từ và 26 bài đọc đã đọc từ hai workbook.'}</p>
         {missingAudioNames.length > 0 && <small>Audio thiếu hoặc rỗng sẽ được giữ ẩn: {missingAudioNames.join(', ')}.</small>}
       </div>
       <label className="dictation-import-picker">
-        <span>Chọn thư mục audio-voc</span>
+        <span>{isHardWords ? 'Chọn thư mục hard-words-dictation' : 'Chọn thư mục audio-voc'}</span>
         <input
           type="file"
           accept="audio/mpeg,.mp3"
@@ -172,17 +193,17 @@ export default function AdminDictationPage({ kind = 'part1' }) {
         {audioFiles.length > 0 && <small>Đã chọn {audioFiles.length} file; {audioFiles.filter((file) => file.size > 0).length} file có dữ liệu.</small>}
       </label>
       <button type="button" className="ds-button ds-button--primary" onClick={importSeed} disabled={importing || audioFiles.length === 0}>
-        {importing ? `Đang upload ${importProgress.current}/${importProgress.total} audio…` : 'Nhập dữ liệu Excel và audio'}
+        {importing ? `Đang upload ${importProgress.current}/${importProgress.total} audio…` : isHardWords ? 'Nhập Hard Words và audio' : 'Nhập dữ liệu Excel và audio'}
       </button>
     </section>}
 
     <section className="part1-admin-editor"><div><p className="part1-playlist__eyebrow">{editingId ? 'CHỈNH SỬA BÀI NGHE' : 'TẠO BÀI NGHE MỚI'}</p><h2>{editingId ? 'Cập nhật audio và đáp án' : 'Một audio, nhiều đáp án cần chép'}</h2></div>
       <form onSubmit={save}>
-        <label>Tên bài<input required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder={isVocabulary ? 'Ví dụ: Test 7 · Mục 1' : 'Ví dụ: Pictures at the station'} /></label>
+        <label>Tên bài<input required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder={isWordDictation ? 'Ví dụ: Test 7 · Mục 1' : 'Ví dụ: Pictures at the station'} /></label>
         <label>File audio<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/*" onChange={uploadAudio} disabled={uploading} />{uploading && <small>Đang upload audio…</small>}</label>
         {form.audioUrl && <div className="part1-admin-preview"><audio controls src={resolveMediaUrl(form.audioUrl)} /><span>Audio đã sẵn sàng</span></div>}
-        <fieldset><legend>{isVocabulary ? 'Các từ đáp án' : 'Các câu đáp án'}</legend><p>Mỗi dòng tương ứng một ô nhập của học viên.</p>{form.answers.map((answer, index) => <div className="part1-admin-answer" key={index}><span>{index + 1}</span><div className="part1-admin-answer__fields"><input required value={answer.text} onChange={(event) => updateAnswer(index, 'text', event.target.value)} placeholder={isVocabulary ? `Từ đáp án ${index + 1}` : `Câu đáp án ${index + 1}`} /><input value={answer.translation} onChange={(event) => updateAnswer(index, 'translation', event.target.value)} placeholder={isVocabulary ? 'Nghĩa tiếng Việt' : 'Bản dịch tiếng Việt (không bắt buộc)'} /></div>{form.answers.length > 1 && <button type="button" aria-label={`Xóa đáp án ${index + 1}`} onClick={() => setForm((current) => ({ ...current, answers: current.answers.filter((_, answerIndex) => answerIndex !== index) }))}>Xóa</button>}</div>)}
-          <button type="button" className="part1-add-answer" onClick={() => setForm((current) => ({ ...current, answers: [...current.answers, { text: '', translation: '' }] }))}>+ Thêm {isVocabulary ? 'từ' : 'câu'} đáp án</button>
+        <fieldset><legend>{isWordDictation ? 'Các từ đáp án' : 'Các câu đáp án'}</legend><p>Mỗi dòng tương ứng một ô nhập của học viên.</p>{form.answers.map((answer, index) => <div className="part1-admin-answer" key={index}><span>{index + 1}</span><div className="part1-admin-answer__fields"><input required value={answer.text} onChange={(event) => updateAnswer(index, 'text', event.target.value)} placeholder={isWordDictation ? `Từ đáp án ${index + 1}` : `Câu đáp án ${index + 1}`} /><input value={answer.translation} onChange={(event) => updateAnswer(index, 'translation', event.target.value)} placeholder={isWordDictation ? 'Nghĩa tiếng Việt' : 'Bản dịch tiếng Việt (không bắt buộc)'} /></div>{form.answers.length > 1 && <button type="button" aria-label={`Xóa đáp án ${index + 1}`} onClick={() => setForm((current) => ({ ...current, answers: current.answers.filter((_, answerIndex) => answerIndex !== index) }))}>Xóa</button>}</div>)}
+          <button type="button" className="part1-add-answer" onClick={() => setForm((current) => ({ ...current, answers: [...current.answers, { text: '', translation: '' }] }))}>+ Thêm {isWordDictation ? 'từ' : 'câu'} đáp án</button>
         </fieldset>
         <label className="part1-visibility"><input type="checkbox" checked={form.isVisible} onChange={(event) => setForm((current) => ({ ...current, isVisible: event.target.checked }))} />Hiển thị ngay với toàn bộ học viên</label>
         <div className="part1-editor-actions"><button type="button" className="ds-button ds-button--secondary" onClick={reset}>Hủy</button><button className="ds-button ds-button--primary" type="submit" disabled={saving || uploading}>{saving ? 'Đang lưu…' : editingId ? 'Lưu thay đổi' : 'Tạo bài nghe'}</button></div>

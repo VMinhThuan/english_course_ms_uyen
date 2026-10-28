@@ -31,6 +31,8 @@ import StudentProfilePage from '../pages/StudentProfilePage.jsx';
 import StudentVocabularyPage from '../pages/StudentVocabularyPage.jsx';
 import StudentVocabularyDictationPage from '../pages/StudentVocabularyDictationPage.jsx';
 import AdminVocabularyDictationPage from '../pages/AdminVocabularyDictationPage.jsx';
+import HardWordsDictationPage from '../pages/HardWordsDictationPage.jsx';
+import AdminHardWordsDictationPage from '../pages/admin/AdminHardWordsDictationPage.jsx';
 import RoadToPart7Page from '../features/road-to-part-7/RoadToPart7Page.jsx';
 import FlashcardPage from '../pages/FlashcardPage.jsx';
 import StudentVocabularyCatalogPage from '../features/vocabulary-catalog/StudentVocabularyCatalogPage.jsx';
@@ -135,6 +137,7 @@ function AppRoutes() {
         <Route path="courses/:id" element={<CourseDetailPage />} />
         <Route path="assessments" element={<StudentAssessmentsPage />} />
         <Route path="vocabulary-dictation" element={<StudentVocabularyDictationPage />} />
+        <Route path="hard-words-dictation" element={<HardWordsDictationPage />} />
         <Route path="road-to-part-7" element={<RoadToPart7Page />} />
         <Route path="toeic" element={<StudentToeicLibraryPage />} />
         <Route path="toeic/part-1" element={<Navigate to="/student/part-1" replace />} />
@@ -192,6 +195,7 @@ function AppRoutes() {
         <Route path="part1-dictations" element={<ProtectedRoute requiredRole="admin"><AdminDictationPage kind="part1" /></ProtectedRoute>} />
         <Route path="vocabulary-dictation" element={<Navigate to="/admin/vocabulary-dictations" replace />} />
         <Route path="vocabulary-dictations" element={<ProtectedRoute requiredRole="admin"><AdminVocabularyDictationPage /></ProtectedRoute>} />
+        <Route path="hard-words-dictations" element={<ProtectedRoute requiredRole="admin"><AdminHardWordsDictationPage /></ProtectedRoute>} />
         <Route path="road-to-part-7" element={<ProtectedRoute requiredRole="admin"><RoadToPart7Page admin /></ProtectedRoute>} />
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyLanding />} />
