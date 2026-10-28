@@ -132,12 +132,15 @@ jobs:
             --user "$FTPS_USER:$FTPS_PASSWORD" \
             "ftp://$FTPS_HOST:21/$APP_PATH_RELATIVE/" >/dev/null
 
-          # Confirm the actual upload target contains the Selector startup
-          # file. This is read-only and never reads .env.
+          # Confirm the actual upload target has a readable Selector startup
+          # file. Do not assert its source yet: a newly-created CloudLinux app
+          # legitimately has the default "It works!" startup file until this
+          # first safe upload replaces it. This is read-only and never reads
+          # .env.
           curl --fail --silent --show-error --ftp-ssl-reqd \
             --user "$FTPS_USER:$FTPS_PASSWORD" \
-            "ftp://$FTPS_HOST:21/$APP_PATH_RELATIVE/$EXPECTED_STARTUP_FILE" \
-            | grep -Fq "./src/server.js"
+            --output /dev/null \
+            "ftp://$FTPS_HOST:21/$APP_PATH_RELATIVE/$EXPECTED_STARTUP_FILE"
 
       - name: Verify the configured domain reaches the expected Node.js runtime
         shell: bash
