@@ -34,6 +34,7 @@ import AdminVocabularyDictationPage from '../pages/AdminVocabularyDictationPage.
 import HardWordsDictationPage from '../pages/HardWordsDictationPage.jsx';
 import Part2ChallengePage from '../pages/Part2ChallengePage.jsx';
 import AdminHardWordsDictationPage from '../pages/admin/AdminHardWordsDictationPage.jsx';
+import AdminPart2ChallengePage from '../pages/admin/AdminPart2ChallengePage.jsx';
 import RoadToPart7Page from '../features/road-to-part-7/RoadToPart7Page.jsx';
 import FlashcardPage from '../pages/FlashcardPage.jsx';
 import StudentVocabularyCatalogPage from '../features/vocabulary-catalog/StudentVocabularyCatalogPage.jsx';
@@ -198,6 +199,7 @@ function AppRoutes() {
         <Route path="vocabulary-dictation" element={<Navigate to="/admin/vocabulary-dictations" replace />} />
         <Route path="vocabulary-dictations" element={<ProtectedRoute requiredRole="admin"><AdminVocabularyDictationPage /></ProtectedRoute>} />
         <Route path="hard-words-dictations" element={<ProtectedRoute requiredRole="admin"><AdminHardWordsDictationPage /></ProtectedRoute>} />
+        <Route path="part2-challenge" element={<ProtectedRoute requiredRole="admin"><AdminPart2ChallengePage /></ProtectedRoute>} />
         <Route path="road-to-part-7" element={<ProtectedRoute requiredRole="admin"><RoadToPart7Page admin /></ProtectedRoute>} />
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyLanding />} />

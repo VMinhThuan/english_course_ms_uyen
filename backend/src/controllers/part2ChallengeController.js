@@ -1,5 +1,36 @@
 import Part2ChallengeQuestion from '../models/Part2ChallengeQuestion.js';
 
+export const listAdminPart2ChallengeQuestions = async (_req, res, next) => {
+  try {
+    const items = await Part2ChallengeQuestion.find().sort({ number: 1 }).lean();
+    res.json({ status: 'success', data: { items } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const setPart2ChallengeQuestionVisibility = async (req, res, next) => {
+  try {
+    const number = Number(req.params.number);
+    if (!Number.isInteger(number) || number < 1 || number > 110) {
+      return res.status(400).json({ status: 'error', message: 'Số câu không hợp lệ.' });
+    }
+    if (typeof req.body.isVisible !== 'boolean') {
+      return res.status(400).json({ status: 'error', message: 'isVisible phải là true hoặc false.' });
+    }
+
+    const item = await Part2ChallengeQuestion.findOneAndUpdate(
+      { number },
+      { $set: { isVisible: req.body.isVisible } },
+      { new: true, runValidators: true },
+    ).lean();
+    if (!item) return res.status(404).json({ status: 'error', message: 'Không tìm thấy câu hỏi Part 2.' });
+    res.json({ status: 'success', data: { item } });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const toStudentQuestion = (item) => ({
   number: item.number,
   questionText: item.questionText,

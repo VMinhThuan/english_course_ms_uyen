@@ -9,6 +9,7 @@ const getLinks = (variant, showPart1) => {
     ...(showPart1 ? [{ label: 'Chép chính tả Part 1', to: variant === 'admin' ? `${prefix}/part1-dictations` : `${prefix}/part-1` }] : []),
     ...(showDictationPages ? [{ label: 'Chép chính tả từ vựng', to: variant === 'admin' ? `${prefix}/vocabulary-dictations` : `${prefix}/vocabulary-dictation` }] : []),
     ...(showDictationPages ? [{ label: 'Hard Words Dictation', to: variant === 'admin' ? `${prefix}/hard-words-dictations` : `${prefix}/hard-words-dictation` }] : []),
+    ...(variant === 'admin' && showPart1 ? [{ label: 'Part 2 Challange', to: `${prefix}/part2-challenge` }] : []),
     ...(variant === 'student' ? [{ label: 'Part 2 Challange', to: `${prefix}/part-2-challenge` }] : []),
     { label: 'Road to Part 7', to: `${prefix}/road-to-part-7` },
     { label: 'Bài tập ngữ pháp', to: `${prefix}/assessments` },

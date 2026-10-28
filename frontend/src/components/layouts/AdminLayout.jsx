@@ -18,6 +18,7 @@ export default function AdminLayout() {
     let pageTitle = 'Quản trị';
     if (path.includes('students')) pageTitle = 'Quản lý Học viên';
     else if (path.includes('hard-words-dictation')) pageTitle = 'Hard Words Dictation';
+    else if (path.includes('part2-challenge')) pageTitle = 'Part 2 Challange';
     else if (path.includes('vocabulary-dictation')) pageTitle = 'Chép chính tả từ vựng';
     else if (path.includes('road-to-part-7')) pageTitle = 'Road to Part 7';
     else if (path.includes('vocabulary')) pageTitle = 'Quản lý Từ vựng';

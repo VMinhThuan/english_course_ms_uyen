@@ -1,0 +1,40 @@
+.admin-part2-challenge-page{display:grid;max-width:1180px;gap:18px;margin:0 auto;padding-bottom:36px}
+.admin-part2-notice{padding:11px 13px;border:1px solid var(--brand-success-border);border-radius:10px;background:var(--brand-success-bg);color:var(--brand-success);font-size:13px}
+.admin-part2-notice.is-error{border-color:var(--brand-danger-border);background:var(--brand-danger-bg);color:var(--brand-danger)}
+.admin-part2-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.admin-part2-summary article,.admin-part2-list{border:1px solid var(--brand-border);border-radius:var(--radius-card);background:var(--brand-surface);box-shadow:var(--shadow-subtle)}
+.admin-part2-summary article{display:grid;gap:9px;padding:17px 19px}
+.admin-part2-summary article span{color:var(--brand-muted);font-size:12px}
+.admin-part2-summary article strong{color:var(--brand-coffee);font-family:var(--font-serif);font-size:27px;font-weight:600}
+.admin-part2-list{display:grid;gap:14px;padding:20px}
+.admin-part2-list__header{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.admin-part2-list__header p{margin:0;color:var(--brand-brown-sec);font-size:10px;font-weight:800;letter-spacing:.1em}
+.admin-part2-list__header h2{margin:5px 0 0;color:var(--brand-text);font-family:var(--font-serif);font-size:23px;font-weight:600}
+.admin-part2-list__header>span{padding:6px 10px;border-radius:999px;background:var(--brand-bg-sub);color:var(--brand-brown-sec);font-size:11px;font-weight:800}
+.admin-part2-search{display:grid;max-width:440px;gap:6px;color:var(--brand-coffee);font-size:12px;font-weight:750}
+.admin-part2-search input{box-sizing:border-box;width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--brand-border);border-radius:9px;background:#fffefa;color:var(--brand-text);font:13px var(--font-sans)}
+.admin-part2-questions{display:grid;gap:8px}
+.admin-part2-question{overflow:hidden;border:1px solid var(--brand-border-light);border-radius:11px;background:#fffdfa}
+.admin-part2-question>summary{display:flex;min-height:48px;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;list-style:none}
+.admin-part2-question>summary::-webkit-details-marker{display:none}
+.admin-part2-question>summary::before{content:'›';width:14px;color:var(--brand-brown-sec);font-size:20px;transition:transform .15s ease}
+.admin-part2-question[open]>summary::before{transform:rotate(90deg)}
+.admin-part2-question>summary>strong{min-width:82px;color:var(--brand-text);font-size:13px}
+.admin-part2-question>summary>small{margin-left:auto;color:var(--brand-muted);font-size:11px}
+.admin-part2-status{padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800}
+.admin-part2-status.is-visible{background:var(--brand-success-bg);color:var(--brand-success)}
+.admin-part2-status.is-hidden{background:var(--brand-bg-sub);color:var(--brand-muted)}
+.admin-part2-question__body{display:grid;gap:13px;padding:16px;border-top:1px solid var(--brand-border-light)}
+.admin-part2-question__body audio{width:min(100%,520px);height:40px}
+.admin-part2-audio-missing,.admin-part2-question__prompt{margin:0;color:var(--brand-text);font-size:14px;line-height:1.6}
+.admin-part2-audio-missing{color:var(--brand-muted);font-size:12px}
+.admin-part2-choices{display:grid;gap:6px;margin:0;padding-left:23px;color:var(--brand-text);font-size:13px;line-height:1.55}
+.admin-part2-choices li.is-correct{color:var(--brand-success);font-weight:750}
+.admin-part2-choices li strong{margin-right:4px}
+.admin-part2-script{padding:10px 12px;border-radius:9px;background:var(--brand-bg-sub);font-size:12px;line-height:1.6}
+.admin-part2-script strong{color:var(--brand-coffee)}
+.admin-part2-script p{margin:5px 0 0;color:var(--brand-text);white-space:pre-line}
+.admin-part2-question__body>button{justify-self:start}
+.admin-part2-state{padding:24px;color:var(--brand-muted);text-align:center}
+.admin-part2-question :is(button,input,summary):focus-visible{outline:3px solid var(--brand-yellow);outline-offset:2px}
+@media(max-width:600px){.admin-part2-summary{grid-template-columns:1fr}.admin-part2-list{padding:15px}.admin-part2-question>summary{flex-wrap:wrap;gap:7px}.admin-part2-question>summary>small{width:100%;margin-left:25px}.admin-part2-question__body{padding:13px}}
