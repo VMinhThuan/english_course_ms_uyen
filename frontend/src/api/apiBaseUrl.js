@@ -1,9 +1,12 @@
 const viteEnv = import.meta.env || {};
 
-// Keep browser API traffic on the frontend origin in production. Vercel's
-// external rewrite proxies /api/v1 to the backend, so httpOnly auth cookies
-// remain first-party instead of depending on third-party cookie support.
 export const IS_PRODUCTION_BUILD = viteEnv.PROD === true;
-export const API_BASE_URL = IS_PRODUCTION_BUILD
-  ? '/api/v1'
-  : viteEnv.VITE_API_URL || '/api/v1';
+export const PRODUCTION_API_URL = 'https://api.toeicmsuyen.vn/api/v1';
+export const DEVELOPMENT_API_URL = 'http://localhost:3000/api/v1';
+
+const rawApiUrl = (typeof viteEnv.VITE_API_URL === 'string' && viteEnv.VITE_API_URL.trim())
+  ? viteEnv.VITE_API_URL.trim()
+  : (IS_PRODUCTION_BUILD ? PRODUCTION_API_URL : DEVELOPMENT_API_URL);
+
+export const API_BASE_URL = rawApiUrl.replace(/\/+$/, '');
+

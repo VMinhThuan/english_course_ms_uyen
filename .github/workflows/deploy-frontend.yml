@@ -1,0 +1,219 @@
+name: Deploy frontend to Long Van via Explicit FTPS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Upload after the read-only preflight and document root confirmation.'
+        required: true
+        default: false
+        type: boolean
+      frontend_docroot:
+        description: 'Target document root relative to FTP user home (verify in cPanel -> Domains, e.g. public_html).'
+        required: false
+        default: 'public_html'
+        type: string
+      release_ref:
+        description: 'Optional known-good commit SHA for a controlled redeploy.'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-frontend-ftps-deploy
+  cancel-in-progress: false
+
+env:
+  DEFAULT_DOCROOT_RELATIVE: public_html
+  EXPECTED_CANONICAL_DOMAIN: toeicmsuyen.vn
+  EXPECTED_WWW_DOMAIN: www.toeicmsuyen.vn
+  BACKEND_HEALTH_URL: https://api.toeicmsuyen.vn/health
+  EXPECTED_NODE_VERSION: '22.23.4'
+
+jobs:
+  build-and-test:
+    name: Build & test frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_ref || github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.EXPECTED_NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Build production bundle
+        env:
+          VITE_API_URL: https://api.toeicmsuyen.vn/api/v1
+        run: npm run build
+
+      - name: Verify build artifacts & .htaccess
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -f dist/index.html || { echo "Missing dist/index.html!" >&2; exit 11; }
+          test -f dist/.htaccess || { echo "Missing dist/.htaccess!" >&2; exit 12; }
+          # Verify the old Vercel backend URL is not present in production JS chunks
+          if grep -rn "english-course-ms-uyen.vercel.app" dist/assets/*.js; then
+            echo "ERROR: Legacy Vercel backend found in frontend build!" >&2
+            exit 13
+          fi
+          echo "Production build verified successfully with .htaccess and modern API client."
+
+      - name: Save production dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 1
+
+  authorize:
+    name: Authorize preflight & upload
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    outputs:
+      run_preflight: ${{ steps.gate.outputs.run_preflight }}
+      run_deploy: ${{ steps.gate.outputs.run_deploy }}
+      docroot_path: ${{ steps.gate.outputs.docroot_path }}
+    env:
+      DEPLOY_ENABLED: ${{ secrets.FRONTEND_FTPS_DEPLOY_ENABLED }}
+      DOCROOT_VERIFIED: ${{ secrets.FRONTEND_DOCROOT_VERIFIED }}
+      REQUESTED_DEPLOY: ${{ inputs.deploy }}
+      INPUT_DOCROOT: ${{ inputs.frontend_docroot }}
+    steps:
+      - id: gate
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          run_preflight=preflight-blocked
+          run_deploy=deploy-blocked
+
+          # Normalize docroot path (strip leading/trailing slashes)
+          raw_docroot="${INPUT_DOCROOT:-${DEFAULT_DOCROOT_RELATIVE}}"
+          docroot_path="$(echo "$raw_docroot" | sed -e 's/^\/*//' -e 's/\/*$//')"
+          if [[ -z "$docroot_path" ]]; then
+            docroot_path="public_html"
+          fi
+
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' || "$DEPLOY_ENABLED" == 'true' ]]; then
+            run_preflight=preflight-approved
+          fi
+          if [[ ( "$GITHUB_EVENT_NAME" == 'push' || "$REQUESTED_DEPLOY" == 'true' ) \
+            && "$DEPLOY_ENABLED" == 'true' && "$DOCROOT_VERIFIED" == 'true' ]]; then
+            run_deploy=deploy-approved
+          fi
+
+          printf 'run_preflight=%s\n' "$run_preflight" >> "$GITHUB_OUTPUT"
+          printf 'run_deploy=%s\n' "$run_deploy" >> "$GITHUB_OUTPUT"
+          printf 'docroot_path=%s\n' "$docroot_path" >> "$GITHUB_OUTPUT"
+
+  preflight:
+    name: Verify document root & FTPS target
+    needs: authorize
+    if: needs.authorize.outputs.run_preflight == 'preflight-approved'
+    runs-on: ubuntu-latest
+    env:
+      FTPS_HOST: ${{ secrets.LONGVAN_FTPS_HOST }}
+      FTPS_USER: ${{ secrets.LONGVAN_FTPS_USER }}
+      FTPS_PASSWORD: ${{ secrets.LONGVAN_FTPS_PASSWORD }}
+      DOCROOT_VERIFIED: ${{ secrets.FRONTEND_DOCROOT_VERIFIED }}
+      DOCROOT_PATH: ${{ needs.authorize.outputs.docroot_path }}
+    steps:
+      - name: Check required credentials and verified document root gate
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          : "${FTPS_HOST:?Missing LONGVAN_FTPS_HOST secret}"
+          : "${FTPS_USER:?Missing LONGVAN_FTPS_USER secret}"
+          : "${FTPS_PASSWORD:?Missing LONGVAN_FTPS_PASSWORD secret}"
+
+          [[ "$DOCROOT_VERIFIED" == 'true' ]] \
+            || { echo 'Document root has not been explicitly reviewed and confirmed in cPanel Domains.' >&2; exit 21; }
+
+      - name: Verify FTPS TLS connection and document root path
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          # curl validates FTPS certificate without --insecure.
+          # List the remote document root to verify existence before uploading.
+          curl --fail --silent --show-error --ftp-ssl-reqd --list-only \
+            --user "$FTPS_USER:$FTPS_PASSWORD" \
+            "ftp://$FTPS_HOST:21/$DOCROOT_PATH/" >/dev/null
+          echo "Verified FTPS connection to document root: $DOCROOT_PATH"
+
+      - name: Verify backend API health
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          response="$(curl --fail --silent --show-error --connect-timeout 10 --max-time 20 "$BACKEND_HEALTH_URL")"
+          if printf '%s' "$response" | jq -e '.status == "success" and .env == "production"' >/dev/null 2>&1; then
+            echo 'Backend API is online and healthy.'
+          else
+            echo "Backend API health check failed or returned unexpected response: $response" >&2
+            exit 25
+          fi
+
+  deploy:
+    name: Upload frontend via Explicit FTPS
+    needs: [authorize, preflight]
+    if: needs.authorize.outputs.run_deploy == 'deploy-approved'
+    runs-on: ubuntu-latest
+    environment: longvan-production
+    env:
+      DOCROOT_PATH: ${{ needs.authorize.outputs.docroot_path }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_ref || github.sha }}
+
+      - name: Download verified production dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./frontend/dist/
+
+      - name: Upload frontend via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.LONGVAN_FTPS_HOST }}
+          username: ${{ secrets.LONGVAN_FTPS_USER }}
+          password: ${{ secrets.LONGVAN_FTPS_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./frontend/dist/
+          server-dir: ./${{ env.DOCROOT_PATH }}/
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.env*
+            **/node_modules/**
+
+      - name: Post-upload verification summary
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          echo "Frontend successfully uploaded to Long Van cPanel target ./${DOCROOT_PATH}/"
+          echo "Next steps:"
+          echo "1. Verify https://toeicmsuyen.vn/ (or test via hosts file / curl resolve prior to DNS cutover)."
+          echo "2. Check React Router routes on refresh: /courses, /login, /student/dashboard."
+          echo "3. Confirm missing asset requests (/assets/test.js) return 404, not HTML."
