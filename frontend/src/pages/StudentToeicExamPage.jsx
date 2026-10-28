@@ -41,6 +41,7 @@ export default function StudentToeicExamPage() {
   const [submitting, setSubmitting] = useState(false);
   const [revisionConflict, setRevisionConflict] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [expandedPassageImage, setExpandedPassageImage] = useState(null);
   const [navFilter, setNavFilter] = useState('ALL'); // 'ALL' | 'UNANSWERED' | 'ANSWERED' | 'FLAGGED'
   const [audioSequenceStarted, setAudioSequenceStarted] = useState(false);
 
@@ -626,6 +627,28 @@ export default function StudentToeicExamPage() {
         </div>
       )}
 
+      {expandedPassageImage && (
+        <div
+          className="toeic-passage-image-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Bài đọc phóng to"
+          onClick={() => setExpandedPassageImage(null)}
+        >
+          <div className="toeic-passage-image-modal__content" onClick={(event) => event.stopPropagation()}>
+            <header>
+              <strong>Bài đọc phóng to</strong>
+              <button type="button" onClick={() => setExpandedPassageImage(null)} aria-label="Đóng bài đọc phóng to">✕</button>
+            </header>
+            <ToeicImageWithBrandOverlay
+              src={expandedPassageImage.src}
+              alt={expandedPassageImage.alt}
+              className="toeic-passage-image-modal__image"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Submit Confirmation Modal with Unanswered Warning */}
       {showSubmitModal && (
         <div
@@ -784,12 +807,16 @@ export default function StudentToeicExamPage() {
       />)}
       {hasReadingMaterial && passages.map((passage, passageIndex) => <article className={`toeic-exam-room__passage toeic-exam-room__passage--part-${partNumber}`} key={passageIndex}>
         {passage.title && <h3>{passage.title}</h3>}
-        {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => <ToeicImageWithBrandOverlay
-          key={`${imageUrl}-${imageIndex}`}
-          src={resolveMediaUrl(imageUrl)}
-          alt={`Tài liệu đọc ${passageIndex + 1}-${imageIndex + 1}`}
-          className="toeic-stimulus-image"
-        />)}
+        {(passage.imageUrls?.length ? passage.imageUrls : (passage.imageUrl ? [passage.imageUrl] : [])).map((imageUrl, imageIndex) => {
+          const src = resolveMediaUrl(imageUrl);
+          const alt = `Tài liệu đọc ${passageIndex + 1}-${imageIndex + 1}`;
+          return <div className="toeic-passage-image" key={`${imageUrl}-${imageIndex}`}>
+            <ToeicImageWithBrandOverlay src={src} alt={alt} className="toeic-stimulus-image" />
+            <button type="button" onClick={() => setExpandedPassageImage({ src, alt })}>
+              ⤢ Phóng to bài đọc
+            </button>
+          </div>;
+        })}
         {passage.content && <div>{passage.content}</div>}
       </article>)}
       {!groupImages.length && !hasReadingMaterial && <div className="toeic-exam-room__listening-placeholder"><span>🎧</span><p>Nghe kỹ audio và chọn đáp án phù hợp nhất.</p></div>}
