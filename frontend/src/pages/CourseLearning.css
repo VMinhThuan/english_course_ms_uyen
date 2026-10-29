@@ -147,7 +147,7 @@
 /* Inline lesson flashcard and automatically rendered materials. */
 .lesson-vocabulary-title { margin-bottom:16px; }
 .lesson-vocabulary-title .section-title { margin:0; }
-.lesson-inline-flashcard { height:min(72vh,760px); min-height:520px; perspective:1200px; }
+.lesson-inline-flashcard { height:clamp(400px,60vh,680px); height:clamp(400px,60dvh,680px); min-height:0; perspective:1200px; }
 .lesson-inline-flashcard__inner { position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .45s ease; }
 .lesson-inline-flashcard.is-flipped .lesson-inline-flashcard__inner { transform:rotateY(180deg); }
 .lesson-inline-flashcard__face { position:absolute; inset:0; display:flex; min-width:0; flex-direction:column; border:1px solid var(--brand-border); border-radius:18px; box-shadow:0 12px 30px rgb(75 64 53 / 10%); backface-visibility:hidden; }
@@ -188,6 +188,6 @@
 .lesson-material-preview__docx table { width:100%; border-collapse:collapse; }
 .lesson-material-preview__docx th,.lesson-material-preview__docx td { padding:8px; border:1px solid var(--brand-border); text-align:left; }
 .lesson-material-preview__docx img { max-width:100%; height:auto; }
-@media(max-width:760px) { .lesson-inline-flashcard { min-height:500px; }.lesson-inline-flashcard__back { padding:18px; }.lesson-inline-flashcard__term { grid-template-columns:24px minmax(0,1fr); }.lesson-inline-flashcard__term > p { grid-column:2; }.lesson-inline-flashcard__examples { margin-left:34px; }.lesson-material-preview { margin-left:0; }.lesson-material-preview__pdf-frame { min-height:320px; } }
-@media(max-width:600px) { .lesson-inline-flashcard { height:68vh; min-height:460px; }.lesson-inline-flashcard__front { padding:24px 16px; }.lesson-inline-flashcard__back { padding:15px; }.lesson-inline-flashcard__back > header { align-items:flex-start; }.lesson-inline-flashcard__back > header h3 { font-size:19px; }.lesson-inline-flashcard__back-actions { flex-direction:column; align-items:flex-end; }.lesson-inline-flashcard__back-actions button { padding:0 9px; font-size:10px; } }
+@media(max-width:760px) { .lesson-inline-flashcard { height:min(62vh,520px); height:min(62dvh,520px); min-height:400px; }.lesson-inline-flashcard__back { padding:18px; }.lesson-inline-flashcard__term { grid-template-columns:24px minmax(0,1fr); }.lesson-inline-flashcard__term > p { grid-column:2; }.lesson-inline-flashcard__examples { margin-left:34px; }.lesson-material-preview { margin-left:0; }.lesson-material-preview__pdf-frame { min-height:320px; } }
+@media(max-width:600px) { .lesson-inline-flashcard { height:min(58vh,480px); height:min(58dvh,480px); min-height:360px; }.lesson-inline-flashcard__front { padding:24px 16px; }.lesson-inline-flashcard__back { padding:15px; }.lesson-inline-flashcard__back > header { align-items:flex-start; }.lesson-inline-flashcard__back > header h3 { font-size:19px; }.lesson-inline-flashcard__back-actions { flex-direction:column; align-items:flex-end; }.lesson-inline-flashcard__back-actions button { padding:0 9px; font-size:10px; } }
 @media(prefers-reduced-motion:reduce) { .lesson-inline-flashcard__inner { transition:none; } }

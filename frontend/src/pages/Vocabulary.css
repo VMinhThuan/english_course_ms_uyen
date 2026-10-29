@@ -68,7 +68,7 @@
 .chapter-card__count { color:#82796F; font-size:13px; }
 .chapter-card__hint { margin-top:auto; padding-top:17px; color:#806B58; font-size:12px; font-weight:800; }
 .chapter-flashcard-page { max-width:1020px; }
-.chapter-flashcard { height:min(72vh,760px); min-height:520px; box-sizing:border-box; }
+.chapter-flashcard { height:clamp(400px,60vh,680px); height:clamp(400px,60dvh,680px); min-height:0; box-sizing:border-box; }
 .chapter-flash-front { gap:12px; }
 .chapter-flash-kicker { max-width:100%; color:#806B58; font-size:11px; font-weight:800; letter-spacing:.12em; line-height:1.5; text-align:center; }
 .chapter-flash-front h2 { max-width:100%; margin:0; color:#302A25; font:600 clamp(38px,6vw,62px) 'Playfair Display',Georgia,serif; overflow-wrap:anywhere; }
@@ -125,7 +125,7 @@
   .vocab-book-tabs { display:flex; overflow-x:auto; }
   .vocab-book-tabs button { flex:0 0 210px; }
   .chapter-grid { grid-template-columns:1fr; }
-  .chapter-flashcard { height:72vh; min-height:500px; }
+  .chapter-flashcard { height:min(62vh,520px); height:min(62dvh,520px); min-height:400px; }
   .chapter-flash-back { padding:18px; }
   .chapter-flash-word-term { grid-template-columns:24px minmax(0,1fr); gap:8px; }
   .chapter-flash-word-term p { grid-column:2; }
@@ -135,7 +135,7 @@
   .vocab-chapter-toolbar { grid-template-columns:1fr; }
   .vocab-chapter-toolbar .vocab-search { grid-column:1; }
   .vocab-chapter-toolbar .vocab-clear-search { justify-self:stretch; }
-  .chapter-flashcard { min-height:480px; }
+  .chapter-flashcard { height:min(58vh,480px); height:min(58dvh,480px); min-height:360px; }
   .flash-head { align-items:stretch; flex-direction:column; }
   .flashcard-view-controls { width:100%; flex-wrap:wrap; box-sizing:border-box; }
   .flashcard-view-controls button { min-height:36px; }

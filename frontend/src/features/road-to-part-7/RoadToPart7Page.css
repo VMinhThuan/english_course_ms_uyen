@@ -1,6 +1,6 @@
 .road7-page{display:grid;max-width:1320px;gap:22px;margin:0 auto;padding-bottom:24px}
 .road7-workspace{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);align-items:start;gap:18px}
-.road7-library{position:sticky;top:18px;display:grid;max-height:calc(100vh - 150px);grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;padding:15px;border:1px solid var(--brand-border);border-radius:var(--radius-card);background:var(--brand-surface);box-shadow:var(--shadow-subtle)}
+.road7-library{position:sticky;top:calc(var(--header-height) + 18px);display:grid;max-height:calc(100vh - var(--header-height) - 36px);max-height:calc(100dvh - var(--header-height) - 36px);grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;padding:15px;border:1px solid var(--brand-border);border-radius:var(--radius-card);background:var(--brand-surface);box-shadow:var(--shadow-subtle)}
 .road7-library__heading{display:flex;align-items:center;justify-content:space-between;padding:4px 3px 12px}
 .road7-library__heading h2{margin:5px 0 0;color:var(--brand-text);font-family:var(--font-serif);font-size:20px;font-weight:600}
 .road7-search{display:grid;gap:6px;padding-bottom:12px;color:var(--brand-coffee);font-size:11px;font-weight:800}
@@ -13,7 +13,7 @@
 .road7-reading-option small{color:var(--brand-muted);font-size:10px}
 .road7-no-results{margin:8px;color:var(--brand-muted);font-size:12px}
 .road7-reader{display:grid;min-width:0;gap:14px}
-.road7-flashcard{width:100%;height:min(72vh,760px);min-height:520px;box-sizing:border-box}
+.road7-flashcard{width:100%;height:clamp(400px,60vh,680px);height:clamp(400px,60dvh,680px);min-height:0;box-sizing:border-box}
 .road7-flash-front{align-items:stretch;justify-content:flex-start;gap:13px;min-height:0;overflow:hidden;padding:24px 30px}
 .road7-flash-front .chapter-flash-kicker,.road7-flash-front h2,.road7-flash-front .chapter-flash-word-count{align-self:center}
 .road7-flash-front h2{font-size:clamp(25px,3vw,35px);text-align:center}
@@ -35,7 +35,7 @@
 .road7-flash-nav .road7-flip-button{border-color:#f3c74f;background:#f3c74f;color:#302a25}
 .road7-flash-nav .road7-flip-button:hover{background:#f6d36c}
 .road7-page :is(button,input):focus-visible{outline:3px solid var(--brand-yellow);outline-offset:2px}
-@media(max-width:900px){.road7-workspace{grid-template-columns:1fr}.road7-library{position:static;max-height:320px}.road7-reading-list{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}}
-@media(max-width:700px){.road7-flashcard{height:72vh;min-height:500px}.road7-flash-front,.road7-flash-back{padding:18px}.road7-flash-back .chapter-flash-back-head h2{font-size:22px}.road7-flash-english{padding-right:5px;padding-left:5px}.road7-flash-pairs{font-size:15px}}
-@media(max-width:600px){.road7-page{gap:16px}.road7-library{max-height:280px;padding:11px}.road7-reading-list{grid-template-columns:1fr}.road7-flash-front h2{font-size:25px}.road7-flash-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.road7-flash-nav span{grid-column:1/-1;grid-row:1}.road7-flash-nav button{width:100%;min-width:0}}
+@media(max-width:1100px){.road7-workspace{grid-template-columns:1fr}.road7-library{position:static;max-height:320px}.road7-reading-list{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.road7-flashcard{height:clamp(390px,58vh,560px);height:clamp(390px,58dvh,560px)}}
+@media(max-width:700px){.road7-flashcard{height:min(62vh,520px);height:min(62dvh,520px);min-height:400px}.road7-flash-front,.road7-flash-back{padding:18px}.road7-flash-back .chapter-flash-back-head h2{font-size:22px}.road7-flash-english{padding-right:5px;padding-left:5px}.road7-flash-pairs{font-size:15px}}
+@media(max-width:600px){.road7-page{gap:16px}.road7-library{max-height:280px;padding:11px}.road7-reading-list{grid-template-columns:1fr}.road7-flashcard{height:min(58vh,480px);height:min(58dvh,480px);min-height:360px}.road7-flash-front h2{font-size:25px}.road7-flash-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.road7-flash-nav span{grid-column:1/-1;grid-row:1}.road7-flash-nav button{width:100%;min-width:0}}
 @media(prefers-reduced-motion:reduce){.road7-page .flash-front,.road7-page .flash-back{transition:none}}
