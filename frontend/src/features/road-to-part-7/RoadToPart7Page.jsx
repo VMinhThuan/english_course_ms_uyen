@@ -130,7 +130,7 @@ export default function RoadToPart7Page({ admin = false }) {
                   <h2>{selected.title}</h2>
                   <span className="chapter-flash-word-count">Mặt trước · Bài đọc tiếng Anh</span>
                   <div className="road7-flash-scroll road7-flash-english" role="region" tabIndex="0" aria-label={`${selected.title}, bài đọc tiếng Anh`}>
-                    {selected.englishText}
+                    <p className="road7-flash-english__content">{selected.englishText}</p>
                   </div>
                   <i>Cuộn trong khung để đọc hết bài · Nhấn để xem bản dịch song ngữ</i>
                 </div>

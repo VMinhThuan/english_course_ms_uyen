@@ -23,7 +23,7 @@ const readings = Array.from({ length: 26 }, (_, index) => ({
   sourceKey: `reading-${index + 1}`,
   order: index + 1,
   title: `Bài đọc ${String(index + 1).padStart(2, '0')}`,
-  englishText: `Reading ${index + 1} content.`,
+  englishText: Array.from({ length: 96 }, (_, sentence) => `Reading ${index + 1}, sentence ${sentence + 1}.`).join(' '),
   bilingualPairs: [{ order: 1, english: `Sentence ${index + 1}.`, vietnamese: `Câu ${index + 1}.` }],
 }));
 
@@ -92,6 +92,29 @@ const verifyViewport = async (viewport, expectedColumns) => {
   assert.equal(layout.columns, expectedColumns, `${viewport.width}px uses the intended reading-list grid`);
   assert.equal(layout.isScrollable, true, `${viewport.width}px keeps the reading selector scrollable`);
   assert.equal(layout.lastVisible, true, `${viewport.width}px exposes Bài đọc 26 at the end of the selector`);
+
+  const reader = await page.locator('.road7-flash-english').evaluate((scrollArea) => {
+    scrollArea.scrollTop = scrollArea.scrollHeight;
+    const content = scrollArea.querySelector('.road7-flash-english__content').getBoundingClientRect();
+    const bounds = scrollArea.getBoundingClientRect();
+    return {
+      isScrollable: scrollArea.scrollHeight > scrollArea.clientHeight,
+      lastLineVisible: content.bottom <= bounds.bottom - 18,
+    };
+  });
+  assert.equal(reader.isScrollable, true, `${viewport.width}px keeps long English readings inside their own scroller`);
+  assert.equal(reader.lastLineVisible, true, `${viewport.width}px leaves space below the last English line`);
+
+  if (viewport.width <= 600) {
+    const navigation = await page.locator('.road7-flash-nav').evaluate((nav) => {
+      const previous = nav.querySelector('button:first-child').getBoundingClientRect();
+      const next = nav.querySelector('button:last-child').getBoundingClientRect();
+      const flip = nav.querySelector('.road7-flip-button').getBoundingClientRect();
+      return { previousTop: previous.top, nextTop: next.top, flipWidth: flip.width, navWidth: nav.getBoundingClientRect().width };
+    });
+    assert.equal(navigation.previousTop, navigation.nextTop, 'mobile previous and next controls share one row');
+    assert.ok(navigation.flipWidth >= navigation.navWidth - 1, 'mobile flip control spans the full navigation row');
+  }
   await context.close();
 };
 
