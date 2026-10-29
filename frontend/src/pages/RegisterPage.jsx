@@ -6,12 +6,14 @@ import AuthLayout from '../components/layouts/AuthLayout.jsx';
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     fullName: '',
+    groupName: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
   const [fieldErrors, setFieldErrors] = useState({
     fullName: '',
+    groupName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -38,6 +40,15 @@ export default function RegisterPage() {
       case 'fullName':
         if (!value.trim()) {
           err = 'Vui lòng nhập Họ và tên';
+        }
+        break;
+      case 'groupName':
+        if (!value.trim()) {
+          err = 'Vui lòng nhập tên nhóm';
+        } else if (value.trim().length > 100) {
+          err = 'Tên nhóm không được vượt quá 100 ký tự';
+        } else if (/[\u0000-\u001f\u007f]/.test(value)) {
+          err = 'Tên nhóm chứa ký tự không hợp lệ';
         }
         break;
       case 'email':
@@ -111,16 +122,18 @@ export default function RegisterPage() {
     setError('');
 
     const isNameValid = validateField('fullName', formData.fullName);
+    const isGroupNameValid = validateField('groupName', formData.groupName);
     const isEmailValid = validateField('email', formData.email);
     const isPasswordValid = validateField('password', formData.password);
     const isConfirmPasswordValid = validateField('confirmPassword', formData.confirmPassword);
 
-    if (!isNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+    if (!isNameValid || !isGroupNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
       return;
     }
 
     const result = await register({
       fullName: formData.fullName,
+      groupName: formData.groupName,
       email: formData.email,
       password: formData.password,
     });
@@ -157,6 +170,25 @@ export default function RegisterPage() {
           />
           {fieldErrors.fullName && (
             <div className="auth-field-error">{fieldErrors.fullName}</div>
+          )}
+        </div>
+
+        <div className="auth-form-group">
+          <label className="auth-input-label" htmlFor="register-group-name">Tên nhóm</label>
+          <input
+            id="register-group-name"
+            type="text"
+            name="groupName"
+            value={formData.groupName}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            maxLength={100}
+            required
+            className={`auth-input-field ${fieldErrors.groupName ? 'input-error' : ''}`}
+            placeholder="Nhập tên nhóm học"
+          />
+          {fieldErrors.groupName && (
+            <div className="auth-field-error">{fieldErrors.groupName}</div>
           )}
         </div>
 

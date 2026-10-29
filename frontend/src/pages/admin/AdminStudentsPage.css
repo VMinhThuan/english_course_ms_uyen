@@ -115,6 +115,9 @@
 .student-create-field input[aria-invalid="true"] { border-color: var(--brand-danger)!important; }
 .student-create-field small { color: var(--brand-danger); font-size: 12px; font-weight: 500; line-height: 1.45; }
 .student-create-modal .modal-actions { margin-top: 4px; }
+.student-group-cell { display: flex; align-items: center; gap: 8px; min-width: 145px; }
+.student-group-cell span { overflow: hidden; max-width: 150px; text-overflow: ellipsis; white-space: nowrap; }
+.student-group-cell button { flex: 0 0 auto; min-height: 30px!important; padding: 0 9px; }
 .student-learning-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .student-detail-table { min-width: 860px; }
 .student-history-filter, .student-history-filters label { display: grid; gap: 5px; color: var(--brand-muted); font-size: 11px; font-weight: 800; }

@@ -108,6 +108,7 @@ export default function AdminStudentDetailPage() {
     ['Họ và tên', student.fullName],
     ['Email', student.email],
     ['Tên đăng nhập', student.username ? `@${student.username}` : '—'],
+    ['Tên nhóm', student.groupName],
     ['Số điện thoại', student.phoneNumber],
     ['Ngày đăng ký', dateOnly(student.createdAt)],
     ['Ngày được duyệt', dateOnly(student.approvedAt)],

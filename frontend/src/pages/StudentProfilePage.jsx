@@ -12,6 +12,7 @@ export default function StudentProfilePage() {
 
   // Profile Form state
   const [fullName, setFullName] = useState(user?.fullName || '');
+  const [groupName, setGroupName] = useState(user?.groupName || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [profileMsg, setProfileMsg] = useState({ type: '', text: '' });
   const [profileLoading, setProfileLoading] = useState(false);
@@ -26,6 +27,7 @@ export default function StudentProfilePage() {
   useEffect(() => {
     if (user) {
       setFullName(user.fullName || '');
+      setGroupName(user.groupName || '');
       setPhoneNumber(user.phoneNumber || '');
     }
   }, [user]);
@@ -41,7 +43,7 @@ export default function StudentProfilePage() {
 
     try {
       setProfileLoading(true);
-      const res = await authApi.updateProfile({ fullName, phoneNumber });
+      const res = await authApi.updateProfile({ fullName, phoneNumber, groupName });
       if (res.status === 'success') {
         setProfileMsg({ type: 'success', text: 'Cập nhật thông tin cá nhân thành công!' });
         await fetchUser();
@@ -137,6 +139,18 @@ export default function StudentProfilePage() {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Nhập họ và tên..."
                 required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="student-group-name">Tên nhóm</label>
+              <input
+                id="student-group-name"
+                type="text"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="Nhập tên nhóm học..."
+                maxLength={100}
               />
             </div>
 

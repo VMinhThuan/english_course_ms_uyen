@@ -36,6 +36,12 @@ const userSchema = new mongoose.Schema({
         trim: true,
         default: '',
     },
+    groupName: {
+        type: String,
+        trim: true,
+        maxlength: 100,
+        default: '',
+    },
     role: {
         type: String,
         enum: ['student', 'teacher', 'admin'],

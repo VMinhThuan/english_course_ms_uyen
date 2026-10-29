@@ -11,13 +11,23 @@ import {
     getStudentStatusError,
     isTokenIssuedBeforeSuspension,
 } from '../security/accountAccessPolicy.js';
+import { isValidStudentGroupName, normalizeStudentGroupName } from '../utils/studentGroupName.js';
 
 // @desc    Register new user
 // @route   POST /api/v1/auth/register
 // @access  Public
 export const register = async(req, res, next) => {
     try {
-        const { email, password, fullName, phoneNumber } = req.body;
+        const { email, password, fullName, phoneNumber, groupName } = req.body;
+        const normalizedGroupName = groupName === undefined ? '' : normalizeStudentGroupName(groupName);
+
+        if (!isValidStudentGroupName(normalizedGroupName)) {
+            return res.status(400).json({
+                status: 'error',
+                code: 'INVALID_GROUP_NAME',
+                message: 'Tên nhóm không được vượt quá 100 ký tự hoặc chứa ký tự không hợp lệ.',
+            });
+        }
 
         // Check if user exists
         const existingUser = await User.findOne({ email: email ? email.toLowerCase() : '' });
@@ -52,6 +62,7 @@ export const register = async(req, res, next) => {
             password,
             fullName: userFullName,
             phoneNumber: normalizedPhone,
+            groupName: normalizedGroupName,
             role: 'student',    // FORCED BY BACKEND
             status: 'pending',  // FORCED BY BACKEND
             isActive: true,
@@ -65,6 +76,7 @@ export const register = async(req, res, next) => {
                     id: user._id,
                     email: user.email,
                     fullName: user.fullName,
+                    groupName: user.groupName || '',
                     role: user.role,
                     status: user.status,
                 },
@@ -173,6 +185,7 @@ export const login = async(req, res, next) => {
                     id: user._id,
                     email: user.email,
                     fullName: user.fullName,
+                    groupName: user.groupName || '',
                     role: user.role,
                     status: user.status,
                 },
@@ -292,7 +305,7 @@ export const getMe = async(req, res) => {
 // @access  Private
 export const updateProfile = async (req, res, next) => {
     try {
-        const { fullName, phoneNumber } = req.body;
+        const { fullName, phoneNumber, groupName } = req.body;
         const user = await User.findById(req.user.id);
 
         if (!user) {
@@ -323,6 +336,18 @@ export const updateProfile = async (req, res, next) => {
             user.phoneNumber = normalizedPhone;
         }
 
+        if (groupName !== undefined) {
+            const normalizedGroupName = normalizeStudentGroupName(groupName);
+            if (!isValidStudentGroupName(normalizedGroupName)) {
+                return res.status(400).json({
+                    status: 'error',
+                    code: 'INVALID_GROUP_NAME',
+                    message: 'Tên nhóm không được vượt quá 100 ký tự hoặc chứa ký tự không hợp lệ.',
+                });
+            }
+            user.groupName = normalizedGroupName;
+        }
+
         await user.save();
 
         res.json({
@@ -334,6 +359,7 @@ export const updateProfile = async (req, res, next) => {
                     email: user.email,
                     fullName: user.fullName,
                     phoneNumber: user.phoneNumber,
+                    groupName: user.groupName || '',
                     role: user.role,
                     status: user.status,
                 },

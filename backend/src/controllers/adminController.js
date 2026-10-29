@@ -1,6 +1,7 @@
 import User from '../models/User.js';
+import { isValidStudentGroupName, normalizeStudentGroupName } from '../utils/studentGroupName.js';
 
-const STUDENT_SELECT = 'fullName email username phoneNumber role status isActive createdAt updatedAt approvedAt lastLoginAt';
+const STUDENT_SELECT = 'fullName email username phoneNumber groupName role status isActive createdAt updatedAt approvedAt lastLoginAt';
 const STUDENT_STATUSES = new Set(['pending', 'active', 'rejected', 'suspended']);
 const VIETNAMESE_LETTER_PATTERN = {
   a: '[aàáảãạăằắẳẵặâầấẩẫậ]',
@@ -42,6 +43,7 @@ const safeStudent = (student) => ({
   email: student.email,
   username: student.username || '',
   phoneNumber: student.phoneNumber || '',
+  groupName: student.groupName || '',
   role: student.role,
   status: student.status,
   isActive: student.isActive,
@@ -77,6 +79,7 @@ export const getStudents = async (req, res, next) => {
         { fullName: searchRegex },
         { email: searchRegex },
         { username: searchRegex },
+        { groupName: searchRegex },
         { phoneNumber: searchRegex },
       ];
     }
@@ -135,6 +138,7 @@ export const createStudent = async (req, res, next) => {
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     const username = typeof req.body?.username === 'string' ? req.body.username.trim().toLowerCase() : '';
     const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    const groupName = req.body?.groupName === undefined ? '' : normalizeStudentGroupName(req.body.groupName);
     const errors = {};
 
     if (!fullName) errors.fullName = 'Vui lòng nhập họ và tên.';
@@ -146,6 +150,7 @@ export const createStudent = async (req, res, next) => {
     else if (!/^[a-z0-9._-]{3,30}$/.test(username)) errors.username = 'Tên đăng nhập gồm 3–30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.';
     if (!password) errors.password = 'Vui lòng nhập mật khẩu ban đầu.';
     else if (password.length < 6 || Buffer.byteLength(password, 'utf8') > 72) errors.password = 'Mật khẩu phải có ít nhất 6 ký tự và tối đa 72 byte UTF-8.';
+    if (!isValidStudentGroupName(groupName)) errors.groupName = 'Tên nhóm không được vượt quá 100 ký tự hoặc chứa ký tự không hợp lệ.';
 
     if (Object.keys(errors).length) {
       return res.status(400).json({ status: 'error', code: 'VALIDATION_ERROR', message: 'Thông tin học viên chưa hợp lệ.', errors });
@@ -163,6 +168,7 @@ export const createStudent = async (req, res, next) => {
       email,
       username,
       password,
+      groupName,
       role: 'student',
       status: 'active',
       isActive: true,
@@ -188,6 +194,28 @@ export const createStudent = async (req, res, next) => {
     if (error?.name === 'ValidationError') {
       return res.status(400).json({ status: 'error', code: 'VALIDATION_ERROR', message: 'Thông tin học viên chưa hợp lệ.' });
     }
+    return next(error);
+  }
+};
+
+export const updateStudentGroup = async (req, res, next) => {
+  try {
+    if (!/^[\da-f]{24}$/i.test(req.params.id)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_STUDENT_ID', message: 'Mã học viên không hợp lệ.' });
+    }
+
+    const groupName = normalizeStudentGroupName(req.body?.groupName);
+    if (!isValidStudentGroupName(groupName)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_GROUP_NAME', message: 'Tên nhóm không được vượt quá 100 ký tự hoặc chứa ký tự không hợp lệ.' });
+    }
+
+    const student = await User.findOne({ _id: req.params.id, role: 'student' });
+    if (!student) return res.status(404).json({ status: 'error', message: 'Không tìm thấy thông tin học viên.' });
+
+    student.groupName = groupName;
+    await student.save();
+    return res.json({ status: 'success', message: 'Đã cập nhật nhóm học viên.', data: { student: safeStudent(student) } });
+  } catch (error) {
     return next(error);
   }
 };

@@ -3,6 +3,7 @@ import {
   getStudents,
   createStudent,
   getStudent,
+  updateStudentGroup,
   approveStudent,
   rejectStudent,
   suspendStudent,
@@ -44,6 +45,7 @@ router.get('/stats', getAdminStats);
 router.get('/students', getStudents);
 router.post('/students', createStudent);
 router.get('/students/:id', getStudent);
+router.patch('/students/:id/group', updateStudentGroup);
 router.patch('/students/:id/approve', approveStudent);
 router.patch('/students/:id/reject', rejectStudent);
 router.patch('/students/:id/suspend', suspendStudent);
