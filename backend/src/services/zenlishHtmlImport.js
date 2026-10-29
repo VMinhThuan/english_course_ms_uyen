@@ -166,7 +166,10 @@ export function normalizeZenlishHtmlImport({ testHtml, reviewHtml }) {
   const questionNumbers = groups.flatMap((group) => group.questions.map((question) => question.questionNumber)).sort((left, right) => left - right);
   if (questionNumbers.some((number, index) => number !== index + 1)) throw new ZenlishHtmlImportError('Số câu hỏi không liên tục từ 1 đến 200.');
 
-  const title = decodeHtml(String(testHtml).match(/<title>\s*([^<]+?)\s*<\/title>/i)?.[1] || 'TOEIC Full Test');
+  // The page title appends the publisher name (for example, "TEST 2 - 2026 - Zenlish").
+  // Keep the assessment title focused on the test so it matches the existing TOEIC library.
+  const pageTitle = decodeHtml(String(testHtml).match(/<title>\s*([^<]+?)\s*<\/title>/i)?.[1] || 'TOEIC Full Test');
+  const title = pageTitle.replace(/\s*[-–—]\s*zenlish\s*$/i, '').trim();
   const contentHash = crypto.createHash('sha256').update(JSON.stringify({ sourceId, title, groups })).digest('hex');
   return {
     sourceSystem: 'zenlish-html-authorized',
