@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import { roadToPart7Api } from '../../api/roadToPart7Api.js';
 import '../../pages/Vocabulary.css';
@@ -13,6 +13,7 @@ export default function RoadToPart7Page({ admin = false }) {
   const [side, setSide] = useState('front');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const selectedOptionRef = useRef(null);
 
   useEffect(() => {
     let isCurrent = true;
@@ -45,6 +46,10 @@ export default function RoadToPart7Page({ admin = false }) {
 
   const selected = filteredItems.find((item) => readingId(item) === selectedId) || filteredItems[0] || null;
   const selectedIndex = selected ? filteredItems.findIndex((item) => readingId(item) === readingId(selected)) : -1;
+
+  useEffect(() => {
+    selectedOptionRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [selectedId, query]);
 
   const choose = (item) => {
     setSelectedId(readingId(item));
@@ -83,6 +88,7 @@ export default function RoadToPart7Page({ admin = false }) {
                   return <button
                     type="button"
                     key={itemId}
+                    ref={selected && itemId === (selected._id || selected.sourceKey) ? selectedOptionRef : null}
                     className={`road7-reading-option${selected && itemId === (selected._id || selected.sourceKey) ? ' is-active' : ''}`}
                     aria-current={selected && itemId === (selected._id || selected.sourceKey) ? 'true' : undefined}
                     onClick={() => choose(item)}
