@@ -181,6 +181,13 @@
 .toeic-exam-screen__header-status--saved { background: var(--brand-success); }
 .toeic-exam-screen__header-status--saving { background: var(--brand-warning); }
 .toeic-exam-screen__header-status--error { background: var(--brand-danger); }
+.toeic-mobile-drawer { overscroll-behavior: contain; }
+
+@media (max-width: 1100px) {
+  .toeic-exam-screen__sticky-shell { top: var(--header-height); }
+  .toeic-exam-screen__header { padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right)); }
+  .toeic-exam-screen__part-nav { padding-inline: max(.75rem, env(safe-area-inset-left)) max(.75rem, env(safe-area-inset-right)); }
+}
 
 .toeic-exam-screen__question-tile { width: 100%; padding: .4rem 0; border: 1px solid var(--brand-border); border-radius: 6px; background: var(--brand-bg-sub); color: var(--brand-muted); font-size: .8rem; font-weight: 700; cursor: pointer; transition: transform .1s ease; }
 .toeic-exam-screen__question-tile--flagged { border-color: var(--brand-warning-border); background: var(--brand-warning-bg); color: var(--brand-warning); }
@@ -257,6 +264,8 @@
   .student-result-screen,
   .toeic-result-screen,
   .toeic-preview-screen { padding: 22px 16px 38px; }
+  .toeic-exam-room__stage { grid-template-columns: 1fr; min-height: 0; }
+  .toeic-exam-room__stimulus { border-right: 0; border-bottom: 1px solid var(--brand-border); }
 }
 
 @media (max-width: 680px) {
@@ -269,8 +278,7 @@
   .toeic-exam-screen__timer { order: 1; padding: .35rem .75rem; font-size: 1rem; }
   .toeic-exam-screen__part-nav { padding: .45rem .75rem; }
   .toeic-exam-room__header { padding: 1rem; }
-  .toeic-exam-room__stage { grid-template-columns: 1fr; min-height: 0; }
-  .toeic-exam-room__stimulus { border-right: 0; border-bottom: 1px solid var(--brand-border); padding: 1rem; }
+  .toeic-exam-room__stimulus { padding: 1rem; }
   .toeic-exam-room__answer { padding: 1rem; }
   .toeic-passage-image-modal { padding: .75rem; }
   .toeic-exam-room__listening-placeholder { min-height: 160px; }
@@ -278,7 +286,7 @@
   .toeic-exam-room__question-nav button { flex: 1; }
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1100px) {
   .test-screen--active .test-navigator-column { display: none; }
 }
 

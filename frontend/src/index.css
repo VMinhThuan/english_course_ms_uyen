@@ -47,6 +47,22 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     font-size: 16px;
+    overflow-x: hidden;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+img, picture, video, canvas, iframe {
+    max-width: 100%;
+}
+
+img, video, canvas { height: auto; }
+
+/* Make fixed overlays and their scrollable content behave predictably on iOS. */
+.modal-overlay, .bottom-sheet-overlay, .attempt-guard-overlay, .active-attempt-resume-overlay {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 code {
@@ -159,7 +175,7 @@ button {
     border-radius: var(--radius-lg);
     width: 100%;
     max-width: 540px;
-    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
@@ -178,6 +194,7 @@ button {
 .modal-body {
     padding: 1.5rem;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     flex: 1;
 }
 
@@ -272,7 +289,7 @@ button {
     margin: 0 auto;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
     .toeic-split-layout {
         grid-template-columns: 1fr;
     }
@@ -282,7 +299,7 @@ button {
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
     .toeic-navigator-aside {
         display: none;
     }

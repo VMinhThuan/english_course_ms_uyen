@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toeicApi } from '../api/toeicApi.js';
 import ToeicImageWithBrandOverlay from '../components/ToeicImageWithBrandOverlay.jsx';
 import { resolveMediaUrl } from '../utils/mediaUrl.js';
+import { acquireDocumentScrollLock } from '../utils/documentScrollLock.js';
 import '../styles/assessment-screens.css';
 
 const attemptNavigationKey = (attemptId) => `toeic-attempt-navigation:${attemptId}`;
@@ -64,6 +65,13 @@ export default function StudentToeicExamPage() {
   useEffect(() => {
     activeQuestionIdRef.current = activeQuestionId;
   }, [activeQuestionId]);
+
+  // Keep the question navigator and dialogs readable on iPadOS without
+  // allowing the exam page behind them to move.
+  useEffect(() => {
+    if (!(mobileDrawerOpen || expandedPassageImage || showSubmitModal)) return undefined;
+    return acquireDocumentScrollLock();
+  }, [mobileDrawerOpen, expandedPassageImage, showSubmitModal]);
 
   // Answers live on the server; this only restores the learner's place after
   // a refresh or a short connection interruption.
@@ -587,6 +595,7 @@ export default function StudentToeicExamPage() {
       {/* Mobile Drawer Question Navigator */}
       {mobileDrawerOpen && (
         <div
+          className="toeic-mobile-drawer"
           style={{
             position: 'fixed',
             inset: 0,
@@ -610,6 +619,7 @@ export default function StudentToeicExamPage() {
               gap: '1rem',
               boxShadow: 'var(--shadow-raised)',
               overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
             }}
             onClick={(e) => e.stopPropagation()}
           >

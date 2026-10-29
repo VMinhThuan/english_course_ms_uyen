@@ -3,6 +3,7 @@ import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-do
 import useAuthStore from '../../store/authStore.js';
 import { assessmentApi } from '../../api/assessmentApi.js';
 import PracticeSidebarMenu from './PracticeSidebarMenu.jsx';
+import { acquireDocumentScrollLock } from '../../utils/documentScrollLock.js';
 import './StudentLayout.css';
 
 export default function StudentLayout() {
@@ -73,28 +74,21 @@ export default function StudentLayout() {
   useEffect(() => {
     if (!activeAttemptPrompt) return undefined;
 
-    const previousOverflow = document.body.style.overflow;
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') setActiveAttemptPrompt(null);
     };
-    document.body.style.overflow = 'hidden';
+    const releaseScrollLock = acquireDocumentScrollLock();
     window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [activeAttemptPrompt]);
 
   // Lock background scroll when mobile drawer is open
   useEffect(() => {
-    if (isMobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    if (!isMobileOpen) return undefined;
+    return acquireDocumentScrollLock();
   }, [isMobileOpen]);
 
   useEffect(() => {

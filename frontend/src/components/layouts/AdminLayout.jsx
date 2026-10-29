@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore.js';
 import PracticeSidebarMenu from './PracticeSidebarMenu.jsx';
+import { acquireDocumentScrollLock } from '../../utils/documentScrollLock.js';
 import './AdminLayout.css';
 
 export default function AdminLayout() {
@@ -33,14 +34,8 @@ export default function AdminLayout() {
   }, [isAdmin, location]);
 
   useEffect(() => {
-    if (isMobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    if (!isMobileOpen) return undefined;
+    return acquireDocumentScrollLock();
   }, [isMobileOpen]);
 
   const handleLogout = async () => {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { enrollmentApi } from '../../api/enrollmentApi.js';
+import { acquireDocumentScrollLock } from '../../utils/documentScrollLock.js';
 import './EnrollmentConfirmationModal.css';
 
 export default function EnrollmentConfirmationModal({ course, open, onClose, onEnrolled }) {
@@ -18,8 +19,7 @@ export default function EnrollmentConfirmationModal({ course, open, onClose, onE
     if (!open || !dialog) return undefined;
 
     if (!dialog.open) dialog.showModal();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const releaseScrollLock = acquireDocumentScrollLock();
     const handleCancel = (event) => {
       event.preventDefault();
       if (!submittingRef.current) onCloseRef.current?.();
@@ -28,7 +28,7 @@ export default function EnrollmentConfirmationModal({ course, open, onClose, onE
 
     return () => {
       dialog.removeEventListener('cancel', handleCancel);
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
       if (dialog.open) dialog.close();
     };
   }, [open]);

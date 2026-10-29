@@ -7,6 +7,7 @@ import AssessmentQuestionReviewCard from '../components/assessment/AssessmentQue
 import useAssessmentAttemptTabLock from '../hooks/useAssessmentAttemptTabLock.js';
 import { speakText, stopSpeaking } from '../utils/tts.js';
 import { startSpeechRecognition, stopSpeechRecognition, isSpeechRecognitionSupported } from '../utils/speechRecognition.js';
+import { acquireDocumentScrollLock } from '../utils/documentScrollLock.js';
 import './TestPage.css';
 import '../styles/assessment-screens.css';
 
@@ -159,14 +160,8 @@ export default function TestPage() {
 
   // Lock background scroll while a modal or the mobile question sheet is open.
   useEffect(() => {
-    if (showMobileSheet || showConfirmModal || showResumeModal || showLeaveAttemptNotice || isDuplicateTab) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    if (!(showMobileSheet || showConfirmModal || showResumeModal || showLeaveAttemptNotice || isDuplicateTab)) return undefined;
+    return acquireDocumentScrollLock();
   }, [showMobileSheet, showConfirmModal, showResumeModal, showLeaveAttemptNotice, isDuplicateTab]);
 
   // Keep focus in the mobile question sheet and return it to the trigger on close.
