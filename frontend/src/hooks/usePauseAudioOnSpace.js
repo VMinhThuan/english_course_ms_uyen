@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const INTERACTIVE_TARGET_SELECTOR = 'input, textarea, select, button, a[href], [role="button"], [contenteditable="true"]';
+const INTERACTIVE_TARGET_SELECTOR = 'input, textarea, select, button, [role="button"], [contenteditable="true"]';
 
 export default function usePauseAudioOnSpace(audioRef, enabled = true) {
   useEffect(() => {
@@ -13,15 +13,14 @@ export default function usePauseAudioOnSpace(audioRef, enabled = true) {
       if (target instanceof Element && (target.isContentEditable || target.closest(INTERACTIVE_TARGET_SELECTOR))) return;
 
       const audio = audioRef.current;
-      if (!audio) return;
+      if (!audio || audio.paused || audio.ended) return;
 
-      // Reserve Space for pausing on these practice pages. In particular, do not
-      // let a focused native audio control use Space to start playback.
+      // A focused navigation link should not make Space scroll past the audio.
       event.preventDefault();
-      if (!audio.paused) audio.pause();
+      audio.pause();
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [audioRef, enabled]);
 }
