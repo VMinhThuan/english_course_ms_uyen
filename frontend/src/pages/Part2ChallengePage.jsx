@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { part2ChallengeApi } from '../api/part2ChallengeApi.js';
+import usePauseAudioOnSpace from '../hooks/usePauseAudioOnSpace.js';
 import './Part2ChallengePage.css';
 
 const ANSWER_SECONDS = 30;
@@ -36,6 +37,8 @@ export default function Part2ChallengePage() {
   const practiceAudioRef = useRef(null);
   const playbackVersion = useRef(0);
   const answerRequestVersion = useRef(0);
+
+  usePauseAudioOnSpace(practiceAudioRef, sessionState === 'active' && selectedMode === 'practice');
 
   useEffect(() => {
     let active = true;

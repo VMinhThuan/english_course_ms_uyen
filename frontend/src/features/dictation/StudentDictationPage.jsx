@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import { part1DictationApi } from '../../api/part1DictationApi.js';
 import { vocabularyDictationApi } from '../../api/vocabularyDictationApi.js';
 import { hardWordsDictationApi } from '../../api/hardWordsDictationApi.js';
+import usePauseAudioOnSpace from '../../hooks/usePauseAudioOnSpace.js';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
 import '../../pages/Part1Dictation.css';
 
@@ -21,6 +22,9 @@ export default function StudentDictationPage({ kind = 'part1' }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const audioRef = useRef(null);
+
+  usePauseAudioOnSpace(audioRef, Boolean(active?.audioUrl));
 
   const chooseItem = useCallback(async (id) => {
     setError('');
@@ -91,7 +95,7 @@ export default function StudentDictationPage({ kind = 'part1' }) {
             {active && <section className="part1-listening-card">
               <div className="part1-listening-card__header"><div><p className="part1-playlist__eyebrow">{active.audioUrl ? 'NGHE VÀ CHÉP LẠI' : 'ÔN TẬP VÀ ĐIỀN ĐÁP ÁN'}</p><h2>{active.title}</h2></div><span>{active.answerCount} {isWordDictation ? 'từ' : 'câu'}</span></div>
               <div className="part1-audio"><span aria-hidden="true">♫</span>{active.audioUrl
-                ? <audio controls preload="metadata" src={resolveMediaUrl(active.audioUrl)}>Trình duyệt của bạn không hỗ trợ phát audio.</audio>
+                ? <audio ref={audioRef} controls preload="metadata" src={resolveMediaUrl(active.audioUrl)}>Trình duyệt của bạn không hỗ trợ phát audio.</audio>
                 : <p className="part1-audio__missing">Audio chưa được cập nhật. Bạn vẫn có thể làm bài và xem đáp án sau khi nộp.</p>}
               </div>
               <form onSubmit={submit} className="part1-answer-form">
