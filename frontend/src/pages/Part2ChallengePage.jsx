@@ -38,7 +38,7 @@ export default function Part2ChallengePage() {
   const playbackVersion = useRef(0);
   const answerRequestVersion = useRef(0);
 
-  usePauseAudioOnSpace(practiceAudioRef, sessionState === 'active' && selectedMode === 'practice');
+  usePauseAudioOnSpace(practiceAudioRef, selectedMode === 'practice');
 
   useEffect(() => {
     let active = true;

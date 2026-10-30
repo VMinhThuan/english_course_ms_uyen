@@ -24,7 +24,7 @@ export default function StudentDictationPage({ kind = 'part1' }) {
   const [error, setError] = useState('');
   const audioRef = useRef(null);
 
-  usePauseAudioOnSpace(audioRef, Boolean(active?.audioUrl));
+  usePauseAudioOnSpace(audioRef);
 
   const chooseItem = useCallback(async (id) => {
     setError('');
