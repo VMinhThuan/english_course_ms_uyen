@@ -2411,8 +2411,8 @@ export const getStudentToeicPart5Bank = async (req, res, next) => {
 
     const total = await Question.countDocuments(filter);
     const questions = await Question.find(filter)
-      .select('questionText type options correctAnswers explanation score topic difficulty translation answerTranslation createdAt')
-      .sort({ createdAt: -1 })
+      .select('questionText type options correctAnswers explanation score topic difficulty translation answerTranslation part5BankOrder')
+      .sort({ part5BankOrder: 1, _id: 1 })
       .skip(skip)
       .limit(limitNum)
       .lean();

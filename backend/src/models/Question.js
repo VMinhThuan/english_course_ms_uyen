@@ -145,6 +145,12 @@ const questionSchema = new mongoose.Schema(
     questionNumber: {
       type: Number,
     },
+    // Stable standalone-bank order. This differs from questionNumber, which
+    // remains the number inside an original TOEIC full test.
+    part5BankOrder: {
+      type: Number,
+      min: 1,
+    },
     order: {
       type: Number,
       default: 1,
@@ -211,6 +217,10 @@ questionSchema.index(
 questionSchema.index(
   { bankTargetAssessmentId: 1, bankSourceQuestionId: 1 },
   { unique: true, sparse: true, name: 'uniq_question_bank_source_per_assessment' }
+);
+questionSchema.index(
+  { toeicPart: 1, status: 1, part5BankOrder: 1, _id: 1 },
+  { name: 'idx_part5_bank_display_order' }
 );
 
 const Question = mongoose.model('Question', questionSchema);

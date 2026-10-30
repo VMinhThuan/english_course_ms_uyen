@@ -298,7 +298,9 @@ export default function StudentToeicPart5BankPage() {
       ) : (
         <div className="toeic-p5-question-list">
           {displayedQuestions.map((q, idx) => {
-            const questionNumber = (page - 1) * pagination.limit + (idx + 1);
+            const questionNumber = Number.isInteger(q.part5BankOrder)
+              ? q.part5BankOrder
+              : (page - 1) * pagination.limit + (idx + 1);
             const qState = practiceState[q._id] || {};
             const isChecked = studyMode === 'REVIEW' || !!qState.isChecked;
             const correctAnswers = Array.isArray(q.correctAnswers) ? q.correctAnswers : [];
@@ -335,7 +337,7 @@ export default function StudentToeicPart5BankPage() {
 
                 {/* Question Stem */}
                 <div className="toeic-p5-stem">
-                  {q.questionText}
+                  {String(q.questionText || '').replace(/^\s*\d+\s*[.)]\s*/, '')}
                 </div>
 
                 {/* Options (A, B, C, D) */}
