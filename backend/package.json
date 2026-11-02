@@ -40,7 +40,9 @@
     "vocabulary:inventory:readonly": "node src/scripts/inventoryVocabularyCatalogReadOnly.js",
     "migrate:standalone-learning-data": "node src/scripts/migrateStandaloneLearningData.js",
     "hard-words:import-seed": "node src/scripts/importHardWordsDictationSeed.js",
-    "part2-challenge:import-seed": "node src/scripts/importPart2ChallengeSeed.js"
+    "part2-challenge:import-seed": "node src/scripts/importPart2ChallengeSeed.js",
+    "db:backup": "node src/scripts/backupDatabase.js",
+    "db:restore": "node src/scripts/restoreDatabase.js"
   },
   "keywords": [
     "english",
