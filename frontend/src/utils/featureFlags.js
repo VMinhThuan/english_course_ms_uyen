@@ -12,16 +12,16 @@ export const isStudentMonitoringEnabled = () => {
     return false;
   }
 
+  // If explicitly declared as production environment without monitoring enabled
+  if (env.VITE_APP_ENV === 'production' && env.VITE_ENABLE_STUDENT_MONITORING !== 'true') {
+    return false;
+  }
+
   // Explicit true override enables feature
   if (env.VITE_ENABLE_STUDENT_MONITORING === 'true') {
     return true;
   }
 
-  // Development environments enable feature for developer testing
-  if (env.DEV || env.MODE === 'development' || env.VITE_APP_ENV === 'development') {
-    return true;
-  }
-
-  // In production builds without explicit enable flag, default to false
-  return false;
+  // On development branch, default to enabled for development, preview and staging builds
+  return true;
 };
