@@ -3,11 +3,13 @@ import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-do
 import useAuthStore from '../../store/authStore.js';
 import PracticeSidebarMenu from './PracticeSidebarMenu.jsx';
 import { acquireDocumentScrollLock } from '../../utils/documentScrollLock.js';
+import { isStudentMonitoringEnabled } from '../../utils/featureFlags.js';
 import './AdminLayout.css';
 
 export default function AdminLayout() {
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.role === 'admin';
+  const showMonitoring = isStudentMonitoringEnabled();
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,7 +19,8 @@ export default function AdminLayout() {
   useEffect(() => {
     const path = location.pathname;
     let pageTitle = 'Quản trị';
-    if (path.includes('students')) pageTitle = 'Quản lý Học viên';
+    if (path.includes('learning-progress')) pageTitle = 'Tiến độ học tập';
+    else if (path.includes('students')) pageTitle = 'Quản lý Học viên';
     else if (path.includes('hard-words-dictation')) pageTitle = 'Hard Words Dictation';
     else if (path.includes('part2-challenge')) pageTitle = 'Part 2 Challange';
     else if (path.includes('vocabulary-dictation')) pageTitle = 'Chép chính tả từ vựng';
@@ -116,6 +119,19 @@ export default function AdminLayout() {
             </svg>
             <span>Quản Lý Học Viên</span>
           </NavLink>
+
+          {showMonitoring && (
+            <NavLink
+              to="/admin/learning-progress"
+              className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
+              <span>Tiến Độ Học Tập</span>
+            </NavLink>
+          )}
 
           <NavLink
             to="/admin/vocabulary"

@@ -5,6 +5,7 @@ import Enrollment from '../models/Enrollment.js';
 import Course from '../models/Course.js';
 import Material from '../models/Material.js';
 import User from '../models/User.js';
+import LearningActivity from '../models/LearningActivity.js';
 import { recalculateCourseProgress } from '../utils/progressHelper.js';
 
 // @desc    Access lesson (initialize/update lesson progress)
@@ -118,6 +119,7 @@ export const completeLesson = async (req, res, next) => {
     const courseId = lessonDoc.course;
 
     let record = await LearningProgress.findOne({ student: studentId, lesson: targetLessonId });
+    const wasAlreadyCompleted = Boolean(record && record.status === 'completed');
 
     if (record) {
       record.status = 'completed';
@@ -138,8 +140,51 @@ export const completeLesson = async (req, res, next) => {
       });
     }
 
+    // Log completion activity if not already completed
+    if (!wasAlreadyCompleted) {
+      try {
+        await LearningActivity.create({
+          student: studentId,
+          course: courseId,
+          lesson: targetLessonId,
+          eventType: 'completed_lesson',
+          metadata: {
+            lessonTitle: lessonDoc.title,
+            chapter: lessonDoc.chapter || lessonDoc.topic || '',
+          },
+        });
+      } catch (activityError) {
+        // Non-blocking log error
+        console.error('Failed to log completed_lesson activity:', activityError);
+      }
+    }
+
     // Recalculate Enrollment.progress for overall course
     const courseProgress = await recalculateCourseProgress(studentId, courseId);
+
+    // If course is 100% completed, record completed_course activity
+    if (courseProgress === 100) {
+      try {
+        const alreadyLoggedCourse = await LearningActivity.exists({
+          student: studentId,
+          course: courseId,
+          eventType: 'completed_course',
+        });
+        if (!alreadyLoggedCourse) {
+          const courseDoc = await Course.findById(courseId).select('title').lean();
+          await LearningActivity.create({
+            student: studentId,
+            course: courseId,
+            eventType: 'completed_course',
+            metadata: {
+              courseTitle: courseDoc?.title || '',
+            },
+          });
+        }
+      } catch (courseActivityError) {
+        console.error('Failed to log completed_course activity:', courseActivityError);
+      }
+    }
 
     res.json({
       status: 'success',

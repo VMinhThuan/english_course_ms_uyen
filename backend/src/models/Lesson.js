@@ -40,6 +40,11 @@ const lessonSchema = new mongoose.Schema(
       type: String,
       default: 'General',
     },
+    chapter: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     // Optional for legacy lessons. No default/backfill is applied to existing records.
     difficulty: {
       type: String,

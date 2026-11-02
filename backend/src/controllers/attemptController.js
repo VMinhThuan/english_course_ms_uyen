@@ -1,6 +1,7 @@
 import Attempt from '../models/Attempt.js';
 import Assessment from '../models/Assessment.js';
 import Question from '../models/Question.js';
+import LearningActivity from '../models/LearningActivity.js';
 import {
   finalizeAttempt,
   isTerminalAttempt,
@@ -437,6 +438,25 @@ export const submitAttempt = async (req, res, next) => {
     }
     const finalAttempt = finalized.attempt;
     const passResult = getPassResult(finalAttempt, assessment);
+
+    try {
+      await LearningActivity.create({
+        student: studentId,
+        assessment: assessment._id,
+        eventType: 'submitted_assessment',
+        metadata: {
+          assessmentTitle: assessment.title,
+          type: assessment.type,
+          examFormat: engine,
+          score: finalAttempt.score,
+          maxScore: finalAttempt.maxScore,
+          percentage: passResult.scorePercentage,
+          passed: passResult.passed,
+        },
+      });
+    } catch (activityErr) {
+      console.error('Failed to log submitted_assessment activity:', activityErr);
+    }
 
     res.json({
       status: 'success',

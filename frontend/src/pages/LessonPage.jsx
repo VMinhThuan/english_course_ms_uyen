@@ -13,6 +13,7 @@ import {
   resolveMaterialFilename,
 } from '../utils/materialDownload.js';
 import LessonMaterialPreview from '../components/LessonMaterialPreview.jsx';
+import useLearningTracker from '../hooks/useLearningTracker.js';
 import './CourseLearning.css';
 
 const LESSON_DIFFICULTY_LABELS = {
@@ -78,6 +79,13 @@ export default function LessonPage() {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState(null);
   const [lessonVocabularyFlipped, setLessonVocabularyFlipped] = useState(false);
+
+  // Round 2 Student Learning Monitoring session tracking
+  useLearningTracker({
+    courseId,
+    lessonId,
+    enabled: Boolean(lesson && !loading),
+  });
 
   useEffect(() => {
     let isLive = true;

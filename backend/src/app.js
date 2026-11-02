@@ -34,6 +34,16 @@ import { verifyToken, checkRole } from './middlewares/auth.js';
 import { normalizePrivateBlobRequest, signPrivateBlobResponse } from './middlewares/privateBlobResponses.js';
 import { createVocabularyCatalogManagementPrototypeRouter } from './routes/vocabularyCatalogManagementPrototypeRoutes.js';
 import { createStudentVocabularyCatalogPrototypeRouter } from './routes/studentVocabularyCatalogPrototypeRoutes.js';
+import learningSessionRoutes from './routes/learningSessionRoutes.js';
+import adminLearningRoutes from './routes/adminLearningRoutes.js';
+import progressRoutes from './routes/progressRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import lessonRoutes from './routes/lessonRoutes.js';
+import materialRoutes from './routes/materialRoutes.js';
+import enrollmentRoutes from './routes/enrollmentRoutes.js';
+import vocabularyRoutes from './routes/vocabularyRoutes.js';
+import testRoutes from './routes/testRoutes.js';
+import instructorRoutes from './routes/instructorRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -180,6 +190,16 @@ app.use('/api/v1/admin/hard-words-dictations', adminHardWordsDictationRoutes);
 app.use('/api/v1/hard-words-dictations', studentHardWordsDictationRoutes);
 app.use('/api/v1/admin/road-to-part-7', adminRoadToPart7Routes);
 app.use('/api/v1/road-to-part-7', studentRoadToPart7Routes);
+app.use('/api/v1/learning/sessions', learningSessionRoutes);
+app.use('/api/v1/admin/learning', adminLearningRoutes);
+app.use('/api/v1/progress', progressRoutes);
+app.use('/api/v1/courses', courseRoutes);
+app.use('/api/v1/lessons', lessonRoutes);
+app.use('/api/v1/materials', materialRoutes);
+app.use('/api/v1/enrollments', enrollmentRoutes);
+app.use('/api/v1/vocabulary', vocabularyRoutes);
+app.use('/api/v1/tests', testRoutes);
+app.use('/api/v1/instructors', instructorRoutes);
 app.use('/api/v1/admin/learning-content', learningContentRoutes);
 
 // Error handler (must be last)

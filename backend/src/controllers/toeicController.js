@@ -4,6 +4,7 @@ import Assessment from '../models/Assessment.js';
 import QuestionGroup from '../models/QuestionGroup.js';
 import Question from '../models/Question.js';
 import Attempt from '../models/Attempt.js';
+import LearningActivity from '../models/LearningActivity.js';
 import {
   hasActiveQuestionBankSelectionLock,
   listEligiblePart5Questions,
@@ -2096,6 +2097,25 @@ export const submitToeicAttempt = async (req, res, next) => {
     }
     const finalAttempt = finalized.attempt;
     const percentage = finalAttempt.maxScore > 0 ? Math.round((finalAttempt.score / finalAttempt.maxScore) * 100) : 0;
+
+    try {
+      await LearningActivity.create({
+        student: studentId,
+        assessment: assessment._id,
+        eventType: 'submitted_assessment',
+        metadata: {
+          assessmentTitle: assessment.title,
+          type: 'exam',
+          examFormat: 'toeic',
+          score: finalAttempt.score,
+          maxScore: finalAttempt.maxScore,
+          percentage,
+          estimatedToeicScore: finalAttempt.toeicBreakdown?.estimatedToeicScore,
+        },
+      });
+    } catch (activityErr) {
+      console.error('Failed to log TOEIC submitted_assessment activity:', activityErr);
+    }
 
     res.json({
       status: 'success',

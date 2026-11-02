@@ -53,6 +53,10 @@ import AdminQuestionsPage from '../pages/admin/AdminQuestionsPage.jsx';
 import AdminAssessmentsPage from '../pages/admin/AdminAssessmentsPage.jsx';
 import AdminResultsPage from '../pages/admin/AdminResultsPage.jsx';
 import AdminStatisticsPage from '../pages/admin/AdminStatisticsPage.jsx';
+import AdminStudentMonitoringPage from '../pages/admin/AdminStudentMonitoringPage.jsx';
+import AdminStudentLearningDetailPage from '../pages/admin/AdminStudentLearningDetailPage.jsx';
+import AdminCourseReportPage from '../pages/admin/AdminCourseReportPage.jsx';
+import { isStudentMonitoringEnabled } from '../utils/featureFlags.js';
 
 // Student TOEIC and practice pages
 import StudentToeicLibraryPage from '../pages/StudentToeicLibraryPage.jsx';
@@ -194,6 +198,13 @@ function AppRoutes() {
         <Route path="courses" element={<AdminCoursesPage />} />
         <Route path="students" element={<AdminStudentsPage />} />
         <Route path="students/:id" element={<AdminStudentDetailPage />} />
+        {isStudentMonitoringEnabled() && (
+          <>
+            <Route path="learning-progress" element={<AdminStudentMonitoringPage />} />
+            <Route path="learning-progress/students/:studentId" element={<AdminStudentLearningDetailPage />} />
+            <Route path="learning-progress/courses" element={<AdminCourseReportPage />} />
+          </>
+        )}
         <Route path="lessons" element={<AdminLessonsPage />} />
         <Route path="part1-dictations" element={<ProtectedRoute requiredRole="admin"><AdminDictationPage kind="part1" /></ProtectedRoute>} />
         <Route path="vocabulary-dictation" element={<Navigate to="/admin/vocabulary-dictations" replace />} />

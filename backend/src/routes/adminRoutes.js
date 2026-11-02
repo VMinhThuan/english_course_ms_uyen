@@ -31,6 +31,8 @@ import {
   updateAssessmentStatus,
   deleteAssessment,
 } from '../controllers/assessmentController.js';
+import { getAdminStudentProgress } from '../controllers/progressController.js';
+import { getAdminMaterials } from '../controllers/materialController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -52,6 +54,8 @@ router.patch('/students/:id/suspend', suspendStudent);
 router.patch('/students/:id/activate', activateStudent);
 
 router.get('/students/:studentId/attempts', getAdminStudentAttempts);
+router.get('/students/:studentId/progress', getAdminStudentProgress);
+router.get('/materials', getAdminMaterials);
 
 // Question Bank admin endpoints
 router.post('/questions', createQuestion);
