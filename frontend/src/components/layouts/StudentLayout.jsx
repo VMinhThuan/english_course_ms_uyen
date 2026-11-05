@@ -32,9 +32,11 @@ export default function StudentLayout() {
     else if (path.includes('part-2-challenge')) pageTitle = 'Part 2 Challange';
     else if (path.includes('vocabulary-dictation')) pageTitle = 'Chép chính tả từ vựng';
     else if (path.includes('road-to-part-7')) pageTitle = 'Road to Part 7';
+    else if (path.includes('/grammar/tense-classification')) pageTitle = 'Phân loại thì và dạng câu';
+    else if (path.includes('/grammar/active-to-passive')) pageTitle = 'Chuyển chủ động sang bị động';
     else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
     else if (path.includes('/tests/')) pageTitle = 'Đang làm bài kiểm tra';
-    else if (path.includes('assessments')) pageTitle = 'Bài tập ngữ pháp';
+    else if (path.includes('assessments')) pageTitle = 'Bài tập tổng hợp';
     else if (path === '/student/part-5') pageTitle = 'Ngân hàng Part 5';
     else if (path === '/student/part-1') pageTitle = 'Chép chính tả Part 1';
     else if (path.includes('toeic')) pageTitle = 'Thi thử TOEIC';

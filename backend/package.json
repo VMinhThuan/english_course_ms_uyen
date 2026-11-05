@@ -38,7 +38,8 @@
     "vocabulary:inventory:readonly": "node src/scripts/inventoryVocabularyCatalogReadOnly.js",
     "migrate:standalone-learning-data": "node src/scripts/migrateStandaloneLearningData.js",
     "hard-words:import-seed": "node src/scripts/importHardWordsDictationSeed.js",
-    "part2-challenge:import-seed": "node src/scripts/importPart2ChallengeSeed.js"
+    "part2-challenge:import-seed": "node src/scripts/importPart2ChallengeSeed.js",
+    "grammar-exercises:import-seed": "node src/scripts/importGrammarExerciseSeed.js"
   },
   "keywords": [
     "english",

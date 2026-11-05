@@ -22,6 +22,7 @@ export default function AdminLayout() {
     else if (path.includes('part2-challenge')) pageTitle = 'Part 2 Challange';
     else if (path.includes('vocabulary-dictation')) pageTitle = 'Chép chính tả từ vựng';
     else if (path.includes('road-to-part-7')) pageTitle = 'Road to Part 7';
+    else if (path.includes('grammar-exercises')) pageTitle = 'Quản lý bài tập ngữ pháp';
     else if (path.includes('vocabulary')) pageTitle = 'Quản lý Từ vựng';
     else if (path.includes('part1-dictations')) pageTitle = 'Chép chính tả Part 1';
     else if (path.includes('questions')) pageTitle = isAdmin ? 'Ngân hàng Part 5' : 'Ngân hàng Câu hỏi';
