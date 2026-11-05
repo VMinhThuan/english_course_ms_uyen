@@ -25,6 +25,7 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
   const [revealing, setRevealing] = useState(false);
   const [error, setError] = useState('');
   const [submitMessage, setSubmitMessage] = useState('');
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +39,7 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
       setHiddenAnswers({});
       setCurrentIndex(0);
       setSubmitMessage('');
+      setHasSubmitted(false);
     } catch (loadError) {
       setError(loadError.response?.data?.message || 'Không thể tải bài tập. Hãy thử tải lại trang.');
     } finally {
@@ -60,6 +62,7 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
   const answeredCount = useMemo(() => Object.values(answers)
     .filter((answer) => hasAnswer(exerciseType, answer)).length, [answers, exerciseType]);
   const answeredText = `${answeredCount}/${questions.length} câu đã làm`;
+  const submittedQuestions = questions.filter((question) => checkedResults[question.number]);
 
   const updateAnswer = (field, value) => {
     if (!currentQuestion) return;
@@ -135,6 +138,7 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
       const response = await grammarExerciseApi.checkStudentExercise(exerciseType, payload);
       const results = Object.fromEntries((response.data.items || []).map((item) => [item.number, item]));
       setCheckedResults(results);
+      setHasSubmitted(true);
       setHiddenAnswers((current) => ({
         ...current,
         ...Object.fromEntries(Object.keys(results).map((number) => [number, false])),
@@ -270,6 +274,69 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
                     )}
                   </article>
                 </section>
+
+                {hasSubmitted && submittedQuestions.length > 0 && (
+                  <section className="grammar-exercise-review" aria-label="Đáp án các câu đã làm">
+                    <header className="grammar-exercise-review__heading">
+                      <div>
+                        <h2>Đáp án các câu đã làm</h2>
+                        <p>Xem lại câu trả lời và đáp án đúng của từng câu.</p>
+                      </div>
+                      <strong>{submittedQuestions.length}/{questions.length} câu</strong>
+                    </header>
+
+                    <div className="grammar-exercise-review__list">
+                      {submittedQuestions.map((question) => {
+                        const result = checkedResults[question.number];
+                        const resultLabel = result.status === 'correct' ? 'Đúng'
+                          : result.status === 'partial' ? 'Đúng một phần' : 'Chưa đúng';
+                        return (
+                          <article className={`grammar-exercise-review__item is-${result.status}`} key={question.number}>
+                            <header className="grammar-exercise-question__heading">
+                              <span>Câu {question.number}</span>
+                              <strong className={`grammar-exercise-result-tag is-${result.status}`}>{resultLabel}</strong>
+                            </header>
+                            <p className="grammar-exercise-prompt">{question.prompt}</p>
+
+                            {exerciseType === 'tense-classification' ? (
+                              <>
+                                <div className="grammar-exercise-review__response-grid">
+                                  <div>
+                                    <strong>Thì / động từ khiếm khuyết bạn chọn</strong>
+                                    <span>{result.submittedTense || 'Chưa chọn'}</span>
+                                    <small className={result.tenseCorrect ? 'is-correct' : 'is-incorrect'}>{result.tenseCorrect ? 'Đúng' : 'Chưa đúng'}</small>
+                                  </div>
+                                  <div>
+                                    <strong>Dạng câu bạn chọn</strong>
+                                    <span>{result.submittedSentenceForm || 'Chưa chọn'}</span>
+                                    <small className={result.sentenceFormCorrect ? 'is-correct' : 'is-incorrect'}>{result.sentenceFormCorrect ? 'Đúng' : 'Chưa đúng'}</small>
+                                  </div>
+                                </div>
+                                <div className="grammar-exercise-answer">
+                                  <strong>Đáp án đầy đủ</strong>
+                                  <span>{result.answer}</span>
+                                  <small>Thì: {result.correctTense} · Dạng câu: {result.correctSentenceForm}</small>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="grammar-exercise-review__response">
+                                  <strong>Câu bạn đã nhập</strong>
+                                  <span>{result.submittedAnswer}</span>
+                                </div>
+                                <div className="grammar-exercise-answer">
+                                  <strong>Đáp án câu bị động</strong>
+                                  <span>{result.answer}</span>
+                                  <small>Dịch nghĩa: {result.translation}</small>
+                                </div>
+                              </>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
 
                 <nav className="grammar-exercise-submit" aria-label="Chuyển câu và nộp bài">
                   <button

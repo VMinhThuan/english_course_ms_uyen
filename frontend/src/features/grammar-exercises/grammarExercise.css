@@ -51,6 +51,22 @@
 .grammar-exercise-answer strong{color:var(--brand-success)}
 .grammar-exercise-answer span{color:var(--brand-text);font-weight:700}
 .grammar-exercise-answer small{color:var(--brand-muted);font-size:11px}
+.grammar-exercise-review{display:grid;gap:12px}
+.grammar-exercise-review__heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 1px}
+.grammar-exercise-review__heading h2{margin:0;color:var(--brand-text);font-family:var(--font-serif);font-size:19px}
+.grammar-exercise-review__heading p{margin:4px 0 0;color:var(--brand-muted);font-size:12px}
+.grammar-exercise-review__heading>strong{color:var(--brand-brown-sec);font-size:12px;white-space:nowrap}
+.grammar-exercise-review__list{display:grid;gap:11px}
+.grammar-exercise-review__item{display:grid;gap:12px;padding:16px 18px;border:1px solid var(--brand-border);border-left:3px solid var(--brand-success);border-radius:13px;background:var(--brand-surface);box-shadow:var(--shadow-subtle)}
+.grammar-exercise-review__item.is-partial{border-left-color:var(--brand-warning)}
+.grammar-exercise-review__item.is-incorrect{border-left-color:var(--brand-danger)}
+.grammar-exercise-review__response-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grammar-exercise-review__response-grid>div,.grammar-exercise-review__response{display:grid;gap:5px;padding:10px 12px;border:1px solid var(--brand-border);border-radius:9px;background:#fffdfa;font-size:12px;line-height:1.5}
+.grammar-exercise-review__response-grid strong,.grammar-exercise-review__response strong{color:var(--brand-brown-sec);font-size:11px}
+.grammar-exercise-review__response-grid span,.grammar-exercise-review__response span{color:var(--brand-text);font-weight:700}
+.grammar-exercise-review__response-grid small{font-size:11px;font-weight:700}
+.grammar-exercise-review__response-grid small.is-correct{color:var(--brand-success)}
+.grammar-exercise-review__response-grid small.is-incorrect{color:var(--brand-danger)}
 .grammar-exercise-submit{position:sticky;bottom:12px;z-index:2;display:grid;grid-template-areas:"prev summary next submit";grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:12px 15px;border:1px solid var(--brand-border);border-radius:13px;background:rgba(255,253,248,.96);box-shadow:0 10px 28px rgba(69,54,35,.12);backdrop-filter:blur(12px)}
 .grammar-exercise-submit>span{grid-area:summary;color:var(--brand-muted);font-size:12px;font-weight:700}
 .grammar-exercise-submit .ds-button:nth-child(1){grid-area:prev}
@@ -62,5 +78,5 @@
 .grammar-exercise-error,.grammar-exercise-feedback{margin:0;padding:10px 13px;font-size:12px;line-height:1.5}
 .grammar-exercise-feedback{border:1px solid var(--brand-success-border);border-radius:10px;background:var(--brand-success-bg);color:var(--brand-success)}
 .grammar-exercise-error{border:1px solid var(--brand-danger-border);border-radius:10px;background:var(--brand-danger-bg);color:var(--brand-danger)}
-@media(max-width:640px){.grammar-exercise-progress{top:5px;padding:12px}.grammar-exercise-progress>div{align-items:flex-start;flex-direction:column;gap:3px}.grammar-exercise-progress strong{text-align:left}.grammar-exercise-question{padding:14px}.grammar-exercise-fields{grid-template-columns:minmax(0,1fr)}.grammar-exercise-prompt{font-size:16px}.grammar-exercise-question-nav{padding:11px}.grammar-exercise-question-nav__grid{grid-template-columns:repeat(8,minmax(0,1fr))}.grammar-exercise-question-nav__grid button{min-height:34px}.grammar-exercise-submit{bottom:7px;grid-template-areas:"summary summary" "prev next" "submit submit";grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:10px}.grammar-exercise-submit>span{text-align:center}.grammar-exercise-submit .ds-button{width:100%;padding-inline:8px;font-size:12px}}
+@media(max-width:640px){.grammar-exercise-progress{top:5px;padding:12px}.grammar-exercise-progress>div{align-items:flex-start;flex-direction:column;gap:3px}.grammar-exercise-progress strong{text-align:left}.grammar-exercise-question{padding:14px}.grammar-exercise-fields,.grammar-exercise-review__response-grid{grid-template-columns:minmax(0,1fr)}.grammar-exercise-prompt{font-size:16px}.grammar-exercise-question-nav{padding:11px}.grammar-exercise-question-nav__grid{grid-template-columns:repeat(8,minmax(0,1fr))}.grammar-exercise-question-nav__grid button{min-height:34px}.grammar-exercise-review__heading{align-items:flex-start}.grammar-exercise-review__item{padding:14px}.grammar-exercise-submit{bottom:7px;grid-template-areas:"summary summary" "prev next" "submit submit";grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:10px}.grammar-exercise-submit>span{text-align:center}.grammar-exercise-submit .ds-button{width:100%;padding-inline:8px;font-size:12px}}
 @media(prefers-reduced-motion:reduce){.grammar-exercise-page *{scroll-behavior:auto!important;transition:none!important}}
