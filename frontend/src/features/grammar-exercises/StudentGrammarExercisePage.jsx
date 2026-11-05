@@ -10,7 +10,8 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
   const config = GRAMMAR_EXERCISES[exerciseType];
   const [exercise, setExercise] = useState(null);
   const [answers, setAnswers] = useState({});
-  const [result, setResult] = useState(null);
+  const [checkedResults, setCheckedResults] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +23,8 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
       const response = await grammarExerciseApi.getStudentExercise(exerciseType);
       setExercise(response.data);
       setAnswers({});
-      setResult(null);
+      setCheckedResults({});
+      setCurrentIndex(0);
     } catch (loadError) {
       setError(loadError.response?.data?.message || 'Không thể tải bài tập. Hãy thử tải lại trang.');
     } finally {
@@ -32,36 +34,63 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const resultByNumber = useMemo(() => new Map((result?.items || []).map((item) => [item.number, item])), [result]);
+  const questions = exercise?.items || [];
+  const currentQuestion = questions[currentIndex];
+  const currentAnswer = currentQuestion
+    ? { ...emptyAnswer(), ...answers[currentQuestion.number] }
+    : emptyAnswer();
+  const currentResult = currentQuestion ? checkedResults[currentQuestion.number] : null;
   const answeredCount = useMemo(() => Object.values(answers).filter((answer) => (
     exerciseType === 'tense-classification'
       ? Boolean(answer.tense || answer.sentenceForm)
       : Boolean(answer.answer.trim())
   )).length, [answers, exerciseType]);
+  const checkedCount = Object.keys(checkedResults).length;
 
-  const updateAnswer = (number, field, value) => {
+  const updateAnswer = (field, value) => {
+    if (!currentQuestion) return;
+    const number = currentQuestion.number;
     setAnswers((current) => ({
       ...current,
       [number]: { ...emptyAnswer(), ...current[number], [field]: value },
     }));
-    setResult(null);
+    setCheckedResults((current) => {
+      if (!current[number]) return current;
+      const next = { ...current };
+      delete next[number];
+      return next;
+    });
     setError('');
   };
 
-  const checkAnswers = async () => {
-    if (checking || !exercise?.items?.length) return;
-    if (answeredCount === 0) {
-      setError('Hãy trả lời ít nhất một câu trước khi kiểm tra.');
+  const moveToQuestion = (nextIndex) => {
+    if (nextIndex < 0 || nextIndex >= questions.length || nextIndex === currentIndex) return;
+    setCurrentIndex(nextIndex);
+    setError('');
+  };
+
+  const checkCurrentAnswer = async () => {
+    if (checking || !currentQuestion) return;
+    const hasAnswer = exerciseType === 'tense-classification'
+      ? Boolean(currentAnswer.tense || currentAnswer.sentenceForm)
+      : Boolean(currentAnswer.answer.trim());
+    if (!hasAnswer) {
+      setError('Hãy nhập hoặc chọn đáp án cho câu này trước khi kiểm tra.');
       return;
     }
+
     setChecking(true);
     setError('');
     try {
-      const payload = exercise.items.map(({ number }) => ({ number, ...emptyAnswer(), ...answers[number] }));
-      const response = await grammarExerciseApi.checkStudentExercise(exerciseType, payload);
-      setResult(response.data);
+      const response = await grammarExerciseApi.checkStudentExercise(exerciseType, [{
+        number: currentQuestion.number,
+        ...currentAnswer,
+      }]);
+      const checked = response.data.items?.[0];
+      if (!checked) throw new Error('Không nhận được kết quả kiểm tra.');
+      setCheckedResults((current) => ({ ...current, [currentQuestion.number]: checked }));
     } catch (checkError) {
-      setError(checkError.response?.data?.message || 'Không thể kiểm tra bài làm. Hãy thử lại.');
+      setError(checkError.response?.data?.message || checkError.message || 'Không thể kiểm tra câu trả lời. Hãy thử lại.');
     } finally {
       setChecking(false);
     }
@@ -69,11 +98,10 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
 
   if (!config) return null;
 
-  const summaryText = result
-    ? exerciseType === 'tense-classification'
-      ? `Đúng ${result.correctFieldCount}/${result.totalFieldCount} ô. ${result.correctCount} câu đúng cả hai mục.`
-      : `Đúng ${result.correctCount}/${result.total} câu. ${result.incorrectCount} câu chưa đúng, ${result.unansweredCount} câu chưa trả lời.`
-    : `${answeredCount}/${exercise?.items?.length || 0} câu đã làm`;
+  const answeredText = `${answeredCount}/${questions.length} câu đã trả lời`;
+  const progressText = currentQuestion
+    ? `Câu ${currentIndex + 1}/${questions.length} · ${answeredText} · ${checkedCount} câu đã kiểm tra`
+    : answeredText;
 
   return (
     <main className="grammar-exercise-page">
@@ -85,89 +113,103 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
 
       {loading ? <div className="grammar-exercise-state" role="status">Đang tải câu hỏi…</div>
         : error && !exercise ? <div className="grammar-exercise-state is-error" role="alert">{error}</div>
-          : !exercise?.items?.length ? <div className="grammar-exercise-state">Hiện chưa có câu hỏi nào được mở.</div>
+          : !questions.length ? <div className="grammar-exercise-state">Hiện chưa có câu hỏi nào được mở.</div>
             : (
               <>
                 <section className="grammar-exercise-progress" aria-label="Tiến độ bài làm">
                   <div>
-                    <span>{exercise.items.length} câu hỏi</span>
-                    <strong>{summaryText}</strong>
+                    <span>{progressText}</span>
+                    {currentResult && <strong>
+                      {currentResult.status === 'correct' ? 'Câu này trả lời đúng'
+                        : currentResult.status === 'partial' ? 'Câu này đúng một phần'
+                          : currentResult.status === 'unanswered' ? 'Câu này chưa trả lời'
+                            : 'Câu này chưa đúng'}
+                    </strong>}
                   </div>
-                  <progress max={exercise.items.length} value={Math.min(answeredCount, exercise.items.length)} aria-label={`${answeredCount} trên ${exercise.items.length} câu đã làm`} />
+                  <progress max={questions.length} value={currentIndex + 1} aria-label={`Câu ${currentIndex + 1} trên ${questions.length}`} />
                 </section>
 
                 {error && <p className="grammar-exercise-error" role="alert">{error}</p>}
-                {result && <p className="grammar-exercise-feedback" role="status" aria-live="polite">Đã kiểm tra bài làm. Đáp án đầy đủ hiển thị dưới từng câu.</p>}
 
                 <section className="grammar-exercise-list" aria-label={exercise.title}>
-                  {exercise.items.map((question) => {
-                    const answer = answers[question.number] || emptyAnswer();
-                    const checked = resultByNumber.get(question.number);
-                    return (
-                      <article
-                        className={`grammar-exercise-question${checked ? ` is-${checked.status}` : ''}`}
-                        key={question.number}
-                      >
-                        <header className="grammar-exercise-question__heading">
-                          <span>Câu {question.number}</span>
-                          {checked && <strong className={`grammar-exercise-result-tag is-${checked.status}`}>
-                            {checked.status === 'correct' ? 'Đúng' : checked.status === 'partial' ? 'Đúng một phần' : checked.status === 'unanswered' ? 'Chưa trả lời' : 'Chưa đúng'}
-                          </strong>}
-                        </header>
-                        <p className="grammar-exercise-prompt">{question.prompt}</p>
+                  <article
+                    className={`grammar-exercise-question${currentResult ? ` is-${currentResult.status}` : ''}`}
+                    key={currentQuestion.number}
+                  >
+                    <header className="grammar-exercise-question__heading">
+                      <span>Câu {currentQuestion.number}</span>
+                      {currentResult && <strong className={`grammar-exercise-result-tag is-${currentResult.status}`}>
+                        {currentResult.status === 'correct' ? 'Đúng' : currentResult.status === 'partial' ? 'Đúng một phần' : currentResult.status === 'unanswered' ? 'Chưa trả lời' : 'Chưa đúng'}
+                      </strong>}
+                    </header>
+                    <p className="grammar-exercise-prompt">{currentQuestion.prompt}</p>
 
-                        {exerciseType === 'tense-classification' ? (
-                          <div className="grammar-exercise-fields">
-                            <label>
-                              <span>Thì / động từ khiếm khuyết</span>
-                              <select value={answer.tense} onChange={(event) => updateAnswer(question.number, 'tense', event.target.value)}>
-                                <option value="">Chọn đáp án</option>
-                                {(exercise.options?.tenses || []).map((option) => <option key={option} value={option}>{option}</option>)}
-                              </select>
-                              {checked && <small className={checked.tenseCorrect ? 'is-correct' : 'is-incorrect'}>
-                                {checked.tenseCorrect ? 'Đúng' : `Đáp án: ${checked.correctTense}`}
-                              </small>}
-                            </label>
-                            <label>
-                              <span>Dạng câu</span>
-                              <select value={answer.sentenceForm} onChange={(event) => updateAnswer(question.number, 'sentenceForm', event.target.value)}>
-                                <option value="">Chọn đáp án</option>
-                                {(exercise.options?.sentenceForms || []).map((option) => <option key={option} value={option}>{option}</option>)}
-                              </select>
-                              {checked && <small className={checked.sentenceFormCorrect ? 'is-correct' : 'is-incorrect'}>
-                                {checked.sentenceFormCorrect ? 'Đúng' : `Đáp án: ${checked.correctSentenceForm}`}
-                              </small>}
-                            </label>
-                            {checked && <div className="grammar-exercise-answer">
-                              <strong>Đáp án đầy đủ</strong>
-                              <span>{checked.answer}</span>
-                              <small>Thì: {checked.correctTense} · Dạng câu: {checked.correctSentenceForm}</small>
-                            </div>}
-                          </div>
-                        ) : (
-                          <div className="grammar-exercise-fields grammar-exercise-fields--single">
-                            <label>
-                              <span>Câu bị động</span>
-                              <textarea rows="2" maxLength="2000" value={answer.answer} onChange={(event) => updateAnswer(question.number, 'answer', event.target.value)} placeholder="Nhập câu bị động" />
-                            </label>
-                            {checked && <div className="grammar-exercise-answer">
-                              <strong>{checked.status === 'correct' ? 'Đáp án của bạn đúng' : 'Đáp án câu bị động'}</strong>
-                              <span>{checked.answer}</span>
-                              <small>Dịch nghĩa: {checked.translation}</small>
-                            </div>}
-                          </div>
-                        )}
-                      </article>
-                    );
-                  })}
+                    {exerciseType === 'tense-classification' ? (
+                      <div className="grammar-exercise-fields">
+                        <label>
+                          <span>Thì / động từ khiếm khuyết</span>
+                          <select value={currentAnswer.tense} onChange={(event) => updateAnswer('tense', event.target.value)}>
+                            <option value="">Chọn đáp án</option>
+                            {(exercise.options?.tenses || []).map((option) => <option key={option} value={option}>{option}</option>)}
+                          </select>
+                          {currentResult && <small className={currentResult.tenseCorrect ? 'is-correct' : 'is-incorrect'}>
+                            {currentResult.tenseCorrect ? 'Đúng' : `Đáp án: ${currentResult.correctTense}`}
+                          </small>}
+                        </label>
+                        <label>
+                          <span>Dạng câu</span>
+                          <select value={currentAnswer.sentenceForm} onChange={(event) => updateAnswer('sentenceForm', event.target.value)}>
+                            <option value="">Chọn đáp án</option>
+                            {(exercise.options?.sentenceForms || []).map((option) => <option key={option} value={option}>{option}</option>)}
+                          </select>
+                          {currentResult && <small className={currentResult.sentenceFormCorrect ? 'is-correct' : 'is-incorrect'}>
+                            {currentResult.sentenceFormCorrect ? 'Đúng' : `Đáp án: ${currentResult.correctSentenceForm}`}
+                          </small>}
+                        </label>
+                        {currentResult && <div className="grammar-exercise-answer">
+                          <strong>Đáp án đầy đủ</strong>
+                          <span>{currentResult.answer}</span>
+                          <small>Thì: {currentResult.correctTense} · Dạng câu: {currentResult.correctSentenceForm}</small>
+                        </div>}
+                      </div>
+                    ) : (
+                      <div className="grammar-exercise-fields grammar-exercise-fields--single">
+                        <label>
+                          <span>Câu bị động</span>
+                          <textarea rows="3" maxLength="2000" value={currentAnswer.answer} onChange={(event) => updateAnswer('answer', event.target.value)} placeholder="Nhập câu bị động" />
+                        </label>
+                        {currentResult && <div className="grammar-exercise-answer">
+                          <strong>{currentResult.status === 'correct' ? 'Đáp án của bạn đúng' : 'Đáp án câu bị động'}</strong>
+                          <span>{currentResult.answer}</span>
+                          <small>Dịch nghĩa: {currentResult.translation}</small>
+                        </div>}
+                      </div>
+                    )}
+                  </article>
                 </section>
 
-                <div className="grammar-exercise-submit">
-                  <span>{summaryText}</span>
-                  <button type="button" className="ds-button ds-button--primary" onClick={checkAnswers} disabled={checking}>
-                    {checking ? 'Đang kiểm tra…' : result ? 'Kiểm tra lại' : 'Kiểm tra đáp án'}
+                <nav className="grammar-exercise-submit" aria-label="Chuyển câu và kiểm tra đáp án">
+                  <button
+                    type="button"
+                    className="ds-button ds-button--secondary"
+                    onClick={() => moveToQuestion(currentIndex - 1)}
+                    disabled={currentIndex === 0 || checking}
+                  >
+                    Câu trước
                   </button>
-                </div>
+                  <span>{progressText}</span>
+                  <button type="button" className="ds-button ds-button--primary" onClick={checkCurrentAnswer} disabled={checking}>
+                    {checking ? 'Đang kiểm tra…' : currentResult ? 'Kiểm tra lại câu này' : 'Kiểm tra câu này'}
+                  </button>
+                  <button
+                    type="button"
+                    className="ds-button ds-button--secondary"
+                    onClick={() => moveToQuestion(currentIndex + 1)}
+                    disabled={currentIndex === questions.length - 1 || checking}
+                  >
+                    Câu tiếp
+                  </button>
+                </nav>
               </>
             )}
     </main>
