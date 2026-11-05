@@ -43,6 +43,7 @@
 .grammar-exercise-fields label>small{font-size:11px;font-weight:700;line-height:1.45}
 .grammar-exercise-fields label>small.is-correct{color:var(--brand-success)}
 .grammar-exercise-fields label>small.is-incorrect{color:var(--brand-danger)}
+.grammar-exercise-fields label>small.grammar-exercise-validation-error{color:var(--brand-danger);font-size:12px;line-height:1.5}
 .grammar-exercise-answer-actions{display:flex;align-items:center;justify-content:flex-start}
 .grammar-exercise-reveal{padding:7px 0;border:0;background:transparent;color:var(--brand-coffee);font:750 13px var(--font-sans);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .grammar-exercise-reveal:focus-visible{outline:3px solid var(--brand-yellow);outline-offset:2px}

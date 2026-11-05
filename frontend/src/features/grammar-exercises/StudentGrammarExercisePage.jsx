@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import { grammarExerciseApi } from '../../api/grammarExerciseApi.js';
 import { GRAMMAR_EXERCISES } from './grammarExerciseConfig.js';
@@ -10,6 +10,10 @@ const hasAnswer = (exerciseType, answer = emptyAnswer()) => (
   exerciseType === 'tense-classification'
     ? Boolean(answer.tense || answer.sentenceForm)
     : Boolean(answer.answer.trim())
+);
+
+const countAnswerCharacters = (answer = '') => (
+  Array.from(String(answer).normalize('NFKC').matchAll(/[\p{L}\p{N}]/gu)).length
 );
 
 export default function StudentGrammarExercisePage({ exerciseType }) {
@@ -26,6 +30,9 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
   const [error, setError] = useState('');
   const [submitMessage, setSubmitMessage] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [validationErrorNumber, setValidationErrorNumber] = useState(null);
+  const [validationJump, setValidationJump] = useState(0);
+  const currentQuestionRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,6 +47,7 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
       setCurrentIndex(0);
       setSubmitMessage('');
       setHasSubmitted(false);
+      setValidationErrorNumber(null);
     } catch (loadError) {
       setError(loadError.response?.data?.message || 'Không thể tải bài tập. Hãy thử tải lại trang.');
     } finally {
@@ -48,6 +56,12 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
   }, [exerciseType]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!validationJump) return;
+    currentQuestionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    currentQuestionRef.current?.querySelector('textarea')?.focus({ preventScroll: true });
+  }, [validationJump]);
 
   const questions = exercise?.items || [];
   const currentQuestion = questions[currentIndex];
@@ -82,12 +96,17 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
     });
     setSubmitMessage('');
     setError('');
+    if (validationErrorNumber !== number || exerciseType !== 'active-to-passive'
+      || countAnswerCharacters(field === 'answer' ? value : currentAnswer.answer) >= 10) {
+      setValidationErrorNumber(null);
+    }
   };
 
   const moveToQuestion = (nextIndex) => {
     if (nextIndex < 0 || nextIndex >= questions.length || nextIndex === currentIndex || checking || revealing) return;
     setCurrentIndex(nextIndex);
     setError('');
+    setValidationErrorNumber(null);
   };
 
   const toggleAnswer = async () => {
@@ -124,6 +143,21 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
     if (!attemptedQuestions.length) {
       setError('Hãy trả lời ít nhất một câu trước khi nộp bài.');
       return;
+    }
+
+    if (exerciseType === 'active-to-passive') {
+      const incompleteQuestion = attemptedQuestions.find((question) => (
+        countAnswerCharacters(answers[question.number]?.answer) < 10
+      ));
+      if (incompleteQuestion) {
+        const incompleteIndex = questions.findIndex(({ number }) => number === incompleteQuestion.number);
+        setCurrentIndex(incompleteIndex);
+        setValidationErrorNumber(incompleteQuestion.number);
+        setError('');
+        setSubmitMessage('');
+        setValidationJump((current) => current + 1);
+        return;
+      }
     }
 
     setChecking(true);
@@ -217,6 +251,7 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
                   <article
                     className={`grammar-exercise-question${currentResult ? ` is-${currentResult.status}` : ''}`}
                     key={currentQuestion.number}
+                    ref={currentQuestionRef}
                   >
                     <header className="grammar-exercise-question__heading">
                       <span>Câu {currentQuestion.number}</span>
@@ -254,15 +289,20 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
                         <label>
                           <span>Câu bị động</span>
                           <textarea rows="3" maxLength="2000" value={currentAnswer.answer} onChange={(event) => updateAnswer('answer', event.target.value)} placeholder="Nhập câu bị động" />
+                          {validationErrorNumber === currentQuestion.number && <small className="grammar-exercise-validation-error" role="alert">
+                            Câu này chưa đủ 10 ký tự hợp lệ (không tính khoảng trắng và ký tự đặc biệt). Vui lòng làm hoàn chỉnh.
+                          </small>}
                         </label>
                       </div>
                     )}
 
-                    <div className="grammar-exercise-answer-actions">
-                      <button type="button" className="grammar-exercise-reveal" onClick={toggleAnswer} disabled={checking || revealing}>
-                        {revealing ? 'Đang tải đáp án…' : isCurrentAnswerVisible ? 'Ẩn đáp án' : 'Hiển thị đáp án'}
-                      </button>
-                    </div>
+                    {exerciseType !== 'active-to-passive' && (
+                      <div className="grammar-exercise-answer-actions">
+                        <button type="button" className="grammar-exercise-reveal" onClick={toggleAnswer} disabled={checking || revealing}>
+                          {revealing ? 'Đang tải đáp án…' : isCurrentAnswerVisible ? 'Ẩn đáp án' : 'Hiển thị đáp án'}
+                        </button>
+                      </div>
+                    )}
                     {isCurrentAnswerVisible && currentAnswerDetails && (
                       <div className="grammar-exercise-answer">
                         <strong>{currentResult ? 'Kết quả câu này' : 'Đáp án đúng'}</strong>
