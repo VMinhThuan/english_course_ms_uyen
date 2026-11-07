@@ -80,6 +80,12 @@ FRONTEND_URL=http://localhost:5173
 - Production chỉ cho phép các origin được khai báo chính xác. Nếu cần thêm origin frontend (ví dụ deployment preview), khai báo danh sách phân tách bằng dấu phẩy trong `FRONTEND_ORIGINS`.
 - Khi Frontend và Backend dùng hai site khác nhau, refresh cookie được gửi bằng `SameSite=None; Secure`; chỉ khai báo các frontend origin đáng tin cậy.
 
+Production domain hiện tại:
+```env
+FRONTEND_URL=https://msuyenclass.vn
+FRONTEND_ORIGINS=https://msuyenclass.vn,https://www.msuyenclass.vn
+```
+
 ---
 
 ## 🎨 Frontend (.env)
@@ -93,7 +99,7 @@ VITE_API_URL=http://localhost:5000/api/v1
 - Dùng URL backend trong môi trường development.
 - **Lưu ý**: Vite yêu cầu prefix `VITE_` cho tất cả biến môi trường
 - Development: `http://localhost:5000/api/v1`
-- Production: API dùng `/api/v1` cùng origin; rewrite trong `frontend/vercel.json` chuyển request tới Backend để refresh cookie không phụ thuộc cookie bên thứ ba. Có thể giữ `VITE_API_URL` trỏ tới Backend để tạo URL tuyệt đối cho media legacy `/uploads/*`.
+- Production: `VITE_API_URL=https://api.msuyenclass.vn/api/v1`. Rewrite trong `frontend/vercel.json` vẫn chuyển request tới Backend để refresh cookie không phụ thuộc cookie bên thứ ba.
 
 ---
 
@@ -128,7 +134,8 @@ JWT_SECRET=<generate-strong-secret-32-chars-min>
 JWT_REFRESH_SECRET=<generate-strong-secret-32-chars-min>
 JWT_EXPIRE=15m
 JWT_REFRESH_EXPIRE=7d
-FRONTEND_URL=https://your-frontend-domain.com
+FRONTEND_URL=https://msuyenclass.vn
+FRONTEND_ORIGINS=https://msuyenclass.vn,https://www.msuyenclass.vn
 ```
 
 ### Bước 2: Frontend
@@ -146,8 +153,7 @@ VITE_API_URL=http://localhost:5000/api/v1
 
 **Ví dụ file `.env` cho Production:**
 ```env
-VITE_API_URL=https://api.your-domain.com/api/v1
-# API production vẫn dùng Vercel rewrite; biến này chỉ còn phục vụ URL media legacy.
+VITE_API_URL=https://api.msuyenclass.vn/api/v1
 ```
 
 ---

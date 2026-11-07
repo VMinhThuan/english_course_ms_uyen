@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://api.toeicmsuyen.vn/api/v1/:path*"
+      "destination": "https://api.msuyenclass.vn/api/v1/:path*"
     },
     {
       "source": "/(.*)",

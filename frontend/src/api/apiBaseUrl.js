@@ -1,7 +1,7 @@
 const viteEnv = import.meta.env || {};
 
 export const IS_PRODUCTION_BUILD = viteEnv.PROD === true;
-export const PRODUCTION_API_URL = 'https://api.toeicmsuyen.vn/api/v1';
+export const PRODUCTION_API_URL = 'https://api.msuyenclass.vn/api/v1';
 export const DEVELOPMENT_API_URL = 'http://localhost:3000/api/v1';
 
 const DEPRECATED_URL_KEYWORDS = [

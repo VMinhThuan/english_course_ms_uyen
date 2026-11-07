@@ -10,7 +10,7 @@ import {
 } from '../src/api/apiBaseUrl.js';
 
 test('apiBaseUrl exports valid defaults and resolves without trailing slashes', () => {
-  assert.equal(PRODUCTION_API_URL, 'https://api.toeicmsuyen.vn/api/v1');
+  assert.equal(PRODUCTION_API_URL, 'https://api.msuyenclass.vn/api/v1');
   assert.equal(DEVELOPMENT_API_URL, 'http://localhost:3000/api/v1');
   assert.ok(typeof API_BASE_URL === 'string' && API_BASE_URL.length > 0);
   assert.equal(API_BASE_URL.endsWith('/'), false, 'Base URL must not end with trailing slash');
@@ -21,7 +21,7 @@ test('isAllowedApiUrl filters out deprecated Vercel backend URLs', () => {
   assert.equal(isAllowedApiUrl('https://frontend-ru4l.vercel.app/api/v1'), false);
   assert.equal(isAllowedApiUrl(''), false);
   assert.equal(isAllowedApiUrl(null), false);
-  assert.equal(isAllowedApiUrl('https://api.toeicmsuyen.vn/api/v1'), true);
+  assert.equal(isAllowedApiUrl('https://api.msuyenclass.vn/api/v1'), true);
   assert.equal(isAllowedApiUrl('http://localhost:5000/api/v1'), true);
 });
 
