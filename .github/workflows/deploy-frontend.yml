@@ -32,9 +32,9 @@ concurrency:
 
 env:
   DEFAULT_DOCROOT_RELATIVE: public_html
-  EXPECTED_CANONICAL_DOMAIN: toeicmsuyen.vn
-  EXPECTED_WWW_DOMAIN: www.toeicmsuyen.vn
-  BACKEND_HEALTH_URL: https://api.toeicmsuyen.vn/health
+  EXPECTED_CANONICAL_DOMAIN: msuyenclass.vn
+  EXPECTED_WWW_DOMAIN: www.msuyenclass.vn
+  BACKEND_HEALTH_URL: https://api.msuyenclass.vn/health
   EXPECTED_NODE_VERSION: '22.23.4'
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
 
       - name: Build production bundle
         env:
-          VITE_API_URL: https://api.toeicmsuyen.vn/api/v1
+          VITE_API_URL: https://api.msuyenclass.vn/api/v1
         run: npm run build
 
       - name: Verify build artifacts & .htaccess
@@ -222,6 +222,6 @@ jobs:
           set -Eeuo pipefail
           echo "Frontend successfully uploaded to Long Van cPanel target ./${DOCROOT_PATH}/"
           echo "Next steps:"
-          echo "1. Verify https://toeicmsuyen.vn/ (or test via hosts file / curl resolve prior to DNS cutover)."
+          echo "1. Verify https://msuyenclass.vn/ (or test via hosts file / curl resolve prior to DNS cutover)."
           echo "2. Check React Router routes on refresh: /courses, /login, /student/dashboard."
           echo "3. Confirm missing asset requests (/assets/test.js) return 404, not HTML."

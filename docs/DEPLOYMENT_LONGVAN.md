@@ -25,7 +25,7 @@ In cPanel **Software → Setup Node.js App**, open the existing application and 
 
 | cPanel field | Required value |
 | --- | --- |
-| Application URL | `api.toeicmsuyen.vn` |
+| Application URL | `api.msuyenclass.vn` |
 | Application root | `apps/english-course/backend` |
 | Application startup file | `app.js` |
 | Node.js version | `22.23.4` |
@@ -36,7 +36,7 @@ Set the GitHub Actions Secret `CLOUDLINUX_NODE_SELECTOR_VERIFIED=true` only afte
 The workflow also performs two independent, read-only checks on every preflight:
 
 1. Authenticated Explicit FTPS with normal certificate validation lists `apps/english-course/backend/` and reads `app.js` there. This verifies the FTP-account mapping to the exact application root; it never reads `.env`.
-2. `https://api.toeicmsuyen.vn/health` must return either the backend production health JSON or CloudLinux's `It works!` response for Node.js `22.23.4`. The second form is accepted only to permit the first source upload to an already-created Selector app; any other response fails the preflight.
+2. `https://api.msuyenclass.vn/health` must return either the backend production health JSON or CloudLinux's `It works!` response for Node.js `22.23.4`. The second form is accepted only to permit the first source upload to an already-created Selector app; any other response fails the preflight.
 
 Together with the cPanel UI review, these checks prevent a similarly named FTP directory or an empty `PassengerApps` response from authorizing deployment to a different hosting target.
 
@@ -55,7 +55,7 @@ The preflight uses `curl --ftp-ssl-reqd`, so certificate validation remains enab
 1. Run the workflow manually with `deploy=false`. It runs tests plus read-only Selector, FTPS, and health checks; it uploads nothing.
 2. After reviewing the result and the `longvan-production` approval policy, run it with `deploy=true`, or enable the two gates for controlled push deployment.
 3. Open the same application in cPanel **Setup Node.js App**. Click **Run NPM Install** if `package.json` or `package-lock.json` changed, then click **Restart**.
-4. Verify `https://api.toeicmsuyen.vn/health` reports `status: success` and `env: production`, then verify `https://api.toeicmsuyen.vn/ready` returns HTTP 200 with `database: ready`. The health route is liveness-only; `/ready` is the required check that MongoDB is connected. The CloudLinux default response is not a completed release verification.
+4. Verify `https://api.msuyenclass.vn/health` reports `status: success` and `env: production`, then verify `https://api.msuyenclass.vn/ready` returns HTTP 200 with `database: ready`. The health route is liveness-only; `/ready` is the required check that MongoDB is connected. The CloudLinux default response is not a completed release verification.
 
 There is intentionally no automatic dependency installation or restart. CloudLinux documents **Run NPM Install** and **Restart** in the Selector UI; `cloudlinux-selector install-modules` and `cloudlinux-selector restart` are the shell equivalents. With only FTPS, GitHub Actions cannot invoke either command safely. It also does not send a `tmp/restart.txt` signal, because that signal has not been confirmed by this hosting configuration as the supported Selector restart mechanism.
 

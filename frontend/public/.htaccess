@@ -54,8 +54,8 @@
 
   # 4.2 Canonical www redirect disabled to prevent redirect loop with browser-cached Vercel 308
   # Both apex and www are served directly by Apache on Long Van
-  # RewriteCond %{HTTP_HOST} ^www\.toeicmsuyen\.vn$ [NC]
-  # RewriteRule ^(.*)$ https://toeicmsuyen.vn/$1 [R=301,L,NE]
+  # RewriteCond %{HTTP_HOST} ^www\.msuyenclass\.vn$ [NC]
+  # RewriteRule ^(.*)$ https://msuyenclass.vn/$1 [R=301,L,NE]
 
   # 4.3 If requested resource is an existing file or directory, serve directly
   RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -63,7 +63,7 @@
   RewriteRule ^ - [L]
 
   # 4.4 Missing API requests: DO NOT rewrite to index.html; return 404 immediately
-  # Frontend production talks directly to https://api.toeicmsuyen.vn/api/v1
+  # Frontend production talks directly to https://api.msuyenclass.vn/api/v1
   RewriteRule ^api(?:/|$) - [R=404,L,NC]
 
   # 4.5 Missing static assets: DO NOT rewrite to index.html; return 404 immediately
