@@ -52,3 +52,4 @@ try {
   console.error('❌ Restore failed:', error.message);
   process.exit(1);
 }
+
