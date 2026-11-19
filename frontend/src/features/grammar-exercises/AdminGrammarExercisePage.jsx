@@ -149,7 +149,7 @@ export default function AdminGrammarExercisePage({ exerciseType }) {
         description="Thêm, sửa, xóa câu hỏi và chọn câu sẽ hiển thị với học viên. Dạng bài này không dùng audio."
       />
 
-      <ExerciseImportPanel exerciseType={`grammar-${exerciseType}`} onImported={load} />
+      <ExerciseImportPanel exerciseType={`grammar-${exerciseType}`} records={items} recordsLoading={loading} onImported={load} />
 
       {notice.text && <div className={`admin-grammar-notice is-${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
 

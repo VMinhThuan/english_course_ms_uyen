@@ -192,7 +192,7 @@ export default function AdminPart2ChallengePage() {
         description="Tạo và chỉnh sửa câu hỏi, quản lý audio, script, bản dịch và trạng thái hiển thị với học viên."
       />
 
-      <ExerciseImportPanel exerciseType="part2-challenge" onImported={load} />
+      <ExerciseImportPanel exerciseType="part2-challenge" records={items} recordsLoading={loading} onImported={load} />
 
       {notice.text && <div className={`admin-part2-notice is-${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
 

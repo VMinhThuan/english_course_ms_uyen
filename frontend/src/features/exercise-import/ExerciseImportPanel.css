@@ -3,10 +3,12 @@
 .exercise-import-panel__header h2 { margin:0; font-size:18px; line-height:1.3; }
 .exercise-import-panel__header p:not(.exercise-import-panel__eyebrow) { margin:5px 0 0; color:#817262; font-size:12px; line-height:1.5; }
 .exercise-import-panel__eyebrow { margin:0 0 5px; color:#8a745e; font-size:9px; font-weight:900; letter-spacing:.14em; }
-.exercise-import-panel__header-actions { display:flex; flex:0 0 auto; align-items:center; gap:12px; }
+.exercise-import-panel__header-actions { display:flex; flex:0 1 auto; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
 .exercise-import-panel__header-actions a { color:#6b5129; font-size:12px; font-weight:900; }
-.exercise-import-panel__header-actions button,.exercise-import-panel__button { display:inline-flex; min-height:38px; align-items:center; justify-content:center; padding:0 14px; border:1px solid #e8dfd1; border-radius:9px; background:#fffdfa; color:#6b5845; font:inherit; font-size:12px; font-weight:850; cursor:pointer; }
+.exercise-import-panel__header-actions button,.exercise-import-panel__button { display:inline-flex; min-height:38px; align-items:center; justify-content:center; padding:0 12px; border:1px solid #e8dfd1; border-radius:9px; background:#fffdfa; color:#6b5845; font:inherit; font-size:11px; font-weight:850; cursor:pointer; }
 .exercise-import-panel__header-actions button:hover,.exercise-import-panel__button--secondary:hover { background:#f8f5ef; }
+.exercise-import-panel__header-actions button:disabled { opacity:.55; cursor:not-allowed; }
+.exercise-import-panel__editor { padding:0 18px 18px; }
 .exercise-import-panel__content { padding:0 22px 22px; border-top:1px solid #f0e9df; }
 .exercise-import-panel__form { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:16px; padding-top:18px; }
 .exercise-import-panel__form label { display:grid; gap:7px; color:#6f5e4c; font-size:12px; font-weight:850; }
@@ -50,13 +52,19 @@
 .exercise-import-panel__row-description { margin:8px 0 0; color:#695a49; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
 .exercise-import-panel__row-details { margin-top:8px; color:#6f5e4c; font-size:10px; }
 .exercise-import-panel__row-details summary { width:max-content; cursor:pointer; font-weight:800; }
-.exercise-import-panel__row-details pre { max-height:240px; overflow:auto; margin:7px 0 0; padding:10px; border-radius:8px; background:#f8f5ef; color:#43382d; font:10px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+.exercise-import-panel__table-wrap { max-width:100%; max-height:300px; overflow:auto; margin-top:8px; border:1px solid #eee4d7; border-radius:8px; background:#fff; }
+.exercise-import-panel__template-table { width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:11px; }
+.exercise-import-panel__template-table th,.exercise-import-panel__template-table td { min-width:110px; max-width:340px; padding:9px 10px; border-right:1px solid #eee4d7; border-bottom:1px solid #eee4d7; text-align:left; vertical-align:top; line-height:1.45; overflow-wrap:anywhere; white-space:pre-wrap; }
+.exercise-import-panel__template-table th { position:sticky; top:0; z-index:1; background:#f4eee4; color:#5d4b37; font-size:10px; font-weight:900; }
+.exercise-import-panel__template-table td { color:#40362b; }
+.exercise-import-panel__empty-cell { color:#b1a493; }
 .exercise-import-panel__issues { margin:7px 0 0; padding-left:18px; color:#a33b32; font-size:10px; line-height:1.5; }
 .exercise-import-panel__row-result { margin:7px 0 0; color:#6f5e4c; font-size:10px; font-weight:800; }
 @media (max-width:760px) {
   .exercise-import-panel__header { align-items:flex-start; flex-direction:column; padding:16px; }
-  .exercise-import-panel__header-actions { width:100%; justify-content:space-between; }
+  .exercise-import-panel__header-actions { width:100%; justify-content:flex-start; }
   .exercise-import-panel__content { padding:0 16px 16px; }
+  .exercise-import-panel__editor { padding:0 10px 12px; }
   .exercise-import-panel__form { grid-template-columns:1fr; }
   .exercise-import-panel__actions { justify-content:flex-start; flex-wrap:wrap; }
   .exercise-import-panel__counts { grid-template-columns:repeat(2,minmax(0,1fr)); }

@@ -107,6 +107,8 @@ export default function AdminDictationPage({ kind = 'part1' }) {
     {notice.text && <div className={`part1-notice ${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
     <ExerciseImportPanel
       exerciseType={isHardWords ? 'hard-words-dictation' : isVocabulary ? 'vocabulary-dictation' : 'part1-dictation'}
+      records={items}
+      recordsLoading={loading}
       onImported={load}
     />
 

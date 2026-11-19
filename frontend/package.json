@@ -24,6 +24,7 @@
     "test:toeic-part5:bank:e2e": "node e2e/toeic-part5-bank-ui.mjs"
   },
   "dependencies": {
+    "@silevis/reactgrid": "^4.1.17",
     "axios": "^1.6.2",
     "dompurify": "^3.4.17",
     "pdfjs-dist": "6.4.299",
@@ -31,6 +32,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "7.18.4",
     "tesseract.js": "^7.0.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^4.6.7",
     "zustand": "^4.4.7"
   },
   "devDependencies": {

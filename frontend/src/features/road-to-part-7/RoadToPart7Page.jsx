@@ -82,7 +82,7 @@ export default function RoadToPart7Page({ admin = false }) {
         : 'Chọn một bài đọc, đọc toàn văn tiếng Anh rồi lật sang bản dịch song ngữ theo từng câu.'}
     />
 
-    {admin && <ExerciseImportPanel exerciseType="road-to-part-7" onImported={refreshAdminReadings} />}
+    {admin && <ExerciseImportPanel exerciseType="road-to-part-7" records={items} recordsLoading={loading} onImported={refreshAdminReadings} />}
 
     {loading ? <div className="ds-loading-state">Đang tải thư viện bài đọc…</div>
       : error ? <div className="ds-error-state" role="alert"><strong>{error}</strong></div>

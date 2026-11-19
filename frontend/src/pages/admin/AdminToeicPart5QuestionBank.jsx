@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { assessmentApi } from '../../api/assessmentApi.js';
+const ExerciseSpreadsheetEditor = lazy(() => import('../../features/exercise-import/ExerciseSpreadsheetEditor.jsx'));
 import {
   getPart5CompletenessIssues,
   mapPart5ApiValidationErrors,
@@ -50,6 +51,7 @@ export default function AdminToeicPart5QuestionBank() {
   const [searchParams, setSearchParams] = useSearchParams();
   const scopeParam = searchParams.get('toeicPart');
   const [showImport, setShowImport] = useState(() => searchParams.get('import') === '1' || searchParams.has('batchId'));
+  const [showSpreadsheet, setShowSpreadsheet] = useState(false);
   const [importDirty, setImportDirty] = useState(false);
   const pageParam = Number.parseInt(searchParams.get('page') || '1', 10);
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
@@ -121,6 +123,57 @@ export default function AdminToeicPart5QuestionBank() {
       if (currentRequest === requestId.current) setLoading(false);
     }
   }, [page, search, statusFilter]);
+
+  const loadAllPart5Questions = useCallback(async () => {
+    const pageSize = 100;
+    const firstResponse = await assessmentApi.getAdminQuestions({ toeicPart: 5, page: 1, limit: pageSize });
+    const firstResult = firstResponse.data || {};
+    const allQuestions = [...(firstResult.questions || [])];
+    const pages = Math.max(1, Number(firstResult.pagination?.pages) || 1);
+    for (let currentPage = 2; currentPage <= pages; currentPage += 1) {
+      const response = await assessmentApi.getAdminQuestions({ toeicPart: 5, page: currentPage, limit: pageSize });
+      allQuestions.push(...(response.data?.questions || []));
+    }
+    return allQuestions.filter((question) => Number(question.toeicPart) === 5);
+  }, []);
+
+  const savePart5SheetRows = useCallback(async ({ dirtyRows }) => {
+    const failures = [];
+    let saved = 0;
+    for (let start = 0; start < dirtyRows.length; start += 5) {
+      const batch = dirtyRows.slice(start, start + 5);
+      const results = await Promise.allSettled(batch.map((row) => {
+        const values = row.values;
+        const source = row.originalRecord || {};
+        const payload = {
+          questionText: values.questionText.trim(),
+          type: 'single_choice',
+          toeicPart: 5,
+          options: ['A', 'B', 'C', 'D'].map((id) => ({ id, text: values[`option${id}`].trim() })),
+          correctAnswers: [values.correctAnswer.trim().toUpperCase()],
+          explanation: values.explanation.trim(),
+          score: Number(source.score) || 1,
+          topic: source.topic || 'TOEIC Part 5',
+          status: row.recordId ? (row.recordStatus || 'draft') : 'draft',
+        };
+        return row.recordId
+          ? assessmentApi.updateQuestion(row.recordId, payload)
+          : assessmentApi.createQuestion(payload);
+      }));
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') saved += 1;
+        else failures.push({ row: start + index + 1, message: result.reason?.response?.data?.message || result.reason?.message || 'Không thể lưu câu hỏi.' });
+      });
+    }
+    if (saved) {
+      await load();
+      setToast(`Đã lưu ${saved} câu hỏi Part 5.`);
+    }
+    if (failures.length) {
+      throw new Error(`Đã lưu ${saved} câu. ${failures.length} dòng lỗi: ${failures.slice(0, 3).map((failure) => `dòng ${failure.row} (${failure.message})`).join('; ')}`);
+    }
+    setShowSpreadsheet(false);
+  }, [load]);
 
   useEffect(() => {
     const timer = setTimeout(load, search ? 300 : 0);
@@ -229,6 +282,11 @@ export default function AdminToeicPart5QuestionBank() {
     }
   };
 
+  const downloadPart5Template = async () => {
+    const { downloadWorkbook } = await import('../../features/exercise-import/exerciseWorkbook.js');
+    downloadWorkbook('toeic-part5', [], 'template');
+  };
+
   const completenessIssues = modal?.item ? getPart5CompletenessIssues(modal.item) : [];
 
   return (
@@ -257,11 +315,27 @@ export default function AdminToeicPart5QuestionBank() {
         >
           {bulkPublishing ? 'Đang xuất bản…' : 'Xuất bản tất cả câu hợp lệ'}
         </button>
-        <button type="button" className="admin-quiet-button admin-qb-import-link" onClick={toggleImport}>
-          {showImport ? 'Đóng import' : 'Import Excel'}
+        <button type="button" className="admin-quiet-button" onClick={downloadPart5Template}>
+          Tải template Excel
+        </button>
+        <button type="button" className="admin-quiet-button" onClick={() => { if (!showSpreadsheet) setShowSpreadsheet(true); }} disabled={showSpreadsheet || showImport}>
+          {showSpreadsheet ? 'Bảng Excel đang mở' : 'Chỉnh sửa bằng Excel'}
+        </button>
+        <button type="button" className="admin-quiet-button admin-qb-import-link" onClick={toggleImport} disabled={showSpreadsheet}>
+          {showImport ? 'Đóng import' : 'Nhập file Excel'}
         </button>
         <button type="button" className="admin-primary-button" onClick={openCreate}>Thêm câu hỏi</button>
       </div>
+
+      {showSpreadsheet && <Suspense fallback={<div className="admin-table-skeleton" role="status">Đang mở bảng Excel…</div>}>
+        <ExerciseSpreadsheetEditor
+          exerciseType="toeic-part5"
+          loadRecords={loadAllPart5Questions}
+          onSave={savePart5SheetRows}
+          onClose={() => setShowSpreadsheet(false)}
+          saveLabel="Lưu thay đổi"
+        />
+      </Suspense>}
 
       {showImport && <Suspense fallback={<div className="admin-table-skeleton" role="status">Đang mở import Excel…</div>}>
         <AdminToeicPart5ImportPage embedded onDirtyChange={setImportDirty} />

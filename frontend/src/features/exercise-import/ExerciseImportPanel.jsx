@@ -1,45 +1,55 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { exerciseImportApi } from '../../api/exerciseImportApi.js';
+import {
+  EXERCISE_SHEETS,
+  getSheetRowsFromBatch,
+  recordsToEditorRows,
+} from './exerciseSpreadsheet.js';
 import './ExerciseImportPanel.css';
 
-const TYPES = {
-  'part1-dictation': { label: 'Chép chính tả Part 1', template: 'part1-dictation.xlsx' },
-  'vocabulary-dictation': { label: 'Chép chính tả từ vựng', template: 'vocabulary-dictation.xlsx' },
-  'hard-words-dictation': { label: 'Hard Words Dictation', template: 'hard-words-dictation.xlsx' },
-  'part2-challenge': { label: 'Part 2 Challenge', template: 'part2-challenge.xlsx' },
-  'grammar-tense-classification': { label: 'Phân loại thì và dạng câu', template: 'grammar-tense-classification.xlsx' },
-  'grammar-active-to-passive': { label: 'Chủ động sang bị động', template: 'grammar-active-to-passive.xlsx' },
-  'road-to-part-7': { label: 'Road to Part 7', template: 'road-to-part-7.xlsx' },
-};
+const ExerciseSpreadsheetEditor = lazy(() => import('./ExerciseSpreadsheetEditor.jsx'));
 
 const ACTIONS = {
   CREATE: 'Sẽ tạo bản nháp', UPDATE: 'Sẽ cập nhật', UNCHANGED: 'Không thay đổi',
   INVALID: 'Dữ liệu chưa hợp lệ', DUPLICATE: 'Trùng trong file', IMPORTED: 'Đã lưu', FAILED: 'Lưu thất bại',
 };
 
-const errorMessage = (error) => error?.response?.data?.message || error?.response?.data?.code || 'Không thể hoàn tất thao tác.';
+const errorMessage = (error) => error?.response?.data?.message || error?.response?.data?.code || error?.message || 'Không thể hoàn tất thao tác.';
 const countEntries = (counts = {}) => [
   ['Tạo mới', counts.create || 0], ['Cập nhật', counts.update || 0], ['Không đổi', counts.unchanged || 0],
   ['Lỗi', counts.invalid || 0], ['Trùng', counts.duplicate || 0],
 ];
-const getRowTitle = (row) => row.data?.title || row.data?.prompt || row.data?.questionText || row.data?.englishText || `Bản ghi ${row.rowNumber}`;
-const getRowDescription = (row) => {
-  if (Array.isArray(row.data?.answers)) return `${row.data.answers.length} câu/từ · ${row.data.answers.slice(0, 3).map((answer) => answer.text).join(', ')}`;
-  if (Array.isArray(row.data?.choices)) return row.data.choices.map((choice) => `${choice.letter}. ${choice.text}`).join(' · ');
-  if (row.data?.answer) return row.data.answer;
-  if (row.data?.bilingualPairs) return `${row.data.bilingualPairs.length} cặp câu song ngữ`;
-  return row.sourceKey || '';
+const getRowTitle = (row, exerciseType) => {
+  if (row.data?.title) return row.data.title;
+  if (row.data?.number) return `Câu ${row.data.number}`;
+  if (exerciseType === 'part1-dictation') return row.data?.sourceKey || `Bài Part 1 · dòng ${row.sourceRowNumber}`;
+  return `Bản ghi ${row.sourceRowNumber}`;
 };
 const getActionLabel = (action, exerciseType) => {
   if (action === 'CREATE' && exerciseType === 'road-to-part-7') return 'Sẽ thêm bài đọc';
   return ACTIONS[action] || action;
 };
 
-export default function ExerciseImportPanel({ exerciseType, onImported }) {
-  const type = TYPES[exerciseType];
+function TemplatePreviewTable({ exerciseType, batchRow }) {
+  const spec = EXERCISE_SHEETS[exerciseType];
+  const dataRows = getSheetRowsFromBatch(exerciseType, batchRow);
+  return (
+    <div className="exercise-import-panel__table-wrap">
+      <table className="exercise-import-panel__template-table">
+        <thead><tr>{spec.columns.map((column) => <th key={column.key}>{column.label}</th>)}</tr></thead>
+        <tbody>{dataRows.map((dataRow, index) => <tr key={`${batchRow._id || batchRow.rowNumber}-${index}`}>
+          {spec.columns.map((column) => <td key={column.key} title={String(dataRow[column.key] || '')}>{dataRow[column.key] || <span className="exercise-import-panel__empty-cell">—</span>}</td>)}
+        </tr>)}</tbody>
+      </table>
+    </div>
+  );
+}
+export default function ExerciseImportPanel({ exerciseType, records = [], recordsLoading = false, onImported }) {
+  const type = EXERCISE_SHEETS[exerciseType];
   const batchStorageKey = `exercise-import-batch:${exerciseType}`;
   const fileInputRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [file, setFile] = useState(null);
   const [batch, setBatch] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -78,14 +88,13 @@ export default function ExerciseImportPanel({ exerciseType, onImported }) {
 
   if (!type) return null;
 
-  const upload = async (event) => {
-    event.preventDefault();
-    if (!file || busy) return;
+  const uploadWorkbook = async (workbookFile) => {
+    if (!workbookFile || busy) return;
     setBusy(true);
     setError('');
     setNotice('');
     try {
-      const response = await exerciseImportApi.upload(exerciseType, file);
+      const response = await exerciseImportApi.upload(exerciseType, workbookFile);
       setBatch(response.data.batch);
       window.localStorage.setItem(batchStorageKey, response.data.batch._id);
       setFile(null);
@@ -94,9 +103,23 @@ export default function ExerciseImportPanel({ exerciseType, onImported }) {
       setOpen(true);
     } catch (reason) {
       setError(errorMessage(reason));
+      throw reason;
     } finally {
       setBusy(false);
     }
+  };
+
+  const upload = async (event) => {
+    event.preventDefault();
+    if (!file || busy) return;
+    try { await uploadWorkbook(file); } catch { /* The panel displays the API error. */ }
+  };
+
+  const prepareEditedWorkbook = async ({ rows }) => {
+    const { workbookFileFromRows } = await import('./exerciseWorkbook.js');
+    const workbookFile = workbookFileFromRows(exerciseType, rows, 'chinh-sua');
+    await uploadWorkbook(workbookFile);
+    setEditorOpen(false);
   };
 
   const confirm = async () => {
@@ -110,7 +133,10 @@ export default function ExerciseImportPanel({ exerciseType, onImported }) {
       const response = await exerciseImportApi.confirm(batch._id);
       setBatch(response.data.batch);
       setNotice(`Đã lưu ${response.data.batch.resultCounts?.imported || 0} bản ghi.`);
-      if (response.data.batch.resultCounts?.imported > 0) await onImported?.();
+      if (response.data.batch.resultCounts?.imported > 0) {
+        setEditorOpen(false);
+        await onImported?.();
+      }
     } catch (reason) {
       setError(errorMessage(reason));
     } finally {
@@ -135,17 +161,38 @@ export default function ExerciseImportPanel({ exerciseType, onImported }) {
     <section className="exercise-import-panel">
       <header className="exercise-import-panel__header">
         <div>
-          <p className="exercise-import-panel__eyebrow">NHẬP DỮ LIỆU BÀI TẬP</p>
-          <h2>Import Excel · {type.label}</h2>
-          <p>Tải template, xem trước các thay đổi rồi xác nhận lưu ngay tại trang quản lý này.</p>
+          <p className="exercise-import-panel__eyebrow">NHẬP VÀ CHỈNH SỬA DỮ LIỆU BÀI TẬP</p>
+          <h2>Excel · {type.label}</h2>
+          <p>Tải dữ liệu theo đúng template, chỉnh sửa trên bảng hoặc import file tại trang quản lý này.</p>
         </div>
         <div className="exercise-import-panel__header-actions">
-          <a href={`/import-templates/${type.template}`} download>Tải template</a>
+          <a href={`/import-templates/${type.template}`} download>Template trống</a>
+          <button type="button" onClick={async () => {
+            const { downloadWorkbook } = await import('./exerciseWorkbook.js');
+            downloadWorkbook(exerciseType, recordsToEditorRows(exerciseType, records), 'du-lieu-hien-tai');
+          }} disabled={recordsLoading}>
+            {recordsLoading ? 'Đang tải dữ liệu…' : 'Tải Excel có dữ liệu'}
+          </button>
+          <button type="button" aria-expanded={editorOpen} onClick={() => { if (!editorOpen) setEditorOpen(true); }} disabled={editorOpen}>
+            {editorOpen ? 'Bảng đang mở' : 'Chỉnh sửa dữ liệu'}
+          </button>
           <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((value) => !value)}>
-            {open ? 'Thu gọn' : 'Mở import'}
+            {open ? 'Thu gọn import' : 'Import file'}
           </button>
         </div>
       </header>
+
+      {editorOpen && <div className="exercise-import-panel__editor">
+        <Suspense fallback={<div role="status">Đang mở bảng Excel…</div>}>
+          <ExerciseSpreadsheetEditor
+            exerciseType={exerciseType}
+            records={records}
+            recordsLoading={recordsLoading}
+            onSave={prepareEditedWorkbook}
+            onClose={() => setEditorOpen(false)}
+          />
+        </Suspense>
+      </div>}
 
       {open && <div id={panelId} className="exercise-import-panel__content">
         <form className="exercise-import-panel__form" onSubmit={upload}>
@@ -172,7 +219,7 @@ export default function ExerciseImportPanel({ exerciseType, onImported }) {
 
         {batch && <div className="exercise-import-panel__preview">
           <div className="exercise-import-panel__preview-heading">
-            <div><p className="exercise-import-panel__eyebrow">XEM TRƯỚC</p><h3>{batch.sourceFileName}</h3><p>Sheet: {batch.sheetName} · {batch.rows?.length || 0} bản ghi</p></div>
+            <div><p className="exercise-import-panel__eyebrow">XEM TRƯỚC</p><h3>{batch.sourceFileName}</h3><p>Sheet: {batch.sheetName} · {batch.rows?.length || 0} nhóm dữ liệu</p></div>
             <span className={`exercise-import-panel__state exercise-import-panel__state--${batch.state.toLowerCase()}`}>{batch.state === 'PREVIEW_READY' ? 'Chờ xác nhận' : batch.state === 'CONFIRMED' ? 'Đã xác nhận' : batch.state === 'PARTIALLY_CONFIRMED' ? 'Có bản ghi lỗi' : 'Đang xử lý'}</span>
           </div>
           <div className="exercise-import-panel__counts">
@@ -184,11 +231,13 @@ export default function ExerciseImportPanel({ exerciseType, onImported }) {
             {(batch.rows || []).map((row) => (
               <article className={`exercise-import-panel__row exercise-import-panel__row--${row.action.toLowerCase()}`} key={row._id || row.rowNumber}>
                 <div className="exercise-import-panel__row-head">
-                  <div><strong>{getRowTitle(row)}</strong><small>Dòng Excel {row.sourceRowNumber} · {row.sourceKey}</small></div>
+                  <div><strong>{getRowTitle(row, batch.exerciseType)}</strong><small>Dòng Excel {row.sourceRowNumber}</small></div>
                   <span>{getActionLabel(row.action, batch.exerciseType)}</span>
                 </div>
-                <p className="exercise-import-panel__row-description">{getRowDescription(row)}</p>
-                <details className="exercise-import-panel__row-details"><summary>Xem toàn bộ dữ liệu</summary><pre>{JSON.stringify(row.data, null, 2)}</pre></details>
+                <details className="exercise-import-panel__row-details">
+                  <summary>Hiển thị theo template Excel</summary>
+                  <TemplatePreviewTable exerciseType={batch.exerciseType} batchRow={row} />
+                </details>
                 {row.issues?.length > 0 && <ul className="exercise-import-panel__issues">{row.issues.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>)}</ul>}
                 {row.resultMessage && <p className="exercise-import-panel__row-result">{row.resultMessage}</p>}
               </article>
