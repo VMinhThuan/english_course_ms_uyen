@@ -1,0 +1,48 @@
+.exercise-tree { display: grid; gap: 10px; }
+.exercise-tree__type { overflow: hidden; border: 1px solid var(--brand-border); border-radius: 12px; background: var(--brand-surface, #fff); }
+.exercise-tree__type > summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 17px; background: var(--brand-bg-sub, #f5f0e8); color: var(--brand-text); cursor: pointer; font-weight: 700; list-style: none; }
+.exercise-tree__type > summary::-webkit-details-marker,
+.exercise-tree__day > summary::-webkit-details-marker,
+.exercise-tree__attempt > summary::-webkit-details-marker { display: none; }
+.exercise-tree__type > summary::before { content: '＋'; display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; background: var(--brand-surface, #fff); color: var(--brand-coffee); font-size: 12px; }
+.exercise-tree__type[open] > summary::before { content: '−'; }
+.exercise-tree__type > summary > span:first-of-type { flex: 1; }
+.exercise-tree__type-count { color: var(--brand-muted); font-size: 12px; font-weight: 600; }
+.exercise-tree__type-content { display: grid; gap: 5px; padding: 6px 16px 14px 25px; }
+.exercise-tree__empty { margin: 7px 0 3px; padding: 12px 14px; border-left: 2px solid var(--brand-coffee); color: var(--brand-muted); font-size: 13px; }
+.exercise-tree__day { position: relative; border-left: 1px solid var(--brand-border); }
+.exercise-tree__day > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 12px; color: var(--brand-text); cursor: pointer; font-size: 13px; font-weight: 700; list-style: none; }
+.exercise-tree__day > summary::before { content: '＋'; color: var(--brand-coffee); font-size: 12px; }
+.exercise-tree__day[open] > summary::before { content: '−'; }
+.exercise-tree__day > summary span:last-child { color: var(--brand-muted); font-size: 11px; font-weight: 600; }
+.exercise-tree__attempts { display: grid; gap: 7px; margin: 0 0 8px 24px; padding-left: 12px; border-left: 1px solid var(--brand-border); }
+.exercise-tree__attempt { overflow: hidden; border: 1px solid var(--brand-border); border-radius: 9px; background: #fff; }
+.exercise-tree__attempt-summary { display: flex; align-items: center; gap: 12px; padding: 10px 12px; color: var(--brand-text); cursor: pointer; font-size: 12px; list-style: none; }
+.exercise-tree__attempt-summary::before { content: '›'; color: var(--brand-coffee); font-size: 20px; line-height: 12px; }
+.exercise-tree__attempt[open] > summary::before { content: '⌄'; }
+.exercise-tree__attempt-number { font-weight: 700; }
+.exercise-tree__attempt-summary time { color: var(--brand-muted); }
+.exercise-tree__attempt-score { margin-left: auto; color: var(--brand-coffee); font-weight: 700; }
+.exercise-tree__attempt-content { padding: 0 14px 14px 35px; }
+.exercise-tree__attempt-content h4 { margin: 0 0 10px; color: var(--brand-muted); font-size: 12px; font-weight: 600; }
+.exercise-tree__stats { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+.exercise-tree__stats span { padding: 5px 8px; border-radius: 999px; background: var(--brand-bg-sub, #f5f0e8); color: var(--brand-muted); font-size: 11px; }
+.exercise-tree__questions { display: grid; gap: 9px; margin: 0; padding-left: 24px; }
+.exercise-tree__questions li { padding: 10px 11px; border-radius: 8px; background: #fbfaf7; }
+.exercise-tree__question-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.exercise-tree__question-heading strong { color: var(--brand-text); font-size: 12px; }
+.exercise-tree__status { flex: 0 0 auto; color: var(--brand-muted); font-size: 11px; font-weight: 700; }
+.exercise-tree__status.is-correct { color: #177245; }
+.exercise-tree__status.is-incorrect { color: #b42318; }
+.exercise-tree__status.is-partial { color: #a05a00; }
+.exercise-tree__questions p,
+.exercise-tree__no-questions { margin: 6px 0 0; color: var(--brand-muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .exercise-tree__type > summary { padding: 13px; }
+  .exercise-tree__type-content { padding-left: 14px; padding-right: 10px; }
+  .exercise-tree__attempts { margin-left: 13px; padding-left: 8px; }
+  .exercise-tree__attempt-summary { flex-wrap: wrap; gap: 7px 10px; }
+  .exercise-tree__attempt-score { flex-basis: 100%; margin-left: 24px; }
+  .exercise-tree__attempt-content { padding-left: 16px; padding-right: 10px; }
+  .exercise-tree__question-heading { flex-direction: column; gap: 4px; }
+}

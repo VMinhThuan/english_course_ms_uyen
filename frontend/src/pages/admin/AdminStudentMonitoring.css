@@ -644,7 +644,7 @@
 }
 
 .monitoring-kpi-grid--detail {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 @media (max-width: 1200px) {
@@ -653,4 +653,236 @@
 
 @media (max-width: 768px) {
   .monitoring-kpi-grid--detail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Simplified student monitoring overview */
+.monitoring-page > .monitoring-kpi-grid:not(.monitoring-kpi-grid--detail) {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.monitoring-student-list-table {
+  min-width: 1040px;
+  table-layout: fixed;
+}
+
+.monitoring-student-list-table th:nth-child(1),
+.monitoring-student-list-table td:nth-child(1) { width: 27%; }
+.monitoring-student-list-table th:nth-child(2),
+.monitoring-student-list-table td:nth-child(2) { width: 19%; }
+.monitoring-student-list-table th:nth-child(3),
+.monitoring-student-list-table td:nth-child(3) { width: 39%; }
+.monitoring-student-list-table th:nth-child(4),
+.monitoring-student-list-table td:nth-child(4) { width: 15%; }
+
+.monitoring-student-column,
+.monitoring-student-list-table .student-user-cell,
+.monitoring-student-list-table .student-user-copy {
+  min-width: 0;
+}
+
+.monitoring-student-list-table .student-user-copy strong,
+.monitoring-student-list-table .student-user-copy span {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.monitoring-student-list-table .student-user-copy strong {
+  line-height: 1.45;
+}
+
+.monitoring-student-list-table .activity-status-badge {
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.study-time-cell {
+  display: grid;
+  gap: 10px;
+}
+
+.study-time-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 14px;
+}
+
+.study-time-metrics > div,
+.study-time-last-active {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.study-time-metrics span,
+.study-time-last-active > span {
+  color: var(--brand-muted);
+  font-size: 11px;
+}
+
+.study-time-metrics strong,
+.study-time-last-active time {
+  color: var(--brand-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.study-time-last-active {
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--brand-border-light);
+}
+
+.monitoring-action-cell,
+.monitoring-action-heading {
+  text-align: right;
+}
+
+.monitoring-action-cell .admin-primary-button {
+  white-space: nowrap;
+}
+
+.student-status-card__summary,
+.student-status-card__summary .student-user-cell,
+.student-status-card__summary .student-user-cell > div:last-child {
+  min-width: 0;
+}
+
+.student-status-card__summary .student-user-cell strong,
+.student-status-card__summary .student-user-cell span {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.lesson-progress-list {
+  display: grid;
+  gap: 9px;
+}
+
+.lesson-progress-card {
+  padding: 13px 15px;
+  border: 1px solid var(--brand-border-light);
+  border-radius: 10px;
+  background: var(--brand-surface);
+}
+
+.lesson-progress-card__main {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.lesson-progress-card__number {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--brand-bg-sub);
+  color: var(--brand-coffee);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.lesson-progress-card__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 3px;
+}
+
+.lesson-progress-card__copy strong {
+  color: var(--brand-text);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.lesson-progress-card__copy span,
+.lesson-progress-card__meta b {
+  color: var(--brand-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.lesson-progress-card__meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 14px;
+  margin: 12px 0 0 41px;
+  padding-top: 10px;
+  border-top: 1px solid var(--brand-border-light);
+}
+
+.lesson-progress-card__meta span {
+  display: grid;
+  gap: 3px;
+  color: var(--brand-text);
+  font-size: 12px;
+}
+
+.admin-exercise-history-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-exercise-history-heading h2 {
+  margin: 0;
+  color: var(--brand-text);
+  font-size: 18px;
+}
+
+.admin-exercise-history-heading span {
+  color: var(--brand-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+  .monitoring-page > .monitoring-kpi-grid:not(.monitoring-kpi-grid--detail) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .monitoring-student-list-table {
+    min-width: 900px;
+  }
+
+  .study-time-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lesson-progress-card__meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .monitoring-page > .monitoring-kpi-grid:not(.monitoring-kpi-grid--detail),
+  .monitoring-kpi-grid--detail {
+    grid-template-columns: 1fr;
+  }
+
+  .study-time-last-active {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .lesson-progress-card__main {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .lesson-progress-card__main .learning-status-badge {
+    margin-left: 41px;
+  }
+
+  .lesson-progress-card__meta {
+    margin-left: 0;
+  }
 }

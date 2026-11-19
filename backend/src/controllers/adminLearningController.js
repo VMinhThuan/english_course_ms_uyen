@@ -9,7 +9,7 @@ import LearningActivity from '../models/LearningActivity.js';
 import Attempt from '../models/Attempt.js';
 import StudentPresence from '../models/StudentPresence.js';
 import StudentDailyStudy from '../models/StudentDailyStudy.js';
-import ExerciseSubmission, { TRACKED_EXERCISE_TYPES } from '../models/ExerciseSubmission.js';
+import ExerciseSubmission from '../models/ExerciseSubmission.js';
 import { getHoChiMinhDateKey, getHoChiMinhDateKeyOffset } from '../services/studentTracking.js';
 
 const isObjectId = (value) => typeof value === 'string' && /^[\da-f]{24}$/i.test(value);
@@ -935,38 +935,21 @@ export const getLearningStudentExerciseSubmissions = async (req, res, next) => {
       return res.status(400).json({ status: 'error', code: 'INVALID_STUDENT_ID', message: 'Mã học viên không hợp lệ.' });
     }
 
-    const page = parseInteger(req.query.page, 1, { min: 1, max: 1000000 });
-    const limit = parseInteger(req.query.limit, 20, { min: 1, max: 100 });
-    const exerciseType = req.query.exerciseType ? String(req.query.exerciseType) : '';
-    if (page === null || limit === null) {
-      return res.status(400).json({ status: 'error', code: 'INVALID_PAGINATION', message: 'Trang hoặc số dòng mỗi trang không hợp lệ.' });
-    }
-    if (exerciseType && !TRACKED_EXERCISE_TYPES.includes(exerciseType)) {
-      return res.status(400).json({ status: 'error', code: 'INVALID_EXERCISE_TYPE', message: 'Loại bài tập không hợp lệ.' });
-    }
-
     const studentId = toObjectId(rawStudentId);
     const studentExists = await User.exists({ _id: studentId, role: 'student' });
     if (!studentExists) {
       return res.status(404).json({ status: 'error', code: 'STUDENT_NOT_FOUND', message: 'Không tìm thấy thông tin học viên.' });
     }
 
-    const filter = { student: studentId };
-    if (exerciseType) filter.exerciseType = exerciseType;
-    const [submissions, total] = await Promise.all([
-      ExerciseSubmission.find(filter)
-        .sort({ submittedAt: -1, _id: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .lean(),
-      ExerciseSubmission.countDocuments(filter),
-    ]);
+    const submissions = await ExerciseSubmission.find({ student: studentId })
+      .sort({ submittedAt: -1, _id: -1 })
+      .lean();
 
     return res.json({
       status: 'success',
       data: {
         submissions,
-        pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 },
+        total: submissions.length,
       },
     });
   } catch (error) {
