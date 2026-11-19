@@ -544,6 +544,67 @@ const candidateForSheet = (sheet, sharedStrings) => {
   return { ...sheet, worksheet, header: findHeader(worksheet) };
 };
 
+export const parseXlsxWorksheetRows = async ({ buffer, originalFileName = 'upload.xlsx', preferredSheetNames = [] }) => {
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) fail('FILE_REQUIRED', 'An XLSX file is required.');
+  if (buffer.length > XLSX_IMPORT_LIMITS.maxFileBytes) fail('FILE_TOO_LARGE', `XLSX file exceeds ${XLSX_IMPORT_LIMITS.maxFileBytes} bytes.`, 413);
+  if (path.extname(String(originalFileName)).toLowerCase() !== '.xlsx') fail('XLSX_EXTENSION_REQUIRED', 'Only .xlsx files are accepted.');
+
+  const { zipFile, entries } = await collectZipEntries(buffer);
+  try {
+    const requiredFile = async (name) => {
+      const entry = entries.get(name);
+      if (!entry) fail('INVALID_XLSX', `Required OOXML entry ${name} is missing.`);
+      return readZipEntry(zipFile, entry);
+    };
+    parseContentTypes(await requiredFile('[Content_Types].xml'));
+    const workbookSheets = parseWorkbook(await requiredFile('xl/workbook.xml'));
+    const relationships = parseWorkbookRelationships(await requiredFile('xl/_rels/workbook.xml.rels'));
+    const sharedStrings = entries.has('xl/sharedStrings.xml')
+      ? parseSharedStrings(await readZipEntry(zipFile, entries.get('xl/sharedStrings.xml')))
+      : { values: [], oversizedIndexes: new Set() };
+    const candidates = [];
+
+    for (const sheet of workbookSheets) {
+      const relation = relationships.get(sheet.relationshipId);
+      if (!relation || !relation.type?.endsWith('/worksheet')) {
+        fail('INVALID_WORKSHEET_RELATIONSHIP', `Worksheet ${sheet.name} has no valid internal relationship.`);
+      }
+      const worksheetPath = resolveWorksheetPath(relation.target);
+      const entry = entries.get(worksheetPath);
+      if (!entry) fail('INVALID_XLSX', `Worksheet entry ${worksheetPath} is missing.`);
+      const xml = await readZipEntry(zipFile, entry);
+      candidates.push(candidateForSheet({ name: sheet.name, state: sheet.state, xml }, sharedStrings));
+    }
+
+    const normalizedPreferredNames = preferredSheetNames.map(normalizeHeader);
+    const preferred = candidates.find((candidate) => normalizedPreferredNames.includes(normalizeHeader(candidate.name)));
+    const populated = (candidate) => [...candidate.worksheet.rows.values()]
+      .reduce((count, row) => count + [...row.values()].filter((cell) => cell.value || cell.formula).length, 0);
+    const selected = preferred || [...candidates].sort((left, right) => populated(right) - populated(left))[0];
+    if (!selected || selected.state !== 'visible') fail('HIDDEN_WORKSHEET', 'Hidden worksheets cannot be imported.');
+    if (selected.worksheet.maxRow > XLSX_IMPORT_LIMITS.maxDataRows + XLSX_IMPORT_LIMITS.maxHeaderScanRows) {
+      fail('ROW_LIMIT', `Worksheet exceeds the ${XLSX_IMPORT_LIMITS.maxDataRows}-row import limit.`, 413);
+    }
+
+    const rows = [];
+    for (let rowNumber = 1; rowNumber <= selected.worksheet.maxRow; rowNumber += 1) {
+      const cells = selected.worksheet.rows.get(rowNumber) || new Map();
+      const values = [];
+      const cellIssues = [];
+      for (const [column, cell] of cells) {
+        values[column - 1] = cell.formula ? '' : cell.value;
+        if (cell.formula) cellIssues.push({ column, code: 'FORMULA_NOT_ALLOWED' });
+        else if (cell.cellError || cell.sharedStringError) cellIssues.push({ column, code: 'CELL_ERROR' });
+        else if (cell.tooLong) cellIssues.push({ column, code: 'CELL_TOO_LONG' });
+      }
+      rows.push({ rowNumber, values, cellIssues });
+    }
+    return { sheetName: selected.name, rows };
+  } finally {
+    zipFile.close();
+  }
+};
+
 export const parseToeicPart5Xlsx = async ({ buffer, originalFileName = 'upload.xlsx' }) => {
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) fail('FILE_REQUIRED', 'An XLSX file is required.');
   if (buffer.length > XLSX_IMPORT_LIMITS.maxFileBytes) fail('FILE_TOO_LARGE', `XLSX file exceeds ${XLSX_IMPORT_LIMITS.maxFileBytes} bytes.`, 413);

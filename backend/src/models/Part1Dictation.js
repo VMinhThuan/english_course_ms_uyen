@@ -8,9 +8,14 @@ const part1DictationSchema = new mongoose.Schema(
       trim: true,
       maxlength: 160,
     },
+    sourceKey: {
+      type: String,
+      trim: true,
+      maxlength: 180,
+    },
     audioUrl: {
       type: String,
-      required: true,
+      default: '',
       trim: true,
     },
     answers: [
@@ -48,6 +53,7 @@ const part1DictationSchema = new mongoose.Schema(
 );
 
 part1DictationSchema.index({ isVisible: 1, createdAt: -1 });
+part1DictationSchema.index({ sourceKey: 1 }, { unique: true, sparse: true, name: 'part1_dictation_source_key' });
 
 const Part1Dictation = mongoose.model('Part1Dictation', part1DictationSchema);
 

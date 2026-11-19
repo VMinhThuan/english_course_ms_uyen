@@ -1,8 +1,8 @@
 import RoadToPart7Reading from '../models/RoadToPart7Reading.js';
 
-const listPublishedReadings = async (_req, res, next) => {
+const listReadings = (publishedOnly) => async (_req, res, next) => {
   try {
-    const items = await RoadToPart7Reading.find({ isPublished: true })
+    const items = await RoadToPart7Reading.find(publishedOnly ? { isPublished: true } : {})
       .select('title order englishText bilingualPairs sourceKey')
       .sort({ order: 1 })
       .lean();
@@ -12,5 +12,5 @@ const listPublishedReadings = async (_req, res, next) => {
   }
 };
 
-export const listStudentRoadToPart7Readings = listPublishedReadings;
-export const listAdminRoadToPart7Readings = listPublishedReadings;
+export const listStudentRoadToPart7Readings = listReadings(true);
+export const listAdminRoadToPart7Readings = listReadings(false);

@@ -106,6 +106,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 
 
 const AdminToeicPart5ImportPage = lazy(() => import('../pages/admin/AdminToeicPart5ImportPage.jsx'));
+const AdminExerciseImportPage = lazy(() => import('../pages/admin/AdminExerciseImportPage.jsx'));
 
 function AdminVocabularyLanding() {
   const role = useAuthStore((state) => state.user?.role);
@@ -225,6 +226,7 @@ function AppRoutes() {
         <Route path="vocabulary/import" element={<Navigate to="/admin/vocabulary/catalog" replace />} />
         <Route path="vocabulary/publication" element={<Navigate to="/admin/vocabulary/catalog" replace />} />
         <Route path="questions" element={<AdminQuestionsPage />} />
+        <Route path="exercise-imports" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div role="status">Đang tải trang…</div>}><AdminExerciseImportPage /></Suspense></ProtectedRoute>} />
         <Route path="questions/import-part5" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div role="status">Đang tải trang…</div>}><AdminToeicPart5ImportPage /></Suspense></ProtectedRoute>} />
         <Route path="assessments" element={<AdminAssessmentsPage />} />
         <Route path="toeic-tests" element={<AdminToeicListPage />} />

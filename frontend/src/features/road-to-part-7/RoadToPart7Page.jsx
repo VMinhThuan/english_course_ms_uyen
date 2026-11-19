@@ -67,13 +67,13 @@ export default function RoadToPart7Page({ admin = false }) {
       eyebrow="READING · TOEIC PART 7"
       title="Road to Part 7"
       description={admin
-        ? 'Thư viện 26 bài đọc song ngữ. Chọn bài để xem mặt tiếng Anh hoặc bản dịch từng câu.'
+        ? 'Thư viện bài đọc song ngữ. Chọn bài để xem mặt tiếng Anh hoặc bản dịch từng câu.'
         : 'Chọn một bài đọc, đọc toàn văn tiếng Anh rồi lật sang bản dịch song ngữ theo từng câu.'}
     />
 
-    {loading ? <div className="ds-loading-state">Đang tải 26 bài đọc…</div>
+    {loading ? <div className="ds-loading-state">Đang tải thư viện bài đọc…</div>
       : error ? <div className="ds-error-state" role="alert"><strong>{error}</strong></div>
-        : items.length === 0 ? <div className="part1-empty"><strong>Chưa có bài đọc nào.</strong><p>Quản trị viên có thể nhập bộ dữ liệu Road to Part 7 từ trang chép chính tả từ vựng.</p></div>
+        : items.length === 0 ? <div className="part1-empty"><strong>Chưa có bài đọc nào.</strong><p>Quản trị viên có thể nhập nội dung từ trang Import bài tập Excel.</p></div>
           : <div className="road7-workspace">
             <aside className="road7-library" aria-label="Danh sách bài đọc">
               <div className="road7-library__heading">

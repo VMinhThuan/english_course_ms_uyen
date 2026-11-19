@@ -121,7 +121,7 @@ export const deletePart1Dictation = async (req, res, next) => {
 
 export const listStudentPart1Dictations = async (_req, res, next) => {
   try {
-    const items = await Part1Dictation.find({ isVisible: true }).lean();
+    const items = await Part1Dictation.find({ isVisible: true, audioUrl: { $exists: true, $nin: ['', null] } }).lean();
     items.sort((left, right) => left.title.localeCompare(right.title, 'en', { numeric: true, sensitivity: 'base' }));
     res.json({ status: 'success', data: { items: items.map(studentDto) } });
   } catch (error) {
@@ -131,7 +131,7 @@ export const listStudentPart1Dictations = async (_req, res, next) => {
 
 export const getStudentPart1Dictation = async (req, res, next) => {
   try {
-    const item = await Part1Dictation.findOne({ _id: req.params.id, isVisible: true });
+    const item = await Part1Dictation.findOne({ _id: req.params.id, isVisible: true, audioUrl: { $exists: true, $nin: ['', null] } });
     if (!item) return res.status(404).json({ status: 'error', message: 'Bài chép chính tả không khả dụng.' });
     res.json({ status: 'success', data: { item: studentDto(item) } });
   } catch (error) {
@@ -141,7 +141,7 @@ export const getStudentPart1Dictation = async (req, res, next) => {
 
 export const submitStudentPart1Dictation = async (req, res, next) => {
   try {
-    const item = await Part1Dictation.findOne({ _id: req.params.id, isVisible: true });
+    const item = await Part1Dictation.findOne({ _id: req.params.id, isVisible: true, audioUrl: { $exists: true, $nin: ['', null] } });
     if (!item) return res.status(404).json({ status: 'error', message: 'Bài chép chính tả không khả dụng.' });
 
     const submissions = req.body?.answers;
