@@ -1,13 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
+import ExerciseImportPanel from '../exercise-import/ExerciseImportPanel.jsx';
 import { mediaApi } from '../../api/mediaApi.js';
 import { part1DictationApi } from '../../api/part1DictationApi.js';
 import { vocabularyDictationApi } from '../../api/vocabularyDictationApi.js';
 import { hardWordsDictationApi } from '../../api/hardWordsDictationApi.js';
-import { learningContentApi } from '../../api/learningContentApi.js';
-import vocabularySeed from '../../data/vocabularyDictationSeed.json';
-import hardWordsSeed from '../../data/hardWordsDictationSeed.json';
-import roadToPart7Seed from '../../data/roadToPart7Seed.json';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
 import '../../pages/Part1Dictation.css';
 import './DictationAdminPage.css';
@@ -28,12 +25,6 @@ export default function AdminDictationPage({ kind = 'part1' }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState({ type: '', text: '' });
-  const [audioFiles, setAudioFiles] = useState([]);
-  const [importing, setImporting] = useState(false);
-  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
-
-  const expectedAudio = useMemo(() => (isHardWords ? hardWordsSeed : vocabularySeed.filter((item) => item.audioAvailable)), [isHardWords]);
-  const missingAudioNames = useMemo(() => (isVocabulary ? vocabularySeed.filter((item) => !item.audioAvailable).map((item) => item.audioFilename) : []), [isVocabulary]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,61 +96,6 @@ export default function AdminDictationPage({ kind = 'part1' }) {
     } catch (error) { setNotice({ type: 'error', text: error.response?.data?.message || 'Không thể xóa bài.' }); }
   };
 
-  const importSeed = async () => {
-    const byName = new Map(audioFiles.filter((file) => file.size > 0).map((file) => [file.name, file]));
-    const missing = expectedAudio.map((item) => item.audioFilename).filter((filename) => !byName.has(filename));
-    if (missing.length) {
-      setNotice({ type: 'error', text: `Thiếu audio: ${missing.join(', ')}. Hãy chọn thư mục audio-voc đầy đủ rồi thử lại.` });
-      return;
-    }
-
-    setImporting(true); setNotice({ type: '', text: '' }); setImportProgress({ current: 0, total: expectedAudio.length });
-    try {
-      const audioUrls = {};
-      for (const [index, seed] of expectedAudio.entries()) {
-        const file = byName.get(seed.audioFilename);
-        setImportProgress({ current: index + 1, total: expectedAudio.length });
-        const response = await mediaApi.uploadMedia(file, 'audio-voc');
-        if (response.data.fileType !== 'audio' || !response.data.storageUrl) {
-          throw new Error(`Không nhận được địa chỉ Blob hợp lệ cho ${file.name}.`);
-        }
-        audioUrls[seed.audioFilename] = response.data.storageUrl;
-      }
-
-      if (isHardWords) {
-        const itemsToImport = hardWordsSeed.map((seed) => ({
-          ...seed,
-          audioUrl: audioUrls[seed.audioFilename] || '',
-        }));
-        const response = await api.importSeed(itemsToImport);
-        await load();
-        const result = response.data;
-        setNotice({
-          type: 'success',
-          text: `Đã nhập ${result.total} mục Hard Words với ${result.answers} từ và ${result.withAudio} audio.`,
-        });
-        return;
-      }
-
-      const vocabularyItems = vocabularySeed.map((seed) => ({
-        ...seed,
-        audioUrl: audioUrls[seed.audioFilename] || '',
-      }));
-      const response = await learningContentApi.importExcelSeed({ vocabularyItems, readings: roadToPart7Seed });
-      await load();
-      const result = response.data;
-      setNotice({
-        type: 'success',
-        text: `Đã nhập ${result.vocabulary.total} nhóm từ (${result.vocabulary.withAudio} có audio, ${result.vocabulary.hiddenWithoutAudio} đang ẩn) và ${result.roadToPart7.total} bài Road to Part 7. ${missingAudioNames.length ? `Audio chưa có: ${missingAudioNames.join(', ')}.` : ''}`,
-      });
-    } catch (error) {
-      setNotice({ type: 'error', text: error.response?.data?.message || error.message || 'Không thể nhập bộ dữ liệu.' });
-    } finally {
-      setImporting(false);
-      setImportProgress({ current: 0, total: 0 });
-    }
-  };
-
   return <main className="admin-page-container part1-admin-page">
     <PageHeader
       eyebrow={isHardWords ? 'HARD WORDS · DICTATION' : isVocabulary ? 'VOCABULARY · DICTATION' : 'TOEIC · PART 1'}
@@ -169,33 +105,10 @@ export default function AdminDictationPage({ kind = 'part1' }) {
         : 'Mỗi bài gồm một audio và nhiều câu đáp án, độc lập với Course và Lesson.'}
     />
     {notice.text && <div className={`part1-notice ${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
-
-    {isWordDictation && <section className="dictation-import-panel">
-      <div>
-        <p className="part1-playlist__eyebrow">NHẬP TỪ EXCEL</p>
-        <h2>{isHardWords ? 'Hard Words Test 7–8' : 'Test 7–8 và Road to Part 7'}</h2>
-        <p>{isHardWords
-          ? 'Chọn thư mục hard-words-dictation. Hệ thống tải 16 audio vào audio-voc rồi nhập 16 mục và 160 từ từ workbook.'
-          : 'Chọn thư mục audio-voc. Hệ thống tải 15 audio hợp lệ lên Blob rồi nhập 16 nhóm từ và 26 bài đọc đã đọc từ hai workbook.'}</p>
-        {missingAudioNames.length > 0 && <small>Audio thiếu hoặc rỗng sẽ được giữ ẩn: {missingAudioNames.join(', ')}.</small>}
-      </div>
-      <label className="dictation-import-picker">
-        <span>{isHardWords ? 'Chọn thư mục hard-words-dictation' : 'Chọn thư mục audio-voc'}</span>
-        <input
-          type="file"
-          accept="audio/mpeg,.mp3"
-          multiple
-          webkitdirectory=""
-          directory=""
-          onChange={(event) => setAudioFiles(Array.from(event.target.files || []))}
-          disabled={importing}
-        />
-        {audioFiles.length > 0 && <small>Đã chọn {audioFiles.length} file; {audioFiles.filter((file) => file.size > 0).length} file có dữ liệu.</small>}
-      </label>
-      <button type="button" className="ds-button ds-button--primary" onClick={importSeed} disabled={importing || audioFiles.length === 0}>
-        {importing ? `Đang upload ${importProgress.current}/${importProgress.total} audio…` : isHardWords ? 'Nhập Hard Words và audio' : 'Nhập dữ liệu Excel và audio'}
-      </button>
-    </section>}
+    <ExerciseImportPanel
+      exerciseType={isHardWords ? 'hard-words-dictation' : isVocabulary ? 'vocabulary-dictation' : 'part1-dictation'}
+      onImported={load}
+    />
 
     <section className="part1-admin-editor"><div><p className="part1-playlist__eyebrow">{editingId ? 'CHỈNH SỬA BÀI NGHE' : 'TẠO BÀI NGHE MỚI'}</p><h2>{editingId ? 'Cập nhật audio và đáp án' : 'Một audio, nhiều đáp án cần chép'}</h2></div>
       <form onSubmit={save}>

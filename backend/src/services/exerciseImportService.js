@@ -57,7 +57,7 @@ const ensureImportIndexes = async () => {
 
 const HEADER_ALIASES = {
   day: ['ngay', 'day'],
-  number: ['so cau', 'cau so', 'so thu tu', 'number', 'no'],
+  number: ['so cau', 'cau so', 'cau trong ngay', 'so thu tu', 'number', 'no'],
   prompt: ['cau can lam', 'cau hoi', 'noi dung cau hoi', 'cau tieng anh', 'prompt', 'question'],
   answerText: ['script dap an', 'dap an', 'tu vung', 'tu tieng anh', 'tu tieng anh dap an', 'english word', 'word'],
   translation: ['dich nghia', 'nghia tieng viet', 'ban dich', 'translation', 'vietnamese meaning'],

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { assessmentApi } from '../../api/assessmentApi.js';
 import {
@@ -9,6 +9,7 @@ import {
 } from './toeicPart5QuestionBankUtils.js';
 
 const PAGE_SIZE = 20;
+const AdminToeicPart5ImportPage = lazy(() => import('./AdminToeicPart5ImportPage.jsx'));
 const statusOptions = [['', 'Tất cả trạng thái'], ['draft', 'Bản nháp'], ['published', 'Đã xuất bản'], ['hidden', 'Đang ẩn']];
 
 const createEmptyForm = () => ({
@@ -48,6 +49,8 @@ function QuestionStatus({ status }) {
 export default function AdminToeicPart5QuestionBank() {
   const [searchParams, setSearchParams] = useSearchParams();
   const scopeParam = searchParams.get('toeicPart');
+  const [showImport, setShowImport] = useState(() => searchParams.get('import') === '1' || searchParams.has('batchId'));
+  const [importDirty, setImportDirty] = useState(false);
   const pageParam = Number.parseInt(searchParams.get('page') || '1', 10);
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
   const statusFilter = searchParams.get('status') || '';
@@ -74,6 +77,14 @@ export default function AdminToeicPart5QuestionBank() {
     }
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
+
+  const toggleImport = () => {
+    const nextOpen = !showImport;
+    if (showImport && importDirty && !window.confirm('Bỏ các chỉnh sửa dòng Excel chưa lưu? Phiên preview đã lưu vẫn được giữ lại.')) return;
+    setShowImport(nextOpen);
+    if (!nextOpen) setImportDirty(false);
+    setBankParams(nextOpen ? { import: '1' } : { import: null, batchId: null });
+  };
 
   useEffect(() => {
     if (scopeParam === '5') return;
@@ -246,9 +257,15 @@ export default function AdminToeicPart5QuestionBank() {
         >
           {bulkPublishing ? 'Đang xuất bản…' : 'Xuất bản tất cả câu hợp lệ'}
         </button>
-        <Link className="admin-quiet-button admin-qb-import-link" to="/admin/questions/import-part5">Import Excel</Link>
+        <button type="button" className="admin-quiet-button admin-qb-import-link" onClick={toggleImport}>
+          {showImport ? 'Đóng import' : 'Import Excel'}
+        </button>
         <button type="button" className="admin-primary-button" onClick={openCreate}>Thêm câu hỏi</button>
       </div>
+
+      {showImport && <Suspense fallback={<div className="admin-table-skeleton" role="status">Đang mở import Excel…</div>}>
+        <AdminToeicPart5ImportPage embedded onDirtyChange={setImportDirty} />
+      </Suspense>}
 
       <div className="admin-p5-scope-note" role="status">Đang hiển thị riêng câu hỏi TOEIC Part 5. Phạm vi này được giữ nguyên khi tìm kiếm, lọc và chuyển trang.</div>
 

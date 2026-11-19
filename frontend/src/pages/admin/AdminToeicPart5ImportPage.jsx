@@ -88,7 +88,7 @@ const ModalContent = ({ title, labelledBy, children, onClose, className }) => {
   );
 };
 
-export default function AdminToeicPart5ImportPage() {
+export default function AdminToeicPart5ImportPage({ embedded = false, onDirtyChange }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const batchId = searchParams.get('batchId') || '';
   const [file, setFile] = useState(null);
@@ -172,6 +172,7 @@ export default function AdminToeicPart5ImportPage() {
   useEffect(() => setPage(1), [search, rowNumberFilter, statusFilter]);
 
   useEffect(() => {
+    onDirtyChange?.(dirty);
     if (!dirty) {
       setUnsavedNavigationGuard(null);
       return undefined;
@@ -199,7 +200,7 @@ export default function AdminToeicPart5ImportPage() {
       window.removeEventListener('beforeunload', beforeUnload);
       document.removeEventListener('click', guardLinks, true);
     };
-  }, [dirty]);
+  }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     if (!editing || !editFormRef.current) return undefined;
@@ -332,16 +333,18 @@ export default function AdminToeicPart5ImportPage() {
     return resultByNumber;
   }, [results]);
 
+  const ImportContainer = embedded ? 'section' : 'main';
+
   return (
-    <main className="p5-import">
-      <div className="p5-import__topline">
+    <ImportContainer className={`p5-import${embedded ? ' p5-import--embedded' : ''}`}>
+      {!embedded && <div className="p5-import__topline">
         <Link to="/admin/questions?toeicPart=5" className="p5-import__back">← Ngân hàng Part 5</Link>
         <span className="p5-import__admin-mark">ADMIN REVIEW</span>
-      </div>
+      </div>}
       <header className="p5-import__hero">
         <div>
           <p className="p5-import__eyebrow">TOEIC · PART 5</p>
-          <h1>Import Excel Part 5</h1>
+          {embedded ? <h2>Import Excel Part 5</h2> : <h1>Import Excel Part 5</h1>}
           <p>Phân tích, rà soát từng dòng và chọn câu hỏi sẽ tạo thành bản nháp.</p>
         </div>
         {batchId && <button type="button" className="p5-import__button p5-import__button--secondary" onClick={startNewUpload}>Phiên upload mới</button>}
@@ -467,6 +470,6 @@ export default function AdminToeicPart5ImportPage() {
           <div className="p5-import__confirm-copy"><p><strong>{selectedValidRows.length} Question Draft</strong> sẽ được tạo từ các dòng đang VALID đã chọn.</p><p>{Math.max(0, rows.length - selectedValidRows.length)} dòng còn lại được bỏ qua trong lần này. Dòng trùng và cần kiểm duyệt không được gửi.</p><div className="p5-import__draft-note">Các Question chỉ lưu trong ngân hàng ở trạng thái <b>Draft</b>; thao tác này không publish vào đề thi.</div></div><div className="p5-import__modal-actions"><button type="button" className="p5-import__button p5-import__button--secondary" onClick={() => setConfirmOpen(false)}>Quay lại rà soát</button><button type="button" className="p5-import__button p5-import__button--primary" disabled={confirmBusy} onClick={confirmImport}>{confirmBusy ? 'Đang xử lý…' : `Tạo ${selectedValidRows.length} Draft`}</button></div>
         </Modal>
       )}
-    </main>
+    </ImportContainer>
   );
 }

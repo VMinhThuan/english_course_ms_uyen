@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { assessmentApi } from '../../api/assessmentApi.js';
 import useAuthStore from '../../store/authStore.js';
 import AdminToeicPart5QuestionBank from './AdminToeicPart5QuestionBank.jsx';
@@ -26,7 +26,6 @@ function GenericAdminQuestionsPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
-  const user = useAuthStore((state) => state.user);
   const toeicPart = searchParams.get('toeicPart') || '';
   const statusFilter = searchParams.get('status') || '';
 
@@ -137,7 +136,6 @@ function GenericAdminQuestionsPage() {
           <option value="">Tất cả dạng câu hỏi</option>
           {types.map((item) => <option key={item[0]} value={item[0]}>{item[1]}</option>)}
         </select>
-        {user?.role === 'admin' && <Link className="admin-quiet-button admin-qb-import-link" to="/admin/questions/import-part5">Import Excel Part 5</Link>}
         <button className="admin-primary-button" onClick={() => open()}>Thêm câu hỏi</button>
       </div>
       {error && <div className="admin-error" role="alert">{error}<button onClick={load}>Thử lại</button></div>}

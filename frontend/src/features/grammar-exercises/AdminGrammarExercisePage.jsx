@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
+import ExerciseImportPanel from '../exercise-import/ExerciseImportPanel.jsx';
 import { grammarExerciseApi } from '../../api/grammarExerciseApi.js';
 import { GRAMMAR_EXERCISES } from './grammarExerciseConfig.js';
 import './adminGrammarExercise.css';
@@ -147,6 +148,8 @@ export default function AdminGrammarExercisePage({ exerciseType }) {
         title={config.title}
         description="Thêm, sửa, xóa câu hỏi và chọn câu sẽ hiển thị với học viên. Dạng bài này không dùng audio."
       />
+
+      <ExerciseImportPanel exerciseType={`grammar-${exerciseType}`} onImported={load} />
 
       {notice.text && <div className={`admin-grammar-notice is-${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
 

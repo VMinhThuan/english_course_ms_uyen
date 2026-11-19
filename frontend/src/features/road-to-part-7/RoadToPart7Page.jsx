@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
+import ExerciseImportPanel from '../exercise-import/ExerciseImportPanel.jsx';
 import { roadToPart7Api } from '../../api/roadToPart7Api.js';
 import '../../pages/Vocabulary.css';
 import './RoadToPart7Page.css';
@@ -57,6 +58,16 @@ export default function RoadToPart7Page({ admin = false }) {
   };
 
   const flip = () => setSide((current) => current === 'front' ? 'back' : 'front');
+  const refreshAdminReadings = async () => {
+    try {
+      const response = await roadToPart7Api.getAdminReadings();
+      const readings = response.data.items || [];
+      setItems(readings);
+      setSelectedId(readings[0]?._id || readings[0]?.sourceKey || '');
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'Không thể tải lại danh sách bài đọc.');
+    }
+  };
   const moveReading = (direction) => {
     const next = filteredItems[selectedIndex + direction];
     if (next) choose(next);
@@ -71,9 +82,11 @@ export default function RoadToPart7Page({ admin = false }) {
         : 'Chọn một bài đọc, đọc toàn văn tiếng Anh rồi lật sang bản dịch song ngữ theo từng câu.'}
     />
 
+    {admin && <ExerciseImportPanel exerciseType="road-to-part-7" onImported={refreshAdminReadings} />}
+
     {loading ? <div className="ds-loading-state">Đang tải thư viện bài đọc…</div>
       : error ? <div className="ds-error-state" role="alert"><strong>{error}</strong></div>
-        : items.length === 0 ? <div className="part1-empty"><strong>Chưa có bài đọc nào.</strong><p>Quản trị viên có thể nhập nội dung từ trang Import bài tập Excel.</p></div>
+        : items.length === 0 ? <div className="part1-empty"><strong>Chưa có bài đọc nào.</strong><p>{admin ? 'Dùng khung Import Excel ở phía trên để thêm bài đọc.' : 'Bài đọc mới sẽ xuất hiện tại đây sau khi được quản trị viên thêm vào.'}</p></div>
           : <div className="road7-workspace">
             <aside className="road7-library" aria-label="Danh sách bài đọc">
               <div className="road7-library__heading">

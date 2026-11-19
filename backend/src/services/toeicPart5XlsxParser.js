@@ -188,10 +188,20 @@ const parseContentTypes = (xml) => {
   let macroTypeFound = false;
   parseXml(xml, '[Content_Types].xml', {
     open(tag) {
-      if (localName(tag.name) !== 'Override') return;
-      const partName = attribute(tag, 'PartName');
-      const contentType = attribute(tag, 'ContentType').toLowerCase();
-      if (partName === '/xl/workbook.xml' && contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml') {
+      const tagName = localName(tag.name);
+      if (tagName !== 'Override' && tagName !== 'Default') return;
+      const contentType = (attribute(tag, 'ContentType') || '').toLowerCase();
+      if (tagName === 'Override'
+        && attribute(tag, 'PartName') === '/xl/workbook.xml'
+        && contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml') {
+        workbookTypeFound = true;
+      }
+      // Some valid generators declare the workbook's XML MIME type as the
+      // package default and then override worksheet/style parts individually.
+      // OPC resolves an Override first, then falls back to this Default.
+      if (tagName === 'Default'
+        && (attribute(tag, 'Extension') || '').toLowerCase() === 'xml'
+        && contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml') {
         workbookTypeFound = true;
       }
       if (contentType.includes('macroenabled') || contentType.includes('vbaproject')) macroTypeFound = true;
@@ -573,7 +583,9 @@ export const parseXlsxWorksheetRows = async ({ buffer, originalFileName = 'uploa
       const entry = entries.get(worksheetPath);
       if (!entry) fail('INVALID_XLSX', `Worksheet entry ${worksheetPath} is missing.`);
       const xml = await readZipEntry(zipFile, entry);
-      candidates.push(candidateForSheet({ name: sheet.name, state: sheet.state, xml }, sharedStrings));
+      const worksheet = parseWorksheet(xml, sheet.name);
+      resolveSharedCells(worksheet, sharedStrings);
+      candidates.push({ name: sheet.name, state: sheet.state, worksheet });
     }
 
     const normalizedPreferredNames = preferredSheetNames.map(normalizeHeader);

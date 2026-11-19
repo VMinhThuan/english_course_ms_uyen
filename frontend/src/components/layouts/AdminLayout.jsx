@@ -29,7 +29,6 @@ export default function AdminLayout() {
     else if (path.includes('vocabulary')) pageTitle = 'Quản lý Từ vựng';
     else if (path.includes('part1-dictations')) pageTitle = 'Chép chính tả Part 1';
     else if (path.includes('questions')) pageTitle = isAdmin ? 'Ngân hàng Part 5' : 'Ngân hàng Câu hỏi';
-    else if (path.includes('exercise-imports')) pageTitle = 'Import bài tập từ Excel';
     else if (path.includes('assessments')) pageTitle = 'Quản lý Bài tập';
     else if (path.includes('toeic')) pageTitle = 'Quản lý Đề thi TOEIC';
     else if (path.includes('results')) pageTitle = 'Kết quả Làm bài';
@@ -160,21 +159,6 @@ export default function AdminLayout() {
             </svg>
             <span>{isAdmin ? 'Ngân hàng Part 5' : 'Ngân hàng câu hỏi'}</span>
           </NavLink>
-
-          {isAdmin && (
-            <NavLink
-              to="/admin/exercise-imports"
-              className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={closeMobileMenu}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 3v12"></path>
-                <path d="m7 10 5 5 5-5"></path>
-                <path d="M5 21h14"></path>
-              </svg>
-              <span>Import bài tập Excel</span>
-            </NavLink>
-          )}
 
           <NavLink
             to="/admin/toeic-tests"

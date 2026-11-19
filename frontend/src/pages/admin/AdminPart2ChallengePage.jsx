@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
+import ExerciseImportPanel from '../../features/exercise-import/ExerciseImportPanel.jsx';
 import { adminPart2ChallengeApi } from '../../api/adminPart2ChallengeApi.js';
 import { mediaApi } from '../../api/mediaApi.js';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
@@ -190,6 +191,8 @@ export default function AdminPart2ChallengePage() {
         title="Part 2 Challange"
         description="Tạo và chỉnh sửa câu hỏi, quản lý audio, script, bản dịch và trạng thái hiển thị với học viên."
       />
+
+      <ExerciseImportPanel exerciseType="part2-challenge" onImported={load} />
 
       {notice.text && <div className={`admin-part2-notice is-${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
 
