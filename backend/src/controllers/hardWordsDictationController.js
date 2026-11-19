@@ -1,5 +1,6 @@
 import HardWordsDictation from '../models/HardWordsDictation.js';
 import { deleteFromBlob, getPrivateBlobPathname, isPrivateBlobUrl } from '../utils/blobStorage.js';
+import { recordExerciseSubmission } from '../services/studentTracking.js';
 
 const SOURCE_WORKBOOK = 'Tu_vung_Test_7_8 (1).xlsx';
 
@@ -194,7 +195,11 @@ export const submitStudentHardWordsDictation = async (req, res, next) => {
     const item = await HardWordsDictation.findOne({ _id: req.params.id, isVisible: true });
     if (!item) return res.status(404).json({ status: 'error', message: 'Bài Hard Words Dictation không khả dụng.' });
 
-    const submissions = Array.isArray(req.body.answers) ? req.body.answers : [];
+    const submissions = req.body?.answers;
+    if (!Array.isArray(submissions) || submissions.length !== item.answers.length
+      || submissions.some((answer) => typeof answer !== 'string')) {
+      return res.status(400).json({ status: 'error', message: 'Danh sách câu trả lời không hợp lệ.' });
+    }
     const results = item.answers
       .sort((left, right) => left.order - right.order)
       .map((answer, index) => ({
@@ -203,11 +208,40 @@ export const submitStudentHardWordsDictation = async (req, res, next) => {
         correctAnswer: answer.text,
         correctTranslation: answer.translation || '',
       }));
+    const correctCount = results.filter((result) => result.isCorrect).length;
+    const unansweredCount = results.filter((_, index) => !submissions[index].trim()).length;
+    const incorrectCount = results.length - correctCount - unansweredCount;
+    await recordExerciseSubmission({
+      role: req.user?.role,
+      studentId: req.user._id,
+      clientSubmissionId: req.body?.submissionId,
+      exerciseType: 'hard-words-dictation',
+      sourceId: item._id,
+      sourceTitle: item.title,
+      total: results.length,
+      correctCount,
+      incorrectCount,
+      unansweredCount,
+      questions: results.map((result, index) => {
+        const submittedAnswer = String(submissions[index] ?? '');
+        return {
+          number: result.order,
+          prompt: `Từ ${result.order}`,
+          submittedAnswer,
+          correctAnswer: result.correctAnswer,
+          correctTranslation: result.correctTranslation,
+          isCorrect: result.isCorrect,
+          status: result.isCorrect ? 'correct' : submittedAnswer.trim() ? 'incorrect' : 'unanswered',
+        };
+      }),
+    });
     res.json({
       status: 'success',
       data: {
         results,
-        correctCount: results.filter((result) => result.isCorrect).length,
+        correctCount,
+        incorrectCount,
+        unansweredCount,
         total: results.length,
       },
     });

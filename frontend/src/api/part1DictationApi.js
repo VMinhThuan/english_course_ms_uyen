@@ -8,5 +8,5 @@ export const part1DictationApi = {
   delete: async (id) => (await axiosInstance.delete(`/admin/part1-dictations/${id}`)).data,
   getStudentItems: async () => (await axiosInstance.get('/part1-dictations')).data,
   getStudentItem: async (id) => (await axiosInstance.get(`/part1-dictations/${id}`)).data,
-  submit: async (id, answers) => (await axiosInstance.post(`/part1-dictations/${id}/submit`, { answers })).data,
+  submit: async (id, answers, submissionId) => (await axiosInstance.post(`/part1-dictations/${id}/submit`, { answers, submissionId })).data,
 };

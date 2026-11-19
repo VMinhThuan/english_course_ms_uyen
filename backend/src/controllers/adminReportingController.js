@@ -218,7 +218,7 @@ export const getAdminStudentAttempts = async (req, res, next) => {
     const studentExists = await User.exists({ _id: studentId, role: 'student' });
     if (!studentExists) return fail(res, 404, 'STUDENT_NOT_FOUND', 'Không tìm thấy thông tin học viên.');
 
-    const filters = parseFilters(req.query, { defaultState: 'ALL', defaultSort: 'started_desc' });
+    const filters = parseFilters(req.query, { defaultState: 'COMPLETED_SCORED', defaultSort: 'started_desc' });
     if (filters.error) return fail(res, 400, filters.error[0], filters.error[1]);
     const report = await runReport({ filters: { ...filters, studentId } });
     return res.json({ status: 'success', data: report });

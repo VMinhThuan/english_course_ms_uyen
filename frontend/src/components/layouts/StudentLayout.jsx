@@ -4,6 +4,7 @@ import useAuthStore from '../../store/authStore.js';
 import { assessmentApi } from '../../api/assessmentApi.js';
 import PracticeSidebarMenu from './PracticeSidebarMenu.jsx';
 import { acquireDocumentScrollLock } from '../../utils/documentScrollLock.js';
+import useStudentActivityTracker from '../../hooks/useStudentActivityTracker.js';
 import './StudentLayout.css';
 
 export default function StudentLayout() {
@@ -11,6 +12,7 @@ export default function StudentLayout() {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const location = useLocation();
+  useStudentActivityTracker(user, location.pathname);
   const locationPathRef = useRef(location.pathname);
   locationPathRef.current = location.pathname;
   const isActiveAssessmentRoute = location.pathname.startsWith('/student/tests/');

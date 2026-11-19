@@ -4,6 +4,9 @@ import LearningProgress from '../models/LearningProgress.js';
 import LearningActivity from '../models/LearningActivity.js';
 import Lesson from '../models/Lesson.js';
 import Course from '../models/Course.js';
+import StudentPresence from '../models/StudentPresence.js';
+import StudentDailyStudy from '../models/StudentDailyStudy.js';
+import { getHoChiMinhDateKey } from '../services/studentTracking.js';
 
 const isObjectId = (value) => typeof value === 'string' && /^[\da-f]{24}$/i.test(value);
 const toObjectId = (value) => new mongoose.Types.ObjectId(value);
@@ -12,6 +15,85 @@ const toObjectId = (value) => new mongoose.Types.ObjectId(value);
 const MAX_HEARTBEAT_SECONDS = 45;
 // Maximum idle wall-clock time allowed before a session is considered stale (15 minutes)
 const MAX_IDLE_SECONDS = 15 * 60;
+const MAX_STUDENT_ACTIVITY_CREDIT_SECONDS = 15;
+const STUDENT_ACTIVITY_CREDIT_WINDOW_MS = 10 * 1000;
+
+/**
+ * @desc    Record student presence and active study time outside lesson sessions
+ * @route   POST /api/v1/learning/sessions/activity-heartbeat
+ * @access  Private (Active Student)
+ */
+export const sendStudentActivityHeartbeat = async (req, res, next) => {
+  try {
+    if (req.user?.role !== 'student') {
+      return res.json({ status: 'success', data: { addedSeconds: 0 } });
+    }
+    const studentId = req.user._id;
+    const now = new Date();
+    const isActive = req.body?.isActive === true;
+    const claimedSeconds = Number(req.body?.activeSeconds);
+    const activeSeconds = isActive && Number.isFinite(claimedSeconds)
+      ? Math.max(0, Math.min(MAX_STUDENT_ACTIVITY_CREDIT_SECONDS, Math.floor(claimedSeconds)))
+      : 0;
+    const requestedRoute = typeof req.body?.route === 'string' ? req.body.route.trim().slice(0, 160) : '';
+    const route = requestedRoute.startsWith('/student/') || requestedRoute === '/student'
+      ? requestedRoute
+      : '';
+
+    const presenceUpdate = {
+      $set: {
+        lastSeenAt: now,
+        currentRoute: route,
+        ...(isActive ? { lastActiveAt: now } : {}),
+      },
+    };
+    try {
+      await StudentPresence.updateOne({ _id: studentId }, presenceUpdate, { upsert: true });
+    } catch (error) {
+      if (error?.code !== 11000) throw error;
+      await StudentPresence.updateOne({ _id: studentId }, presenceUpdate);
+    }
+
+    let addedSeconds = 0;
+    if (activeSeconds > 0) {
+      const creditClaim = await StudentPresence.findOneAndUpdate(
+        {
+          _id: studentId,
+          $or: [
+            { lastCreditedAt: null },
+            { lastCreditedAt: { $lte: new Date(now.getTime() - STUDENT_ACTIVITY_CREDIT_WINDOW_MS) } },
+          ],
+        },
+        { $set: { lastCreditedAt: now } },
+        { new: false },
+      ).select('lastCreditedAt').lean();
+
+      if (creditClaim) {
+        const elapsedSinceLastCredit = creditClaim.lastCreditedAt
+          ? Math.max(0, Math.floor((now.getTime() - new Date(creditClaim.lastCreditedAt).getTime()) / 1000))
+          : activeSeconds;
+        addedSeconds = Math.min(activeSeconds, elapsedSinceLastCredit);
+      }
+
+      if (creditClaim && addedSeconds > 0) {
+        const dateKey = getHoChiMinhDateKey(now);
+        await StudentDailyStudy.updateOne(
+          { _id: `${studentId}:${dateKey}` },
+          {
+            $inc: { activeSeconds: addedSeconds },
+            $set: { lastActiveAt: now },
+            $setOnInsert: { student: studentId, dateKey },
+          },
+          { upsert: true },
+        );
+      }
+    }
+
+    return res.json({ status: 'success', data: { addedSeconds } });
+  } catch (error) {
+    return next(error);
+  }
+};
 
 /**
  * @desc    Start a learning session for a lesson

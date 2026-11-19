@@ -5,6 +5,8 @@ import {
   getLearningStudentDetail,
   getLearningStudentProgress,
   getLearningStudentHistory,
+  getLearningStudentDailyStudy,
+  getLearningStudentExerciseSubmissions,
   getCourseStats,
 } from '../controllers/adminLearningController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
@@ -19,6 +21,8 @@ router.get('/students', getLearningStudents);
 router.get('/students/:studentId', getLearningStudentDetail);
 router.get('/students/:studentId/progress', getLearningStudentProgress);
 router.get('/students/:studentId/history', getLearningStudentHistory);
+router.get('/students/:studentId/daily-study', getLearningStudentDailyStudy);
+router.get('/students/:studentId/exercise-submissions', getLearningStudentExerciseSubmissions);
 router.get('/courses/:courseId/stats', getCourseStats);
 
 export default router;

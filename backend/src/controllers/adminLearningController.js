@@ -7,9 +7,15 @@ import LearningProgress from '../models/LearningProgress.js';
 import LearningSession from '../models/LearningSession.js';
 import LearningActivity from '../models/LearningActivity.js';
 import Attempt from '../models/Attempt.js';
+import StudentPresence from '../models/StudentPresence.js';
+import StudentDailyStudy from '../models/StudentDailyStudy.js';
+import ExerciseSubmission, { TRACKED_EXERCISE_TYPES } from '../models/ExerciseSubmission.js';
+import { getHoChiMinhDateKey, getHoChiMinhDateKeyOffset } from '../services/studentTracking.js';
 
 const isObjectId = (value) => typeof value === 'string' && /^[\da-f]{24}$/i.test(value);
 const toObjectId = (value) => new mongoose.Types.ObjectId(value);
+const PRESENCE_ACTIVE_WINDOW_MS = 45 * 1000;
+const STUDY_REPORT_DAYS = 30;
 
 const foldSearchText = (value) =>
   String(value || '')
@@ -38,6 +44,30 @@ export const getLearningOverview = async (req, res, next) => {
     const [totalStudents, totalCourses] = await Promise.all([
       User.countDocuments(studentFilter),
       Course.countDocuments({ isPublished: true }),
+    ]);
+
+    const now = new Date();
+    const todayKey = getHoChiMinhDateKey(now);
+    const firstStudyDateKey = getHoChiMinhDateKeyOffset(STUDY_REPORT_DAYS - 1, now);
+    const [currentlyActiveStudents, dailyStudySummary] = await Promise.all([
+      StudentPresence.countDocuments({ lastActiveAt: { $gte: new Date(now.getTime() - PRESENCE_ACTIVE_WINDOW_MS) } }),
+      StudentDailyStudy.aggregate([
+        { $match: { dateKey: { $gte: firstStudyDateKey, $lte: todayKey }, activeSeconds: { $gt: 0 } } },
+        {
+          $group: {
+            _id: '$student',
+            totalSeconds: { $sum: '$activeSeconds' },
+            studyDays: { $sum: 1 },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            averageDailyStudySeconds: { $avg: { $divide: ['$totalSeconds', '$studyDays'] } },
+            studentCount: { $sum: 1 },
+          },
+        },
+      ]),
     ]);
 
     // Active learners: students who have at least one in_progress or completed lesson, or active session
@@ -112,6 +142,10 @@ export const getLearningOverview = async (req, res, next) => {
       data: {
         totalStudents,
         activeLearners,
+        currentlyActiveStudents,
+        currentlyInactiveStudents: Math.max(0, totalStudents - currentlyActiveStudents),
+        averageDailyStudySeconds: Math.round(dailyStudySummary[0]?.averageDailyStudySeconds || 0),
+        studyAveragePeriodDays: STUDY_REPORT_DAYS,
         notStartedStudents,
         completedStudents,
         totalLearningSeconds,
@@ -253,6 +287,9 @@ export const getLearningStudents = async (req, res, next) => {
     }
 
     const filteredStudentIds = candidateStudents.map((s) => s._id);
+    const now = new Date();
+    const todayKey = getHoChiMinhDateKey(now);
+    const firstStudyDateKey = getHoChiMinhDateKeyOffset(STUDY_REPORT_DAYS - 1, now);
 
     // Aggregate LearningProgress for these students
     const progressDocs = await LearningProgress.find({
@@ -267,17 +304,41 @@ export const getLearningStudents = async (req, res, next) => {
     });
 
     // Aggregate LearningSession active seconds for these students
-    const sessionTimeByStudent = await LearningSession.aggregate([
-      { $match: { student: { $in: filteredStudentIds } } },
-      {
-        $group: {
-          _id: '$student',
-          totalSessionSeconds: { $sum: '$accumulatedActiveSeconds' },
-          latestSessionHb: { $max: '$lastHeartbeatAt' },
+    const [sessionTimeByStudent, presenceDocs, dailyStudyAgg] = await Promise.all([
+      LearningSession.aggregate([
+        { $match: { student: { $in: filteredStudentIds } } },
+        {
+          $group: {
+            _id: '$student',
+            totalSessionSeconds: { $sum: '$accumulatedActiveSeconds' },
+            latestSessionHb: { $max: '$lastHeartbeatAt' },
+          },
         },
-      },
+      ]),
+      StudentPresence.find({ _id: { $in: filteredStudentIds } }).select('_id lastSeenAt lastActiveAt').lean(),
+      StudentDailyStudy.aggregate([
+        {
+          $match: {
+            student: { $in: filteredStudentIds },
+            dateKey: { $gte: firstStudyDateKey, $lte: todayKey },
+            activeSeconds: { $gt: 0 },
+          },
+        },
+        {
+          $group: {
+            _id: '$student',
+            totalSeconds: { $sum: '$activeSeconds' },
+            studyDays: { $sum: 1 },
+            todayStudySeconds: {
+              $sum: { $cond: [{ $eq: ['$dateKey', todayKey] }, '$activeSeconds', 0] },
+            },
+          },
+        },
+      ]),
     ]);
     const sessionMap = new Map(sessionTimeByStudent.map((s) => [String(s._id), s]));
+    const presenceMap = new Map(presenceDocs.map((presence) => [String(presence._id), presence]));
+    const dailyStudyMap = new Map(dailyStudyAgg.map((entry) => [String(entry._id), entry]));
 
     // Construct detailed student learning rows
     let rows = candidateStudents.map((student) => {
@@ -285,6 +346,8 @@ export const getLearningStudents = async (req, res, next) => {
       const studentCourses = enrolledCoursesByStudent.get(sId) || [];
       const userProgress = progressByStudent.get(sId) || [];
       const userSession = sessionMap.get(sId);
+      const presence = presenceMap.get(sId);
+      const dailyStudy = dailyStudyMap.get(sId);
 
       // Compute total published lessons across enrolled courses
       const enrolledCourseIdSet = new Set(studentCourses.map((c) => String(c._id)));
@@ -337,6 +400,16 @@ export const getLearningStudents = async (req, res, next) => {
         createdAt: student.createdAt,
         enrolledCourses: studentCourses.map((c) => ({ _id: c._id, title: c.title })),
         lastActiveTime: maxLastAccessed,
+        presenceLastActiveAt: presence?.lastActiveAt || null,
+        activityStatus: presence?.lastActiveAt
+          && now.getTime() - new Date(presence.lastActiveAt).getTime() <= PRESENCE_ACTIVE_WINDOW_MS
+          ? 'ACTIVE'
+          : 'INACTIVE',
+        studyTodaySeconds: dailyStudy?.todayStudySeconds || 0,
+        averageDailyStudySeconds: dailyStudy?.studyDays
+          ? Math.round(dailyStudy.totalSeconds / dailyStudy.studyDays)
+          : 0,
+        studyDaysInLast30Days: dailyStudy?.studyDays || 0,
         totalLearningSeconds,
         completedLessons,
         totalLessons,
@@ -363,9 +436,10 @@ export const getLearningStudents = async (req, res, next) => {
     } else {
       // active_desc (default): latest lastActiveTime first
       rows.sort((a, b) => {
-        const timeA = a.lastActiveTime ? new Date(a.lastActiveTime).getTime() : 0;
-        const timeB = b.lastActiveTime ? new Date(b.lastActiveTime).getTime() : 0;
-        return timeB - timeA || a.fullName.localeCompare(b.fullName, 'vi');
+        const activeDelta = Number(b.activityStatus === 'ACTIVE') - Number(a.activityStatus === 'ACTIVE');
+        const timeA = a.presenceLastActiveAt ? new Date(a.presenceLastActiveAt).getTime() : 0;
+        const timeB = b.presenceLastActiveAt ? new Date(b.presenceLastActiveAt).getTime() : 0;
+        return activeDelta || timeB - timeA || a.fullName.localeCompare(b.fullName, 'vi');
       });
     }
 
@@ -487,15 +561,25 @@ export const getLearningStudentDetail = async (req, res, next) => {
       : 0;
 
     // Total learning time from sessions
-    const sessionTimeAgg = await LearningSession.aggregate([
-      { $match: { student: studentId } },
-      {
-        $group: {
-          _id: null,
-          totalSeconds: { $sum: '$accumulatedActiveSeconds' },
-          lastHeartbeat: { $max: '$lastHeartbeatAt' },
+    const now = new Date();
+    const todayKey = getHoChiMinhDateKey(now);
+    const firstStudyDateKey = getHoChiMinhDateKeyOffset(STUDY_REPORT_DAYS - 1, now);
+    const [sessionTimeAgg, presence, dailyStudyRows] = await Promise.all([
+      LearningSession.aggregate([
+        { $match: { student: studentId } },
+        {
+          $group: {
+            _id: null,
+            totalSeconds: { $sum: '$accumulatedActiveSeconds' },
+            lastHeartbeat: { $max: '$lastHeartbeatAt' },
+          },
         },
-      },
+      ]),
+      StudentPresence.findById(studentId).select('lastSeenAt lastActiveAt currentRoute').lean(),
+      StudentDailyStudy.find({
+        student: studentId,
+        dateKey: { $gte: firstStudyDateKey, $lte: todayKey },
+      }).sort({ dateKey: -1 }).lean(),
     ]);
     const sessionTotalSeconds = sessionTimeAgg[0]?.totalSeconds || 0;
     if (sessionTimeAgg[0]?.lastHeartbeat && (!lastActivityTime || new Date(sessionTimeAgg[0].lastHeartbeat) > lastActivityTime)) {
@@ -503,6 +587,16 @@ export const getLearningStudentDetail = async (req, res, next) => {
     }
 
     const totalLearningSeconds = Math.max(sessionTotalSeconds, progressTotalSeconds);
+    const studyTotalSeconds = dailyStudyRows.reduce((total, row) => total + (row.activeSeconds || 0), 0);
+    const studyDays = dailyStudyRows.filter((row) => row.activeSeconds > 0).length;
+    const todayStudySeconds = dailyStudyRows.find((row) => row.dateKey === todayKey)?.activeSeconds || 0;
+    if (presence?.lastActiveAt && (!lastActivityTime || new Date(presence.lastActiveAt) > lastActivityTime)) {
+      lastActivityTime = new Date(presence.lastActiveAt);
+    }
+    const activityStatus = presence?.lastActiveAt
+      && now.getTime() - new Date(presence.lastActiveAt).getTime() <= PRESENCE_ACTIVE_WINDOW_MS
+      ? 'ACTIVE'
+      : 'INACTIVE';
 
     return res.json({
       status: 'success',
@@ -518,11 +612,17 @@ export const getLearningStudentDetail = async (req, res, next) => {
           status: student.status,
           createdAt: student.createdAt,
           approvedAt: student.approvedAt,
+          activityStatus,
+          lastActiveAt: presence?.lastActiveAt || null,
         },
         enrolledCourses,
         lastLearningActivity: lastActivityTime,
         learningOverview: {
           totalLearningSeconds,
+          studyTodaySeconds: todayStudySeconds,
+          averageDailyStudySeconds: studyDays ? Math.round(studyTotalSeconds / studyDays) : 0,
+          studyDaysInLast30Days: studyDays,
+          studyPeriodDays: STUDY_REPORT_DAYS,
           completedLessons,
           inProgressLessons,
           notStartedLessons,
@@ -771,6 +871,102 @@ export const getLearningStudentHistory = async (req, res, next) => {
           total,
           pages: Math.ceil(total / limit) || 1,
         },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
+ * @desc    Get the student's daily active study time for the last 30 calendar days
+ * @route   GET /api/v1/admin/learning/students/:studentId/daily-study
+ * @access  Private (Admin/Teacher)
+ */
+export const getLearningStudentDailyStudy = async (req, res, next) => {
+  try {
+    const { studentId: rawStudentId } = req.params;
+    if (!isObjectId(rawStudentId)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_STUDENT_ID', message: 'Mã học viên không hợp lệ.' });
+    }
+
+    const studentId = toObjectId(rawStudentId);
+    const studentExists = await User.exists({ _id: studentId, role: 'student' });
+    if (!studentExists) {
+      return res.status(404).json({ status: 'error', code: 'STUDENT_NOT_FOUND', message: 'Không tìm thấy thông tin học viên.' });
+    }
+
+    const now = new Date();
+    const todayKey = getHoChiMinhDateKey(now);
+    const firstDateKey = getHoChiMinhDateKeyOffset(STUDY_REPORT_DAYS - 1, now);
+    const rows = await StudentDailyStudy.find({
+      student: studentId,
+      dateKey: { $gte: firstDateKey, $lte: todayKey },
+    }).sort({ dateKey: -1 }).lean();
+    const studyDays = rows.filter((row) => row.activeSeconds > 0).length;
+    const totalActiveSeconds = rows.reduce((total, row) => total + (row.activeSeconds || 0), 0);
+
+    return res.json({
+      status: 'success',
+      data: {
+        rows,
+        totalActiveSeconds,
+        studyDays,
+        averageDailyStudySeconds: studyDays ? Math.round(totalActiveSeconds / studyDays) : 0,
+        periodDays: STUDY_REPORT_DAYS,
+        firstDateKey,
+        lastDateKey: todayKey,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
+ * @desc    Get the student's submitted exercise history, separate from TOEIC attempts
+ * @route   GET /api/v1/admin/learning/students/:studentId/exercise-submissions
+ * @access  Private (Admin/Teacher)
+ */
+export const getLearningStudentExerciseSubmissions = async (req, res, next) => {
+  try {
+    const { studentId: rawStudentId } = req.params;
+    if (!isObjectId(rawStudentId)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_STUDENT_ID', message: 'Mã học viên không hợp lệ.' });
+    }
+
+    const page = parseInteger(req.query.page, 1, { min: 1, max: 1000000 });
+    const limit = parseInteger(req.query.limit, 20, { min: 1, max: 100 });
+    const exerciseType = req.query.exerciseType ? String(req.query.exerciseType) : '';
+    if (page === null || limit === null) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_PAGINATION', message: 'Trang hoặc số dòng mỗi trang không hợp lệ.' });
+    }
+    if (exerciseType && !TRACKED_EXERCISE_TYPES.includes(exerciseType)) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_EXERCISE_TYPE', message: 'Loại bài tập không hợp lệ.' });
+    }
+
+    const studentId = toObjectId(rawStudentId);
+    const studentExists = await User.exists({ _id: studentId, role: 'student' });
+    if (!studentExists) {
+      return res.status(404).json({ status: 'error', code: 'STUDENT_NOT_FOUND', message: 'Không tìm thấy thông tin học viên.' });
+    }
+
+    const filter = { student: studentId };
+    if (exerciseType) filter.exerciseType = exerciseType;
+    const [submissions, total] = await Promise.all([
+      ExerciseSubmission.find(filter)
+        .sort({ submittedAt: -1, _id: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      ExerciseSubmission.countDocuments(filter),
+    ]);
+
+    return res.json({
+      status: 'success',
+      data: {
+        submissions,
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 },
       },
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import GrammarExerciseQuestion, { GRAMMAR_EXERCISE_TYPES } from '../models/GrammarExerciseQuestion.js';
+import { recordExerciseSubmission } from '../services/studentTracking.js';
 
 const EXERCISE_DETAILS = {
   'tense-classification': {
@@ -176,6 +177,35 @@ export const checkStudentGrammarExercise = async (req, res, next) => {
           status,
         };
       });
+      if (req.body.recordSubmission === true && req.user?.role === 'student') {
+        const correctCount = results.filter(({ status }) => status === 'correct').length;
+        const incorrectCount = results.filter(({ status }) => status === 'incorrect').length;
+        const partialCount = results.filter(({ status }) => status === 'partial').length;
+        const unansweredCount = results.filter(({ status }) => status === 'unanswered').length;
+        await recordExerciseSubmission({
+          role: req.user?.role,
+          studentId: req.user._id,
+          clientSubmissionId: req.body.submissionId,
+          exerciseType: 'grammar-tense-classification',
+          sourceTitle: EXERCISE_DETAILS[exerciseType].title,
+          total: results.length,
+          correctCount,
+          incorrectCount,
+          partialCount,
+          unansweredCount,
+          correctFieldCount,
+          totalFieldCount: results.length * 2,
+          questions: results.map((result) => ({
+            number: result.number,
+            prompt: result.prompt,
+            submittedAnswer: { tense: result.submittedTense, sentenceForm: result.submittedSentenceForm },
+            correctAnswer: { tense: result.correctTense, sentenceForm: result.correctSentenceForm },
+            status: result.status,
+            tenseCorrect: result.tenseCorrect,
+            sentenceFormCorrect: result.sentenceFormCorrect,
+          })),
+        });
+      }
       return res.json({
         status: 'success',
         data: {
@@ -204,6 +234,31 @@ export const checkStudentGrammarExercise = async (req, res, next) => {
         status: !answered ? 'unanswered' : correct ? 'correct' : 'incorrect',
       };
     });
+
+    if (req.body.recordSubmission === true && req.user?.role === 'student') {
+      const correctCount = results.filter(({ status }) => status === 'correct').length;
+      const incorrectCount = results.filter(({ status }) => status === 'incorrect').length;
+      const unansweredCount = results.filter(({ status }) => status === 'unanswered').length;
+      await recordExerciseSubmission({
+        role: req.user?.role,
+        studentId: req.user._id,
+        clientSubmissionId: req.body.submissionId,
+        exerciseType: 'grammar-active-to-passive',
+        sourceTitle: EXERCISE_DETAILS[exerciseType].title,
+        total: results.length,
+        correctCount,
+        incorrectCount,
+        unansweredCount,
+        questions: results.map((result) => ({
+          number: result.number,
+          prompt: result.prompt,
+          submittedAnswer: result.submittedAnswer,
+          correctAnswer: result.answer,
+          correctTranslation: result.translation,
+          status: result.status,
+        })),
+      });
+    }
 
     res.json({
       status: 'success',

@@ -1,4 +1,5 @@
 import Part2ChallengeQuestion from '../models/Part2ChallengeQuestion.js';
+import { recordExerciseSubmission } from '../services/studentTracking.js';
 
 const parseQuestionNumber = (value) => {
   const number = Number(value);
@@ -192,6 +193,10 @@ export const submitStudentPart2Challenge = async (req, res, next) => {
       .sort({ number: 1 })
       .lean();
 
+    if (items.length !== submittedByNumber.size) {
+      return res.status(404).json({ status: 'error', message: 'Một số câu hỏi không còn khả dụng.' });
+    }
+
     const results = items.map((item) => {
       const selectedAnswer = submittedByNumber.get(item.number) || '';
       const correctChoice = item.choices.find(({ letter }) => letter === item.correctAnswer)?.text || '';
@@ -210,14 +215,31 @@ export const submitStudentPart2Challenge = async (req, res, next) => {
       };
     });
 
+    const correctCount = results.filter(({ status }) => status === 'correct').length;
+    const incorrectCount = results.filter(({ status }) => status === 'incorrect').length;
+    const unansweredCount = results.filter(({ status }) => status === 'unanswered').length;
+    await recordExerciseSubmission({
+      role: req.user?.role,
+      studentId: req.user._id,
+      clientSubmissionId: req.body?.submissionId,
+      exerciseType: 'part2-challenge',
+      sourceTitle: 'Part 2 Challenge',
+      total: results.length,
+      correctCount,
+      incorrectCount,
+      unansweredCount,
+      metadata: ['exam', 'practice'].includes(req.body?.mode) ? { mode: req.body.mode } : {},
+      questions: results,
+    });
+
     res.json({
       status: 'success',
       data: {
         items: results,
         total: results.length,
-        correctCount: results.filter(({ status }) => status === 'correct').length,
-        incorrectCount: results.filter(({ status }) => status === 'incorrect').length,
-        unansweredCount: results.filter(({ status }) => status === 'unanswered').length,
+        correctCount,
+        incorrectCount,
+        unansweredCount,
       },
     });
   } catch (error) {

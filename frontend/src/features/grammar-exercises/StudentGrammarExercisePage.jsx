@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import { grammarExerciseApi } from '../../api/grammarExerciseApi.js';
 import { GRAMMAR_EXERCISES } from './grammarExerciseConfig.js';
+import { createSubmissionId } from '../../utils/createSubmissionId.js';
 import './grammarExercise.css';
 
 const emptyAnswer = () => ({ tense: '', sentenceForm: '', answer: '' });
@@ -33,6 +34,7 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
   const [validationErrorNumber, setValidationErrorNumber] = useState(null);
   const [validationJump, setValidationJump] = useState(0);
   const currentQuestionRef = useRef(null);
+  const pendingSubmissionIdRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,6 +50,7 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
       setSubmitMessage('');
       setHasSubmitted(false);
       setValidationErrorNumber(null);
+      pendingSubmissionIdRef.current = null;
     } catch (loadError) {
       setError(loadError.response?.data?.message || 'Không thể tải bài tập. Hãy thử tải lại trang.');
     } finally {
@@ -169,10 +172,15 @@ export default function StudentGrammarExercisePage({ exerciseType }) {
         ...emptyAnswer(),
         ...answers[number],
       }));
-      const response = await grammarExerciseApi.checkStudentExercise(exerciseType, payload);
+      if (!pendingSubmissionIdRef.current) pendingSubmissionIdRef.current = createSubmissionId();
+      const response = await grammarExerciseApi.checkStudentExercise(exerciseType, payload, {
+        recordSubmission: true,
+        submissionId: pendingSubmissionIdRef.current,
+      });
       const results = Object.fromEntries((response.data.items || []).map((item) => [item.number, item]));
       setCheckedResults(results);
       setHasSubmitted(true);
+      pendingSubmissionIdRef.current = null;
       setHiddenAnswers((current) => ({
         ...current,
         ...Object.fromEntries(Object.keys(results).map((number) => [number, false])),

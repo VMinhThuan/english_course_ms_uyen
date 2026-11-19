@@ -14,6 +14,7 @@ const formatDuration = (totalSeconds) => {
   if (hours > 0) {
     return `${hours} giờ ${minutes > 0 ? `${minutes}p` : ''}`;
   }
+  if (minutes === 0) return `${sec}s`;
   return `${minutes} phút`;
 };
 
@@ -57,18 +58,25 @@ export default function AdminStudentMonitoringPage() {
   // Load KPI overview
   useEffect(() => {
     let active = true;
+    const loadOverview = () => {
+      learningApi.getOverview()
+        .then((res) => {
+          if (active) setOverview(res.data);
+        })
+        .catch((err) => {
+          console.warn('Failed to load overview:', err);
+        })
+        .finally(() => {
+          if (active) setOverviewLoading(false);
+        });
+    };
     setOverviewLoading(true);
-    learningApi.getOverview()
-      .then((res) => {
-        if (active) setOverview(res.data);
-      })
-      .catch((err) => {
-        console.warn('Failed to load overview:', err);
-      })
-      .finally(() => {
-        if (active) setOverviewLoading(false);
-      });
-    return () => { active = false; };
+    loadOverview();
+    const timerId = window.setInterval(loadOverview, 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(timerId);
+    };
   }, []);
 
   // Load published courses list for filter
@@ -83,8 +91,8 @@ export default function AdminStudentMonitoringPage() {
   }, []);
 
   // Load student list
-  const loadStudents = useCallback(async () => {
-    setLoading(true);
+  const loadStudents = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError('');
     try {
       const res = await learningApi.getStudents({
@@ -99,12 +107,17 @@ export default function AdminStudentMonitoringPage() {
     } catch (err) {
       setError(err?.response?.data?.message || 'Không thể tải danh sách tiến độ học tập.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [page, search, courseId, status]);
 
   useEffect(() => {
     loadStudents();
+  }, [loadStudents]);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => loadStudents(true), 30_000);
+    return () => window.clearInterval(timerId);
   }, [loadStudents]);
 
   const updateParam = (key, val) => {
@@ -153,27 +166,19 @@ export default function AdminStudentMonitoringPage() {
         </div>
 
         <div className="kpi-card">
-          <span className="kpi-card-label">Đang học (Active)</span>
+          <span className="kpi-card-label">Đang hoạt động</span>
           <strong className="kpi-card-value" style={{ color: '#1b5f9e' }}>
-            {overviewLoading ? '...' : (overview?.activeLearners ?? 0)}
+            {overviewLoading ? '...' : (overview?.currentlyActiveStudents ?? 0)}
           </strong>
-          <span className="kpi-card-sub">Đã bắt đầu học</span>
+          <span className="kpi-card-sub">Online trong 45 giây gần nhất</span>
         </div>
 
         <div className="kpi-card">
-          <span className="kpi-card-label">Chưa bắt đầu</span>
+          <span className="kpi-card-label">Không hoạt động</span>
           <strong className="kpi-card-value" style={{ color: '#7a7369' }}>
-            {overviewLoading ? '...' : (overview?.notStartedStudents ?? 0)}
+            {overviewLoading ? '...' : (overview?.currentlyInactiveStudents ?? 0)}
           </strong>
-          <span className="kpi-card-sub">0% tiến độ</span>
-        </div>
-
-        <div className="kpi-card">
-          <span className="kpi-card-label">Đã hoàn thành</span>
-          <strong className="kpi-card-value" style={{ color: '#1f6b3d' }}>
-            {overviewLoading ? '...' : (overview?.completedStudents ?? 0)}
-          </strong>
-          <span className="kpi-card-sub">Hoàn tất khóa</span>
+          <span className="kpi-card-sub">Không có hoạt động gần đây</span>
         </div>
 
         <div className="kpi-card">
@@ -181,7 +186,15 @@ export default function AdminStudentMonitoringPage() {
           <strong className="kpi-card-value" style={{ fontSize: '20px' }}>
             {overviewLoading ? '...' : formatDuration(overview?.totalLearningSeconds ?? 0)}
           </strong>
-          <span className="kpi-card-sub">Thời gian tích lũy thực</span>
+          <span className="kpi-card-sub">Thời gian bài học đã tích lũy</span>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-card-label">Thời gian TB mỗi ngày học</span>
+          <strong className="kpi-card-value" style={{ fontSize: '20px' }}>
+            {overviewLoading ? '...' : formatDuration(overview?.averageDailyStudySeconds ?? 0)}
+          </strong>
+          <span className="kpi-card-sub">30 ngày gần nhất · ngày có học</span>
         </div>
 
         <div className="kpi-card">
@@ -237,7 +250,7 @@ export default function AdminStudentMonitoringPage() {
             <option value="not_started">Chưa học</option>
           </select>
 
-          <UiButton variant="outline" size="sm" onClick={loadStudents}>
+          <UiButton variant="outline" size="sm" onClick={() => loadStudents()}>
             Làm mới
           </UiButton>
         </div>
@@ -260,8 +273,11 @@ export default function AdminStudentMonitoringPage() {
             <thead>
               <tr>
                 <th>Học viên</th>
+                <th>Hoạt động hiện tại</th>
                 <th>Khóa học</th>
-                <th>Hoạt động gần nhất</th>
+                <th>Lần hoạt động gần nhất</th>
+                <th>Thời gian hôm nay</th>
+                <th>TB / ngày học</th>
                 <th>Tổng thời gian học</th>
                 <th>Số bài xong</th>
                 <th>Tiến độ</th>
@@ -288,6 +304,11 @@ export default function AdminStudentMonitoringPage() {
                     </div>
                   </td>
                   <td>
+                    <span className={`activity-status-badge ${st.activityStatus === 'ACTIVE' ? 'is-active' : 'is-inactive'}`}>
+                      {st.activityStatus === 'ACTIVE' ? 'Đang hoạt động' : 'Không hoạt động'}
+                    </span>
+                  </td>
+                  <td>
                     <div className="course-tags-cell">
                       {st.enrolledCourses && st.enrolledCourses.length > 0 ? (
                         st.enrolledCourses.map((c) => (
@@ -301,7 +322,13 @@ export default function AdminStudentMonitoringPage() {
                     </div>
                   </td>
                   <td style={{ whiteSpace: 'nowrap', fontSize: '12px' }}>
-                    {formatDateTime(st.lastActiveTime)}
+                    {formatDateTime(st.presenceLastActiveAt)}
+                  </td>
+                  <td style={{ fontWeight: 700, color: 'var(--brand-coffee)' }}>
+                    {formatDuration(st.studyTodaySeconds)}
+                  </td>
+                  <td title={`${st.studyDaysInLast30Days || 0} ngày có học trong 30 ngày gần nhất`}>
+                    {formatDuration(st.averageDailyStudySeconds)}
                   </td>
                   <td style={{ fontWeight: 700, color: 'var(--brand-coffee)' }}>
                     {formatDuration(st.totalLearningSeconds)}

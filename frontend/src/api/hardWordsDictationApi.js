@@ -9,5 +9,5 @@ export const hardWordsDictationApi = {
   delete: async (id) => (await axiosInstance.delete(`/admin/hard-words-dictations/${id}`)).data,
   getStudentItems: async () => (await axiosInstance.get('/hard-words-dictations')).data,
   getStudentItem: async (id) => (await axiosInstance.get(`/hard-words-dictations/${id}`)).data,
-  submit: async (id, answers) => (await axiosInstance.post(`/hard-words-dictations/${id}/submit`, { answers })).data,
+  submit: async (id, answers, submissionId) => (await axiosInstance.post(`/hard-words-dictations/${id}/submit`, { answers, submissionId })).data,
 };

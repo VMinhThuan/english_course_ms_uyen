@@ -8,5 +8,5 @@ export const vocabularyDictationApi = {
   delete: async (id) => (await axiosInstance.delete(`/admin/vocabulary-dictations/${id}`)).data,
   getStudentItems: async () => (await axiosInstance.get('/vocabulary-dictations')).data,
   getStudentItem: async (id) => (await axiosInstance.get(`/vocabulary-dictations/${id}`)).data,
-  submit: async (id, answers) => (await axiosInstance.post(`/vocabulary-dictations/${id}/submit`, { answers })).data,
+  submit: async (id, answers, submissionId) => (await axiosInstance.post(`/vocabulary-dictations/${id}/submit`, { answers, submissionId })).data,
 };

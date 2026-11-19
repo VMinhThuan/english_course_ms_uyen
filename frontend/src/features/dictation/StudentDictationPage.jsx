@@ -5,6 +5,7 @@ import { vocabularyDictationApi } from '../../api/vocabularyDictationApi.js';
 import { hardWordsDictationApi } from '../../api/hardWordsDictationApi.js';
 import usePauseAudioOnSpace from '../../hooks/usePauseAudioOnSpace.js';
 import { resolveMediaUrl } from '../../utils/mediaUrl.js';
+import { createSubmissionId } from '../../utils/createSubmissionId.js';
 import '../../pages/Part1Dictation.css';
 
 const dictationApis = { part1: part1DictationApi, vocabulary: vocabularyDictationApi, hardWords: hardWordsDictationApi };
@@ -23,6 +24,7 @@ export default function StudentDictationPage({ kind = 'part1' }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const audioRef = useRef(null);
+  const pendingSubmissionRef = useRef(null);
 
   usePauseAudioOnSpace(audioRef);
 
@@ -62,9 +64,14 @@ export default function StudentDictationPage({ kind = 'part1' }) {
     if (!active) return;
     setSubmitting(true);
     setError('');
+    const submissionKey = `${kind}:${active._id}`;
+    if (pendingSubmissionRef.current?.key !== submissionKey) {
+      pendingSubmissionRef.current = { key: submissionKey, id: createSubmissionId() };
+    }
     try {
-      const response = await api.submit(active._id, answers);
+      const response = await api.submit(active._id, answers, pendingSubmissionRef.current.id);
       setResults(response.data);
+      pendingSubmissionRef.current = null;
     } catch (requestError) {
       setError(requestError.response?.data?.message || 'Không thể chấm bài. Vui lòng thử lại.');
     } finally {

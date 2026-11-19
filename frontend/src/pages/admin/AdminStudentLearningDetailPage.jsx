@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import learningApi from '../../api/learningApi.js';
 import PageHeader from '../../components/ui/PageHeader.jsx';
-import UiButton from '../../components/ui/UiButton.jsx';
 import './AdminStudentMonitoring.css';
 
 const formatDuration = (totalSeconds) => {
@@ -56,10 +55,37 @@ const activityTypeConfig = {
   completed_course: { label: 'Hoàn thành khóa học', icon: '🏆', className: 'completed' },
 };
 
+const exerciseTypeLabels = {
+  'part1-dictation': 'Chép chính tả Part 1',
+  'vocabulary-dictation': 'Chép chính tả từ vựng',
+  'hard-words-dictation': 'Hard Words Dictation',
+  'part2-challenge': 'Part 2 Challenge',
+  'grammar-tense-classification': 'Phân loại thì và dạng câu',
+  'grammar-active-to-passive': 'Chuyển chủ động thành bị động',
+};
+
+const exerciseStatusLabels = {
+  correct: 'Đúng',
+  incorrect: 'Sai',
+  partial: 'Đúng một phần',
+  unanswered: 'Chưa trả lời',
+};
+
+const answerFieldLabels = { tense: 'Thì', sentenceForm: 'Dạng câu', answer: 'Câu trả lời' };
+const formatExerciseAnswer = (value) => {
+  if (value === undefined || value === null || value === '') return '—';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.map(formatExerciseAnswer).join(', ');
+  return Object.entries(value)
+    .filter(([, answer]) => answer !== undefined && answer !== null && answer !== '')
+    .map(([key, answer]) => `${answerFieldLabels[key] || key}: ${answer}`)
+    .join(' · ') || '—';
+};
+
 export default function AdminStudentLearningDetailPage() {
   const { studentId } = useParams();
 
-  const [activeTab, setActiveTab] = useState('progress'); // progress | assessments | history
+  const [activeTab, setActiveTab] = useState('progress');
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -78,6 +104,15 @@ export default function AdminStudentLearningDetailPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyPagination, setHistoryPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
+
+  const [dailyStudy, setDailyStudy] = useState(null);
+  const [dailyStudyLoading, setDailyStudyLoading] = useState(false);
+  const [exerciseSubmissions, setExerciseSubmissions] = useState([]);
+  const [exerciseLoading, setExerciseLoading] = useState(false);
+  const [exerciseError, setExerciseError] = useState('');
+  const [exercisePage, setExercisePage] = useState(1);
+  const [exerciseTypeFilter, setExerciseTypeFilter] = useState('');
+  const [exercisePagination, setExercisePagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
 
   // 1. Load Student Detail & Learning Overview
   useEffect(() => {
@@ -135,7 +170,7 @@ export default function AdminStudentLearningDetailPage() {
     let active = true;
     setAttemptLoading(true);
 
-    learningApi.getStudentAttempts(studentId, { limit: 50 })
+    learningApi.getStudentAttempts(studentId, { limit: 50, state: 'COMPLETED_SCORED' })
       .then((res) => {
         if (active) setAttempts(res.data?.results || res.data?.attempts || []);
       })
@@ -148,6 +183,46 @@ export default function AdminStudentLearningDetailPage() {
 
     return () => { active = false; };
   }, [studentId, activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'daily-study') return;
+    let active = true;
+    setDailyStudyLoading(true);
+    learningApi.getStudentDailyStudy(studentId)
+      .then((res) => { if (active) setDailyStudy(res.data); })
+      .catch((err) => {
+        if (active) setDailyStudy({ error: err?.response?.data?.message || 'Không thể tải thời gian học theo ngày.' });
+      })
+      .finally(() => { if (active) setDailyStudyLoading(false); });
+    return () => { active = false; };
+  }, [studentId, activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'exercises') return;
+    let active = true;
+    setExerciseLoading(true);
+    setExerciseError('');
+    learningApi.getStudentExerciseSubmissions(studentId, {
+      page: exercisePage,
+      limit: 20,
+      exerciseType: exerciseTypeFilter || undefined,
+    })
+      .then((res) => {
+        if (!active) return;
+        setExerciseSubmissions(res.data?.submissions || []);
+        setExercisePagination(res.data?.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
+      })
+      .catch((err) => {
+        if (active) {
+          setExerciseSubmissions([]);
+          setExercisePagination({ page: 1, limit: 20, total: 0, pages: 1 });
+          setExerciseError(err?.response?.data?.message || 'Không thể tải lịch sử nộp bài tập.');
+          console.warn('Failed to load exercise submissions:', err);
+        }
+      })
+      .finally(() => { if (active) setExerciseLoading(false); });
+    return () => { active = false; };
+  }, [studentId, activeTab, exercisePage, exerciseTypeFilter]);
 
   // 4. Load Learning Activity Timeline
   useEffect(() => {
@@ -228,6 +303,7 @@ export default function AdminStudentLearningDetailPage() {
               <span>{student.email} • {student.phoneNumber || 'Chưa có SĐT'} {student.groupName ? `• Nhóm: ${student.groupName}` : ''}</span>
               <span style={{ marginTop: '4px' }}>
                 Tham gia ngày: {formatDateOnly(student.createdAt)} • Hoạt động gần nhất: <strong>{formatDateTime(lastLearningActivity)}</strong>
+                {' '}• Trạng thái: <strong>{student.activityStatus === 'ACTIVE' ? 'Đang hoạt động' : 'Không hoạt động'}</strong>
               </span>
             </div>
           </div>
@@ -241,13 +317,29 @@ export default function AdminStudentLearningDetailPage() {
       </section>
 
       {/* Learning Overview KPI Cards (Section 3.B) */}
-      <section className="monitoring-kpi-grid" style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }} aria-label="Tổng quan học tập">
+      <section className="monitoring-kpi-grid monitoring-kpi-grid--detail" aria-label="Tổng quan học tập">
         <div className="kpi-card">
           <span className="kpi-card-label">Tổng thời gian học</span>
           <strong className="kpi-card-value" style={{ fontSize: '20px' }}>
             {formatDuration(learningOverview.totalLearningSeconds)}
           </strong>
           <span className="kpi-card-sub">Thời gian tích lũy thực</span>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-card-label">Thời gian hôm nay</span>
+          <strong className="kpi-card-value" style={{ fontSize: '20px' }}>
+            {formatDuration(learningOverview.studyTodaySeconds)}
+          </strong>
+          <span className="kpi-card-sub">Theo ngày Việt Nam</span>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-card-label">TB mỗi ngày học</span>
+          <strong className="kpi-card-value" style={{ fontSize: '20px' }}>
+            {formatDuration(learningOverview.averageDailyStudySeconds)}
+          </strong>
+          <span className="kpi-card-sub">30 ngày gần nhất · {learningOverview.studyDaysInLast30Days || 0} ngày có học</span>
         </div>
 
         <div className="kpi-card">
@@ -298,11 +390,31 @@ export default function AdminStudentLearningDetailPage() {
         <button
           type="button"
           role="tab"
+          aria-selected={activeTab === 'daily-study'}
+          className={`detail-tab-button ${activeTab === 'daily-study' ? 'active' : ''}`}
+          onClick={() => setActiveTab('daily-study')}
+        >
+          📅 Thời gian theo ngày
+        </button>
+
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeTab === 'assessments'}
           className={`detail-tab-button ${activeTab === 'assessments' ? 'active' : ''}`}
           onClick={() => setActiveTab('assessments')}
         >
-          📝 Kết quả bài tập & đề thi
+          🧾 Đề thi TOEIC
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'exercises'}
+          className={`detail-tab-button ${activeTab === 'exercises' ? 'active' : ''}`}
+          onClick={() => { setExercisePage(1); setActiveTab('exercises'); }}
+        >
+          ✍️ Lịch sử bài tập
         </button>
 
         <button
@@ -420,20 +532,59 @@ export default function AdminStudentLearningDetailPage() {
         </section>
       )}
 
-      {/* TAB 2: Exam & Exercise Results (Section 3.E) */}
+      {activeTab === 'daily-study' && (
+        <section aria-label="Thời gian học theo ngày">
+          {dailyStudyLoading ? (
+            <div className="admin-table-skeleton"><i /><i /><i /></div>
+          ) : dailyStudy?.error ? (
+            <div className="admin-error">{dailyStudy.error}</div>
+          ) : (
+            <>
+              <div className="exercise-history-summary">
+                <strong>{formatDuration(dailyStudy?.totalActiveSeconds)}</strong>
+                <span>Tổng trong {dailyStudy?.periodDays || 30} ngày</span>
+                <strong>{formatDuration(dailyStudy?.averageDailyStudySeconds)}</strong>
+                <span>Trung bình mỗi ngày có học ({dailyStudy?.studyDays || 0} ngày)</span>
+              </div>
+              {(dailyStudy?.rows || []).length === 0 ? (
+                <div className="admin-empty">Chưa có thời gian hoạt động nào được ghi nhận. Dữ liệu bắt đầu tích lũy từ khi tracker được triển khai.</div>
+              ) : (
+                <div className="monitoring-table-container">
+                  <table className="monitoring-table">
+                    <thead>
+                      <tr><th>Ngày (giờ Việt Nam)</th><th>Thời gian hoạt động</th><th>Hoạt động cuối ngày</th></tr>
+                    </thead>
+                    <tbody>
+                      {dailyStudy.rows.map((row) => (
+                        <tr key={row._id}>
+                          <td>{row.dateKey}</td>
+                          <td><strong>{formatDuration(row.activeSeconds)}</strong></td>
+                          <td>{formatDateTime(row.lastActiveAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
+      {/* TOEIC assessments remain in their own Attempt history. */}
       {activeTab === 'assessments' && (
-        <section aria-label="Kết quả bài tập và đề thi">
+        <section aria-label="Lịch sử nộp đề thi TOEIC">
           {attemptLoading ? (
             <div className="admin-table-skeleton"><i /><i /><i /></div>
           ) : attempts.length === 0 ? (
-            <div className="admin-empty">Học viên chưa thực hiện bài tập hoặc đề thi nào.</div>
+            <div className="admin-empty">Học viên chưa nộp đề thi TOEIC nào.</div>
           ) : (
             <div className="monitoring-table-container">
               <table className="monitoring-table">
                 <thead>
                   <tr>
                     <th>Ngày làm bài</th>
-                    <th>Bài thi / Bài tập</th>
+                    <th>Assessment</th>
                     <th>Điểm số</th>
                     <th>Đúng / Sai</th>
                     <th>Thời gian làm</th>
@@ -494,7 +645,87 @@ export default function AdminStudentLearningDetailPage() {
         </section>
       )}
 
-      {/* TAB 3: Learning History Timeline (Section 3.F) */}
+      {activeTab === 'exercises' && (
+        <section aria-label="Lịch sử nộp bài tập">
+          <div className="exercise-history-toolbar">
+            <label>
+              Loại bài tập
+              <select value={exerciseTypeFilter} onChange={(event) => { setExerciseTypeFilter(event.target.value); setExercisePage(1); }}>
+                <option value="">Tất cả dạng bài</option>
+                {Object.entries(exerciseTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+            </label>
+            <span>{exercisePagination.total} lượt nộp</span>
+          </div>
+          {exerciseLoading ? (
+            <div className="admin-table-skeleton"><i /><i /><i /></div>
+          ) : exerciseError ? (
+            <div className="admin-error">{exerciseError}</div>
+          ) : exerciseSubmissions.length === 0 ? (
+            <div className="admin-empty">Chưa có lượt nộp bài tập nào được ghi nhận.</div>
+          ) : (
+            <div className="exercise-submission-list">
+              {exerciseSubmissions.map((submission) => (
+                <article className="exercise-submission-card" key={submission._id}>
+                  <header>
+                    <div>
+                      <strong>{submission.sourceTitle || exerciseTypeLabels[submission.exerciseType] || 'Bài tập'}</strong>
+                      <span>{exerciseTypeLabels[submission.exerciseType] || submission.exerciseType}</span>
+                    </div>
+                    <time>{formatDateTime(submission.submittedAt)}</time>
+                  </header>
+                  <div className="exercise-submission-stats">
+                    <span>{submission.correctCount || 0} đúng</span>
+                    <span>{submission.incorrectCount || 0} sai</span>
+                    {(submission.unansweredCount || 0) > 0 && <span>{submission.unansweredCount} bỏ trống</span>}
+                    {(submission.partialCount || 0) > 0 && <span>{submission.partialCount} một phần</span>}
+                    <span>{submission.total || submission.questions?.length || 0} câu</span>
+                    {submission.correctFieldCount !== null && submission.correctFieldCount !== undefined && (
+                      <span>{submission.correctFieldCount}/{submission.totalFieldCount} trường đúng</span>
+                    )}
+                    {submission.metadata?.mode && <span>Chế độ: {submission.metadata.mode === 'exam' ? 'Thi thử' : 'Luyện tập'}</span>}
+                  </div>
+                  <details>
+                    <summary>Xem câu trả lời của lượt này</summary>
+                    <ol className="exercise-submission-questions">
+                      {(submission.questions || []).map((question, index) => {
+                        const submittedAnswer = question.submittedAnswer ?? question.selectedAnswer ?? question.userAnswer;
+                        const correctAnswer = question.correctAnswer ?? question.answer;
+                        return (
+                          <li key={`${question.number ?? index}-${index}`}>
+                            <div className="exercise-question-heading">
+                              <strong>Câu {question.number ?? index + 1}: {question.prompt || question.questionText || ''}</strong>
+                              <span className={`exercise-question-status is-${question.status || 'unknown'}`}>
+                                {exerciseStatusLabels[question.status] || question.status || 'Đã nộp'}
+                              </span>
+                            </div>
+                            <p><b>Học viên:</b> {formatExerciseAnswer(submittedAnswer)}</p>
+                            <p><b>Đáp án:</b> {formatExerciseAnswer(correctAnswer)}</p>
+                            {question.choices?.length > 0 && (
+                              <p><b>Lựa chọn:</b> {question.choices.map((choice) => `${choice.letter}. ${choice.text}`).join(' · ')}</p>
+                            )}
+                            {question.script && <p><b>Script:</b> {question.script}</p>}
+                            {question.correctTranslation && <p><b>Dịch nghĩa:</b> {question.correctTranslation}</p>}
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  </details>
+                </article>
+              ))}
+            </div>
+          )}
+          {exercisePagination.pages > 1 && (
+            <nav className="admin-pagination" style={{ marginTop: '16px' }} aria-label="Phân trang lịch sử bài tập">
+              <button type="button" disabled={exercisePage <= 1} onClick={() => setExercisePage((page) => Math.max(1, page - 1))}>Trước</button>
+              <span>Trang {exercisePage} / {exercisePagination.pages}</span>
+              <button type="button" disabled={exercisePage >= exercisePagination.pages} onClick={() => setExercisePage((page) => Math.min(exercisePagination.pages, page + 1))}>Sau</button>
+            </nav>
+          )}
+        </section>
+      )}
+
+      {/* Learning History Timeline (Section 3.F) */}
       {activeTab === 'history' && (
         <section aria-label="Lịch sử hoạt động học tập">
           {historyLoading ? (
@@ -506,7 +737,7 @@ export default function AdminStudentLearningDetailPage() {
               <div className="timeline-list">
                 {history.map((act) => {
                   const cfg = activityTypeConfig[act.eventType] || { label: act.eventType, icon: '•', className: '' };
-                  const targetTitle = act.lesson?.title || act.assessment?.title || act.course?.title || act.metadata?.lessonTitle || act.metadata?.assessmentTitle || '';
+                  const targetTitle = act.lesson?.title || act.assessment?.title || act.course?.title || act.metadata?.lessonTitle || act.metadata?.assessmentTitle || act.metadata?.sourceTitle || '';
 
                   return (
                     <div key={act._id} className="timeline-item">
@@ -531,6 +762,14 @@ export default function AdminStudentLearningDetailPage() {
                         {act.metadata?.score !== undefined && (
                           <div className="timeline-meta">
                             Điểm số: {act.metadata.score}/{act.metadata.maxScore} ({act.metadata.percentage}%)
+                          </div>
+                        )}
+                        {act.metadata?.exerciseType && (
+                          <div className="timeline-meta">
+                            {exerciseTypeLabels[act.metadata.exerciseType] || act.metadata.exerciseType}
+                            {Number.isFinite(act.metadata.correctCount) && Number.isFinite(act.metadata.total)
+                              ? ` · ${act.metadata.correctCount}/${act.metadata.total} câu đúng`
+                              : ''}
                           </div>
                         )}
                       </div>

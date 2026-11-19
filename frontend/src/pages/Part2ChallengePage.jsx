@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { part2ChallengeApi } from '../api/part2ChallengeApi.js';
 import usePauseAudioOnSpace from '../hooks/usePauseAudioOnSpace.js';
+import { createSubmissionId } from '../utils/createSubmissionId.js';
 import './Part2ChallengePage.css';
 
 const ANSWER_SECONDS = 30;
@@ -37,6 +38,7 @@ export default function Part2ChallengePage() {
   const practiceAudioRef = useRef(null);
   const playbackVersion = useRef(0);
   const answerRequestVersion = useRef(0);
+  const pendingSubmissionIdRef = useRef(null);
 
   usePauseAudioOnSpace(practiceAudioRef, selectedMode === 'practice');
 
@@ -156,6 +158,7 @@ export default function Part2ChallengePage() {
   }, [sessionState, timerActive, secondsLeft, currentIndex, questions, openQuestion]);
 
   const startSession = () => {
+    pendingSubmissionIdRef.current = null;
     setSelectedAnswers({});
     setRevealedAnswers({});
     setReviewRows([]);
@@ -212,10 +215,11 @@ export default function Part2ChallengePage() {
       const attemptQuestions = selectedMode === 'practice'
         ? questions.filter((question) => selectedAnswers[question.number])
         : questions;
+      if (!pendingSubmissionIdRef.current) pendingSubmissionIdRef.current = createSubmissionId();
       const response = await part2ChallengeApi.submit(attemptQuestions.map((question) => ({
         number: question.number,
         selectedAnswer: selectedAnswers[question.number] || '',
-      })));
+      })), { mode: selectedMode, submissionId: pendingSubmissionIdRef.current });
       const answersByNumber = new Map((response.data?.items || []).map((item) => [item.number, item]));
       const rows = attemptQuestions.map((question) => {
         const answer = answersByNumber.get(question.number) || revealedAnswers[question.number];
@@ -236,6 +240,7 @@ export default function Part2ChallengePage() {
       });
       setReviewRows(rows);
       setSessionState('results');
+      pendingSubmissionIdRef.current = null;
       setTimerActive(false);
       audioRef.current?.pause();
       practiceAudioRef.current?.pause();

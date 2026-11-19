@@ -4,8 +4,11 @@ export const grammarExerciseApi = {
   getStudentExercise: async (exerciseType) => (
     await axiosInstance.get(`/grammar-exercises/${encodeURIComponent(exerciseType)}`)
   ).data,
-  checkStudentExercise: async (exerciseType, answers) => (
-    await axiosInstance.post(`/grammar-exercises/${encodeURIComponent(exerciseType)}/check`, { answers })
+  checkStudentExercise: async (exerciseType, answers, { recordSubmission = false, submissionId } = {}) => (
+    await axiosInstance.post(`/grammar-exercises/${encodeURIComponent(exerciseType)}/check`, {
+      answers,
+      ...(recordSubmission ? { recordSubmission: true, submissionId } : {}),
+    })
   ).data,
   getAdminQuestions: async (exerciseType) => (
     await axiosInstance.get('/admin/grammar-exercises', { params: { exerciseType } })

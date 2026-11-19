@@ -26,6 +26,15 @@ export const learningApi = {
     return response.data;
   },
 
+  sendActivityHeartbeat: async ({ activeSeconds = 0, isActive = false, route = '' } = {}) => {
+    const response = await axiosInstance.post('/learning/sessions/activity-heartbeat', {
+      activeSeconds,
+      isActive,
+      route,
+    });
+    return response.data;
+  },
+
   // ================= ADMIN MONITORING =================
   getOverview: async () => {
     const response = await axiosInstance.get('/admin/learning/overview');
@@ -49,6 +58,16 @@ export const learningApi = {
 
   getStudentHistory: async (studentId, params = {}) => {
     const response = await axiosInstance.get(`/admin/learning/students/${studentId}/history`, { params });
+    return response.data;
+  },
+
+  getStudentDailyStudy: async (studentId) => {
+    const response = await axiosInstance.get(`/admin/learning/students/${studentId}/daily-study`);
+    return response.data;
+  },
+
+  getStudentExerciseSubmissions: async (studentId, params = {}) => {
+    const response = await axiosInstance.get(`/admin/learning/students/${studentId}/exercise-submissions`, { params });
     return response.data;
   },
 
