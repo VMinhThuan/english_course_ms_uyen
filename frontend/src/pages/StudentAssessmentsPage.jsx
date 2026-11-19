@@ -45,8 +45,8 @@ export default function StudentAssessmentsPage() {
     <div className="assessment-page">
       <PageHeader
         eyebrow="Bài tập"
-        title="Bài tập ngữ pháp"
-        description="Các bài tập ngữ pháp đã xuất bản sẽ xuất hiện tại đây cho học viên."
+        title="Bài tập tổng hợp"
+        description="Các bài tập đã xuất bản sẽ xuất hiện tại đây cho học viên."
       />
 
       <label className="assessment-search">

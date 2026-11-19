@@ -12,7 +12,19 @@ const getLinks = (variant, showPart1) => {
     ...(variant === 'admin' && showPart1 ? [{ label: 'Part 2 Challange', to: `${prefix}/part2-challenge` }] : []),
     ...(variant === 'student' ? [{ label: 'Part 2 Challange', to: `${prefix}/part-2-challenge` }] : []),
     { label: 'Road to Part 7', to: `${prefix}/road-to-part-7` },
-    { label: 'Bài tập ngữ pháp', to: `${prefix}/assessments` },
+    ...(variant === 'student' || showPart1 ? [{
+      label: 'Bài tập ngữ pháp',
+      children: variant === 'admin'
+        ? [
+          { label: 'Phân loại thì và dạng câu', to: `${prefix}/grammar-exercises/tense-classification` },
+          { label: 'Chuyển câu chủ động thành câu bị động', to: `${prefix}/grammar-exercises/active-to-passive` },
+        ]
+        : [
+          { label: 'Phân loại thì và dạng câu', to: `${prefix}/grammar/tense-classification` },
+          { label: 'Chuyển câu chủ động thành câu bị động', to: `${prefix}/grammar/active-to-passive` },
+        ],
+    }] : []),
+    { label: 'Bài tập tổng hợp', to: `${prefix}/assessments` },
     ...(variant === 'student' ? [{ label: 'Ngân hàng Part 5', to: `${prefix}/part-5` }] : []),
   ];
 };
@@ -20,12 +32,19 @@ const getLinks = (variant, showPart1) => {
 export default function PracticeSidebarMenu({ variant = 'student', showPart1 = true, onNavigate }) {
   const location = useLocation();
   const links = getLinks(variant, showPart1);
-  const isChildActive = links.some(({ to }) => location.pathname === to || location.pathname.startsWith(`${to}/`));
+  const isActive = (link) => link.to && (location.pathname === link.to || location.pathname.startsWith(`${link.to}/`));
+  const isChildActive = links.some((link) => isActive(link) || link.children?.some(isActive));
+  const isGrammarActive = links.some((link) => link.children?.some(isActive));
   const [isExpanded, setIsExpanded] = useState(isChildActive);
+  const [isGrammarExpanded, setIsGrammarExpanded] = useState(isGrammarActive);
 
   useEffect(() => {
     if (isChildActive) setIsExpanded(true);
   }, [isChildActive]);
+
+  useEffect(() => {
+    if (isGrammarActive) setIsGrammarExpanded(true);
+  }, [isGrammarActive]);
 
   const submenuId = `practice-sidebar-submenu-${variant}`;
   return (
@@ -47,12 +66,40 @@ export default function PracticeSidebarMenu({ variant = 'student', showPart1 = t
         </svg>
       </button>
       <nav id={submenuId} className="practice-sidebar-children" aria-label="Các mục bài tập" hidden={!isExpanded}>
-        {links.map(({ label, to }) => (
+        {links.map(({ label, to, children }) => children ? (
+          <div className="practice-sidebar-group" key={label}>
+            <button
+              type="button"
+              className={`practice-sidebar-child practice-sidebar-group-toggle ${children.some(isActive) ? 'active' : ''}`}
+              aria-expanded={isGrammarExpanded}
+              aria-controls={`${submenuId}-grammar`}
+              onClick={() => setIsGrammarExpanded((expanded) => !expanded)}
+            >
+              <span>{label}</span>
+              <svg className="practice-sidebar-group-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <nav id={`${submenuId}-grammar`} className="practice-sidebar-nested" aria-label="Bài tập ngữ pháp" hidden={!isGrammarExpanded}>
+              {children.map((child) => (
+                <NavLink
+                  key={child.to}
+                  to={child.to}
+                  end
+                  className={({ isActive: active }) => `practice-sidebar-child ${active ? 'active' : ''}`}
+                  onClick={onNavigate}
+                >
+                  {child.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        ) : (
           <NavLink
             key={to}
             to={to}
             end
-            className={({ isActive }) => `practice-sidebar-child ${isActive ? 'active' : ''}`}
+            className={({ isActive: active }) => `practice-sidebar-child ${active ? 'active' : ''}`}
             onClick={onNavigate}
           >
             {label}

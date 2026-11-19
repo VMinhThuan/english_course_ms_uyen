@@ -25,6 +25,8 @@ import CreateLessonPage from '../pages/CreateLessonPage.jsx';
 // Student New Pages
 import StudentDashboardPage from '../pages/StudentDashboardPage.jsx';
 import StudentAssessmentsPage from '../pages/StudentAssessmentsPage.jsx';
+import StudentGrammarExercisePage from '../features/grammar-exercises/StudentGrammarExercisePage.jsx';
+import AdminGrammarExercisePage from '../features/grammar-exercises/AdminGrammarExercisePage.jsx';
 import StudentHistoryPage from '../pages/StudentHistoryPage.jsx';
 import StudentResultDetailPage from '../pages/StudentResultDetailPage.jsx';
 import StudentProfilePage from '../pages/StudentProfilePage.jsx';
@@ -142,6 +144,8 @@ function AppRoutes() {
         <Route path="courses" element={<CourseListPage studentMode />} />
         <Route path="courses/:id" element={<CourseDetailPage />} />
         <Route path="assessments" element={<StudentAssessmentsPage />} />
+        <Route path="grammar/tense-classification" element={<StudentGrammarExercisePage exerciseType="tense-classification" />} />
+        <Route path="grammar/active-to-passive" element={<StudentGrammarExercisePage exerciseType="active-to-passive" />} />
         <Route path="vocabulary-dictation" element={<StudentVocabularyDictationPage />} />
         <Route path="hard-words-dictation" element={<HardWordsDictationPage />} />
         <Route path="part-2-challenge" element={<Part2ChallengePage />} />
@@ -211,6 +215,8 @@ function AppRoutes() {
         <Route path="vocabulary-dictations" element={<ProtectedRoute requiredRole="admin"><AdminVocabularyDictationPage /></ProtectedRoute>} />
         <Route path="hard-words-dictations" element={<ProtectedRoute requiredRole="admin"><AdminHardWordsDictationPage /></ProtectedRoute>} />
         <Route path="part2-challenge" element={<ProtectedRoute requiredRole="admin"><AdminPart2ChallengePage /></ProtectedRoute>} />
+        <Route path="grammar-exercises/tense-classification" element={<ProtectedRoute requiredRole="admin"><AdminGrammarExercisePage exerciseType="tense-classification" /></ProtectedRoute>} />
+        <Route path="grammar-exercises/active-to-passive" element={<ProtectedRoute requiredRole="admin"><AdminGrammarExercisePage exerciseType="active-to-passive" /></ProtectedRoute>} />
         <Route path="road-to-part-7" element={<ProtectedRoute requiredRole="admin"><RoadToPart7Page admin /></ProtectedRoute>} />
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyLanding />} />
