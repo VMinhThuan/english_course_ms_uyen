@@ -16,29 +16,29 @@ test('apiBaseUrl exports valid defaults and resolves without trailing slashes', 
   assert.equal(API_BASE_URL.endsWith('/'), false, 'Base URL must not end with trailing slash');
 });
 
-test('isAllowedApiUrl filters out deprecated Vercel backend URLs', () => {
-  assert.equal(isAllowedApiUrl('https://english-course-ms-uyen.vercel.app/api/v1'), false);
-  assert.equal(isAllowedApiUrl('https://frontend-ru4l.vercel.app/api/v1'), false);
+test('isAllowedApiUrl accepts valid HTTP API URLs, including Vercel URLs', () => {
+  assert.equal(isAllowedApiUrl('https://english-course-ms-uyen.vercel.app/api/v1'), true);
+  assert.equal(isAllowedApiUrl('https://frontend-ru4l.vercel.app/api/v1'), true);
   assert.equal(isAllowedApiUrl(''), false);
   assert.equal(isAllowedApiUrl(null), false);
+  assert.equal(isAllowedApiUrl('not-a-url'), false);
+  assert.equal(isAllowedApiUrl('ftp://api.example.com/api/v1'), false);
   assert.equal(isAllowedApiUrl('https://api.msuyenclass.vn/api/v1'), true);
   assert.equal(isAllowedApiUrl('http://localhost:5000/api/v1'), true);
 });
 
-test('resolveApiBaseUrl falls back to production API when legacy Vercel URL is passed in env', () => {
-  // Production with legacy Vercel env
-  const legacyProd = resolveApiBaseUrl({
+test('resolveApiBaseUrl uses the configured URL and falls back only when it is missing or invalid', () => {
+  const configuredProd = resolveApiBaseUrl({
     PROD: true,
     VITE_API_URL: 'https://english-course-ms-uyen.vercel.app/api/v1',
   });
-  assert.equal(legacyProd, PRODUCTION_API_URL);
+  assert.equal(configuredProd, 'https://english-course-ms-uyen.vercel.app/api/v1');
 
-  // Development with legacy Vercel env
-  const legacyDev = resolveApiBaseUrl({
+  const configuredDev = resolveApiBaseUrl({
     PROD: false,
     VITE_API_URL: 'https://english-course-ms-uyen.vercel.app/api/v1',
   });
-  assert.equal(legacyDev, DEVELOPMENT_API_URL);
+  assert.equal(configuredDev, 'https://english-course-ms-uyen.vercel.app/api/v1');
 
   // Production without VITE_API_URL
   const defaultProd = resolveApiBaseUrl({ PROD: true });
@@ -47,6 +47,12 @@ test('resolveApiBaseUrl falls back to production API when legacy Vercel URL is p
   // Development without VITE_API_URL
   const defaultDev = resolveApiBaseUrl({ PROD: false });
   assert.equal(defaultDev, DEVELOPMENT_API_URL);
+
+  const invalidProd = resolveApiBaseUrl({ PROD: true, VITE_API_URL: 'not-a-url' });
+  assert.equal(invalidProd, PRODUCTION_API_URL);
+
+  const invalidDev = resolveApiBaseUrl({ PROD: false, VITE_API_URL: 'not-a-url' });
+  assert.equal(invalidDev, DEVELOPMENT_API_URL);
 
   // Valid custom URL in dev or staging
   const custom = resolveApiBaseUrl({

@@ -4,15 +4,15 @@ export const IS_PRODUCTION_BUILD = viteEnv.PROD === true;
 export const PRODUCTION_API_URL = 'https://api.msuyenclass.vn/api/v1';
 export const DEVELOPMENT_API_URL = 'http://localhost:3000/api/v1';
 
-const DEPRECATED_URL_KEYWORDS = [
-  ['english', 'course', 'ms', 'uyen.vercel.app'].join('-'),
-  ['frontend', 'ru4l.vercel.app'].join('-'),
-];
-
 export const isAllowedApiUrl = (url) => {
   if (typeof url !== 'string' || !url.trim()) return false;
-  const normalized = url.trim().toLowerCase();
-  return !DEPRECATED_URL_KEYWORDS.some((deprecated) => normalized.includes(deprecated));
+
+  try {
+    const parsedUrl = new URL(url.trim());
+    return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
 };
 
 export const resolveApiBaseUrl = (env = {}) => {
