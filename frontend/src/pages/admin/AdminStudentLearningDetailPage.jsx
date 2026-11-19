@@ -40,18 +40,50 @@ const formatDateOnly = (value) => {
   }
 };
 
+const formatWeekDate = (value) => {
+  if (!value) return '—';
+  try {
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    }).format(new Date(`${value}T12:00:00Z`));
+  } catch {
+    return value;
+  }
+};
+
+const createWeeklyStudyDays = (dailyStudy) => {
+  if (!dailyStudy?.weekStartDateKey) return [];
+  const [year, month, day] = dailyStudy.weekStartDateKey.split('-').map(Number);
+  const secondsByDate = new Map((dailyStudy.rows || []).map((row) => [row.dateKey, Number(row.activeSeconds) || 0]));
+
+  return Array.from({ length: 7 }, (_, offset) => {
+    const date = new Date(Date.UTC(year, month - 1, day + offset, 12));
+    const dateKey = date.toISOString().slice(0, 10);
+    const weekday = new Intl.DateTimeFormat('vi-VN', {
+      weekday: 'short',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    }).format(date);
+    const dayLabel = new Intl.DateTimeFormat('vi-VN', {
+      day: 'numeric',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    }).format(date);
+    return {
+      dateKey,
+      label: `${weekday} ${dayLabel}`,
+      activeSeconds: secondsByDate.get(dateKey) || 0,
+    };
+  });
+};
+
 export default function AdminStudentLearningDetailPage() {
   const { studentId } = useParams();
 
-  const [activeTab, setActiveTab] = useState('progress');
+  const [activeTab, setActiveTab] = useState('daily-study');
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  // Course Progress Hierarchy
-  const [courseHierarchy, setCourseHierarchy] = useState([]);
-  const [progressLoading, setProgressLoading] = useState(false);
-  const [openChapters, setOpenChapters] = useState({});
 
   // Assessments & Attempts
   const [attempts, setAttempts] = useState([]);
@@ -83,37 +115,7 @@ export default function AdminStudentLearningDetailPage() {
     return () => { active = false; };
   }, [studentId]);
 
-  // 2. Load Course Progress Hierarchy
-  useEffect(() => {
-    if (activeTab !== 'progress') return;
-    let active = true;
-    setProgressLoading(true);
-
-    learningApi.getStudentProgress(studentId)
-      .then((res) => {
-        if (!active) return;
-        const courses = res.data?.courses || [];
-        setCourseHierarchy(courses);
-        // Default open all chapters
-        const openState = {};
-        courses.forEach((c) => {
-          (c.chapters || []).forEach((ch) => {
-            openState[`${c._id}_${ch.chapterTitle}`] = true;
-          });
-        });
-        setOpenChapters(openState);
-      })
-      .catch((err) => {
-        console.warn('Failed to load progress hierarchy:', err);
-      })
-      .finally(() => {
-        if (active) setProgressLoading(false);
-      });
-
-    return () => { active = false; };
-  }, [studentId, activeTab]);
-
-  // 3. Load Exam & Exercise Results
+  // 2. Load Exam & Exercise Results
   useEffect(() => {
     if (activeTab !== 'assessments') return;
     let active = true;
@@ -167,13 +169,6 @@ export default function AdminStudentLearningDetailPage() {
     return () => { active = false; };
   }, [studentId, activeTab]);
 
-  const toggleChapter = (key) => {
-    setOpenChapters((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
   if (loading) {
     return (
       <div className="admin-page-container monitoring-page">
@@ -193,7 +188,9 @@ export default function AdminStudentLearningDetailPage() {
     );
   }
 
-  const { student, enrolledCourses = [], lastLearningActivity, learningOverview = {} } = detail;
+  const { student, lastLearningActivity, learningOverview = {} } = detail;
+  const weeklyStudyDays = createWeeklyStudyDays(dailyStudy);
+  const maxWeeklyStudySeconds = Math.max(1, ...weeklyStudyDays.map((day) => day.activeSeconds));
 
   return (
     <div className="admin-page-container monitoring-page">
@@ -205,7 +202,7 @@ export default function AdminStudentLearningDetailPage() {
 
       <PageHeader
         title={`Chi tiết học tập: ${student.fullName || student.email}`}
-        subtitle={`Theo dõi hành trình học, bài kiểm tra và thời gian học tích lũy của ${student.fullName || student.email}`}
+        subtitle={`Theo dõi thời gian học theo tuần, đề thi TOEIC và lịch sử bài tập của ${student.fullName || student.email}`}
       />
 
       {/* Student Profile Card (Section 3.B) */}
@@ -270,21 +267,11 @@ export default function AdminStudentLearningDetailPage() {
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'progress'}
-          className={`detail-tab-button ${activeTab === 'progress' ? 'active' : ''}`}
-          onClick={() => setActiveTab('progress')}
-        >
-          📚 Tiến độ khóa học
-        </button>
-
-        <button
-          type="button"
-          role="tab"
           aria-selected={activeTab === 'daily-study'}
           className={`detail-tab-button ${activeTab === 'daily-study' ? 'active' : ''}`}
           onClick={() => setActiveTab('daily-study')}
         >
-          📅 Thời gian theo ngày
+          📊 Thời gian học tuần này
         </button>
 
         <button
@@ -308,114 +295,45 @@ export default function AdminStudentLearningDetailPage() {
         </button>
       </div>
 
-      {/* TAB 1: Course Progress Hierarchy: Course → Chapter → Lesson (Section 3.B) */}
-      {activeTab === 'progress' && (
-        <section aria-label="Tiến độ chi tiết từng bài học">
-          {progressLoading ? (
-            <div className="admin-table-skeleton"><i /><i /><i /></div>
-          ) : courseHierarchy.length === 0 ? (
-            <div className="admin-empty">Học viên chưa ghi danh khóa học nào hoặc khóa học chưa có bài học xuất bản.</div>
-          ) : (
-            courseHierarchy.map((course) => (
-              <div key={course._id} style={{ marginBottom: '28px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--brand-coffee)' }}>{course.title}</h3>
-                    <span style={{ fontSize: '12px', color: 'var(--brand-muted)' }}>
-                      Cấp độ: {course.level || 'Cơ bản'} • {course.englishType || 'TOEIC'} • {course.completedLessons}/{course.totalLessons} bài hoàn thành ({course.completionPercentage}%)
-                    </span>
-                  </div>
-                  <div style={{ width: '140px' }}>
-                    <div className="progress-track">
-                      <div className={`progress-fill ${course.completionPercentage === 100 ? 'completed' : ''}`} style={{ width: `${course.completionPercentage}%` }} />
-                    </div>
-                  </div>
-                </div>
-
-                {course.chapters && course.chapters.length > 0 ? (
-                  course.chapters.map((chap) => {
-                    const chapterKey = `${course._id}_${chap.chapterTitle}`;
-                    const isOpen = Boolean(openChapters[chapterKey]);
-
-                    return (
-                      <div key={chapterKey} className="chapter-accordion">
-                        <div className="chapter-accordion-header" onClick={() => toggleChapter(chapterKey)}>
-                          <div>
-                            <strong>📖 {chap.chapterTitle}</strong>
-                            <span style={{ marginLeft: '10px', fontSize: '12px', color: 'var(--brand-muted)' }}>
-                              ({chap.completedLessons}/{chap.totalLessons} bài xong)
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '12px', color: 'var(--brand-muted)' }}>
-                            {isOpen ? '▲ Thu gọn' : '▼ Mở rộng'}
-                          </span>
-                        </div>
-
-                        {isOpen && (
-                          <div className="chapter-accordion-body">
-                            <div className="lesson-progress-list">
-                              {chap.lessons.map((lesson, idx) => (
-                                <article className={`lesson-progress-card is-${String(lesson.status || 'NOT_STARTED').toLowerCase()}`} key={lesson._id}>
-                                  <div className="lesson-progress-card__main">
-                                    <span className="lesson-progress-card__number">{lesson.order || idx + 1}</span>
-                                    <div className="lesson-progress-card__copy">
-                                      <strong>{lesson.title}</strong>
-                                      <span>{lesson.duration > 0 ? `Thời lượng dự kiến ${lesson.duration} phút` : 'Bài học'}</span>
-                                    </div>
-                                    <span className={`learning-status-badge ${String(lesson.status || 'NOT_STARTED').toUpperCase()}`}>
-                                      {lesson.status === 'COMPLETED' ? 'Đã hoàn thành' : lesson.status === 'IN_PROGRESS' ? 'Đang học' : 'Chưa học'}
-                                    </span>
-                                  </div>
-                                  <div className="lesson-progress-card__meta">
-                                    <span><b>Thời gian học</b>{formatDuration(lesson.totalActiveDuration)}</span>
-                                    <span><b>Lượt truy cập</b>{lesson.numberOfVisits || 0}</span>
-                                    <span><b>Hoạt động gần nhất</b>{formatDateTime(lesson.lastAccessedTime)}</span>
-                                    {lesson.completionDate && <span><b>Hoàn thành lúc</b>{formatDateTime(lesson.completionDate)}</span>}
-                                  </div>
-                                </article>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="admin-empty">Khóa học chưa có bài học nào.</div>
-                )}
-              </div>
-            ))
-          )}
-        </section>
-      )}
-
       {activeTab === 'daily-study' && (
-        <section aria-label="Thời gian học theo ngày">
+        <section className="weekly-study-card" aria-label="Biểu đồ thời gian học trong tuần">
           {dailyStudyLoading ? (
             <div className="admin-table-skeleton"><i /><i /><i /></div>
           ) : dailyStudy?.error ? (
             <div className="admin-error">{dailyStudy.error}</div>
           ) : (
             <>
-              {(dailyStudy?.rows || []).length === 0 ? (
-                <div className="admin-empty">Chưa có thời gian hoạt động nào được ghi nhận. Dữ liệu bắt đầu tích lũy từ khi tracker được triển khai.</div>
-              ) : (
-                <div className="monitoring-table-container">
-                  <table className="monitoring-table">
-                    <thead>
-                      <tr><th>Ngày (giờ Việt Nam)</th><th>Thời gian hoạt động</th><th>Hoạt động cuối ngày</th></tr>
-                    </thead>
-                    <tbody>
-                      {dailyStudy.rows.map((row) => (
-                        <tr key={row._id}>
-                          <td>{row.dateKey}</td>
-                          <td><strong>{formatDuration(row.activeSeconds)}</strong></td>
-                          <td>{formatDateTime(row.lastActiveAt)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <header className="weekly-study-header">
+                <div>
+                  <p>Giờ Việt Nam · Thứ Hai đến Chủ Nhật</p>
+                  <h2>Thời gian học tuần này</h2>
                 </div>
+                <span>{formatWeekDate(dailyStudy?.weekStartDateKey)} – {formatWeekDate(dailyStudy?.weekEndDateKey)}</span>
+              </header>
+              {weeklyStudyDays.length === 0 ? (
+                <div className="admin-empty">Chưa thể tải dữ liệu tuần học này.</div>
+              ) : (
+                <div className="weekly-study-chart-scroll">
+                  <div className="weekly-study-chart" role="img" aria-label="Thời gian học từng ngày từ thứ Hai đến Chủ Nhật">
+                    {weeklyStudyDays.map((day) => {
+                      const barHeight = day.activeSeconds > 0
+                        ? Math.max(5, Math.round((day.activeSeconds / maxWeeklyStudySeconds) * 100))
+                        : 0;
+                      return (
+                        <div className="weekly-study-day" key={day.dateKey}>
+                          <strong className="weekly-study-day__value">{formatDuration(day.activeSeconds)}</strong>
+                          <div className="weekly-study-day__track" aria-hidden="true">
+                            <span style={{ height: `${barHeight}%` }} />
+                          </div>
+                          <span className="weekly-study-day__label">{day.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {weeklyStudyDays.length > 0 && weeklyStudyDays.every((day) => day.activeSeconds === 0) && (
+                <p className="weekly-study-empty-note">Chưa có thời gian học được ghi nhận trong tuần này.</p>
               )}
             </>
           )}

@@ -10,6 +10,7 @@ const studentDailyStudySchema = new mongoose.Schema({
 }, { timestamps: true, versionKey: false });
 
 studentDailyStudySchema.index({ student: 1, dateKey: -1 }, { name: 'student_daily_study_lookup' });
+studentDailyStudySchema.index({ dateKey: 1, student: 1 }, { name: 'student_daily_study_weekly_leaderboard' });
 
 const StudentDailyStudy = mongoose.model('StudentDailyStudy', studentDailyStudySchema);
 

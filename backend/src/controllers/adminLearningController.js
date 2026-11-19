@@ -10,7 +10,7 @@ import Attempt from '../models/Attempt.js';
 import StudentPresence from '../models/StudentPresence.js';
 import StudentDailyStudy from '../models/StudentDailyStudy.js';
 import ExerciseSubmission from '../models/ExerciseSubmission.js';
-import { getHoChiMinhDateKey, getHoChiMinhDateKeyOffset } from '../services/studentTracking.js';
+import { getHoChiMinhDateKey, getHoChiMinhDateKeyOffset, getHoChiMinhWeekDateRange } from '../services/studentTracking.js';
 
 const isObjectId = (value) => typeof value === 'string' && /^[\da-f]{24}$/i.test(value);
 const toObjectId = (value) => new mongoose.Types.ObjectId(value);
@@ -48,8 +48,9 @@ export const getLearningOverview = async (req, res, next) => {
 
     const now = new Date();
     const todayKey = getHoChiMinhDateKey(now);
+    const { weekStartDateKey, weekEndDateKey } = getHoChiMinhWeekDateRange(now);
     const firstStudyDateKey = getHoChiMinhDateKeyOffset(STUDY_REPORT_DAYS - 1, now);
-    const [currentlyActiveStudents, dailyStudySummary] = await Promise.all([
+    const [currentlyActiveStudents, dailyStudySummary, weeklyLeaderboard] = await Promise.all([
       StudentPresence.countDocuments({ lastActiveAt: { $gte: new Date(now.getTime() - PRESENCE_ACTIVE_WINDOW_MS) } }),
       StudentDailyStudy.aggregate([
         { $match: { dateKey: { $gte: firstStudyDateKey, $lte: todayKey }, activeSeconds: { $gt: 0 } } },
@@ -65,6 +66,31 @@ export const getLearningOverview = async (req, res, next) => {
             _id: null,
             averageDailyStudySeconds: { $avg: { $divide: ['$totalSeconds', '$studyDays'] } },
             studentCount: { $sum: 1 },
+          },
+        },
+      ]),
+      StudentDailyStudy.aggregate([
+        { $match: { dateKey: { $gte: weekStartDateKey, $lte: todayKey }, activeSeconds: { $gt: 0 } } },
+        { $group: { _id: '$student', activeSeconds: { $sum: '$activeSeconds' } } },
+        {
+          $lookup: {
+            from: User.collection.name,
+            localField: '_id',
+            foreignField: '_id',
+            as: 'student',
+          },
+        },
+        { $unwind: '$student' },
+        { $match: { 'student.role': 'student', 'student.status': { $ne: 'rejected' } } },
+        { $sort: { activeSeconds: -1, _id: 1 } },
+        { $limit: 10 },
+        {
+          $project: {
+            _id: 1,
+            fullName: '$student.fullName',
+            email: '$student.email',
+            avatar: '$student.avatar',
+            activeSeconds: 1,
           },
         },
       ]),
@@ -146,6 +172,9 @@ export const getLearningOverview = async (req, res, next) => {
         currentlyInactiveStudents: Math.max(0, totalStudents - currentlyActiveStudents),
         averageDailyStudySeconds: Math.round(dailyStudySummary[0]?.averageDailyStudySeconds || 0),
         studyAveragePeriodDays: STUDY_REPORT_DAYS,
+        weeklyLeaderboard,
+        weekStartDateKey,
+        weekEndDateKey,
         notStartedStudents,
         completedStudents,
         totalLearningSeconds,
@@ -898,6 +927,7 @@ export const getLearningStudentDailyStudy = async (req, res, next) => {
 
     const now = new Date();
     const todayKey = getHoChiMinhDateKey(now);
+    const { weekStartDateKey, weekEndDateKey } = getHoChiMinhWeekDateRange(now);
     const firstDateKey = getHoChiMinhDateKeyOffset(STUDY_REPORT_DAYS - 1, now);
     const rows = await StudentDailyStudy.find({
       student: studentId,
@@ -916,6 +946,8 @@ export const getLearningStudentDailyStudy = async (req, res, next) => {
         periodDays: STUDY_REPORT_DAYS,
         firstDateKey,
         lastDateKey: todayKey,
+        weekStartDateKey,
+        weekEndDateKey,
       },
     });
   } catch (error) {

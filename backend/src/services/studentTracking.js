@@ -21,6 +21,18 @@ export const getHoChiMinhDateKeyOffset = (offsetDays, date = new Date()) => {
   return new Date(Date.UTC(year, month - 1, day - offsetDays)).toISOString().slice(0, 10);
 };
 
+export const getHoChiMinhWeekDateRange = (date = new Date()) => {
+  const todayKey = getHoChiMinhDateKey(date);
+  const [year, month, day] = todayKey.split('-').map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  const daysSinceMonday = (weekday + 6) % 7;
+  return {
+    todayKey,
+    weekStartDateKey: getHoChiMinhDateKeyOffset(daysSinceMonday, date),
+    weekEndDateKey: getHoChiMinhDateKeyOffset(daysSinceMonday - 6, date),
+  };
+};
+
 export const getSubmissionId = (value) => {
   const provided = cleanText(value, 128);
   return provided || randomUUID();

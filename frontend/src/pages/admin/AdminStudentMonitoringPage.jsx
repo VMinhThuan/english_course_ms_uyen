@@ -27,6 +27,30 @@ const formatDateTime = (value) => {
   }
 };
 
+const formatRelativeLastActive = (value) => {
+  if (!value) return 'Chưa có hoạt động';
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) return 'Chưa có hoạt động';
+  const elapsedMs = Math.max(0, Date.now() - timestamp);
+  if (elapsedMs < 60_000) return 'Dưới 1 phút trước';
+  if (elapsedMs < 60 * 60_000) return `${Math.floor(elapsedMs / 60_000)} phút trước`;
+  if (elapsedMs < 24 * 60 * 60_000) return `${Math.floor(elapsedMs / (60 * 60_000))} giờ trước`;
+  return `${Math.floor(elapsedMs / (24 * 60 * 60_000))} ngày trước`;
+};
+
+const formatWeekDate = (value) => {
+  if (!value) return '—';
+  try {
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    }).format(new Date(`${value}T12:00:00Z`));
+  } catch {
+    return value;
+  }
+};
+
 export default function AdminStudentMonitoringPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [overview, setOverview] = useState(null);
@@ -39,6 +63,8 @@ export default function AdminStudentMonitoringPage() {
   const page = Number(searchParams.get('page') || 1);
   const search = searchParams.get('search') || '';
   const [searchInput, setSearchInput] = useState(search);
+  const weeklyLeaderboard = overview?.weeklyLeaderboard || [];
+  const maxWeeklySeconds = Math.max(1, ...weeklyLeaderboard.map((student) => Number(student.activeSeconds) || 0));
 
   useEffect(() => {
     let active = true;
@@ -131,6 +157,49 @@ export default function AdminStudentMonitoringPage() {
         </div>
       </section>
 
+      <section className="weekly-leaderboard-card" aria-labelledby="weekly-leaderboard-title">
+        <header className="weekly-leaderboard-header">
+          <div>
+            <p className="weekly-leaderboard-eyebrow">Giờ Việt Nam · Thứ Hai đến Chủ Nhật</p>
+            <h2 id="weekly-leaderboard-title">Top 10 học viên học nhiều nhất tuần này</h2>
+          </div>
+          <span className="weekly-leaderboard-period">
+            {formatWeekDate(overview?.weekStartDateKey)} – {formatWeekDate(overview?.weekEndDateKey)}
+          </span>
+        </header>
+
+        {overviewLoading ? (
+          <div className="weekly-leaderboard-empty">Đang tải bảng xếp hạng...</div>
+        ) : weeklyLeaderboard.length === 0 ? (
+          <div className="weekly-leaderboard-empty">Chưa có thời gian học được ghi nhận trong tuần này.</div>
+        ) : (
+          <div className="weekly-leaderboard-chart-scroll">
+            <ol className="weekly-leaderboard-chart">
+              {weeklyLeaderboard.map((student, index) => {
+                const seconds = Number(student.activeSeconds) || 0;
+                const studentName = student.fullName || student.email || 'Học viên';
+                const barHeight = Math.max(5, Math.round((seconds / maxWeeklySeconds) * 100));
+                return (
+                  <li
+                    className={`weekly-leaderboard-bar${index === 0 ? ' is-top' : ''}`}
+                    key={student._id}
+                    title={`${index + 1}. ${studentName} · ${formatDuration(seconds)}`}
+                    aria-label={`Hạng ${index + 1}: ${studentName}, ${formatDuration(seconds)}`}
+                  >
+                    <strong className="weekly-leaderboard-bar__value">{formatDuration(seconds)}</strong>
+                    <div className="weekly-leaderboard-bar__track" aria-hidden="true">
+                      <span style={{ height: `${barHeight}%` }} />
+                    </div>
+                    <span className="weekly-leaderboard-bar__rank">#{index + 1}</span>
+                    <span className="weekly-leaderboard-bar__name">{studentName}</span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
+      </section>
+
       <div className="monitoring-filter-bar">
         <form className="monitoring-search-box" onSubmit={handleSearchSubmit}>
           <input
@@ -177,10 +246,19 @@ export default function AdminStudentMonitoringPage() {
                     </div>
                   </td>
                   <td>
-                    <span className={`activity-status-badge ${student.activityStatus === 'ACTIVE' ? 'is-active' : 'is-inactive'}`}>
-                      <i aria-hidden="true" />
-                      {student.activityStatus === 'ACTIVE' ? 'Đang hoạt động' : 'Không hoạt động'}
-                    </span>
+                    <div className="activity-status-cell">
+                      <span className={`activity-status-badge ${student.activityStatus === 'ACTIVE' ? 'is-active' : 'is-inactive'}`}>
+                        <i aria-hidden="true" />
+                        {student.activityStatus === 'ACTIVE' ? 'Đang hoạt động' : 'Không hoạt động'}
+                      </span>
+                      {student.activityStatus !== 'ACTIVE' && (
+                        <span className="activity-status-last-seen">
+                          {student.presenceLastActiveAt
+                            ? `Lần cuối hoạt động vào: ${formatRelativeLastActive(student.presenceLastActiveAt)}`
+                            : 'Chưa có hoạt động'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <div className="study-time-cell">
