@@ -35,6 +35,11 @@ export const learningApi = {
     return response.data;
   },
 
+  getMyExerciseSubmissions: async (params = {}) => {
+    const response = await axiosInstance.get('/exercise-submissions/mine', { params });
+    return response.data;
+  },
+
   // ================= ADMIN MONITORING =================
   getOverview: async () => {
     const response = await axiosInstance.get('/admin/learning/overview');

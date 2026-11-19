@@ -36,6 +36,7 @@ import { normalizePrivateBlobRequest, signPrivateBlobResponse } from './middlewa
 import { createVocabularyCatalogManagementPrototypeRouter } from './routes/vocabularyCatalogManagementPrototypeRoutes.js';
 import { createStudentVocabularyCatalogPrototypeRouter } from './routes/studentVocabularyCatalogPrototypeRoutes.js';
 import learningSessionRoutes from './routes/learningSessionRoutes.js';
+import studentExerciseSubmissionRoutes from './routes/studentExerciseSubmissionRoutes.js';
 import adminLearningRoutes from './routes/adminLearningRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
@@ -194,6 +195,7 @@ app.use('/api/v1/hard-words-dictations', studentHardWordsDictationRoutes);
 app.use('/api/v1/admin/road-to-part-7', adminRoadToPart7Routes);
 app.use('/api/v1/road-to-part-7', studentRoadToPart7Routes);
 app.use('/api/v1/learning/sessions', learningSessionRoutes);
+app.use('/api/v1/exercise-submissions', studentExerciseSubmissionRoutes);
 app.use('/api/v1/admin/learning', adminLearningRoutes);
 app.use('/api/v1/progress', progressRoutes);
 app.use('/api/v1/courses', courseRoutes);
