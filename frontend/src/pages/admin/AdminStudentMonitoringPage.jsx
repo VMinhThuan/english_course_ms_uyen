@@ -160,7 +160,6 @@ export default function AdminStudentMonitoringPage() {
       <section className="weekly-leaderboard-card" aria-labelledby="weekly-leaderboard-title">
         <header className="weekly-leaderboard-header">
           <div>
-            <p className="weekly-leaderboard-eyebrow">Giờ Việt Nam · Thứ Hai đến Chủ Nhật</p>
             <h2 id="weekly-leaderboard-title">Top 10 học viên học nhiều nhất tuần này</h2>
           </div>
           <span className="weekly-leaderboard-period">

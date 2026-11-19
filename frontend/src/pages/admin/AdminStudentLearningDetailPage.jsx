@@ -65,13 +65,9 @@ const createWeeklyStudyDays = (dailyStudy) => {
       weekday: 'short',
       timeZone: 'Asia/Ho_Chi_Minh',
     }).format(date);
-    const dayLabel = new Intl.DateTimeFormat('vi-VN', {
-      day: 'numeric',
-      timeZone: 'Asia/Ho_Chi_Minh',
-    }).format(date);
     return {
       dateKey,
-      label: `${weekday} ${dayLabel}`,
+      label: weekday,
       activeSeconds: secondsByDate.get(dateKey) || 0,
     };
   });
@@ -305,7 +301,6 @@ export default function AdminStudentLearningDetailPage() {
             <>
               <header className="weekly-study-header">
                 <div>
-                  <p>Giờ Việt Nam · Thứ Hai đến Chủ Nhật</p>
                   <h2>Thời gian học tuần này</h2>
                 </div>
                 <span>{formatWeekDate(dailyStudy?.weekStartDateKey)} – {formatWeekDate(dailyStudy?.weekEndDateKey)}</span>
