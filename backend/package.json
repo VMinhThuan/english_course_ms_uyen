@@ -20,6 +20,7 @@
     "seed:part1-translations": "node src/scripts/seedPart1DictationTranslations.js",
     "test:phase2-import": "node --test tests/phase2ToeicPart5Import.test.js",
     "test:phase5": "node --test tests/phase5ToeicPart1.test.js tests/phase5Cors.test.js",
+    "test:gamification": "node --test tests/gamificationUtils.test.js tests/gamification.integration.test.js",
     "test:toeic-crawler-import": "node --test tests/toeicCrawlerImport.test.js",
     "toeic:question-ocean:inspect": "node src/scripts/importToeicQuestionOcean.js",
     "toeic:question-ocean:import": "node src/scripts/importToeicQuestionOcean.js",

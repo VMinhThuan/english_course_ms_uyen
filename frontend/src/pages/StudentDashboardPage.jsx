@@ -10,6 +10,8 @@ const modules = [
   { title: 'Bài tập', description: 'Làm các bài tập đang được mở cho học viên.', href: '/student/assessments', icon: '✓', label: 'LUYỆN TẬP' },
   { title: 'Đề thi TOEIC', description: 'Chọn đề thi đã xuất bản và theo dõi kết quả.', href: '/student/toeic', icon: '⌁', label: 'THI THỬ' },
   { title: 'Từ vựng', description: 'Ôn từ theo bộ và chapter bằng flashcard.', href: '/student/vocabulary-catalog', icon: 'Aa', label: 'VOCABULARY' },
+  { title: 'Thử thách 7 ngày', description: 'Hoàn thành 20 từ mỗi ngày và giữ streak học tập.', href: '/student/streak-challenge', icon: '🔥', label: 'STREAK CHALLENGE' },
+  { title: 'Vượt ải TOEIC', description: 'Mở khóa từng cấp độ bằng bài đánh giá từ vựng.', href: '/student/vocabulary-quest', icon: '🧭', label: 'VOCABULARY QUEST' },
 ];
 
 export default function StudentDashboardPage() {

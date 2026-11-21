@@ -36,6 +36,8 @@ export default function StudentLayout() {
     else if (path.includes('road-to-part-7')) pageTitle = 'Road to Part 7';
     else if (path.includes('/grammar/tense-classification')) pageTitle = 'Phân loại thì và dạng câu';
     else if (path.includes('/grammar/active-to-passive')) pageTitle = 'Chuyển chủ động sang bị động';
+    else if (path.includes('streak-challenge')) pageTitle = 'Thử thách 7 ngày';
+    else if (path.includes('vocabulary-quest')) pageTitle = 'Vượt ải TOEIC';
     else if (path.includes('vocabulary') || path.includes('flashcards')) pageTitle = 'Từ vựng';
     else if (path.includes('/tests/')) pageTitle = 'Đang làm bài kiểm tra';
     else if (path.includes('assessments')) pageTitle = 'Bài tập tổng hợp';
@@ -249,6 +251,24 @@ export default function StudentLayout() {
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
             <span>Danh mục từ vựng</span>
+          </NavLink>
+
+          <NavLink
+            to="/student/streak-challenge"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            <span className="sidebar-link__emoji" aria-hidden="true">🔥</span>
+            <span>Thử thách 7 ngày</span>
+          </NavLink>
+
+          <NavLink
+            to="/student/vocabulary-quest"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            <span className="sidebar-link__emoji" aria-hidden="true">🧭</span>
+            <span>Vượt ải TOEIC</span>
           </NavLink>
 
           <NavLink

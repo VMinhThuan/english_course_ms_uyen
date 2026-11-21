@@ -47,6 +47,7 @@ import enrollmentRoutes from './routes/enrollmentRoutes.js';
 import vocabularyRoutes from './routes/vocabularyRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import instructorRoutes from './routes/instructorRoutes.js';
+import gamificationRoutes from './routes/gamificationRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -92,7 +93,7 @@ const corsOptions = {
     },
     credentials: true,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Range', 'If-Range', 'Idempotency-Key'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Range', 'If-Range', 'Idempotency-Key', 'X-Timezone'],
     exposedHeaders: ['Authorization', 'Content-Disposition', 'Accept-Ranges', 'Content-Range', 'Content-Length'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
@@ -205,6 +206,7 @@ app.use('/api/v1/lessons', lessonRoutes);
 app.use('/api/v1/materials', materialRoutes);
 app.use('/api/v1/enrollments', enrollmentRoutes);
 app.use('/api/v1/vocabulary', vocabularyRoutes);
+app.use('/api/v1/gamification', gamificationRoutes);
 app.use('/api/v1/tests', testRoutes);
 app.use('/api/v1/instructors', instructorRoutes);
 app.use('/api/v1/admin/learning-content', learningContentRoutes);
