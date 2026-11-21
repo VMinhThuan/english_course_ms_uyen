@@ -44,6 +44,7 @@ import VocabularyStreakChallengePage from '../pages/VocabularyStreakChallengePag
 import VocabularyQuestPage from '../pages/VocabularyQuestPage.jsx';
 import VocabularyCatalogWorkspace from '../features/vocabulary-catalog/VocabularyCatalogWorkspace.jsx';
 import AdminVocabularyQuickPage from '../features/vocabulary-catalog/AdminVocabularyQuickPage.jsx';
+import AdminGamificationPage from '../pages/admin/AdminGamificationPage.jsx';
 
 // Admin Pages
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage.jsx';
@@ -222,6 +223,7 @@ function AppRoutes() {
         <Route path="road-to-part-7" element={<ProtectedRoute requiredRole="admin"><RoadToPart7Page admin /></ProtectedRoute>} />
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyLanding />} />
+        <Route path="gamification" element={<AdminGamificationPage />} />
         <Route path="vocabulary/quick" element={<ProtectedRoute requiredRole="admin"><AdminVocabularyQuickPage /></ProtectedRoute>} />
         <Route path="vocabulary/catalog" element={<ProtectedRoute requiredRole="admin"><VocabularyCatalogWorkspace /></ProtectedRoute>} />
         <Route path="vocabulary/import" element={<Navigate to="/admin/vocabulary/catalog" replace />} />

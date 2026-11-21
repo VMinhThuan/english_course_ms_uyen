@@ -22,6 +22,7 @@ export default function AdminLayout() {
     if (path.includes('learning-progress')) pageTitle = 'Tiến độ học tập';
     else if (path.includes('students')) pageTitle = 'Quản lý Học viên';
     else if (path.includes('grammar-exercises')) pageTitle = 'Quản lý bài tập ngữ pháp';
+    else if (path.includes('gamification')) pageTitle = 'Quản lý Mini Game';
     else if (path.includes('hard-words-dictation')) pageTitle = 'Hard Words Dictation';
     else if (path.includes('part2-challenge')) pageTitle = 'Part 2 Challange';
     else if (path.includes('vocabulary-dictation')) pageTitle = 'Chép chính tả từ vựng';
@@ -143,6 +144,18 @@ export default function AdminLayout() {
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
             </svg>
             <span>Quản Lý Từ Vựng</span>
+          </NavLink>
+
+          <NavLink
+            to="/admin/gamification"
+            className={({ isActive }) => `admin-sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 3v18M18 3v18M3 8h6M15 16h6M3 16h6M15 8h6" />
+              <circle cx="6" cy="8" r="2" /><circle cx="18" cy="16" r="2" />
+            </svg>
+            <span>Quản Lý Mini Game</span>
           </NavLink>
 
           <PracticeSidebarMenu variant="admin" showPart1={isAdmin} onNavigate={closeMobileMenu} />

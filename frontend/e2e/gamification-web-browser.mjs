@@ -71,7 +71,7 @@ function makeOverview() {
   };
 }
 
-async function installApiMocks(context) {
+async function installApiMocks(context, role = 'student') {
   let dailyChallenge = null;
   let dailyCorrect = 0;
   let questAttempt = null;
@@ -83,7 +83,7 @@ async function installApiMocks(context) {
     const pathname = url.pathname;
     requests.push({ method: request.method(), pathname });
 
-    if (pathname.endsWith('/auth/me')) return jsonResponse(route, { status: 'success', data: { user } });
+    if (pathname.endsWith('/auth/me')) return jsonResponse(route, { status: 'success', data: { user: { ...user, role } } });
     if (pathname.endsWith('/attempts/active')) return jsonResponse(route, { status: 'success', data: { attempts: [] } });
     if (pathname.endsWith('/gamification/overview')) {
       const overview = makeOverview();
@@ -114,9 +114,9 @@ async function installApiMocks(context) {
   return { requests };
 }
 
-async function newPage(browser, viewport) {
+async function newPage(browser, viewport, role = 'student') {
   const context = await browser.newContext({ viewport, hasTouch: viewport.width <= 768 });
-  const mocks = await installApiMocks(context);
+  const mocks = await installApiMocks(context, role);
   await context.addInitScript(() => localStorage.setItem('accessToken', 'web-e2e-token'));
   const page = await context.newPage();
   const consoleErrors = [];
@@ -190,6 +190,19 @@ async function testMobile(browser, viewport) {
   } finally { await context.close(); }
 }
 
+async function testAdminGamification(browser) {
+  const { context, page, consoleErrors, pageErrors } = await newPage(browser, { width: 1440, height: 1000 }, 'admin');
+  try {
+    await page.goto(`${uiUrl}/admin`, { waitUntil: 'networkidle' });
+    await page.getByRole('link', { name: 'Quản Lý Mini Game' }).click();
+    await page.getByRole('heading', { name: 'Quản lý Mini Game' }).waitFor();
+    assert.equal(await page.locator('.admin-gamification-card').count(), 2);
+    assert.equal(await page.locator('.admin-sidebar-link.active').getByText('Quản Lý Mini Game').count(), 1);
+    assert.equal(consoleErrors.length, 0, `console errors: ${consoleErrors.join('; ')}`);
+    assert.equal(pageErrors.length, 0, `page errors: ${pageErrors.join('; ')}`);
+  } finally { await context.close(); }
+}
+
 const vitePort = await freePort();
 const viteScript = path.join(frontendRoot, 'node_modules/vite/bin/vite.js');
 const viteProcess = spawn(process.execPath, [viteScript, '--host', '127.0.0.1', '--port', String(vitePort), '--strictPort'], { cwd: frontendRoot, stdio: 'ignore', env: { ...process.env, NODE_ENV: 'test', CI: 'true' } });
@@ -201,6 +214,7 @@ try {
   browser = await chromium.launch({ headless: process.env.GAMIFICATION_HEADLESS !== 'false' });
   for (const width of [1280, 1440, 1920]) await testDesktopStreak(browser, { width, height: 1000 });
   for (const width of [1280, 1440, 1920]) await testDesktopQuest(browser, { width, height: 1000 });
+  await testAdminGamification(browser);
   await testMobile(browser, { width: 390, height: 844 });
   await testMobile(browser, { width: 768, height: 1024 });
   console.log('Gamification web browser E2E: PASS (desktop 1280/1440/1920, tablet 768, mobile 390)');

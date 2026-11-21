@@ -1,0 +1,31 @@
+.admin-gamification-page { gap: 22px; }
+.admin-gamification-status { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 22px 24px; border: 1px solid var(--brand-success-border); border-radius: var(--radius-card); background: linear-gradient(110deg, var(--brand-success-bg), var(--brand-surface) 70%); box-shadow: var(--shadow-subtle); }
+.admin-gamification-status__label { display: block; margin-bottom: 5px; color: var(--brand-success); font-size: 10px; font-weight: 850; letter-spacing: .13em; }
+.admin-gamification-status strong { display: block; color: var(--brand-text); font-size: 19px; }
+.admin-gamification-status p { margin: 5px 0 0; color: var(--brand-muted); font-size: 13px; line-height: 1.5; }
+.admin-gamification-status__badge { flex: 0 0 auto; padding: 8px 12px; border-radius: var(--radius-pill); background: var(--brand-success-bg); color: var(--brand-success); font-size: 11px; font-weight: 850; letter-spacing: .08em; }
+.admin-gamification-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.admin-gamification-card { display: flex; min-height: 340px; flex-direction: column; padding: 24px; border: 1px solid var(--brand-border); border-radius: var(--radius-card); background: var(--brand-surface); box-shadow: var(--shadow-subtle); transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.admin-gamification-card:hover { border-color: #d5c09f; box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+.admin-gamification-card__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+.admin-gamification-card__icon { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 16px; background: var(--brand-yellow-soft); font-size: 28px; }
+.admin-gamification-card__status { padding: 6px 9px; border-radius: var(--radius-pill); background: var(--brand-success-bg); color: var(--brand-success); font-size: 10px; font-weight: 800; }
+.admin-gamification-card h2 { margin: 7px 0 8px; color: var(--brand-text); font-family: var(--font-serif); font-size: 27px; font-weight: 600; }
+.admin-gamification-card__description { max-width: 540px; margin: 0; color: var(--brand-muted); font-size: 13px; line-height: 1.65; }
+.admin-gamification-card ul { display: grid; gap: 8px; margin: 19px 0 22px; padding: 0; list-style: none; color: var(--brand-coffee); font-size: 12px; }
+.admin-gamification-card li { display: flex; align-items: flex-start; gap: 8px; }
+.admin-gamification-card li::before { content: '✓'; color: var(--brand-success); font-weight: 850; }
+.admin-gamification-card__link { width: fit-content; margin-top: auto; color: var(--brand-coffee); font-size: 13px; font-weight: 800; text-decoration: none; }
+.admin-gamification-card__link:hover { color: var(--brand-coffee-dark); text-decoration: underline; }
+.admin-gamification-management { padding: 24px; }
+.admin-gamification-management .admin-panel-head { margin-bottom: 18px; }
+.admin-gamification-management h2 { margin: 0; color: var(--brand-text); font-size: 20px; }
+.admin-gamification-management .admin-panel-head p { margin: 5px 0 0; }
+.admin-gamification-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.admin-gamification-links a { display: grid; gap: 5px; padding: 15px; border: 1px solid var(--brand-border); border-radius: var(--radius-md); background: var(--brand-bg); color: var(--brand-text); text-decoration: none; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+.admin-gamification-links a:hover { border-color: #d5c09f; background: var(--brand-yellow-soft); transform: translateY(-1px); }
+.admin-gamification-links span { font-size: 20px; }
+.admin-gamification-links strong { font-size: 13px; }
+.admin-gamification-links small { color: var(--brand-muted); font-size: 11px; line-height: 1.45; }
+@media (max-width: 850px) { .admin-gamification-grid, .admin-gamification-links { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .admin-gamification-status { align-items: flex-start; flex-direction: column; padding: 19px; } .admin-gamification-card, .admin-gamification-management { padding: 19px; } }
