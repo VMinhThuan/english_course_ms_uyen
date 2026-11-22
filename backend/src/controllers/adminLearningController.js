@@ -784,6 +784,8 @@ export const getLearningStudentProgress = async (req, res, next) => {
           duration: lesson.duration || 0,
           difficulty: lesson.difficulty || null,
           status,
+          progress: status === 'COMPLETED' ? 100 : (Number(prog?.progress) || 0),
+          startedAt: prog?.startedAt || null,
           lastAccessedTime: prog?.lastAccessedAt || null,
           totalActiveDuration: activeSec,
           completionDate: prog?.completedAt || null,

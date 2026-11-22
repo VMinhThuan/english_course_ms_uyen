@@ -40,6 +40,20 @@ const formatDateOnly = (value) => {
   }
 };
 
+const formatLessonDuration = (totalSeconds) => {
+  const seconds = Math.max(0, Number(totalSeconds) || 0);
+  if (seconds < 60) return `${seconds} giây`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes} phút${remainingSeconds ? ` ${remainingSeconds} giây` : ''}`;
+};
+
+const lessonStatusLabels = {
+  COMPLETED: 'Đã hoàn thành',
+  IN_PROGRESS: 'Đang học',
+  NOT_STARTED: 'Chưa bắt đầu',
+};
+
 const formatWeekDate = (value) => {
   if (!value) return '—';
   try {
@@ -76,10 +90,14 @@ const createWeeklyStudyDays = (dailyStudy) => {
 export default function AdminStudentLearningDetailPage() {
   const { studentId } = useParams();
 
-  const [activeTab, setActiveTab] = useState('daily-study');
+  const [activeTab, setActiveTab] = useState('learning-progress');
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [learningProgress, setLearningProgress] = useState(null);
+  const [learningProgressLoading, setLearningProgressLoading] = useState(false);
+  const [learningProgressError, setLearningProgressError] = useState('');
 
   // Assessments & Attempts
   const [attempts, setAttempts] = useState([]);
@@ -96,6 +114,8 @@ export default function AdminStudentLearningDetailPage() {
     let active = true;
     setLoading(true);
     setError('');
+    setLearningProgress(null);
+    setLearningProgressError('');
 
     learningApi.getStudentDetail(studentId)
       .then((res) => {
@@ -110,6 +130,28 @@ export default function AdminStudentLearningDetailPage() {
 
     return () => { active = false; };
   }, [studentId]);
+
+  useEffect(() => {
+    if (activeTab !== 'learning-progress' || learningProgress) return;
+    let active = true;
+    setLearningProgressLoading(true);
+    setLearningProgressError('');
+
+    learningApi.getStudentProgress(studentId)
+      .then((res) => {
+        if (active) setLearningProgress(res.data || { courses: [] });
+      })
+      .catch((err) => {
+        if (active) {
+          setLearningProgressError(err?.response?.data?.message || 'Không thể tải tiến độ từng bài học.');
+        }
+      })
+      .finally(() => {
+        if (active) setLearningProgressLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [studentId, activeTab, learningProgress]);
 
   // 2. Load Exam & Exercise Results
   useEffect(() => {
@@ -187,6 +229,11 @@ export default function AdminStudentLearningDetailPage() {
   const { student, lastLearningActivity, learningOverview = {} } = detail;
   const weeklyStudyDays = createWeeklyStudyDays(dailyStudy);
   const maxWeeklyStudySeconds = Math.max(1, ...weeklyStudyDays.map((day) => day.activeSeconds));
+  const exerciseSummary = exerciseSubmissions.reduce((summary, submission) => ({
+    attempts: summary.attempts + 1,
+    questions: summary.questions + (Number(submission.total) || submission.questions?.length || 0),
+    correct: summary.correct + (Number(submission.correctCount) || 0),
+  }), { attempts: 0, questions: 0, correct: 0 });
 
   return (
     <div className="admin-page-container monitoring-page">
@@ -198,7 +245,7 @@ export default function AdminStudentLearningDetailPage() {
 
       <PageHeader
         title={`Chi tiết học tập: ${student.fullName || student.email}`}
-        subtitle={`Theo dõi thời gian học theo tuần, đề thi TOEIC và lịch sử bài tập của ${student.fullName || student.email}`}
+        subtitle={`Xem học viên đã học gì, tiến độ từng bài và lịch sử làm bài của ${student.fullName || student.email}`}
       />
 
       {/* Student Profile Card (Section 3.B) */}
@@ -256,6 +303,14 @@ export default function AdminStudentLearningDetailPage() {
           <span className="kpi-card-sub">30 ngày gần nhất · {learningOverview.studyDaysInLast30Days || 0} ngày có học</span>
         </div>
 
+        <div className="kpi-card">
+          <span className="kpi-card-label">Tiến độ lộ trình</span>
+          <strong className="kpi-card-value kpi-card-value--progress" style={{ fontSize: '20px' }}>
+            {learningOverview.overallCompletionPercentage || 0}%
+          </strong>
+          <span className="kpi-card-sub">{learningOverview.completedLessons || 0}/{learningOverview.totalLessons || 0} bài đã hoàn thành</span>
+        </div>
+
       </section>
 
       {/* Detail Tabs Bar */}
@@ -263,11 +318,11 @@ export default function AdminStudentLearningDetailPage() {
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'daily-study'}
-          className={`detail-tab-button ${activeTab === 'daily-study' ? 'active' : ''}`}
-          onClick={() => setActiveTab('daily-study')}
+          aria-selected={activeTab === 'learning-progress'}
+          className={`detail-tab-button ${activeTab === 'learning-progress' ? 'active' : ''}`}
+          onClick={() => setActiveTab('learning-progress')}
         >
-          📊 Thời gian học tuần này
+          📚 Lộ trình & bài học
         </button>
 
         <button
@@ -287,9 +342,106 @@ export default function AdminStudentLearningDetailPage() {
           className={`detail-tab-button ${activeTab === 'exercises' ? 'active' : ''}`}
           onClick={() => setActiveTab('exercises')}
         >
-          ✍️ Lịch sử bài tập
+          ✍️ Bài tập đã làm
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'daily-study'}
+          className={`detail-tab-button ${activeTab === 'daily-study' ? 'active' : ''}`}
+          onClick={() => setActiveTab('daily-study')}
+        >
+          📊 Thời gian học tuần này
         </button>
       </div>
+
+      {activeTab === 'learning-progress' && (
+        <section className="learning-progress-section" aria-label="Tiến độ lộ trình và từng bài học">
+          {learningProgressLoading ? (
+            <div className="admin-table-skeleton"><i /><i /><i /></div>
+          ) : learningProgressError ? (
+            <div className="admin-error">{learningProgressError}</div>
+          ) : !learningProgress?.courses?.length ? (
+            <div className="admin-empty">Học viên chưa được ghi nhận trong khóa học nào có bài học đã xuất bản.</div>
+          ) : (
+            <>
+              <div className="learning-progress-intro">
+                <div>
+                  <h2>Lộ trình học</h2>
+                  <p>Trạng thái được tính từ lịch sử truy cập, thời gian học và thao tác hoàn thành bài.</p>
+                </div>
+                <div className="learning-progress-intro__summary">
+                  <strong>{learningProgress.courses.reduce((sum, course) => sum + (course.completedLessons || 0), 0)}</strong>
+                  <span>/ {learningProgress.courses.reduce((sum, course) => sum + (course.totalLessons || 0), 0)} bài hoàn thành</span>
+                </div>
+              </div>
+
+              <div className="course-progress-list">
+                {learningProgress.courses.map((course) => (
+                  <details className="course-progress-card" key={course._id} open>
+                    <summary className="course-progress-card__header">
+                      <div>
+                        <h3>{course.title}</h3>
+                        <span>{course.level || 'Khóa học'}{course.englishType ? ` · ${course.englishType}` : ''}</span>
+                      </div>
+                      <div className="course-progress-card__score">
+                        <strong>{course.completionPercentage || 0}%</strong>
+                        <span>{course.completedLessons || 0}/{course.totalLessons || 0} bài</span>
+                      </div>
+                    </summary>
+
+                    <div className="course-progress-card__body">
+                      <div className="course-progress-bar" aria-label={`Tiến độ ${course.completionPercentage || 0}%`} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={course.completionPercentage || 0}>
+                        <span style={{ width: `${Math.min(100, Math.max(0, course.completionPercentage || 0))}%` }} />
+                      </div>
+
+                      <div className="course-chapter-list">
+                        {course.chapters.map((chapter) => (
+                          <details className="course-chapter-card" key={`${course._id}-${chapter.chapterTitle}`} open>
+                            <summary className="course-chapter-card__header">
+                              <span>{chapter.chapterTitle}</span>
+                              <b>{chapter.completedLessons || 0}/{chapter.totalLessons || 0} bài hoàn thành</b>
+                            </summary>
+                            <div className="lesson-progress-list">
+                              {chapter.lessons.map((lesson, lessonIndex) => {
+                                const percentage = Number(lesson.progress) === 100 || lesson.status === 'COMPLETED' ? 100 : 0;
+                                return (
+                                  <article className="lesson-progress-card" key={lesson._id}>
+                                    <div className="lesson-progress-card__main">
+                                      <span className="lesson-progress-card__number">{lesson.order || lessonIndex + 1}</span>
+                                      <div className="lesson-progress-card__copy">
+                                        <strong>{lesson.title}</strong>
+                                        <span>{lesson.duration ? `${lesson.duration} phút dự kiến` : 'Bài học'}</span>
+                                      </div>
+                                      <span className={`learning-status-badge ${lesson.status}`}>
+                                        {lessonStatusLabels[lesson.status] || 'Chưa xác định'}
+                                      </span>
+                                    </div>
+                                    <div className="lesson-progress-card__bar" aria-label={`Tiến độ bài học ${percentage}%`} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={percentage}>
+                                      <span className={lesson.status === 'COMPLETED' ? 'is-completed' : ''} style={{ width: `${percentage}%` }} />
+                                    </div>
+                                    <div className="lesson-progress-card__meta">
+                                      <span><b>Tiến độ</b>{percentage}%</span>
+                                      <span><b>Thời gian học</b>{formatLessonDuration(lesson.totalActiveDuration)}</span>
+                                      <span><b>Số lần truy cập</b>{lesson.numberOfVisits || 0} lần</span>
+                                      <span><b>Lần cuối truy cập</b>{formatDateTime(lesson.lastAccessedTime)}</span>
+                                    </div>
+                                  </article>
+                                );
+                              })}
+                            </div>
+                          </details>
+                        ))}
+                      </div>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
       {activeTab === 'daily-study' && (
         <section className="weekly-study-card" aria-label="Biểu đồ thời gian học trong tuần">
@@ -415,6 +567,14 @@ export default function AdminStudentLearningDetailPage() {
             <h2>Lịch sử bài tập</h2>
             {!exerciseLoading && !exerciseError && <span>{exerciseSubmissions.length} lượt nộp</span>}
           </div>
+          {!exerciseLoading && !exerciseError && exerciseSubmissions.length > 0 && (
+            <div className="exercise-history-summary" aria-label="Tổng quan kết quả bài tập">
+              <div><strong>{exerciseSummary.attempts}</strong><span>lượt nộp</span></div>
+              <div><strong>{exerciseSummary.correct}/{exerciseSummary.questions}</strong><span>câu đúng</span></div>
+              <div><strong>{exerciseSummary.questions > 0 ? Math.round((exerciseSummary.correct / exerciseSummary.questions) * 100) : 0}%</strong><span>tỷ lệ đúng</span></div>
+              <p>Mở từng lượt làm bên dưới để xem học viên đã trả lời gì ở từng câu.</p>
+            </div>
+          )}
           <ExerciseSubmissionTree
             submissions={exerciseSubmissions}
             loading={exerciseLoading}
