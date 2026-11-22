@@ -34,4 +34,11 @@ export const adminApi = {
     const response = await axiosInstance.get('/admin/stats');
     return response.data;
   },
+  getGamificationConfigs: async () => (await axiosInstance.get('/admin/gamification/config')).data,
+  updateGamificationConfig: async (game, data) => (await axiosInstance.patch(`/admin/gamification/config/${game}`, data)).data,
+  getGamificationVocabulary: async (params = {}) => (await axiosInstance.get('/admin/gamification/vocabulary', { params })).data,
+  updateGamificationVocabulary: async (id, data) => (await axiosInstance.patch(`/admin/gamification/vocabulary/${id}`, data)).data,
+  getGamificationAnalytics: async () => (await axiosInstance.get('/admin/gamification/analytics')).data,
+  getGamificationHistory: async () => (await axiosInstance.get('/admin/gamification/history')).data,
+  previewGamificationQuest: async (level, stage) => (await axiosInstance.get('/admin/gamification/quest-preview', { params: { level, stage } })).data,
 };

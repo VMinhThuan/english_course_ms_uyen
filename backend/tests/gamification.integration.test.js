@@ -6,8 +6,10 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import gamificationRoutes from '../src/routes/gamificationRoutes.js';
+import adminRoutes from '../src/routes/adminRoutes.js';
 import DailyVocabularyChallenge from '../src/models/DailyVocabularyChallenge.js';
 import GamificationAchievement from '../src/models/GamificationAchievement.js';
+import GamificationConfig from '../src/models/GamificationConfig.js';
 import User from '../src/models/User.js';
 import Vocabulary from '../src/models/Vocabulary.js';
 import VocabularyQuestAttempt from '../src/models/VocabularyQuestAttempt.js';
@@ -47,7 +49,7 @@ before(async () => {
   await mongoose.connect(mongoServer.getUri(dbName), { serverSelectionTimeoutMS: 5000, autoIndex: true });
   await Promise.all([
     User.init(), Vocabulary.init(), DailyVocabularyChallenge.init(), VocabularyStreak.init(),
-    VocabularyQuestProgress.init(), VocabularyQuestAttempt.init(), GamificationAchievement.init(),
+    VocabularyQuestProgress.init(), VocabularyQuestAttempt.init(), GamificationAchievement.init(), GamificationConfig.init(),
   ]);
 
   [student, secondStudent, teacher] = await User.create([
@@ -69,6 +71,7 @@ before(async () => {
   const app = express();
   app.use(express.json());
   app.use('/api/v1/gamification', gamificationRoutes);
+  app.use('/api/v1/admin', adminRoutes);
   app.use((error, _req, res, _next) => res.status(error.statusCode || 500).json({ status: 'error', code: error.code, message: error.message }));
   httpServer = app.listen(0, '127.0.0.1');
   await new Promise((resolve, reject) => {
@@ -85,6 +88,18 @@ after(async () => {
 });
 
 test('gamification production invariants hold across API, persistence, replay and concurrency', async (t) => {
+  await t.test('admin can read and update per-game configuration while students cannot', async () => {
+    assert.equal((await request('/api/v1/admin/gamification/config')).status, 401);
+    assert.equal((await request('/api/v1/admin/gamification/config', { token: studentToken })).status, 403);
+    const initial = await request('/api/v1/admin/gamification/config', { token: teacherToken });
+    assert.equal(initial.status, 200, JSON.stringify(initial.payload));
+    assert.equal(initial.payload.data.configs.find((config) => config.game === 'streak').dailyWordCount, 20);
+    const updated = await request('/api/v1/admin/gamification/config/quest', { token: teacherToken, method: 'PATCH', body: { enabled: true, timeLimitSeconds: 180 } });
+    assert.equal(updated.status, 200);
+    assert.equal(updated.payload.data.config.timeLimitSeconds, 180);
+    assert.equal((await GamificationConfig.findOne({ game: 'quest' })).timeLimitSeconds, 180);
+  });
+
   await t.test('authorization rejects anonymous and non-student access', async () => {
     assert.equal((await request('/api/v1/gamification/overview')).status, 401);
     assert.equal((await request('/api/v1/gamification/overview', { token: teacherToken })).status, 403);

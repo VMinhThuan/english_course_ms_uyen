@@ -3,18 +3,17 @@
 .admin-gamification-status__label { display: block; margin-bottom: 5px; color: var(--brand-success); font-size: 10px; font-weight: 850; letter-spacing: .13em; }
 .admin-gamification-status strong { display: block; color: var(--brand-text); font-size: 19px; }
 .admin-gamification-status p { margin: 5px 0 0; color: var(--brand-muted); font-size: 13px; line-height: 1.5; }
-.admin-gamification-status__badge { flex: 0 0 auto; padding: 8px 12px; border-radius: var(--radius-pill); background: var(--brand-success-bg); color: var(--brand-success); font-size: 11px; font-weight: 850; letter-spacing: .08em; }
+.admin-gamification-status__badge { flex: 0 0 auto; padding: 8px 12px; border: 1px solid var(--brand-success-border); border-radius: var(--radius-pill); background: var(--brand-success-bg); color: var(--brand-success); font-size: 11px; font-weight: 850; letter-spacing: .08em; }
 .admin-gamification-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .admin-gamification-card { display: flex; min-height: 340px; flex-direction: column; padding: 24px; border: 1px solid var(--brand-border); border-radius: var(--radius-card); background: var(--brand-surface); box-shadow: var(--shadow-subtle); transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
 .admin-gamification-card:hover { border-color: #d5c09f; box-shadow: var(--shadow-hover); transform: translateY(-2px); }
-.admin-gamification-card__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
-.admin-gamification-card__icon { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 16px; background: var(--brand-yellow-soft); font-size: 28px; }
+.admin-gamification-card__top { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-height: 28px; margin-bottom: 22px; }
 .admin-gamification-card__status { padding: 6px 9px; border-radius: var(--radius-pill); background: var(--brand-success-bg); color: var(--brand-success); font-size: 10px; font-weight: 800; }
+.admin-gamification-card__status.is-disabled { background: var(--brand-danger-bg); color: var(--brand-danger); }
 .admin-gamification-card h2 { margin: 7px 0 8px; color: var(--brand-text); font-family: var(--font-serif); font-size: 27px; font-weight: 600; }
 .admin-gamification-card__description { max-width: 540px; margin: 0; color: var(--brand-muted); font-size: 13px; line-height: 1.65; }
 .admin-gamification-card ul { display: grid; gap: 8px; margin: 19px 0 22px; padding: 0; list-style: none; color: var(--brand-coffee); font-size: 12px; }
-.admin-gamification-card li { display: flex; align-items: flex-start; gap: 8px; }
-.admin-gamification-card li::before { content: '✓'; color: var(--brand-success); font-weight: 850; }
+.admin-gamification-card li { padding-left: 12px; border-left: 2px solid var(--brand-success-border); }
 .admin-gamification-card__link { width: fit-content; margin-top: auto; color: var(--brand-coffee); font-size: 13px; font-weight: 800; text-decoration: none; }
 .admin-gamification-card__link:hover { color: var(--brand-coffee-dark); text-decoration: underline; }
 .admin-gamification-management { padding: 24px; }
@@ -24,8 +23,94 @@
 .admin-gamification-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .admin-gamification-links a { display: grid; gap: 5px; padding: 15px; border: 1px solid var(--brand-border); border-radius: var(--radius-md); background: var(--brand-bg); color: var(--brand-text); text-decoration: none; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
 .admin-gamification-links a:hover { border-color: #d5c09f; background: var(--brand-yellow-soft); transform: translateY(-1px); }
-.admin-gamification-links span { font-size: 20px; }
 .admin-gamification-links strong { font-size: 13px; }
 .admin-gamification-links small { color: var(--brand-muted); font-size: 11px; line-height: 1.45; }
+.admin-gamification-back { width: fit-content; color: var(--brand-coffee); font-size: 13px; font-weight: 800; text-decoration: none; }
+.admin-gamification-back:hover { text-decoration: underline; }
+.admin-gamification-config { display: grid; gap: 16px; max-width: 900px; }
+.admin-gamification-config__panel { padding: 24px; }
+.admin-gamification-config__panel .admin-panel-head { margin-bottom: 18px; }
+.admin-gamification-config__panel h2 { margin: 0; color: var(--brand-text); font-size: 19px; }
+.admin-gamification-config__panel .admin-panel-head p { margin: 5px 0 0; }
+.admin-gamification-toggle { display: flex; align-items: center; gap: 13px; width: fit-content; cursor: pointer; }
+.admin-gamification-toggle input { width: 20px; height: 20px; accent-color: var(--brand-success); }
+.admin-gamification-toggle span { display: grid; gap: 3px; }
+.admin-gamification-toggle strong { color: var(--brand-text); font-size: 14px; }
+.admin-gamification-toggle small, .admin-gamification-field small { color: var(--brand-muted); font-size: 12px; }
+.admin-gamification-readonly-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.admin-gamification-readonly-grid > div { display: grid; gap: 5px; min-height: 112px; padding: 15px; border: 1px solid var(--brand-border); border-radius: var(--radius-md); background: var(--brand-bg); }
+.admin-gamification-readonly-grid span { color: var(--brand-muted); font-size: 11px; }
+.admin-gamification-readonly-grid strong { color: var(--brand-text); font-size: 20px; }
+.admin-gamification-readonly-grid small { color: var(--brand-muted); font-size: 11px; line-height: 1.45; }
+.admin-gamification-field { display: grid; max-width: 340px; gap: 7px; margin-top: 16px; color: var(--brand-text); font-size: 13px; font-weight: 800; }
+.admin-gamification-field input { box-sizing: border-box; width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid var(--brand-border); border-radius: var(--radius-sm); background: var(--brand-surface); color: var(--brand-text); font: inherit; }
+.admin-gamification-field input:focus { border-color: var(--brand-brown-sec); box-shadow: 0 0 0 3px var(--brand-focus-ring); outline: 0; }
+.admin-gamification-success { padding: 12px 14px; border: 1px solid var(--brand-success-border); border-radius: var(--radius-sm); background: var(--brand-success-bg); color: var(--brand-success); font-size: 13px; }
+.admin-gamification-form-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.admin-gamification-analytics, .admin-gamification-data-grid { display: grid; gap: 14px; }
+.admin-gamification-analytics { padding: 24px; border: 1px solid var(--brand-border); border-radius: var(--radius-card); background: var(--brand-surface); box-shadow: var(--shadow-subtle); }
+.admin-gamification-analytics .admin-panel-head { margin: 0; }
+.admin-gamification-analytics h2, .admin-gamification-data-grid h2, .admin-gamification-stages h2, .admin-gamification-history h2 { margin: 0; color: var(--brand-text); font-size: 19px; }
+.admin-gamification-analytics .admin-panel-head p, .admin-gamification-data-grid .admin-panel-head p, .admin-gamification-stages .admin-panel-head p, .admin-gamification-history .admin-panel-head p { margin: 5px 0 0; }
+.admin-gamification-timezone { flex: 0 0 auto; padding: 7px 10px; border: 1px solid var(--brand-border); border-radius: var(--radius-pill); color: var(--brand-muted); font-size: 12px; }
+.admin-gamification-analytics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.admin-gamification-metric { display: grid; gap: 6px; min-height: 104px; padding: 16px; border: 1px solid var(--brand-border-light); border-radius: var(--radius-md); background: var(--brand-bg); }
+.admin-gamification-metric span, .admin-gamification-metric small { color: var(--brand-muted); font-size: 11px; }
+.admin-gamification-metric strong { color: var(--brand-coffee); font-family: var(--font-serif); font-size: 30px; font-variant-numeric: tabular-nums; }
+.admin-gamification-data-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); }
+.admin-gamification-data-grid > .admin-panel, .admin-gamification-stages, .admin-gamification-history { padding: 24px; }
+.admin-gamification-data-grid .admin-panel-head, .admin-gamification-stages .admin-panel-head, .admin-gamification-history .admin-panel-head { margin-bottom: 18px; }
+.admin-gamification-level-counts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
+.admin-gamification-level-counts--dashboard { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.admin-gamification-level-counts a { display: grid; gap: 5px; min-width: 0; padding: 14px; border: 1px solid var(--brand-border); border-radius: var(--radius-md); background: var(--brand-bg); color: var(--brand-text); text-decoration: none; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+.admin-gamification-level-counts a:hover { border-color: #d5c09f; background: var(--brand-yellow-soft); transform: translateY(-1px); }
+.admin-gamification-level-counts span { color: var(--brand-muted); font-size: 11px; line-height: 1.35; }
+.admin-gamification-level-counts strong { color: var(--brand-coffee); font-family: var(--font-serif); font-size: 26px; font-variant-numeric: tabular-nums; }
+.admin-gamification-level-counts small { color: var(--brand-muted); font-size: 10px; }
+.admin-gamification-level-rates { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.admin-gamification-level-rates > div { display: grid; gap: 5px; padding: 13px; border-left: 2px solid var(--brand-success-border); background: var(--brand-bg); }
+.admin-gamification-level-rates span, .admin-gamification-level-rates small { color: var(--brand-muted); font-size: 11px; }
+.admin-gamification-level-rates strong { color: var(--brand-coffee); font-family: var(--font-serif); font-size: 23px; font-variant-numeric: tabular-nums; }
+.admin-gamification-stages { display: grid; gap: 0; }
+.admin-gamification-stage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.admin-gamification-stage { display: grid; gap: 6px; min-height: 106px; padding: 14px; border: 1px solid var(--brand-border); border-radius: var(--radius-md); background: var(--brand-bg); color: var(--brand-text); text-decoration: none; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+.admin-gamification-stage:hover { border-color: #d5c09f; background: var(--brand-yellow-soft); transform: translateY(-1px); }
+.admin-gamification-stage > span { color: var(--brand-coffee); font-size: 10px; font-weight: 850; letter-spacing: .07em; }
+.admin-gamification-stage strong { color: var(--brand-text); font-family: var(--font-serif); font-size: 22px; font-variant-numeric: tabular-nums; }
+.admin-gamification-stage small { color: var(--brand-muted); font-size: 11px; }
+.admin-gamification-stage em { margin-top: auto; color: var(--brand-coffee); font-size: 11px; font-style: normal; font-weight: 750; }
+.admin-gamification-history-list { display: grid; gap: 0; }
+.admin-gamification-history-list > div { display: grid; grid-template-columns: minmax(160px, .7fr) minmax(200px, 1fr) auto; gap: 16px; align-items: center; padding: 13px 0; border-top: 1px solid var(--brand-border-light); color: var(--brand-text); font-size: 13px; }
+.admin-gamification-history-list span, .admin-gamification-history-list small { color: var(--brand-muted); font-size: 12px; }
+.admin-gamification-readonly-notice { padding: 12px 14px; border: 1px solid var(--brand-border); border-radius: var(--radius-sm); background: var(--brand-bg); color: var(--brand-coffee); font-size: 13px; }
+.admin-gamification-vocab-panel { padding: 24px; }
+.admin-gamification-toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.admin-gamification-toolbar input, .admin-gamification-toolbar select { min-height: 40px; box-sizing: border-box; padding: 0 11px; border: 1px solid var(--brand-border); border-radius: var(--radius-sm); background: var(--brand-surface); color: var(--brand-text); font: inherit; }
+.admin-gamification-toolbar input { min-width: min(360px, 100%); flex: 1; }
+.admin-gamification-toolbar select { min-width: 180px; }
+.admin-gamification-table-wrap { overflow-x: auto; border: 1px solid var(--brand-border); border-radius: var(--radius-md); }
+.admin-gamification-table { width: 100%; min-width: 720px; border-collapse: collapse; color: var(--brand-text); text-align: left; }
+.admin-gamification-table th { padding: 12px 14px; background: var(--brand-bg-sub); color: var(--brand-muted); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+.admin-gamification-table td { padding: 12px 14px; border-top: 1px solid var(--brand-border-light); font-size: 13px; vertical-align: middle; }
+.admin-gamification-table td:first-child { min-width: 160px; }
+.admin-gamification-table td small { display: block; margin-top: 3px; color: var(--brand-muted); font-size: 11px; }
+.admin-gamification-table select { min-height: 34px; padding: 0 8px; border: 1px solid var(--brand-border); border-radius: var(--radius-xs); background: var(--brand-surface); color: var(--brand-text); font: inherit; }
+.admin-gamification-vocab-status { display: inline-flex; padding: 5px 8px; border-radius: var(--radius-pill); background: var(--brand-success-bg); color: var(--brand-success); font-size: 11px; font-weight: 750; white-space: nowrap; }
+.admin-gamification-vocab-status.is-catalog { background: var(--brand-yellow-soft); color: var(--brand-coffee); }
+.admin-gamification-success { margin-top: 12px; }
+.admin-gamification-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; color: var(--brand-muted); font-size: 12px; }
+.admin-gamification-pagination button { min-height: 34px; padding: 0 10px; border: 1px solid var(--brand-border); border-radius: var(--radius-xs); background: var(--brand-surface); color: var(--brand-coffee); cursor: pointer; }
+.admin-gamification-pagination button:disabled { cursor: not-allowed; opacity: .45; }
+.admin-gamification-preview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.admin-gamification-preview-card { padding: 22px; }
+.admin-gamification-preview-card > span { color: var(--brand-coffee); font-size: 10px; font-weight: 850; letter-spacing: .1em; }
+.admin-gamification-preview-card h2 { margin: 12px 0 8px; color: var(--brand-text); font-family: var(--font-serif); font-size: 22px; }
+.admin-gamification-preview-card p { margin: 0 0 14px; color: var(--brand-muted); font-size: 13px; line-height: 1.6; }
+.admin-gamification-preview-card > div { display: grid; gap: 7px; }
+.admin-gamification-preview-card > div > div { padding: 10px 12px; border: 1px solid var(--brand-border); border-radius: var(--radius-sm); color: var(--brand-text); font-size: 13px; }
+.admin-gamification-preview-card > div > div:first-child { border-color: var(--brand-success-border); background: var(--brand-success-bg); }
 @media (max-width: 850px) { .admin-gamification-grid, .admin-gamification-links { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .admin-gamification-status { align-items: flex-start; flex-direction: column; padding: 19px; } .admin-gamification-card, .admin-gamification-management { padding: 19px; } }
+@media (max-width: 1050px) { .admin-gamification-data-grid { grid-template-columns: 1fr; } .admin-gamification-level-counts, .admin-gamification-level-counts--dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 780px) { .admin-gamification-analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-gamification-stage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-gamification-level-rates { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-gamification-preview-grid { grid-template-columns: 1fr; } .admin-gamification-history-list > div { grid-template-columns: 1fr; gap: 5px; } }
+@media (max-width: 760px) { .admin-gamification-readonly-grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .admin-gamification-status { align-items: flex-start; flex-direction: column; padding: 19px; } .admin-gamification-card, .admin-gamification-management, .admin-gamification-config__panel, .admin-gamification-analytics, .admin-gamification-data-grid > .admin-panel, .admin-gamification-stages, .admin-gamification-history, .admin-gamification-vocab-panel { padding: 19px; } .admin-gamification-analytics .admin-panel-head { align-items: flex-start; flex-direction: column; } .admin-gamification-level-counts, .admin-gamification-level-counts--dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-gamification-pagination { align-items: stretch; flex-direction: column; text-align: center; } }

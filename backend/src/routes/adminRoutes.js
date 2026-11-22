@@ -34,6 +34,15 @@ import {
 import { getAdminStudentProgress } from '../controllers/progressController.js';
 import { getAdminMaterials } from '../controllers/materialController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
+import {
+  getConfigs,
+  updateConfig,
+  getGamificationVocabulary,
+  updateGamificationVocabulary,
+  getGamificationAnalytics,
+  getConfigHistory,
+  previewQuest,
+} from '../controllers/gamificationAdminController.js';
 
 const router = express.Router();
 
@@ -42,6 +51,15 @@ router.use(verifyToken, checkRole('admin', 'teacher'));
 
 // System stats
 router.get('/stats', getAdminStats);
+
+// Mini-game configuration is available to the same admin/teacher workspace.
+router.get('/gamification/config', getConfigs);
+router.get('/gamification/analytics', getGamificationAnalytics);
+router.get('/gamification/history', getConfigHistory);
+router.get('/gamification/vocabulary', getGamificationVocabulary);
+router.get('/gamification/quest-preview', previewQuest);
+router.patch('/gamification/config/:game', checkRole('admin'), updateConfig);
+router.patch('/gamification/vocabulary/:id', checkRole('admin'), updateGamificationVocabulary);
 
 // Student management
 router.get('/students', getStudents);

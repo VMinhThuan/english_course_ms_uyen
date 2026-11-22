@@ -45,6 +45,9 @@ import VocabularyQuestPage from '../pages/VocabularyQuestPage.jsx';
 import VocabularyCatalogWorkspace from '../features/vocabulary-catalog/VocabularyCatalogWorkspace.jsx';
 import AdminVocabularyQuickPage from '../features/vocabulary-catalog/AdminVocabularyQuickPage.jsx';
 import AdminGamificationPage from '../pages/admin/AdminGamificationPage.jsx';
+import AdminGamificationConfigPage from '../pages/admin/AdminGamificationConfigPage.jsx';
+import AdminGamificationVocabularyPage from '../pages/admin/AdminGamificationVocabularyPage.jsx';
+import AdminGamificationPreviewPage from '../pages/admin/AdminGamificationPreviewPage.jsx';
 
 // Admin Pages
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage.jsx';
@@ -224,6 +227,9 @@ function AppRoutes() {
         <Route path="materials" element={<AdminMaterialsPage />} />
         <Route path="vocabulary" element={<AdminVocabularyLanding />} />
         <Route path="gamification" element={<AdminGamificationPage />} />
+        <Route path="gamification/vocabulary" element={<AdminGamificationVocabularyPage />} />
+        <Route path="gamification/preview/:level/:stage" element={<AdminGamificationPreviewPage />} />
+        <Route path="gamification/:game" element={<AdminGamificationConfigPage />} />
         <Route path="vocabulary/quick" element={<ProtectedRoute requiredRole="admin"><AdminVocabularyQuickPage /></ProtectedRoute>} />
         <Route path="vocabulary/catalog" element={<ProtectedRoute requiredRole="admin"><VocabularyCatalogWorkspace /></ProtectedRoute>} />
         <Route path="vocabulary/import" element={<Navigate to="/admin/vocabulary/catalog" replace />} />

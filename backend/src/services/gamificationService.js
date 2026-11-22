@@ -6,6 +6,7 @@ import VocabularyStreak from '../models/VocabularyStreak.js';
 import VocabularyQuestProgress from '../models/VocabularyQuestProgress.js';
 import VocabularyQuestAttempt from '../models/VocabularyQuestAttempt.js';
 import GamificationAchievement from '../models/GamificationAchievement.js';
+import { getGamificationConfig } from './gamificationConfigService.js';
 import {
   calculateStreak,
   classifyVocabularyLevel,
@@ -18,10 +19,7 @@ import {
   streakBadgeCodes,
 } from '../utils/gamificationUtils.js';
 
-const DAILY_WORD_COUNT = 20;
-const QUEST_QUESTION_COUNT = 10;
-const QUEST_TIME_LIMIT_SECONDS = 120;
-const VOCABULARY_PROJECTION = 'word meaning partOfSpeech explanation example exampleEnglish exampleVietnamese topic order createdAt';
+const VOCABULARY_PROJECTION = 'word meaning partOfSpeech explanation example exampleEnglish exampleVietnamese topic toeicLevel order createdAt catalogOnly catalogStatus status';
 
 function randomId() {
   return crypto.randomBytes(8).toString('hex');
@@ -316,19 +314,21 @@ export async function getGamificationOverview(student, requestedTimezone) {
 }
 
 export async function startDailyChallenge(student, requestedTimezone) {
+  const config = await getGamificationConfig('streak');
+  if (!config.enabled) { const error = new Error('Thử thách Streak hiện đang tạm tắt.'); error.statusCode = 409; error.code = 'GAME_DISABLED'; throw error; }
   const streak = await ensureStreak(student, requestedTimezone);
   const timezone = normalizeTimezone(streak.timezone || requestedTimezone);
   const dateKey = getDateKey(new Date(), timezone);
   const existing = await DailyVocabularyChallenge.findOne({ student, dateKey });
   if (existing) return safeChallenge(existing);
   const pool = await getVocabularyPool();
-  if (pool.length < DAILY_WORD_COUNT) {
+  if (pool.length < config.dailyWordCount) {
     const error = new Error('Chưa có đủ 20 từ vựng đã xuất bản để mở thử thách hôm nay.');
     error.statusCode = 409; error.code = 'INSUFFICIENT_VOCABULARY'; throw error;
   }
-  const questions = shuffle(pool).slice(0, DAILY_WORD_COUNT).map((row, index) => makeDailyQuestion(row, pool, index));
+  const questions = shuffle(pool).slice(0, config.dailyWordCount).map((row, index) => makeDailyQuestion(row, pool, index));
   try {
-    const challenge = await DailyVocabularyChallenge.create({ student, dateKey, timezone, questions });
+    const challenge = await DailyVocabularyChallenge.create({ student, dateKey, timezone, totalWords: config.dailyWordCount, questions });
     return safeChallenge(challenge);
   } catch (error) {
     if (error?.code === 11000) return safeChallenge(await DailyVocabularyChallenge.findOne({ student, dateKey }));
@@ -377,6 +377,8 @@ export async function answerDailyChallenge(student, challengeId, questionId, ans
 }
 
 export async function startQuestAssessment(student, level, stage = 1) {
+  const config = await getGamificationConfig('quest');
+  if (!config.enabled) { const error = new Error('Vocabulary Quest hiện đang tạm tắt.'); error.statusCode = 409; error.code = 'GAME_DISABLED'; throw error; }
   const numericLevel = Number(level); const numericStage = Number(stage);
   if (!QUEST_LEVELS.some((item) => item.level === numericLevel) || numericStage < 1 || numericStage > 4) {
     const error = new Error('Cấp độ hoặc chặng chơi không hợp lệ.'); error.statusCode = 400; throw error;
@@ -388,14 +390,35 @@ export async function startQuestAssessment(student, level, stage = 1) {
   if (existingAttempt) return safeQuestAttempt(existingAttempt);
   const allPool = await getVocabularyPool();
   const levelPool = allPool.filter((row) => row.level === numericLevel);
-  if (levelPool.length < QUEST_QUESTION_COUNT) { const error = new Error('Cấp độ này chưa có đủ dữ liệu từ vựng để mở bài chơi.'); error.statusCode = 409; error.code = 'INSUFFICIENT_LEVEL_VOCABULARY'; throw error; }
-  const questions = shuffle(levelPool).slice(0, QUEST_QUESTION_COUNT).map((row, index) => makeQuestQuestion(row, levelPool, index, numericLevel));
+  const stageDefinition = (config.questStages || []).find((item) => item.level === numericLevel && item.stage === numericStage);
+  const stagePool = stageDefinition?.vocabularyIds?.length
+    ? levelPool.filter((row) => stageDefinition.vocabularyIds.some((id) => String(id) === String(row._id)))
+    : levelPool;
+  if (stagePool.length < config.questionCount) { const error = new Error('Chặng này chưa có đủ dữ liệu từ vựng đã phân loại để mở bài chơi.'); error.statusCode = 409; error.code = 'INSUFFICIENT_LEVEL_VOCABULARY'; throw error; }
+  const questions = shuffle(stagePool).slice(0, config.questionCount).map((row, index) => makeQuestQuestion(row, stagePool, index, numericLevel));
   const attempt = await VocabularyQuestAttempt.create({
     student, level: numericLevel, stage: numericStage, questions,
-    timeLimitSeconds: QUEST_TIME_LIMIT_SECONDS,
-    expiresAt: new Date(Date.now() + QUEST_TIME_LIMIT_SECONDS * 1000),
+    timeLimitSeconds: config.timeLimitSeconds,
+    expiresAt: new Date(Date.now() + config.timeLimitSeconds * 1000),
   });
   return safeQuestAttempt(attempt);
+}
+
+export async function previewQuestAssessment(level, stage = 1) {
+  const config = await getGamificationConfig('quest');
+  const numericLevel = Number(level); const numericStage = Number(stage);
+  if (![1, 2, 3, 4].includes(numericLevel) || ![1, 2, 3, 4].includes(numericStage)) {
+    const error = new Error('Cấp độ hoặc chặng chơi không hợp lệ.'); error.statusCode = 400; throw error;
+  }
+  const allPool = await getVocabularyPool();
+  const levelPool = allPool.filter((row) => row.level === numericLevel);
+  const stageDefinition = (config.questStages || []).find((item) => item.level === numericLevel && item.stage === numericStage);
+  const stagePool = stageDefinition?.vocabularyIds?.length
+    ? levelPool.filter((row) => stageDefinition.vocabularyIds.some((id) => String(id) === String(row._id)))
+    : levelPool;
+  if (stagePool.length < config.questionCount) { const error = new Error('Chặng này chưa có đủ dữ liệu từ vựng đã phân loại để preview.'); error.statusCode = 409; throw error; }
+  const questions = shuffle(stagePool).slice(0, config.questionCount).map((row, index) => makeQuestQuestion(row, stagePool, index, numericLevel));
+  return { level: numericLevel, stage: numericStage, totalAvailable: stagePool.length, questions: questions.map(safeQuestion) };
 }
 
 export async function saveQuestAnswer(student, attemptId, questionId, answer) {
@@ -436,7 +459,8 @@ export async function submitQuestAssessment(student, attemptId, submittedAnswers
   const scoredAnswers = timedOut ? answers.map((item) => ({ ...item, isCorrect: false })) : answers;
   const scoredCorrectCount = scoredAnswers.filter((item) => item.isCorrect).length;
   const accuracy = Math.round((scoredCorrectCount / attempt.questions.length) * 100);
-  const passed = accuracy >= 80;
+  const questConfig = await getGamificationConfig('quest');
+  const passed = accuracy >= questConfig.passThreshold;
   const stars = starsForAccuracy(accuracy);
   const submittedAt = new Date();
   const persisted = await VocabularyQuestAttempt.findOneAndUpdate(

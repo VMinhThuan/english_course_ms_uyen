@@ -258,7 +258,7 @@ export default function StudentLayout() {
             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             onClick={closeMobileMenu}
           >
-            <span className="sidebar-link__emoji" aria-hidden="true">🔥</span>
+            <svg className="sidebar-link__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 3c1.6 2.5 4.8 4.5 4.8 8.3A4.8 4.8 0 0 1 12 16a4.8 4.8 0 0 1-4.8-4.7c0-2.4 1.5-4.5 3.2-6.3-.1 2.4 1 3.5 1.8 4.2.6-1.8.5-3.8-.2-6.2Z" /><path d="M12 21a5.1 5.1 0 0 0 5.1-5.1c0-2.2-1.1-3.7-2.5-5.1.1 2.7-1.3 4.3-2.6 5.1-1.1-.8-1.8-1.8-1.8-3.3-1.1 1.1-2.1 2.4-2.1 3.8A5.1 5.1 0 0 0 12 21Z" /></svg>
             <span>Thử thách 7 ngày</span>
           </NavLink>
 
@@ -267,7 +267,7 @@ export default function StudentLayout() {
             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             onClick={closeMobileMenu}
           >
-            <span className="sidebar-link__emoji" aria-hidden="true">🧭</span>
+            <svg className="sidebar-link__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" /><path d="M9 3v15M15 6v15" /></svg>
             <span>Vượt ải TOEIC</span>
           </NavLink>
 

@@ -11,31 +11,41 @@
 .game-page { width: 100%; max-width: 1440px; margin: 0 auto; color: var(--game-ink); scroll-behavior: smooth; }
 .game-hero { display: flex; min-height: 205px; align-items: center; justify-content: space-between; gap: 32px; padding: clamp(30px, 4vw, 48px) clamp(28px, 4vw, 60px); border: 1px solid rgba(229, 222, 212, .75); border-radius: var(--radius-section, 24px); background: linear-gradient(120deg, #fff8df, #fffdf8 58%, #f8ecd8); box-shadow: var(--game-shadow); overflow: hidden; }
 .game-hero--quest { background: linear-gradient(120deg, #eaf7ec, #fffdf8 55%, #f8eac9); }
+.game-hero--streak { min-height: 176px; justify-content: flex-start; background: var(--game-yellow-soft); }
 .game-eyebrow, .card-kicker { margin: 0; color: var(--brand-brown-sec, #a37c2e); font-size: 11px; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
 .game-hero h1, .game-completion-card h1 { margin: 8px 0; color: var(--game-ink); font: 650 clamp(30px, 4vw, 52px)/1.06 var(--font-serif, Georgia, serif); letter-spacing: -.04em; }
 .game-hero p:not(.game-eyebrow) { max-width: 680px; margin: 0; color: var(--game-muted); font-size: 15px; line-height: 1.6; }
-.streak-flame, .quest-avatar { display: grid; width: 128px; height: 128px; flex: 0 0 auto; place-items: center; border-radius: 38% 62% 60% 40%; background: #fff; font-size: 64px; box-shadow: 0 12px 30px rgba(206, 139, 52, .18); animation: game-float 3s ease-in-out infinite; }
+.quest-avatar { display: grid; width: 128px; height: 128px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #fff; font-size: 58px; box-shadow: 0 12px 30px rgba(206, 139, 52, .18); animation: game-float 3s ease-in-out infinite; }
 .quest-avatar { border-radius: 50%; background: #fff; font-size: 58px; }
 .streak-summary-grid { display: grid; grid-template-columns: minmax(250px, .75fr) minmax(0, 1.45fr); gap: 18px; margin: 20px 0; }
 .streak-card, .game-panel, .game-start-card, .question-card, .quest-stage-panel, .quest-intro, .quest-tip { border: 1px solid var(--game-border); border-radius: var(--radius-card, 20px); background: var(--brand-surface, #fff); box-shadow: var(--game-shadow); }
 .streak-card { min-height: 174px; padding: 28px; }
 .streak-card--primary { background: var(--brand-coffee, #42352b); color: #fff; }
 .streak-card--primary .card-kicker, .streak-card--primary p { color: #e7d2ac; }
-.streak-number { margin-top: 15px; color: #ffdb70; font-size: 46px; font-weight: 850; letter-spacing: -.05em; }
-.streak-number small, .streak-card h2 small { font-size: 16px; font-weight: 650; }
-.streak-card p { margin: 10px 0 0; color: var(--game-muted); font-size: 13px; }
+.streak-number { display: flex; align-items: baseline; gap: 9px; margin-top: 15px; color: #ffdb70; font-variant-numeric: tabular-nums; line-height: 1; }
+.streak-number strong { font-size: 44px; font-weight: 800; letter-spacing: -.04em; }
+.streak-number span { font-size: 16px; font-weight: 650; }
+.streak-card p { margin: 10px 0 0; color: var(--game-muted); font-size: 13px; line-height: 1.5; }
+.streak-record { display: flex; align-items: baseline; gap: 5px; }
+.streak-record strong { color: inherit; font-variant-numeric: tabular-nums; font-weight: 800; }
 .streak-card--progress { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .streak-card h2 { margin: 12px 0 0; font-size: 38px; }
+.streak-progress-value { display: flex; align-items: baseline; gap: 7px; color: var(--game-ink); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.streak-progress-value > span:first-child, .streak-progress-value > span:nth-child(3) { font-size: 38px; font-weight: 800; letter-spacing: -.04em; }
+.streak-progress-divider { color: var(--game-muted); font-size: 25px; font-weight: 500; }
+.streak-progress-value small { margin-left: 2px; color: var(--game-muted); font-size: 15px; font-weight: 650; }
 .game-progress-ring { position: relative; width: 136px; height: 136px; flex: 0 0 auto; }
 .game-progress-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .game-progress-ring circle { fill: none; stroke-width: 10; }
 .ring-track { stroke: #f2eadf; }
 .ring-value { stroke: #e9aa38; stroke-linecap: round; stroke-dasharray: var(--dash) 327; transition: stroke-dasharray .5s ease; }
-.game-progress-ring strong { position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; }
-.game-start-card { display: flex; align-items: center; gap: 20px; padding: 22px 28px; margin-bottom: 20px; }
+.game-progress-ring strong { position: absolute; inset: 0; display: flex; align-items: baseline; justify-content: center; gap: 2px; margin: auto; height: fit-content; font-variant-numeric: tabular-nums; font-size: 22px; line-height: 1; }
+.game-progress-ring strong small { color: var(--game-muted); font-size: 13px; font-weight: 750; }
+.game-start-card { display: flex; align-items: center; gap: 24px; padding: 24px 28px; margin-bottom: 20px; }
 .game-start-card h2, .quest-intro h2, .game-panel h2, .quest-stage-panel h2 { margin: 5px 0; color: var(--game-ink); font-size: 21px; }
 .game-start-card p, .quest-intro p, .quest-tip p { margin: 5px 0 0; color: var(--game-muted); font-size: 13px; line-height: 1.55; }
-.game-start-icon { display: grid; width: 58px; height: 58px; flex: 0 0 auto; place-items: center; border-radius: 16px; background: var(--game-yellow-soft); font-size: 28px; }
+.game-start-card__content { min-width: 0; }
+.game-start-card > .game-primary-button { margin-left: auto; flex: 0 0 auto; }
 .game-primary-button, .game-secondary-button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 7px; padding: 0 19px; border: 0; border-radius: var(--radius-sm, 10px); font: inherit; font-size: 13px; font-weight: 850; text-decoration: none; cursor: pointer; touch-action: manipulation; transition: transform .2s, box-shadow .2s, background .2s, border-color .2s; }
 .game-primary-button { background: var(--game-yellow); color: var(--game-ink); box-shadow: 0 7px 16px rgba(218, 163, 37, .2); }
 .game-primary-button:hover:not(:disabled) { background: var(--brand-yellow-hover, #edbb36); transform: translateY(-2px); box-shadow: 0 10px 22px rgba(218, 163, 37, .24); }
@@ -65,18 +75,24 @@
 .panel-heading a:hover { color: var(--game-ink); text-decoration: underline; }
 .panel-month { color: var(--game-muted); font-size: 12px; }
 .activity-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 14px 9px; margin: 24px 0 14px; }
-.calendar-dot { display: grid; place-items: center; gap: 6px; color: #b5aaa0; font-size: 11px; }
-.calendar-dot i { width: 11px; height: 11px; border-radius: 50%; background: #eee6da; }
+.calendar-dot { display: grid; place-items: center; gap: 6px; min-height: 34px; border-radius: 8px; color: var(--game-muted); font-size: 12px; outline: 0; }
+.calendar-dot:hover { background: var(--brand-bg); color: var(--game-ink); }
+.calendar-dot:focus-visible { outline: 2px solid var(--game-yellow); outline-offset: 2px; }
+.calendar-dot i { width: 11px; height: 11px; border: 1px solid #d9d0c5; border-radius: 50%; background: #fffdf9; }
 .calendar-dot.is-complete { color: var(--game-ink); font-weight: 800; }
-.calendar-dot.is-complete i { background: var(--game-yellow); box-shadow: 0 0 0 4px #fff7dc; }
+.calendar-dot.is-complete i { border-color: #d7aa35; background: var(--game-yellow); box-shadow: 0 0 0 3px #fff7dc; }
+.calendar-dot.is-missed i { border-color: #c8bdb1; background: #e9e2d9; }
+.calendar-dot.is-today { background: var(--brand-yellow-soft); color: var(--game-ink); font-weight: 850; box-shadow: inset 0 0 0 1px #e5bd58; }
+.calendar-dot.is-today i { border-color: var(--game-coffee, #4b4035); }
 .calendar-hint { margin: 0; color: var(--game-muted); font-size: 11px; }
 .badge-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 22px; }
-.achievement-badge { display: grid; gap: 4px; min-height: 112px; place-items: center; padding: 10px 5px; border: 1px dashed #e2d7c9; border-radius: 14px; color: #b7ada3; text-align: center; }
-.achievement-badge span { filter: grayscale(1); font-size: 26px; }
-.achievement-badge strong { font-size: 12px; }
-.achievement-badge small { font-size: 10px; }
-.achievement-badge.is-earned { border-style: solid; background: var(--game-yellow-soft); color: #876826; }
-.achievement-badge.is-earned span { filter: none; }
+.achievement-badge { display: grid; gap: 5px; min-height: 112px; place-items: center; padding: 12px 6px; border: 1px solid var(--game-border); border-radius: 14px; color: var(--game-muted); text-align: center; }
+.achievement-mark { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #cfc4b8; border-radius: 50%; color: var(--game-muted); font-size: 11px; font-variant-numeric: tabular-nums; font-weight: 800; }
+.achievement-badge strong { color: var(--game-ink); font-size: 12px; font-variant-numeric: tabular-nums; }
+.achievement-badge small { color: var(--game-muted); font-size: 10px; }
+.achievement-badge.is-earned { border-color: #e2b84f; background: var(--game-yellow-soft); color: #876826; }
+.achievement-badge.is-earned .achievement-mark { border-color: #d3a43b; background: #fffdf5; color: #876826; }
+.achievement-badge.is-locked { background: #fffdf9; }
 .game-alert { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0; padding: 13px 16px; border: 1px solid var(--brand-danger-border, #edc8c1); border-radius: 12px; background: var(--brand-danger-bg, #fff3f1); color: var(--brand-danger, #9f5149); font-size: 13px; }
 .game-alert button { border: 0; background: transparent; color: inherit; font-weight: 850; text-decoration: underline; cursor: pointer; }
 .game-loading { display: flex; min-height: 360px; align-items: center; justify-content: center; gap: 7px; color: var(--game-muted); font-size: 14px; }
@@ -87,7 +103,7 @@
 .game-completion-card > p:not(.game-eyebrow) { color: var(--game-muted); line-height: 1.6; }
 .celebration-orbit { display: grid; width: 80px; height: 80px; margin: 0 auto 15px; place-items: center; border-radius: 50%; background: #fff; font-size: 42px; box-shadow: 0 8px 25px rgba(214, 157, 48, .2); animation: game-float 2.5s ease-in-out infinite; }
 .completion-stats { display: flex; justify-content: center; gap: 40px; margin: 30px 0 6px; }
-.completion-stats div { display: grid; gap: 5px; } .completion-stats strong { font-size: 24px; } .completion-stats span { color: var(--game-muted); font-size: 11px; }
+.completion-stats div { display: grid; gap: 5px; } .completion-stats strong { display: flex; align-items: baseline; justify-content: center; gap: 2px; font-size: 24px; font-variant-numeric: tabular-nums; } .completion-stats strong small { color: var(--game-muted); font-size: 13px; } .completion-stats span { color: var(--game-muted); font-size: 11px; }
 .quest-intro { display: flex; align-items: center; justify-content: space-between; gap: 26px; margin-top: 20px; padding: 24px 28px; }
 .quest-intro__rule { display: grid; min-width: 170px; padding: 14px 18px; border-radius: 13px; background: #eef8ee; color: var(--game-green); text-align: center; }
 .quest-intro__rule strong { font-size: 30px; } .quest-intro__rule span { font-size: 11px; }
@@ -135,9 +151,10 @@
 @media (max-width: 900px) { .game-hero { min-height: 0; } .streak-summary-grid, .streak-lower-grid { grid-template-columns: 1fr; } .quest-map { min-height: 260px; } }
 @media (max-width: 760px) {
   .game-hero { align-items: flex-start; padding: 25px 20px; }
-  .streak-flame, .quest-avatar { width: 74px; height: 74px; font-size: 38px; }
+  .quest-avatar { width: 74px; height: 74px; font-size: 38px; }
   .game-start-card, .quest-intro { align-items: flex-start; flex-wrap: wrap; }
   .game-start-card .game-primary-button { width: 100%; }
+  .game-start-card > .game-primary-button { margin-left: 0; }
   .streak-card--progress { align-items: flex-start; }
   .answer-grid { grid-template-columns: 1fr; }
   .quest-map { display: flex; min-height: 0; align-items: flex-start; justify-content: flex-start; gap: 0; padding: 28px 4px 30px; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
@@ -152,7 +169,7 @@
 @media (max-width: 420px) {
   .game-hero h1, .game-completion-card h1 { font-size: 32px; }
   .game-hero { gap: 14px; }
-  .streak-flame, .quest-avatar { width: 60px; height: 60px; font-size: 30px; }
+  .quest-avatar { width: 60px; height: 60px; font-size: 30px; }
   .streak-card, .game-panel, .quest-stage-panel { padding: 20px; }
   .game-progress-ring { width: 108px; height: 108px; }
   .streak-card h2 { font-size: 31px; }

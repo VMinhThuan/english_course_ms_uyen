@@ -48,6 +48,7 @@ export const createVocabulary = async (req, res, next) => {
       lessonId,
       lesson: lessonParam,
       topic,
+      toeicLevel,
       order,
       status,
     } = req.body;
@@ -92,6 +93,7 @@ export const createVocabulary = async (req, res, next) => {
       lesson: parentLesson._id,
       course: parentLesson.course, // Derived strictly on backend
       topic: topic || parentLesson.topic || 'General',
+      toeicLevel: toeicLevel === null || toeicLevel === undefined || toeicLevel === '' ? null : Number(toeicLevel),
       order: order !== undefined ? parseInt(order, 10) : 0,
       status: status || 'published',
     });

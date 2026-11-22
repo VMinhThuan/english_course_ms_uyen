@@ -70,6 +70,13 @@ const vocabularySchema = new mongoose.Schema(
       type: String,
       default: 'General',
     },
+    // Explicit TOEIC classification. Unclassified vocabulary is not eligible for Quest levels.
+    toeicLevel: {
+      type: Number,
+      enum: [1, 2, 3, 4, null],
+      default: null,
+      index: true,
+    },
     order: {
       type: Number,
       default: 0,

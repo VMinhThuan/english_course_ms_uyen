@@ -29,14 +29,16 @@ test('date keys roll over at the configured local midnight, not UTC midnight', (
   assert.equal(getDateKey(new Date('2026-11-22T05:00:00.000Z'), 'America/New_York'), '2026-11-22');
 });
 
-test('explicit TOEIC level metadata wins over deterministic catalog fallback', () => {
+test('explicit TOEIC level metadata is required and insertion order never classifies a word', () => {
+  assert.equal(classifyVocabularyLevel({ toeicLevel: 1 }, 99, 100), 1);
+  assert.equal(classifyVocabularyLevel({ toeicLevel: 4 }, 0, 1), 4);
   assert.equal(classifyVocabularyLevel({ topic: 'TOEIC Level 1' }, 0, 100), 1);
   assert.equal(classifyVocabularyLevel({ topic: 'TOEIC Level 2' }, 0, 100), 2);
   assert.equal(classifyVocabularyLevel({ topic: 'TOEIC Level 3' }, 0, 100), 3);
   assert.equal(classifyVocabularyLevel({ topic: 'TOEIC Level 4' }, 0, 100), 4);
   assert.equal(classifyVocabularyLevel({ topic: '250-450' }, 0, 100), 2);
-  assert.equal(classifyVocabularyLevel({ topic: 'General' }, 0, 40), 1);
-  assert.equal(classifyVocabularyLevel({ topic: 'General' }, 39, 40), 4);
+  assert.equal(classifyVocabularyLevel({ topic: 'General' }, 0, 40), null);
+  assert.equal(classifyVocabularyLevel({ topic: 'General' }, 39, 40), null);
 });
 
 test('assessment stars require the documented accuracy thresholds', () => {

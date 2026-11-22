@@ -59,6 +59,7 @@ export function normalizeAnswer(value) {
 }
 
 export function classifyVocabularyLevel(vocabulary, index = 0, total = 1) {
+  if ([1, 2, 3, 4].includes(Number(vocabulary?.toeicLevel))) return Number(vocabulary.toeicLevel);
   const source = `${vocabulary?.topic || ''} ${vocabulary?.explanation || ''}`.toLowerCase();
   const explicit = source.match(/(?:level|lvl|mức)\s*([1-4])/i);
   if (explicit) return Number(explicit[1]);
@@ -66,9 +67,9 @@ export function classifyVocabularyLevel(vocabulary, index = 0, total = 1) {
   if (/250\s*[-–]\s*450|elementary/.test(source)) return 2;
   if (/450\s*[-–]\s*650|intermediate/.test(source)) return 3;
   if (/650\s*[-–]\s*800|advanced|nâng cao/.test(source)) return 4;
-  // The existing catalog has no required TOEIC level field. Keep a deterministic,
-  // reviewable fallback based on its stable display order so every level has content.
-  return Math.min(4, Math.floor((Math.max(0, index) * 4) / Math.max(total, 1)) + 1);
+  // Do not infer difficulty from insertion/display order. Admins must explicitly
+  // classify vocabulary or provide reviewable TOEIC metadata in the source fields.
+  return null;
 }
 
 export function starsForAccuracy(accuracy) {

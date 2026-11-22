@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -7,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const frontendRoot = path.resolve(scriptDir, '..');
+const screenshotDir = path.join(frontendRoot, 'e2e-artifacts');
+const captureScreenshots = process.env.GAMIFICATION_SCREENSHOTS === 'true';
 const frontendRequire = createRequire(path.join(frontendRoot, 'package.json'));
 const { chromium } = frontendRequire('playwright');
 let uiUrl = '';
@@ -85,6 +88,15 @@ async function installApiMocks(context, role = 'student') {
 
     if (pathname.endsWith('/auth/me')) return jsonResponse(route, { status: 'success', data: { user: { ...user, role } } });
     if (pathname.endsWith('/attempts/active')) return jsonResponse(route, { status: 'success', data: { attempts: [] } });
+    if (pathname.endsWith('/admin/gamification/config') && request.method() === 'GET') {
+      return jsonResponse(route, { status: 'success', data: { configs: [
+        { game: 'streak', enabled: true, dailyWordCount: 20 },
+        { game: 'quest', enabled: true, passThreshold: 80, timeLimitSeconds: 120, questionCount: 10, levelCount: 4 },
+      ] } });
+    }
+    if (pathname.includes('/admin/gamification/config/') && request.method() === 'PATCH') {
+      return jsonResponse(route, { status: 'success', data: { config: { game: pathname.split('/').at(-1), enabled: true, timeLimitSeconds: 120 } } });
+    }
     if (pathname.endsWith('/gamification/overview')) {
       const overview = makeOverview();
       overview.today.challenge = dailyChallenge;
@@ -139,6 +151,10 @@ async function testDesktopStreak(browser, viewport) {
     assert.ok(await page.locator('.student-sidebar').isVisible(), 'desktop sidebar should remain visible');
     const pageWidth = (await page.locator('.game-page').boundingBox()).width;
     assert.ok(pageWidth >= 900, `streak page should use the available desktop content width, got ${pageWidth}`);
+    if (captureScreenshots) {
+      await fs.mkdir(screenshotDir, { recursive: true });
+      await page.screenshot({ path: path.join(screenshotDir, `streak-${viewport.width}.png`), fullPage: true });
+    }
     await page.getByRole('button', { name: 'Bắt đầu thử thách' }).click();
     const firstAnswer = page.getByRole('button', { name: 'Correct meaning' }).first();
     await firstAnswer.focus();
@@ -146,6 +162,19 @@ async function testDesktopStreak(browser, viewport) {
     await page.getByText('CÂU 2 / 20').waitFor();
     assert.ok(mocks.requests.some((request) => request.pathname.endsWith('/gamification/daily-challenge/daily-web-e2e/answer')), 'daily answer request should be sent');
     await assertNoOverflow(page);
+    assert.equal(consoleErrors.length, 0, `console errors: ${consoleErrors.join('; ')}`);
+    assert.equal(pageErrors.length, 0, `page errors: ${pageErrors.join('; ')}`);
+  } finally { await context.close(); }
+}
+
+async function testStreakZoom(browser, scale) {
+  const { context, page, consoleErrors, pageErrors } = await newPage(browser, { width: 1440, height: 1000 });
+  try {
+    await page.goto(`${uiUrl}/student/streak-challenge`, { waitUntil: 'networkidle' });
+    await page.getByRole('heading', { name: 'Thử thách 7 ngày' }).waitFor();
+    await page.evaluate((zoom) => { document.documentElement.style.zoom = `${zoom * 100}%`; }, scale);
+    await assertNoOverflow(page);
+    assert.ok(await page.getByRole('heading', { name: 'Thử thách 7 ngày' }).isVisible());
     assert.equal(consoleErrors.length, 0, `console errors: ${consoleErrors.join('; ')}`);
     assert.equal(pageErrors.length, 0, `page errors: ${pageErrors.join('; ')}`);
   } finally { await context.close(); }
@@ -190,14 +219,31 @@ async function testMobile(browser, viewport) {
   } finally { await context.close(); }
 }
 
+async function captureMobileStreak(browser) {
+  const { context, page } = await newPage(browser, { width: 390, height: 844 });
+  try {
+    await page.goto(`${uiUrl}/student/streak-challenge`, { waitUntil: 'networkidle' });
+    await page.getByRole('heading', { name: 'Thử thách 7 ngày' }).waitFor();
+    await assertNoOverflow(page);
+    if (captureScreenshots) {
+      await fs.mkdir(screenshotDir, { recursive: true });
+      await page.screenshot({ path: path.join(screenshotDir, 'streak-mobile-390.png'), fullPage: true });
+    }
+  } finally { await context.close(); }
+}
+
 async function testAdminGamification(browser) {
-  const { context, page, consoleErrors, pageErrors } = await newPage(browser, { width: 1440, height: 1000 }, 'admin');
+  const { context, page, mocks, consoleErrors, pageErrors } = await newPage(browser, { width: 1440, height: 1000 }, 'admin');
   try {
     await page.goto(`${uiUrl}/admin`, { waitUntil: 'networkidle' });
     await page.getByRole('link', { name: 'Quản Lý Mini Game' }).click();
     await page.getByRole('heading', { name: 'Quản lý Mini Game' }).waitFor();
     assert.equal(await page.locator('.admin-gamification-card').count(), 2);
     assert.equal(await page.locator('.admin-sidebar-link.active').getByText('Quản Lý Mini Game').count(), 1);
+    await page.getByRole('link', { name: 'Cấu hình game →' }).first().click();
+    await page.getByRole('heading', { name: 'Cấu hình Thử thách 7 ngày' }).waitFor();
+    await page.getByRole('button', { name: 'Lưu cấu hình' }).click();
+    assert.ok(mocks.requests.some((request) => request.method === 'PATCH' && request.pathname.endsWith('/admin/gamification/config/streak')), 'admin config should persist through the API');
     assert.equal(consoleErrors.length, 0, `console errors: ${consoleErrors.join('; ')}`);
     assert.equal(pageErrors.length, 0, `page errors: ${pageErrors.join('; ')}`);
   } finally { await context.close(); }
@@ -213,10 +259,13 @@ try {
   await waitForVite(baseUrl, viteProcess);
   browser = await chromium.launch({ headless: process.env.GAMIFICATION_HEADLESS !== 'false' });
   for (const width of [1280, 1440, 1920]) await testDesktopStreak(browser, { width, height: 1000 });
+  await testStreakZoom(browser, 0.8);
+  await testStreakZoom(browser, 1.25);
   for (const width of [1280, 1440, 1920]) await testDesktopQuest(browser, { width, height: 1000 });
   await testAdminGamification(browser);
   await testMobile(browser, { width: 390, height: 844 });
   await testMobile(browser, { width: 768, height: 1024 });
+  await captureMobileStreak(browser);
   console.log('Gamification web browser E2E: PASS (desktop 1280/1440/1920, tablet 768, mobile 390)');
 } finally {
   await browser?.close();
