@@ -16,6 +16,7 @@
     "seed": "node src/scripts/seedData.js",
     "seed:demo": "node src/scripts/seedDemoData.js",
     "seed:monitoring-demo": "node src/scripts/seedMonitoringDemoData.js",
+    "seed:gamification-demo": "node src/scripts/seedGamificationDemoData.js",
     "seed:lesson-preview-demo": "node src/scripts/seedLessonMaterialPreviewDemo.js",
     "seed:part1-translations": "node src/scripts/seedPart1DictationTranslations.js",
     "test:phase2-import": "node --test tests/phase2ToeicPart5Import.test.js",
