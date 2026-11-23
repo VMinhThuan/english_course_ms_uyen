@@ -1337,3 +1337,216 @@
 .admin-streak-calendar { display: grid; grid-template-columns: repeat(35, minmax(12px, 1fr)); gap: 6px; }.admin-streak-day { display: grid; gap: 3px; justify-items: center; color: var(--brand-muted, #7e7267); font-size: 9px; }.admin-streak-day i { width: 100%; aspect-ratio: 1; border-radius: 4px; background: #f2ece4; }.admin-streak-day.is-completed i { background: #eca13b; }.admin-streak-day.is-incomplete i { background: #f6cb82; }.admin-streak-day.is-missed i { background: #e6ded5; }.admin-streak-day.is-future i { background: transparent; border: 1px dashed #e8dfd4; }
 .admin-streak-chart-wrap { padding-top: 4px; border-top: 1px solid #f0e8df; }.admin-streak-chart-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }.admin-streak-chart-heading h3 { margin: 0; color: var(--brand-text, #352b23); font-size: 15px; }.admin-streak-chart-heading span { color: var(--brand-muted, #7e7267); font-size: 11px; }.admin-streak-chart { display: grid; grid-template-columns: repeat(30, minmax(8px, 1fr)); align-items: end; gap: 5px; height: 130px; margin-top: 15px; padding: 12px 0 0; border-bottom: 1px solid #e8dfd5; }.admin-streak-chart-bar { display: grid; height: 100%; align-items: end; justify-items: center; gap: 4px; color: var(--brand-muted, #7e7267); font-size: 9px; }.admin-streak-chart-bar span { width: 100%; min-height: 3px; border-radius: 4px 4px 0 0; background: #e4a33e; }.admin-streak-chart-bar small { font-size: 9px; }
 @media (max-width: 760px) { .admin-streak-detail-header { display: grid; }.admin-streak-detail-number { justify-items: start; }.admin-streak-detail-stats { grid-template-columns: 1fr 1fr; }.admin-streak-calendar { grid-template-columns: repeat(7, minmax(18px, 1fr)); }.admin-streak-chart { gap: 3px; }.admin-streak-chart-bar small { display: none; } }
+
+/* Student learning detail: compact hierarchy and readable streak data. */
+.admin-student-learning-detail-page {
+  max-width: 1340px;
+  gap: 18px;
+}
+
+.admin-student-detail-back-row {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+}
+
+.admin-student-learning-detail-page .admin-student-detail-page-header {
+  margin-bottom: 0;
+}
+
+.admin-student-learning-detail-page .admin-student-detail-page-header .ds-page-title {
+  max-width: 760px;
+  font-size: clamp(28px, 3.1vw, 40px);
+}
+
+.admin-student-learning-detail-page .admin-student-detail-page-header .ds-page-description {
+  max-width: 760px;
+  margin-top: 7px;
+}
+
+.admin-student-profile-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 17px 20px;
+  border: 1px solid #ead49a;
+  border-radius: var(--radius-card, 16px);
+  background: #fffdf8 !important;
+  box-shadow: var(--shadow-subtle);
+}
+
+.admin-student-profile-card .student-status-card__summary,
+.admin-student-profile-card .student-user-cell {
+  min-width: 0;
+}
+
+.admin-student-profile-card .student-user-cell {
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-student-profile-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+}
+
+.admin-student-profile-avatar--fallback {
+  font-size: 18px;
+}
+
+.admin-student-profile-name {
+  display: block;
+  color: var(--brand-text);
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.admin-student-profile-card .student-user-cell span {
+  display: block;
+  margin-top: 3px;
+  color: var(--brand-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.admin-student-profile-card .student-user-cell span strong {
+  color: var(--brand-text);
+}
+
+.admin-student-profile-card .student-status-card__actions {
+  flex: 0 0 auto;
+}
+
+.admin-student-learning-detail-page .monitoring-kpi-grid--detail {
+  gap: 12px;
+}
+
+.admin-student-learning-detail-page .monitoring-kpi-grid--detail .kpi-card {
+  min-height: 106px;
+  padding: 14px 16px;
+}
+
+.admin-student-learning-detail-page .kpi-card-value--duration {
+  margin-top: 7px;
+  font-size: clamp(21px, 2vw, 27px) !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-student-learning-detail-page .kpi-card-sub {
+  line-height: 1.35;
+}
+
+.admin-student-detail-tabs {
+  order: 5;
+  margin-top: -2px;
+  padding: 3px;
+  border: 1px solid var(--brand-border);
+  border-bottom: 1px solid var(--brand-border);
+  border-radius: 12px;
+  background: #fffdf9;
+}
+
+.admin-student-detail-tabs .detail-tab-button {
+  margin: 0;
+  border: 0;
+  border-radius: 9px;
+  padding: 9px 14px;
+}
+
+.admin-student-detail-tabs .detail-tab-button.active {
+  border-bottom: 0;
+  background: var(--brand-coffee);
+  color: #fffdf8;
+  box-shadow: 0 3px 9px rgba(75, 64, 53, .14);
+}
+
+.admin-student-learning-detail-page .admin-streak-detail-card {
+  order: 6;
+  gap: 15px;
+  padding: 20px;
+}
+
+.admin-student-learning-detail-page .admin-streak-detail-header h2 {
+  margin-top: 4px;
+  font-size: 21px;
+}
+
+.admin-student-learning-detail-page .admin-streak-detail-number strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-student-learning-detail-page .admin-streak-detail-stats {
+  gap: 10px;
+}
+
+.admin-student-learning-detail-page .admin-streak-detail-stats div {
+  padding: 11px 12px;
+}
+
+.admin-student-learning-detail-page .admin-streak-calendar {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 9px 10px;
+  padding: 2px 0;
+}
+
+.admin-student-learning-detail-page .admin-streak-day {
+  min-width: 0;
+  padding: 4px 3px;
+  border-radius: 8px;
+  background: #fbf8f3;
+  font-size: 10px;
+}
+
+.admin-student-learning-detail-page .admin-streak-day i {
+  width: 100%;
+  max-width: 34px;
+  aspect-ratio: 1;
+}
+
+.admin-student-learning-detail-page .admin-streak-chart-wrap {
+  margin-top: 2px;
+}
+
+.admin-student-learning-detail-page > .learning-progress-section,
+.admin-student-learning-detail-page > .weekly-study-card,
+.admin-student-learning-detail-page > section[aria-label="Lịch sử nộp đề thi TOEIC"],
+.admin-student-learning-detail-page > section[aria-label="Lịch sử nộp bài tập"] {
+  order: 7;
+}
+
+@media (max-width: 760px) {
+  .admin-student-profile-card {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .admin-student-profile-card .student-status-card__actions {
+    justify-content: stretch;
+  }
+
+  .admin-student-profile-card .student-status-card__actions a {
+    width: 100%;
+  }
+
+  .admin-student-detail-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .admin-student-detail-tabs .detail-tab-button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .admin-student-learning-detail-page .admin-streak-detail-card {
+    padding: 16px;
+  }
+
+  .admin-student-learning-detail-page .admin-streak-calendar {
+    gap: 7px 5px;
+  }
+}

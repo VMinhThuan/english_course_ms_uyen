@@ -258,31 +258,32 @@ export default function AdminStudentLearningDetailPage() {
   }), { attempts: 0, questions: 0, correct: 0 });
 
   return (
-    <div className="admin-page-container monitoring-page">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div className="admin-page-container monitoring-page admin-student-learning-detail-page">
+      <div className="admin-student-detail-back-row">
         <Link to="/admin/learning-progress" className="admin-quiet-button">
           ← Danh sách học viên
         </Link>
       </div>
 
       <PageHeader
-        title={`Chi tiết học tập: ${student.fullName || student.email}`}
+        className="admin-student-detail-page-header"
+        title="Chi tiết tiến độ học tập"
         subtitle={`Xem học viên đã học gì, tiến độ từng bài và lịch sử làm bài của ${student.fullName || student.email}`}
       />
 
       {/* Student Profile Card (Section 3.B) */}
-      <section className="student-status-card" style={{ background: '#fff' }} aria-label="Thông tin học viên">
+      <section className="student-status-card admin-student-profile-card" aria-label="Thông tin học viên">
         <div className="student-status-card__summary">
           <div className="student-user-cell">
             {student.avatar ? (
-              <img className="student-avatar-thumb" style={{ width: '48px', height: '48px' }} src={student.avatar} alt="" />
+              <img className="student-avatar-thumb admin-student-profile-avatar" src={student.avatar} alt="" />
             ) : (
-              <div className="student-avatar-thumb" style={{ width: '48px', height: '48px', fontSize: '18px' }}>
+              <div className="student-avatar-thumb admin-student-profile-avatar admin-student-profile-avatar--fallback">
                 {(student.fullName || student.email || 'H').charAt(0).toUpperCase()}
               </div>
             )}
             <div>
-              <strong style={{ fontSize: '17px' }}>{student.fullName || 'Chưa đặt tên'}</strong>
+              <strong className="admin-student-profile-name">{student.fullName || 'Chưa đặt tên'}</strong>
               <span>{student.email} • {student.phoneNumber || 'Chưa có SĐT'} {student.groupName ? `• Nhóm: ${student.groupName}` : ''}</span>
               <span style={{ marginTop: '4px' }}>
                 Tham gia ngày: {formatDateOnly(student.createdAt)} • Hoạt động gần nhất: <strong>{formatDateTime(lastLearningActivity)}</strong>
@@ -303,7 +304,7 @@ export default function AdminStudentLearningDetailPage() {
       <section className="monitoring-kpi-grid monitoring-kpi-grid--detail" aria-label="Tổng quan học tập">
         <div className="kpi-card">
           <span className="kpi-card-label">Tổng thời gian học</span>
-          <strong className="kpi-card-value" style={{ fontSize: '20px' }}>
+          <strong className="kpi-card-value kpi-card-value--duration">
             {formatDuration(learningOverview.totalLearningSeconds)}
           </strong>
           <span className="kpi-card-sub">Thời gian tích lũy thực</span>
@@ -311,7 +312,7 @@ export default function AdminStudentLearningDetailPage() {
 
         <div className="kpi-card">
           <span className="kpi-card-label">Thời gian hôm nay</span>
-          <strong className="kpi-card-value" style={{ fontSize: '20px' }}>
+          <strong className="kpi-card-value kpi-card-value--duration">
             {formatDuration(learningOverview.studyTodaySeconds)}
           </strong>
           <span className="kpi-card-sub">Theo ngày Việt Nam</span>
@@ -319,7 +320,7 @@ export default function AdminStudentLearningDetailPage() {
 
         <div className="kpi-card">
           <span className="kpi-card-label">TB mỗi ngày học</span>
-          <strong className="kpi-card-value" style={{ fontSize: '20px' }}>
+          <strong className="kpi-card-value kpi-card-value--duration">
             {formatDuration(learningOverview.averageDailyStudySeconds)}
           </strong>
           <span className="kpi-card-sub">30 ngày gần nhất · {learningOverview.studyDaysInLast30Days || 0} ngày có học</span>
@@ -327,13 +328,21 @@ export default function AdminStudentLearningDetailPage() {
 
         <div className="kpi-card">
           <span className="kpi-card-label">Tiến độ lộ trình</span>
-          <strong className="kpi-card-value kpi-card-value--progress" style={{ fontSize: '20px' }}>
+          <strong className="kpi-card-value kpi-card-value--progress kpi-card-value--duration">
             {learningOverview.overallCompletionPercentage || 0}%
           </strong>
           <span className="kpi-card-sub">{learningOverview.completedLessons || 0}/{learningOverview.totalLessons || 0} bài đã hoàn thành</span>
         </div>
 
       </section>
+
+      {/* Detail Tabs Bar stays close to the profile/KPI summary for quick navigation. */}
+      <div className="detail-tabs-bar admin-student-detail-tabs" role="tablist">
+        <button type="button" role="tab" aria-selected={activeTab === 'learning-progress'} className={`detail-tab-button ${activeTab === 'learning-progress' ? 'active' : ''}`} onClick={() => setActiveTab('learning-progress')}>📚 Lộ trình & bài học</button>
+        <button type="button" role="tab" aria-selected={activeTab === 'assessments'} className={`detail-tab-button ${activeTab === 'assessments' ? 'active' : ''}`} onClick={() => setActiveTab('assessments')}>🧾 Đề thi TOEIC</button>
+        <button type="button" role="tab" aria-selected={activeTab === 'exercises'} className={`detail-tab-button ${activeTab === 'exercises' ? 'active' : ''}`} onClick={() => setActiveTab('exercises')}>✍️ Bài tập đã làm</button>
+        <button type="button" role="tab" aria-selected={activeTab === 'daily-study'} className={`detail-tab-button ${activeTab === 'daily-study' ? 'active' : ''}`} onClick={() => setActiveTab('daily-study')}>📊 Thời gian học tuần này</button>
+      </div>
 
       <section className="admin-streak-detail-card" aria-labelledby="admin-streak-title">
         <div className="admin-streak-detail-header">
@@ -345,49 +354,6 @@ export default function AdminStudentLearningDetailPage() {
         <div className="admin-streak-calendar" aria-label="Lịch learning streak 35 ngày">{streakCalendar.map((day) => <div key={day.dateKey} className={`admin-streak-day is-${day.status}`} title={`${day.dateKey}: ${day.validStudySeconds || 0} giây`}><span>{day.dateKey.slice(5)}</span><i /></div>)}</div>
         <div className="admin-streak-chart-wrap"><div className="admin-streak-chart-heading"><h3>Thời lượng học hợp lệ</h3><span>30 ngày gần nhất · đường mục tiêu 15 phút</span></div><div className="admin-streak-chart" role="img" aria-label="Biểu đồ thời lượng học hợp lệ 30 ngày">{activityRows.map((row) => <div className="admin-streak-chart-bar" key={row.localDate} title={`${row.localDate}: ${Math.floor((row.validStudySeconds || 0) / 60)} phút`}><span style={{ height: `${Math.max(3, Math.round(((row.validStudySeconds || 0) / maxActivitySeconds) * 100))}%` }} /><small>{row.localDate.slice(8)}</small></div>)}</div></div>
       </section>
-
-      {/* Detail Tabs Bar */}
-      <div className="detail-tabs-bar" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'learning-progress'}
-          className={`detail-tab-button ${activeTab === 'learning-progress' ? 'active' : ''}`}
-          onClick={() => setActiveTab('learning-progress')}
-        >
-          📚 Lộ trình & bài học
-        </button>
-
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'assessments'}
-          className={`detail-tab-button ${activeTab === 'assessments' ? 'active' : ''}`}
-          onClick={() => setActiveTab('assessments')}
-        >
-          🧾 Đề thi TOEIC
-        </button>
-
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'exercises'}
-          className={`detail-tab-button ${activeTab === 'exercises' ? 'active' : ''}`}
-          onClick={() => setActiveTab('exercises')}
-        >
-          ✍️ Bài tập đã làm
-        </button>
-
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'daily-study'}
-          className={`detail-tab-button ${activeTab === 'daily-study' ? 'active' : ''}`}
-          onClick={() => setActiveTab('daily-study')}
-        >
-          📊 Thời gian học tuần này
-        </button>
-      </div>
 
       {activeTab === 'learning-progress' && (
         <section className="learning-progress-section" aria-label="Tiến độ lộ trình và từng bài học">

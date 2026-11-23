@@ -122,6 +122,12 @@ try {
         assert.ok(tableLayout.rowHeight < 260, `monitoring row should not become vertically stretched: ${JSON.stringify(tableLayout)}`);
         assert.match(tableLayout.timeText, /Hôm nay/);
       }
+      if (role === 'admin' && pathname === '/admin/learning-progress/students/browser-student') {
+        assert.equal(await page.locator('.admin-student-detail-tabs').count(), 1, 'student detail tabs should be visible near the summary');
+        assert.equal(await page.locator('.admin-streak-day').count(), 35, 'student detail should keep the 35-day streak history');
+        const streakCalendarColumns = await page.locator('.admin-streak-calendar').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+        assert.equal(streakCalendarColumns, 7, 'student streak calendar should use a readable seven-column grid');
+      }
       if (role === 'student' && pathname === '/student/streak-challenge' && viewport.width === 375) {
         await page.locator('.mobile-hamburger-btn').click();
         await page.waitForTimeout(350);
