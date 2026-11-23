@@ -57,6 +57,11 @@ export default function StudentLayout() {
     if (isActiveAssessmentRoute) setIsMobileOpen(false);
   }, [isActiveAssessmentRoute]);
 
+  // Close the drawer after browser navigation as well as explicit link clicks.
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
+
   // Check for an unfinished attempt as soon as the authenticated student area opens.
   useEffect(() => {
     if (!activeAttemptCheckKey || user?.role !== 'student') return undefined;

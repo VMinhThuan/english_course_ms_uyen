@@ -51,13 +51,13 @@ const dailyQuestions = Array.from({ length: 20 }, (_, index) => ({
   type: index % 2 ? 'recognition' : 'meaning',
   prompt: `What does word ${index + 1} mean?`,
   sentence: `The TOEIC example sentence for word ${index + 1}.`,
-  options: [{ id: 'a', text: 'Correct meaning' }, { id: 'b', text: 'Another meaning' }],
+  options: [{ id: 'a', text: 'Correct meaning' }, { id: 'b', text: 'Another meaning' }, { id: 'c', text: 'A third meaning' }, { id: 'd', text: 'A fourth meaning' }],
 }));
 
 function makeOverview() {
   return {
     today: { dateKey: '2026-11-22', challenge: null },
-    streak: { current: 4, longest: 8, completedDates: ['2026-11-19'], timezone: 'Asia/Ho_Chi_Minh' },
+    streak: { current: 4, longest: 8, completedDates: ['2026-11-19', '2026-11-22'], timezone: 'Asia/Ho_Chi_Minh' },
     stats: { totalDailyCompletions: 12, questAttempts: 3, overallAccuracy: 86 },
     achievements: [],
     quest: {
@@ -107,10 +107,18 @@ async function installApiMocks(context, role = 'student') {
       dailyChallenge = { id: 'daily-web-e2e', status: 'in_progress', correctCount: dailyCorrect, totalWords: 20, completedVocabularyIds: dailyCorrect ? ['v1'] : [], questions: dailyQuestions };
       return jsonResponse(route, { status: 'success', data: { challenge: dailyChallenge } });
     }
+    if (pathname.includes('/gamification/daily-challenge/history/')) {
+      return jsonResponse(route, { status: 'success', data: { review: {
+        id: 'daily-history-web-e2e', dateKey: '2026-11-22', status: 'completed', totalWords: 20, correctCount: 20, accuracy: 100,
+        words: dailyQuestions.map((question, index) => ({ vocabularyId: `v${index + 1}`, questionId: question.questionId, word: `word-${index + 1}`, meaning: `Meaning ${index + 1}`, prompt: question.prompt, isCorrect: true })),
+      } } });
+    }
     if (pathname.includes('/gamification/daily-challenge/') && pathname.endsWith('/answer')) {
-      dailyCorrect = Math.min(20, dailyCorrect + 1);
+      const payload = JSON.parse(request.postData() || '{}');
+      const isCorrect = payload.answer === 'a';
+      dailyCorrect = isCorrect ? Math.min(20, dailyCorrect + 1) : dailyCorrect;
       dailyChallenge = { ...dailyChallenge, correctCount: dailyCorrect, completedVocabularyIds: dailyQuestions.slice(0, dailyCorrect).map((question) => question.vocabularyId), status: dailyCorrect >= 20 ? 'completed' : 'in_progress' };
-      return jsonResponse(route, { status: 'success', data: { isCorrect: true, completed: dailyCorrect >= 20, challenge: dailyChallenge } });
+      return jsonResponse(route, { status: 'success', data: { isCorrect, completed: dailyCorrect >= 20, challenge: dailyChallenge } });
     }
     if (pathname.endsWith('/gamification/quest/levels/1/start')) {
       questAttempt = {
@@ -175,6 +183,39 @@ async function testStreakZoom(browser, scale) {
     await page.evaluate((zoom) => { document.documentElement.style.zoom = `${zoom * 100}%`; }, scale);
     await assertNoOverflow(page);
     assert.ok(await page.getByRole('heading', { name: 'Thử thách 7 ngày' }).isVisible());
+    assert.equal(consoleErrors.length, 0, `console errors: ${consoleErrors.join('; ')}`);
+    assert.equal(pageErrors.length, 0, `page errors: ${pageErrors.join('; ')}`);
+  } finally { await context.close(); }
+}
+
+async function testVocabularyChallengeFlow(browser, viewport) {
+  const { context, page, mocks, consoleErrors, pageErrors } = await newPage(browser, viewport);
+  try {
+    await page.goto(`${uiUrl}/student/streak-challenge`, { waitUntil: 'networkidle' });
+    await page.getByRole('heading', { name: 'Thử thách 7 ngày' }).waitFor();
+    assert.equal(await page.locator('.challenge-metric').count(), 3, 'challenge summary should use three compact metrics');
+    assert.equal(await page.locator('.game-progress-ring').count(), 0, 'challenge should not duplicate progress with a large ring');
+    await page.getByRole('button', { name: /Xem lại 20 từ ngày/ }).first().click();
+    await page.getByRole('heading', { name: /20 từ ngày/ }).waitFor();
+    await page.locator('.challenge-review-word').first().waitFor();
+    assert.equal(await page.locator('.challenge-review-word').count(), 20, 'completed day should expose all 20 learned words');
+    await page.getByRole('button', { name: 'Đóng' }).click();
+    await page.getByRole('button', { name: 'Bắt đầu thử thách' }).click();
+    await page.locator('.answer-option').first().waitFor();
+    assert.equal(await page.locator('.answer-option').count(), 4, 'quiz should render four answers');
+    assert.deepEqual(await page.locator('.answer-option__label').allTextContents(), ['A', 'B', 'C', 'D']);
+    assert.equal(await page.locator('.answer-grid').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length), 1, 'answers should be a single vertical column');
+    if (captureScreenshots) {
+      await fs.mkdir(screenshotDir, { recursive: true });
+      await page.screenshot({ path: path.join(screenshotDir, `challenge-flow-${viewport.width}.png`), fullPage: true });
+    }
+    await page.getByRole('button', { name: 'B. Another meaning' }).click();
+    await page.getByText('Chưa đúng, thử lại nhé.').waitFor();
+    assert.ok(await page.locator('.answer-option.is-incorrect').count() === 1, 'incorrect answer state should be visible');
+    await page.getByRole('button', { name: 'A. Correct meaning' }).click();
+    await page.getByText('CÂU 2 / 20').waitFor();
+    assert.ok(mocks.requests.some((request) => request.pathname.endsWith('/gamification/daily-challenge/daily-web-e2e/answer')), 'answer API should be called');
+    await assertNoOverflow(page);
     assert.equal(consoleErrors.length, 0, `console errors: ${consoleErrors.join('; ')}`);
     assert.equal(pageErrors.length, 0, `page errors: ${pageErrors.join('; ')}`);
   } finally { await context.close(); }
@@ -259,6 +300,7 @@ try {
   await waitForVite(baseUrl, viteProcess);
   browser = await chromium.launch({ headless: process.env.GAMIFICATION_HEADLESS !== 'false' });
   for (const width of [1280, 1440, 1920]) await testDesktopStreak(browser, { width, height: 1000 });
+  for (const width of [375, 390, 768, 1280, 1440]) await testVocabularyChallengeFlow(browser, { width, height: width <= 390 ? 844 : width === 768 ? 1024 : 1000 });
   await testStreakZoom(browser, 0.8);
   await testStreakZoom(browser, 1.25);
   for (const width of [1280, 1440, 1920]) await testDesktopQuest(browser, { width, height: 1000 });
@@ -266,7 +308,7 @@ try {
   await testMobile(browser, { width: 390, height: 844 });
   await testMobile(browser, { width: 768, height: 1024 });
   await captureMobileStreak(browser);
-  console.log('Gamification web browser E2E: PASS (desktop 1280/1440/1920, tablet 768, mobile 390)');
+  console.log('Gamification web browser E2E: PASS (quiz flow 375/390/768/1280/1440; quest/admin regression covered)');
 } finally {
   await browser?.close();
   viteProcess.kill('SIGTERM');

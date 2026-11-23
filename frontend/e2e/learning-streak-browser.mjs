@@ -109,7 +109,23 @@ try {
       }
       if (role === 'student' && pathname === '/student/streak-challenge' && viewport.width === 375) {
         await page.locator('.mobile-hamburger-btn').click();
+        await page.waitForTimeout(350);
         const practiceMenu = page.locator('.practice-sidebar-menu');
+        const sidebarGeometry = await page.locator('.student-sidebar').evaluate((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            left: rect.left,
+            width: rect.width,
+            viewportWidth: window.innerWidth,
+            height: rect.height,
+            viewportHeight: window.innerHeight,
+            horizontalOverflow: element.scrollWidth > element.clientWidth,
+          };
+        });
+        assert.ok(sidebarGeometry.left >= 0, `mobile sidebar should stay inside viewport: ${JSON.stringify(sidebarGeometry)}`);
+        assert.ok(sidebarGeometry.width <= sidebarGeometry.viewportWidth - 8, `mobile sidebar should leave a usable backdrop: ${JSON.stringify(sidebarGeometry)}`);
+        assert.ok(sidebarGeometry.height <= sidebarGeometry.viewportHeight + 1, `mobile sidebar should fit viewport height: ${JSON.stringify(sidebarGeometry)}`);
+        assert.equal(sidebarGeometry.horizontalOverflow, false, 'mobile sidebar should not horizontally overflow');
         const practiceToggle = practiceMenu.locator('.practice-sidebar-toggle');
         await practiceToggle.click();
         assert.equal(await practiceToggle.getAttribute('aria-expanded'), 'true', 'practice dropdown should open on mobile');

@@ -151,6 +151,48 @@ function safeChallenge(challenge) {
   };
 }
 
+async function safeDailyChallengeReview(challenge) {
+  const vocabularyIds = challenge.questions.map((question) => question.vocabularyId);
+  const vocabularyRows = await Vocabulary.find({ _id: { $in: vocabularyIds } })
+    .select(VOCABULARY_PROJECTION)
+    .lean();
+  const vocabularyById = new Map(vocabularyRows.map((row) => [String(row._id), row]));
+  const responseByVocabularyId = new Map();
+  for (const response of challenge.responses || []) {
+    const key = String(response.vocabularyId);
+    const previous = responseByVocabularyId.get(key);
+    if (!previous || response.isCorrect || new Date(response.answeredAt) > new Date(previous.answeredAt)) {
+      responseByVocabularyId.set(key, response);
+    }
+  }
+
+  return {
+    id: String(challenge._id),
+    dateKey: challenge.dateKey,
+    timezone: challenge.timezone,
+    status: challenge.status,
+    totalWords: challenge.totalWords,
+    correctCount: challenge.correctCount,
+    accuracy: challenge.accuracy,
+    completedAt: challenge.completedAt,
+    words: challenge.questions.map((question) => {
+      const vocabularyId = String(question.vocabularyId);
+      const vocabulary = vocabularyById.get(vocabularyId);
+      const response = responseByVocabularyId.get(vocabularyId);
+      return {
+        vocabularyId,
+        questionId: question.questionId,
+        type: question.type,
+        prompt: question.prompt,
+        word: vocabulary?.word || '',
+        meaning: vocabulary?.meaning || vocabulary?.explanation || '',
+        exampleEnglish: vocabulary?.exampleEnglish || vocabulary?.example || '',
+        isCorrect: Boolean(response?.isCorrect),
+      };
+    }),
+  };
+}
+
 function safeQuestAttempt(attempt) {
   return {
     id: String(attempt._id), level: attempt.level, stage: attempt.stage,
@@ -334,6 +376,17 @@ export async function startDailyChallenge(student, requestedTimezone) {
     if (error?.code === 11000) return safeChallenge(await DailyVocabularyChallenge.findOne({ student, dateKey }));
     throw error;
   }
+}
+
+export async function getDailyChallengeHistory(student, dateKey) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) {
+    const error = new Error('Ngày xem lại không hợp lệ.'); error.statusCode = 400; error.code = 'INVALID_DATE_KEY'; throw error;
+  }
+  const challenge = await DailyVocabularyChallenge.findOne({ student, dateKey, status: 'completed' }).lean();
+  if (!challenge) {
+    const error = new Error('Không tìm thấy ngày thử thách đã hoàn thành.'); error.statusCode = 404; error.code = 'DAILY_CHALLENGE_HISTORY_NOT_FOUND'; throw error;
+  }
+  return safeDailyChallengeReview(challenge);
 }
 
 export async function answerDailyChallenge(student, challengeId, questionId, answer) {

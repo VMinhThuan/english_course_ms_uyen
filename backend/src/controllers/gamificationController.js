@@ -1,5 +1,6 @@
 import {
   answerDailyChallenge,
+  getDailyChallengeHistory,
   getGamificationOverview,
   startDailyChallenge,
   startQuestAssessment,
@@ -20,6 +21,13 @@ export async function startDaily(req, res, next) {
   try {
     const result = await startDailyChallenge(studentId(req), req.headers['x-timezone']);
     return res.json({ status: 'success', data: { challenge: result } });
+  } catch (error) { return next(error); }
+}
+
+export async function getDailyHistory(req, res, next) {
+  try {
+    const result = await getDailyChallengeHistory(studentId(req), req.params.dateKey);
+    return res.json({ status: 'success', data: { review: result } });
   } catch (error) { return next(error); }
 }
 

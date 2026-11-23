@@ -7,6 +7,7 @@ export const gamificationApi = {
   startDaily: async () => (await axiosInstance.post('/gamification/daily-challenge/start', {}, {
     headers: { 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone },
   })).data,
+  getDailyChallengeHistory: async (dateKey) => (await axiosInstance.get(`/gamification/daily-challenge/history/${encodeURIComponent(dateKey)}`)).data,
   answerDaily: async (challengeId, payload) => (await axiosInstance.post(`/gamification/daily-challenge/${challengeId}/answer`, payload)).data,
   startQuest: async (level, stage = 1) => (await axiosInstance.post(`/gamification/quest/levels/${level}/start`, { stage })).data,
   submitQuest: async (attemptId, answers) => (await axiosInstance.post(`/gamification/quest/attempts/${attemptId}/submit`, { answers })).data,

@@ -139,6 +139,13 @@ test('gamification production invariants hold across API, persistence, replay an
     assert.equal((await VocabularyStreak.findOne({ student: student._id })).currentStreak, 1);
     const repeatStart = await request('/api/v1/gamification/daily-challenge/start', { token: studentToken, method: 'POST', body: {} });
     assert.equal(repeatStart.payload.data.challenge.id, challengeId);
+    const review = await request(`/api/v1/gamification/daily-challenge/history/${completed.dateKey}`, { token: studentToken });
+    assert.equal(review.status, 200, JSON.stringify(review.payload));
+    assert.equal(review.payload.data.review.words.length, 20);
+    assert.ok(review.payload.data.review.words.every((word) => word.word && word.meaning));
+    assert.ok(review.payload.data.review.words.every((word) => !Object.hasOwn(word, 'answer')));
+    assert.equal((await request(`/api/v1/gamification/daily-challenge/history/${completed.dateKey}`, { token: secondStudentToken })).status, 404);
+    assert.equal((await request('/api/v1/gamification/daily-challenge/history/not-a-date', { token: studentToken })).status, 400);
   });
 
   await t.test('quest locks levels, persists answers for resume, enforces 80%, and contributes only unique overlap to today’s challenge', async () => {
