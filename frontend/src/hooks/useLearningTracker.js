@@ -5,6 +5,7 @@ import { resolveApiBaseUrl } from '../api/apiBaseUrl.js';
 const IDLE_TIMEOUT_MS = 60 * 1000; // 60 seconds of inactivity = idle
 const HEARTBEAT_INTERVAL_MS = 15 * 1000; // send heartbeat every 15 seconds
 const TICK_INTERVAL_MS = 1000; // evaluate 1-second active ticks
+const makeRequestId = () => window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 export default function useLearningTracker({ courseId, lessonId, enabled = true }) {
   const sessionIdRef = useRef(null);
@@ -13,12 +14,15 @@ export default function useLearningTracker({ courseId, lessonId, enabled = true 
   const isTabVisibleRef = useRef(!document.hidden);
   const lastInteractionRef = useRef(Date.now());
   const isSendingHeartbeatRef = useRef(false);
+  const isStartingSessionRef = useRef(false);
+  const sessionInvalidatedRef = useRef(false);
 
   useEffect(() => {
     if (!enabled || !lessonId) return undefined;
 
     let isSubscribed = true;
     bufferRef.current = 0;
+    sessionInvalidatedRef.current = false;
     lastTickRef.current = Date.now();
     lastInteractionRef.current = Date.now();
     isTabVisibleRef.current = !document.hidden;
@@ -46,6 +50,8 @@ export default function useLearningTracker({ courseId, lessonId, enabled = true 
 
     // 3. Start learning session on backend
     const initializeSession = async () => {
+      if (!isSubscribed || isStartingSessionRef.current || sessionInvalidatedRef.current) return;
+      isStartingSessionRef.current = true;
       try {
         const response = await learningApi.startSession(lessonId, courseId);
         if (isSubscribed && response?.data?.sessionId) {
@@ -55,6 +61,8 @@ export default function useLearningTracker({ courseId, lessonId, enabled = true 
       } catch (err) {
         // Silently fail or retry - learning experience must never be broken
         console.warn('Learning tracker startSession notice:', err?.message || err);
+      } finally {
+        isStartingSessionRef.current = false;
       }
     };
 
@@ -68,9 +76,10 @@ export default function useLearningTracker({ courseId, lessonId, enabled = true 
 
       const isVisible = isTabVisibleRef.current;
       const isUserEngaged = (now - lastInteractionRef.current) < IDLE_TIMEOUT_MS;
+      const isMediaPlaying = [...document.querySelectorAll('audio, video')].some((media) => !media.paused && !media.ended && media.readyState >= 2);
 
       // Only accumulate time when student is actually present and tab is visible
-      if (isVisible && isUserEngaged && sessionIdRef.current) {
+      if (isVisible && (isUserEngaged || isMediaPlaying) && sessionIdRef.current) {
         bufferRef.current += elapsedSeconds;
       }
     }, TICK_INTERVAL_MS);
@@ -80,18 +89,37 @@ export default function useLearningTracker({ courseId, lessonId, enabled = true 
       const currentSessionId = sessionIdRef.current;
       const secondsToSend = bufferRef.current;
 
-      if (!currentSessionId || secondsToSend <= 0 || isSendingHeartbeatRef.current) {
+      if (!currentSessionId) {
+        if (!sessionInvalidatedRef.current && isTabVisibleRef.current && (Date.now() - lastInteractionRef.current) < IDLE_TIMEOUT_MS) {
+          initializeSession();
+        }
+        return;
+      }
+      if (secondsToSend <= 0 || isSendingHeartbeatRef.current) {
         return;
       }
 
       isSendingHeartbeatRef.current = true;
       try {
-        await learningApi.sendHeartbeat(currentSessionId, secondsToSend);
-        bufferRef.current = Math.max(0, bufferRef.current - secondsToSend);
+        const response = await learningApi.sendHeartbeat(currentSessionId, secondsToSend, makeRequestId());
+        const creditedSeconds = Number(response?.data?.addedSeconds);
+        bufferRef.current = Math.max(0, bufferRef.current - (Number.isFinite(creditedSeconds) ? creditedSeconds : secondsToSend));
       } catch (err) {
         console.warn('Learning tracker heartbeat notice:', err?.message || err);
-        // On error, cap the retained buffer to 45 seconds to avoid over-accumulation
-        bufferRef.current = Math.min(45, bufferRef.current);
+        const errorCode = err?.response?.data?.code;
+        if (errorCode === 'SESSION_NOT_ACTIVE' || errorCode === 'SESSION_NOT_FOUND') {
+          // Another tab may own the single active session. Do not restart here
+          // and evict the other tab's session again.
+          sessionInvalidatedRef.current = true;
+          sessionIdRef.current = null;
+          bufferRef.current = 0;
+        } else if (errorCode === 'SESSION_EXPIRED') {
+          sessionIdRef.current = null;
+          bufferRef.current = 0;
+        } else {
+          // On a transient network error, retain only a bounded unsent buffer.
+          bufferRef.current = Math.min(45, bufferRef.current);
+        }
       } finally {
         isSendingHeartbeatRef.current = false;
       }
@@ -112,17 +140,17 @@ export default function useLearningTracker({ courseId, lessonId, enabled = true 
       });
 
       try {
-        if (navigator.sendBeacon) {
-          const blob = new Blob([payload], { type: 'application/json' });
-          navigator.sendBeacon(url, blob);
-        } else {
-          fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload,
-            keepalive: true,
-          }).catch(() => {});
-        }
+        const token = localStorage.getItem('accessToken');
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: 'include',
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
       } catch {
         // Ignored on window exit
       }

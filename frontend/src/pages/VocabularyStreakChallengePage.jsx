@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gamificationApi } from '../api/gamificationApi.js';
+import learningApi from '../api/learningApi.js';
 import './GamificationPages.css';
 
 const dateKeyInZone = (date, timezone) => {
@@ -22,6 +23,69 @@ function ProgressRing({ value }) {
 
 function LoadingState() { return <div className="game-loading"><span /><span /><span />Đang tải hành trình học tập...</div>; }
 
+function FlameMark({ tier = 0 }) {
+  return <div className={`learning-flame learning-flame--tier-${tier}`} aria-label={`Cấp lửa ${tier}`}>
+    <svg viewBox="0 0 100 120" aria-hidden="true" focusable="false">
+      <path className="learning-flame__outer" d="M52 4c4 22-12 27-4 43 4 8 13 12 17 4 8 13 16 23 13 37-3 17-16 28-34 28S10 104 10 83c0-18 12-31 25-46 0 15 6 21 13 22C52 50 45 31 52 4Z" />
+      <path className="learning-flame__inner" d="M51 48c8 14 17 19 15 32-1 10-9 17-20 17-12 0-19-8-18-19 1-8 7-14 13-21 1 7 4 10 8 11 4-5 3-11 2-20Z" />
+    </svg>
+  </div>;
+}
+
+function LearningStreakPanel({ data, onRefresh }) {
+  const [celebrationVisible, setCelebrationVisible] = useState(false);
+  const today = data?.today || {};
+  useEffect(() => {
+    if (!data || !today.completed || !today.dateKey) return;
+    const storageKey = `learning-streak-celebrated:${today.dateKey}`;
+    if (window.localStorage.getItem(storageKey) !== '1') {
+      window.localStorage.setItem(storageKey, '1');
+      setCelebrationVisible(true);
+    }
+  }, [data, today.completed, today.dateKey]);
+  if (!data) return null;
+  const streak = data.streak || {};
+  const percent = Math.min(100, Math.round((today.validStudySeconds / Math.max(1, today.targetSeconds || 900)) * 100));
+  const status = today.completed ? 'Hoàn thành' : today.validStudySeconds ? (percent >= 80 ? 'Sắp đạt mục tiêu' : 'Đang học') : 'Chưa bắt đầu';
+  const calendar = data.calendar || [];
+  return <section className="learning-streak-panel" aria-labelledby="learning-streak-title">
+    {celebrationVisible && <div className="learning-streak-celebration" role="status"><div><strong>Mục tiêu hôm nay đã hoàn thành!</strong><span>Bạn đang duy trì chuỗi {streak.currentStreak || 0} ngày học liên tục.</span></div><button type="button" onClick={() => setCelebrationVisible(false)} aria-label="Đóng thông báo">×</button></div>}
+    <div className="learning-streak-hero">
+      <div className="learning-streak-hero__copy">
+        <p className="game-eyebrow">LEARNING STREAK</p>
+        <h1 id="learning-streak-title">Giữ nhịp học, tiến bộ mỗi ngày</h1>
+        <p>Học đủ 15 phút hợp lệ trong ngày để duy trì chuỗi của bạn.</p>
+        <div className="learning-streak-hero__actions">
+          <Link className="game-primary-button" to="/student/my-courses">Tiếp tục học</Link>
+          <button className="game-secondary-button" type="button" onClick={onRefresh}>Cập nhật</button>
+        </div>
+      </div>
+      <div className="learning-streak-flame-card">
+        <FlameMark tier={streak.currentTier || 0} />
+        <div><strong>{streak.currentStreak || 0}</strong><span>ngày liên tiếp</span><small>{streak.tierName || 'Chưa thắp lửa'}</small></div>
+      </div>
+    </div>
+    <div className="learning-streak-grid">
+      <article className="learning-streak-goal">
+        <div className="learning-streak-section-heading"><div><span className="card-kicker">MỤC TIÊU HÔM NAY</span><h2>{status}</h2></div><strong>{Math.floor((today.validStudySeconds || 0) / 60)}:{String((today.validStudySeconds || 0) % 60).padStart(2, '0')} <small>/ 15:00</small></strong></div>
+        <div className="learning-streak-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={percent}><span style={{ width: `${percent}%` }} /></div>
+        <p>{today.completed ? 'Ngày học đã được ghi nhận. Chuỗi của bạn đang được duy trì.' : `Còn ${Math.ceil((today.remainingSeconds || 0) / 60)} phút học hợp lệ để hoàn thành mục tiêu.`}</p>
+      </article>
+      <article className="learning-streak-stats">
+        <div><span>Chuỗi dài nhất</span><strong>{streak.longestStreak || 0}<small> ngày</small></strong></div>
+        <div><span>Ngày đã hoàn thành</span><strong>{streak.totalCompletedDays || 0}</strong></div>
+        <div><span>Tổng thời gian hợp lệ</span><strong>{Math.floor((data.totalValidStudySeconds || 0) / 3600)}<small> giờ</small></strong></div>
+        <div><span>Mốc tiếp theo</span><strong>{streak.nextMilestone || '—'}<small>{streak.nextMilestone ? ' ngày' : ''}</small></strong></div>
+      </article>
+    </div>
+    <div className="learning-streak-calendar-card">
+      <div className="learning-streak-section-heading"><div><span className="card-kicker">LỊCH SỬ HỌC TẬP</span><h2>35 ngày gần nhất</h2></div><span className="learning-streak-legend"><i className="is-complete" /> Hoàn thành <i className="is-incomplete" /> Chưa đủ</span></div>
+      <div className="learning-streak-calendar" role="list" aria-label="Lịch học 35 ngày gần nhất">{calendar.map((day) => <div key={day.dateKey} role="listitem" className={`learning-streak-day is-${day.status}`} title={`${day.dateKey}: ${day.validStudySeconds || 0} giây`}><span>{day.dateKey.slice(8)}</span><i /></div>)}</div>
+    </div>
+    <div className="learning-streak-milestones"><span className="card-kicker">CỘT MỐC NGỌN LỬA</span>{(data.milestones || []).map((milestone) => <span key={milestone.days} className={milestone.unlocked ? 'is-unlocked' : ''}><b>{milestone.days}</b> ngày</span>)}</div>
+  </section>;
+}
+
 export default function VocabularyStreakChallengePage() {
   const [overview, setOverview] = useState(null);
   const [challenge, setChallenge] = useState(null);
@@ -31,6 +95,7 @@ export default function VocabularyStreakChallengePage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [learningStreak, setLearningStreak] = useState(null);
 
   const timezone = overview?.streak.timezone || 'Asia/Ho_Chi_Minh';
   const todayKey = dateKeyInZone(new Date(), timezone);
@@ -39,8 +104,12 @@ export default function VocabularyStreakChallengePage() {
   const load = async () => {
     setLoading(true); setError('');
     try {
-      const result = await gamificationApi.getOverview();
+      const [result, streakResult] = await Promise.all([
+        gamificationApi.getOverview(),
+        learningApi.getStreakOverview().catch(() => null),
+      ]);
       setOverview(result.data);
+      if (streakResult?.data) setLearningStreak(streakResult.data);
       if (result.data.today.challenge) setChallenge(result.data.today.challenge);
     } catch (loadError) { setError(loadError.response?.data?.message || 'Không thể tải thử thách.'); }
     finally { setLoading(false); }
@@ -80,9 +149,9 @@ export default function VocabularyStreakChallengePage() {
   };
 
   if (loading) return <main className="game-page"><LoadingState /></main>;
-  if (isCompleted) return <main className="game-page"><section className="game-completion-card"><p className="game-eyebrow">THỬ THÁCH HÔM NAY ĐÃ XONG</p><h1>20 từ đã được chinh phục!</h1><p>Bạn đã giữ lời hứa học tập hôm nay. Mỗi ngày một chút, mục tiêu TOEIC sẽ gần hơn.</p><div className="completion-stats"><div><strong>{challenge.accuracy || 100}<small>%</small></strong><span>Độ chính xác</span></div><div><strong>{overview?.streak.current || 1}<small> ngày</small></strong><span>Ngày liên tiếp</span></div></div><div className="game-actions"><Link className="game-primary-button" to="/student/vocabulary-quest">Vượt ải TOEIC →</Link><button className="game-secondary-button" type="button" onClick={load}>Xem lại tiến độ</button></div></section></main>;
+  if (isCompleted) return <main className="game-page"><LearningStreakPanel data={learningStreak} onRefresh={load} /><section className="game-completion-card"><p className="game-eyebrow">THỬ THÁCH HÔM NAY ĐÃ XONG</p><h1>20 từ đã được chinh phục!</h1><p>Bạn đã giữ lời hứa học tập hôm nay. Mỗi ngày một chút, mục tiêu TOEIC sẽ gần hơn.</p><div className="completion-stats"><div><strong>{challenge.accuracy || 100}<small>%</small></strong><span>Độ chính xác</span></div><div><strong>{overview?.streak.current || 1}<small> ngày</small></strong><span>Ngày liên tiếp</span></div></div><div className="game-actions"><Link className="game-primary-button" to="/student/vocabulary-quest">Vượt ải TOEIC →</Link><button className="game-secondary-button" type="button" onClick={load}>Xem lại tiến độ</button></div></section></main>;
 
-  return <main className="game-page">
+  return <main className="game-page"><LearningStreakPanel data={learningStreak} onRefresh={load} />
     <header className="game-hero game-hero--streak"><div><p className="game-eyebrow">7-DAY VOCABULARY STREAK</p><h1>Thử thách 7 ngày</h1><p>Mỗi ngày hoàn thành 20 từ để duy trì nhịp học TOEIC ổn định.</p></div></header>
     {error && <div className="game-alert" role="alert">{error}<button type="button" onClick={load}>Thử lại</button></div>}
     <section className="streak-summary-grid">

@@ -10,7 +10,10 @@ import Attempt from '../models/Attempt.js';
 import StudentPresence from '../models/StudentPresence.js';
 import StudentDailyStudy from '../models/StudentDailyStudy.js';
 import ExerciseSubmission from '../models/ExerciseSubmission.js';
+import DailyLearningProgress from '../models/DailyLearningProgress.js';
+import LearningStreak from '../models/LearningStreak.js';
 import { getHoChiMinhDateKey, getHoChiMinhDateKeyOffset, getHoChiMinhWeekDateRange } from '../services/studentTracking.js';
+import { getDateKeyInTimezone, getLearningStreakOverview, getUserTimezone, shiftDateKey } from '../services/learningStreakService.js';
 
 const isObjectId = (value) => typeof value === 'string' && /^[\da-f]{24}$/i.test(value);
 const toObjectId = (value) => new mongoose.Types.ObjectId(value);
@@ -199,6 +202,7 @@ export const getLearningStudents = async (req, res, next) => {
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
     const courseId = isObjectId(String(req.query.courseId)) ? toObjectId(String(req.query.courseId)) : null;
     const statusFilter = String(req.query.status || 'all').toLowerCase(); // all, not_started, in_progress, completed
+    const streakStatusFilter = String(req.query.streakStatus || 'all').toLowerCase(); // all, completed, in_progress, not_started, broken, near_milestone
     const sort = String(req.query.sort || 'active_desc').toLowerCase();
 
     if (page === null || limit === null) {
@@ -222,7 +226,7 @@ export const getLearningStudents = async (req, res, next) => {
     }
 
     let candidateStudents = await User.find(userFilter)
-      .select('_id fullName email username phoneNumber groupName avatar createdAt status')
+      .select('_id fullName email username phoneNumber groupName avatar createdAt status timezone')
       .lean();
 
     if (candidateStudents.length === 0) {
@@ -333,7 +337,7 @@ export const getLearningStudents = async (req, res, next) => {
     });
 
     // Aggregate LearningSession active seconds for these students
-    const [sessionTimeByStudent, presenceDocs, dailyStudyAgg] = await Promise.all([
+    const [sessionTimeByStudent, presenceDocs, dailyStudyAgg, streakDocs, streakDailyRows] = await Promise.all([
       LearningSession.aggregate([
         { $match: { student: { $in: filteredStudentIds } } },
         {
@@ -364,10 +368,21 @@ export const getLearningStudents = async (req, res, next) => {
           },
         },
       ]),
+      LearningStreak.find({ student: { $in: filteredStudentIds } }).lean(),
+      DailyLearningProgress.find({ student: { $in: filteredStudentIds }, localDate: { $gte: shiftDateKey(todayKey, -(STUDY_REPORT_DAYS + 1)), $lte: shiftDateKey(todayKey, 1) } })
+        .select('student localDate validStudySeconds completed')
+        .lean(),
     ]);
     const sessionMap = new Map(sessionTimeByStudent.map((s) => [String(s._id), s]));
     const presenceMap = new Map(presenceDocs.map((presence) => [String(presence._id), presence]));
     const dailyStudyMap = new Map(dailyStudyAgg.map((entry) => [String(entry._id), entry]));
+    const streakMap = new Map(streakDocs.map((entry) => [String(entry.student), entry]));
+    const streakDailyMap = new Map();
+    streakDailyRows.forEach((entry) => {
+      const key = String(entry.student);
+      if (!streakDailyMap.has(key)) streakDailyMap.set(key, new Map());
+      streakDailyMap.get(key).set(entry.localDate, entry);
+    });
 
     // Construct detailed student learning rows
     let rows = candidateStudents.map((student) => {
@@ -377,6 +392,18 @@ export const getLearningStudents = async (req, res, next) => {
       const userSession = sessionMap.get(sId);
       const presence = presenceMap.get(sId);
       const dailyStudy = dailyStudyMap.get(sId);
+      const streak = streakMap.get(sId);
+      const dailyProgressByDate = streakDailyMap.get(sId) || new Map();
+      const timezone = getUserTimezone(student);
+      const studentTodayKey = getDateKeyInTimezone(now, timezone);
+      const todayProgress = dailyProgressByDate.get(studentTodayKey);
+      const yesterdayKey = shiftDateKey(studentTodayKey, -1);
+      const lastCompletedDate = streak?.lastCompletedDate || null;
+      const activeStreak = lastCompletedDate === studentTodayKey || lastCompletedDate === yesterdayKey
+        ? (streak?.currentStreak || 0)
+        : 0;
+      const dailyGoalStatus = todayProgress?.completed ? 'COMPLETED' : todayProgress?.validStudySeconds > 0 ? 'IN_PROGRESS' : 'NOT_STARTED';
+      const milestoneTarget = [3, 7, 14, 30, 60, 100].find((days) => days > activeStreak) || null;
 
       // Compute total published lessons across enrolled courses
       const enrolledCourseIdSet = new Set(studentCourses.map((c) => String(c._id)));
@@ -434,7 +461,19 @@ export const getLearningStudents = async (req, res, next) => {
           && now.getTime() - new Date(presence.lastActiveAt).getTime() <= PRESENCE_ACTIVE_WINDOW_MS
           ? 'ACTIVE'
           : 'INACTIVE',
-        studyTodaySeconds: dailyStudy?.todayStudySeconds || 0,
+        studyTodaySeconds: todayProgress?.validStudySeconds || 0,
+        todayValidStudySeconds: todayProgress?.validStudySeconds || 0,
+        dailyGoalStatus,
+        currentStreak: activeStreak,
+        longestStreak: streak?.longestStreak || 0,
+        totalCompletedDays: streak?.totalCompletedDays || 0,
+        lastCompletedDate,
+        currentFlameTier: streak?.currentTier || 0,
+        nextMilestone: milestoneTarget,
+        streakStatus: dailyGoalStatus === 'COMPLETED'
+          ? 'completed'
+          : lastCompletedDate && lastCompletedDate < yesterdayKey ? 'broken'
+          : todayProgress?.validStudySeconds > 0 ? 'in_progress' : 'not_started',
         averageDailyStudySeconds: dailyStudy?.studyDays
           ? Math.round(dailyStudy.totalSeconds / dailyStudy.studyDays)
           : 0,
@@ -453,6 +492,12 @@ export const getLearningStudents = async (req, res, next) => {
       rows = rows.filter((r) => r.learningStatus === upperStatus);
     }
 
+    if (streakStatusFilter !== 'all') {
+      rows = rows.filter((row) => streakStatusFilter === 'near_milestone'
+        ? Boolean(row.nextMilestone && row.nextMilestone - row.currentStreak <= 2)
+        : row.streakStatus === streakStatusFilter);
+    }
+
     // Apply sort
     if (sort === 'name_asc') {
       rows.sort((a, b) => a.fullName.localeCompare(b.fullName, 'vi'));
@@ -462,6 +507,10 @@ export const getLearningStudents = async (req, res, next) => {
       rows.sort((a, b) => (b.totalLearningSeconds || 0) - (a.totalLearningSeconds || 0));
     } else if (sort === 'progress_desc') {
       rows.sort((a, b) => (b.progressPercentage || 0) - (a.progressPercentage || 0));
+    } else if (sort === 'streak_desc') {
+      rows.sort((a, b) => (b.currentStreak || 0) - (a.currentStreak || 0) || a.fullName.localeCompare(b.fullName, 'vi'));
+    } else if (sort === 'longest_streak_desc') {
+      rows.sort((a, b) => (b.longestStreak || 0) - (a.longestStreak || 0) || a.fullName.localeCompare(b.fullName, 'vi'));
     } else {
       // active_desc (default): latest lastActiveTime first
       rows.sort((a, b) => {
@@ -510,7 +559,7 @@ export const getLearningStudentDetail = async (req, res, next) => {
 
     const studentId = toObjectId(rawStudentId);
     const student = await User.findOne({ _id: studentId, role: 'student' })
-      .select('_id fullName email username phoneNumber groupName avatar createdAt status approvedAt')
+      .select('_id fullName email username phoneNumber groupName avatar createdAt status approvedAt timezone')
       .lean();
 
     if (!student) {
@@ -626,6 +675,7 @@ export const getLearningStudentDetail = async (req, res, next) => {
       && now.getTime() - new Date(presence.lastActiveAt).getTime() <= PRESENCE_ACTIVE_WINDOW_MS
       ? 'ACTIVE'
       : 'INACTIVE';
+    const streakOverview = await getLearningStreakOverview(studentId, getUserTimezone(student));
 
     return res.json({
       status: 'success',
@@ -657,6 +707,11 @@ export const getLearningStudentDetail = async (req, res, next) => {
           notStartedLessons,
           overallCompletionPercentage,
           totalLessons,
+          streak: streakOverview.streak,
+          dailyGoal: streakOverview.today,
+          totalValidStudySeconds: streakOverview.totalValidStudySeconds,
+          currentFlameTier: streakOverview.streak.currentTier,
+          nextMilestone: streakOverview.streak.nextMilestone,
         },
       },
     });

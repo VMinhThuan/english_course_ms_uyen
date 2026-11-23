@@ -60,6 +60,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
     },
+    timezone: {
+        type: String,
+        default: 'Asia/Ho_Chi_Minh',
+        trim: true,
+    },
     approvedAt: {
         type: Date,
     },

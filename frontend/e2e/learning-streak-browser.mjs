@@ -1,0 +1,102 @@
+import assert from 'node:assert/strict';
+import net from 'node:net';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const { chromium } = createRequire(path.join(root, 'package.json'))('playwright');
+const port = await new Promise((resolve, reject) => {
+  const listener = net.createServer();
+  listener.once('error', reject);
+  listener.listen(0, '127.0.0.1', () => {
+    const value = listener.address().port;
+    listener.close(() => resolve(value));
+  });
+});
+const origin = `http://127.0.0.1:${port}`;
+const viewports = [
+  { width: 375, height: 812 },
+  { width: 390, height: 844 },
+  { width: 1280, height: 800 },
+  { width: 1440, height: 900 },
+];
+const student = { _id: 'browser-streak-student', fullName: 'Browser Streak Student', email: 'streak.browser@test', role: 'student', status: 'active' };
+const admin = { _id: 'browser-streak-admin', fullName: 'Browser Streak Admin', email: 'streak.admin@test', role: 'admin', status: 'active' };
+const streakData = {
+  timezone: 'Asia/Ho_Chi_Minh',
+  today: { dateKey: '2026-11-23', validStudySeconds: 480, targetSeconds: 900, remainingSeconds: 420, completed: false },
+  streak: { currentStreak: 12, longestStreak: 18, totalCompletedDays: 24, currentTier: 3, tierName: 'Burning Flame', nextMilestone: 14, milestones: [] },
+  calendar: Array.from({ length: 35 }, (_, index) => ({ dateKey: `2026-11-${String(Math.max(1, index + 1)).padStart(2, '0')}`, status: index % 3 === 0 ? 'completed' : 'no_data', validStudySeconds: index % 3 === 0 ? 900 : 0 })),
+  milestones: [3, 7, 14, 30, 60, 100].map((days) => ({ days, unlocked: days <= 12 })),
+  totalValidStudySeconds: 21600,
+};
+
+const waitForVite = async (child) => {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 30000) {
+    if (child.exitCode !== null) throw new Error('Vite exited before browser audit started.');
+    try { if ((await fetch(origin)).ok) return; } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error('Timed out waiting for Vite.');
+};
+
+const response = (route, data, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify({ status: 'success', data }) });
+const installMocks = async (context, role, completedToday = false) => {
+  const responseStreakData = completedToday
+    ? { ...streakData, today: { ...streakData.today, validStudySeconds: 900, remainingSeconds: 0, completed: true } }
+    : streakData;
+  await context.addInitScript(() => localStorage.setItem('accessToken', 'browser-audit-token'));
+  await context.route('**/api/v1/**', async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    if (pathname.endsWith('/auth/me')) return response(route, { user: role === 'admin' ? admin : student });
+    if (pathname.endsWith('/attempts/active')) return response(route, { attempts: [] });
+    if (pathname.endsWith('/learning/streak/overview')) return response(route, responseStreakData);
+    if (pathname.endsWith('/learning/sessions/start')) return response(route, { sessionId: `browser-${role}-session`, session: { activityType: 'interactive', status: 'active' } }, 201);
+    if (pathname.endsWith('/learning/sessions/heartbeat')) return response(route, { addedSeconds: 0 });
+    if (pathname.endsWith('/learning/sessions/end') || pathname.endsWith('/learning/sessions/activity-heartbeat')) return response(route, { addedSeconds: 0 });
+    if (pathname.endsWith('/admin/learning/overview')) return response(route, { totalStudents: 1, currentlyActiveStudents: 0, currentlyInactiveStudents: 1, averageDailyStudySeconds: 480, weeklyLeaderboard: [] });
+    if (pathname.endsWith('/admin/learning/students')) return response(route, { students: [{ _id: 'browser-student', fullName: 'Browser Student', email: 'student@test', currentStreak: 12, longestStreak: 18, todayValidStudySeconds: 480, dailyGoalStatus: 'IN_PROGRESS', streakStatus: 'in_progress', activityStatus: 'INACTIVE', totalLearningSeconds: 1200 }], pagination: { page: 1, limit: 20, total: 1, pages: 1 } });
+    if (pathname.endsWith('/admin/learning/students/browser-student')) return response(route, { student: { _id: 'browser-student', fullName: 'Browser Student', email: 'student@test', status: 'active' }, learningOverview: { totalLearningSeconds: 1200, studyTodaySeconds: responseStreakData.today.validStudySeconds, overallCompletionPercentage: 0, totalLessons: 0, streak: responseStreakData.streak, dailyGoal: responseStreakData.today }, lastLearningActivity: null });
+    if (pathname.endsWith('/admin/learning/students/browser-student/streak')) return response(route, responseStreakData);
+    if (pathname.endsWith('/admin/learning/students/browser-student/streak/activity')) return response(route, { rows: streakData.calendar.slice(-30).map((row) => ({ localDate: row.dateKey, validStudySeconds: row.validStudySeconds })) });
+    if (pathname.endsWith('/gamification/overview')) return response(route, { today: { challenge: null }, streak: { current: 1, longest: 1 }, stats: {} });
+    return response(route, {});
+  });
+};
+
+const vite = spawn(process.execPath, [path.join(root, 'node_modules', 'vite', 'bin', 'vite.js'), '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: root, env: { ...process.env, BROWSER: 'none' }, stdio: 'ignore' });
+let browser;
+try {
+  await waitForVite(vite);
+  browser = await chromium.launch({ headless: true });
+  for (const viewport of viewports) {
+    for (const [role, pathname] of [['student', '/student/streak-challenge'], ['admin', '/admin/learning-progress'], ['admin', '/admin/learning-progress/students/browser-student']]) {
+      const context = await browser.newContext({ viewport });
+      const celebrationScenario = role === 'student' && pathname === '/student/streak-challenge' && viewport.width === 375;
+      await installMocks(context, role, celebrationScenario);
+      const page = await context.newPage();
+      const pageErrors = [];
+      page.on('pageerror', (error) => pageErrors.push(error.message));
+      await page.goto(`${origin}${pathname}`, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(250);
+      const layout = await page.evaluate(() => ({ width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
+      assert.deepEqual(pageErrors, [], `${role} ${pathname} browser errors at ${viewport.width}px`);
+      assert.ok(layout.scrollWidth - layout.width <= 1, `${role} ${pathname} horizontal overflow at ${viewport.width}px`);
+      if (celebrationScenario) {
+        assert.equal(await page.locator('.learning-streak-celebration').count(), 1, 'celebration should appear once after completion');
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await page.waitForTimeout(250);
+        assert.equal(await page.locator('.learning-streak-celebration').count(), 0, 'celebration should not replay after refresh');
+      }
+      await context.close();
+    }
+  }
+  console.log('Learning Streak browser audit passed at 375, 390, 1280 and 1440px.');
+} finally {
+  await browser?.close();
+  vite.kill('SIGTERM');
+}

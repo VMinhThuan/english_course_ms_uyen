@@ -17,7 +17,7 @@ const learningSessionSchema = new mongoose.Schema(
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Course',
-      required: true,
+      default: null,
       index: true,
     },
     // Backward-compatible alias for courseId
@@ -29,7 +29,7 @@ const learningSessionSchema = new mongoose.Schema(
     lesson: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Lesson',
-      required: true,
+      default: null,
       index: true,
     },
     // Backward-compatible alias for lessonId
@@ -37,6 +37,21 @@ const learningSessionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Lesson',
       index: true,
+    },
+    activityType: {
+      type: String,
+      enum: ['lesson', 'vocabulary', 'listening', 'exercise', 'quiz', 'interactive', 'mini_game', 'assessment'],
+      default: 'lesson',
+      index: true,
+    },
+    activityId: {
+      type: String,
+      default: null,
+      index: true,
+    },
+    timezone: {
+      type: String,
+      default: 'Asia/Ho_Chi_Minh',
     },
     startedAt: {
       type: Date,
@@ -56,6 +71,10 @@ const learningSessionSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+    },
+    startupCreditGranted: {
+      type: Boolean,
+      default: false,
     },
     status: {
       type: String,
@@ -84,6 +103,7 @@ learningSessionSchema.index({ student: 1, lesson: 1, status: 1 });
 learningSessionSchema.index({ student: 1, startedAt: -1 });
 learningSessionSchema.index({ course: 1, student: 1 });
 learningSessionSchema.index({ lesson: 1, startedAt: -1 });
+learningSessionSchema.index({ student: 1, status: 1, startedAt: -1 });
 
 const LearningSession = mongoose.model('LearningSession', learningSessionSchema);
 

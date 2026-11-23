@@ -108,6 +108,8 @@ export default function AdminStudentLearningDetailPage() {
   const [exerciseSubmissions, setExerciseSubmissions] = useState([]);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseError, setExerciseError] = useState('');
+  const [streakDetail, setStreakDetail] = useState(null);
+  const [streakActivity, setStreakActivity] = useState(null);
 
   // 1. Load Student Detail & Learning Overview
   useEffect(() => {
@@ -128,6 +130,21 @@ export default function AdminStudentLearningDetailPage() {
         if (active) setLoading(false);
       });
 
+    return () => { active = false; };
+  }, [studentId]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      learningApi.getStudentStreak(studentId),
+      learningApi.getStudentStreakActivity(studentId, 30),
+    ]).then(([streakResponse, activityResponse]) => {
+      if (!active) return;
+      setStreakDetail(streakResponse.data);
+      setStreakActivity(activityResponse.data);
+    }).catch(() => {
+      if (active) { setStreakDetail(null); setStreakActivity(null); }
+    });
     return () => { active = false; };
   }, [studentId]);
 
@@ -227,6 +244,11 @@ export default function AdminStudentLearningDetailPage() {
   }
 
   const { student, lastLearningActivity, learningOverview = {} } = detail;
+  const adminStreak = streakDetail?.streak || learningOverview.streak || {};
+  const adminToday = streakDetail?.today || learningOverview.dailyGoal || {};
+  const streakCalendar = streakDetail?.calendar || [];
+  const activityRows = streakActivity?.rows || [];
+  const maxActivitySeconds = Math.max(900, ...activityRows.map((row) => Number(row.validStudySeconds) || 0));
   const weeklyStudyDays = createWeeklyStudyDays(dailyStudy);
   const maxWeeklyStudySeconds = Math.max(1, ...weeklyStudyDays.map((day) => day.activeSeconds));
   const exerciseSummary = exerciseSubmissions.reduce((summary, submission) => ({
@@ -311,6 +333,17 @@ export default function AdminStudentLearningDetailPage() {
           <span className="kpi-card-sub">{learningOverview.completedLessons || 0}/{learningOverview.totalLessons || 0} bài đã hoàn thành</span>
         </div>
 
+      </section>
+
+      <section className="admin-streak-detail-card" aria-labelledby="admin-streak-title">
+        <div className="admin-streak-detail-header">
+          <div><span className="kpi-card-label">LEARNING STREAK</span><h2 id="admin-streak-title">Theo dõi chuỗi học</h2><p>Thời gian hợp lệ được tổng hợp từ các phiên học thực tế.</p></div>
+          <div className="admin-streak-detail-number"><strong>{adminStreak.currentStreak || 0}</strong><span>ngày hiện tại</span></div>
+        </div>
+        <div className="admin-streak-detail-stats"><div><span>Kỷ lục dài nhất</span><strong>{adminStreak.longestStreak || 0} ngày</strong></div><div><span>Ngày đã hoàn thành</span><strong>{adminStreak.totalCompletedDays || 0}</strong></div><div><span>Cấp ngọn lửa</span><strong>{adminStreak.tierName || `Tier ${adminStreak.currentTier || 0}`}</strong></div><div><span>Mục tiêu hôm nay</span><strong>{Math.floor((adminToday.validStudySeconds || 0) / 60)} / 15 phút</strong></div></div>
+        <div className="admin-streak-progress" role="progressbar" aria-valuemin="0" aria-valuemax="900" aria-valuenow={Math.min(900, adminToday.validStudySeconds || 0)}><span style={{ width: `${Math.min(100, Math.round(((adminToday.validStudySeconds || 0) / 900) * 100))}%` }} /></div>
+        <div className="admin-streak-calendar" aria-label="Lịch learning streak 35 ngày">{streakCalendar.map((day) => <div key={day.dateKey} className={`admin-streak-day is-${day.status}`} title={`${day.dateKey}: ${day.validStudySeconds || 0} giây`}><span>{day.dateKey.slice(5)}</span><i /></div>)}</div>
+        <div className="admin-streak-chart-wrap"><div className="admin-streak-chart-heading"><h3>Thời lượng học hợp lệ</h3><span>30 ngày gần nhất · đường mục tiêu 15 phút</span></div><div className="admin-streak-chart" role="img" aria-label="Biểu đồ thời lượng học hợp lệ 30 ngày">{activityRows.map((row) => <div className="admin-streak-chart-bar" key={row.localDate} title={`${row.localDate}: ${Math.floor((row.validStudySeconds || 0) / 60)} phút`}><span style={{ height: `${Math.max(3, Math.round(((row.validStudySeconds || 0) / maxActivitySeconds) * 100))}%` }} /><small>{row.localDate.slice(8)}</small></div>)}</div></div>
       </section>
 
       {/* Detail Tabs Bar */}

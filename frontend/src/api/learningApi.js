@@ -2,18 +2,20 @@ import axiosInstance from './axiosConfig.js';
 
 export const learningApi = {
   // ================= STUDENT TRACKING =================
-  startSession: async (lessonId, courseId) => {
+  startSession: async (lessonId, courseId, options = {}) => {
     const response = await axiosInstance.post('/learning/sessions/start', {
       lessonId,
       courseId,
+      ...options,
     });
     return response.data;
   },
 
-  sendHeartbeat: async (sessionId, activeSeconds) => {
+  sendHeartbeat: async (sessionId, activeSeconds, heartbeatId) => {
     const response = await axiosInstance.post('/learning/sessions/heartbeat', {
       sessionId,
       activeSeconds,
+      heartbeatId,
     });
     return response.data;
   },
@@ -23,6 +25,31 @@ export const learningApi = {
       sessionId,
       activeSeconds,
     });
+    return response.data;
+  },
+
+  pauseSession: async (sessionId) => {
+    const response = await axiosInstance.post('/learning/sessions/pause', { sessionId });
+    return response.data;
+  },
+
+  startActivitySession: async (activityType, activityId = '') => {
+    const response = await axiosInstance.post('/learning/sessions/start', { activityType, activityId });
+    return response.data;
+  },
+
+  getStreakOverview: async () => {
+    const response = await axiosInstance.get('/learning/streak/overview');
+    return response.data;
+  },
+
+  getStreakCalendar: async () => {
+    const response = await axiosInstance.get('/learning/streak/calendar');
+    return response.data;
+  },
+
+  getStreakMilestones: async () => {
+    const response = await axiosInstance.get('/learning/streak/milestones');
     return response.data;
   },
 
@@ -68,6 +95,21 @@ export const learningApi = {
 
   getStudentDailyStudy: async (studentId) => {
     const response = await axiosInstance.get(`/admin/learning/students/${studentId}/daily-study`);
+    return response.data;
+  },
+
+  getStudentStreak: async (studentId) => {
+    const response = await axiosInstance.get(`/admin/learning/students/${studentId}/streak`);
+    return response.data;
+  },
+
+  getStudentStreakCalendar: async (studentId, params = {}) => {
+    const response = await axiosInstance.get(`/admin/learning/students/${studentId}/streak/calendar`, { params });
+    return response.data;
+  },
+
+  getStudentStreakActivity: async (studentId, days = 30) => {
+    const response = await axiosInstance.get(`/admin/learning/students/${studentId}/streak/activity`, { params: { days } });
     return response.data;
   },
 

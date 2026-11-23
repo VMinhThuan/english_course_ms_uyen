@@ -62,6 +62,8 @@ export default function AdminStudentMonitoringPage() {
 
   const page = Number(searchParams.get('page') || 1);
   const search = searchParams.get('search') || '';
+  const streakStatus = searchParams.get('streakStatus') || 'all';
+  const sort = searchParams.get('sort') || 'active_desc';
   const [searchInput, setSearchInput] = useState(search);
   const weeklyLeaderboard = overview?.weeklyLeaderboard || [];
   const maxWeeklySeconds = Math.max(1, ...weeklyLeaderboard.map((student) => Number(student.activeSeconds) || 0));
@@ -88,7 +90,7 @@ export default function AdminStudentMonitoringPage() {
     if (!silent) setLoading(true);
     setError('');
     try {
-      const res = await learningApi.getStudents({ page, limit: 20, search });
+      const res = await learningApi.getStudents({ page, limit: 20, search, streakStatus, sort });
       setStudents(res.data?.students || []);
       setPagination(res.data?.pagination || { page: 1, limit: 20, total: 0, pages: 1 });
     } catch (err) {
@@ -96,7 +98,7 @@ export default function AdminStudentMonitoringPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, streakStatus, sort]);
 
   useEffect(() => { loadStudents(); }, [loadStudents]);
   useEffect(() => {
@@ -107,6 +109,8 @@ export default function AdminStudentMonitoringPage() {
   const applySearch = (value) => {
     const next = new URLSearchParams();
     if (value) next.set('search', value);
+    if (streakStatus !== 'all') next.set('streakStatus', streakStatus);
+    if (sort !== 'active_desc') next.set('sort', sort);
     next.set('page', '1');
     setSearchParams(next);
   };
@@ -124,6 +128,8 @@ export default function AdminStudentMonitoringPage() {
   const changePage = (nextPage) => {
     const next = new URLSearchParams();
     if (search) next.set('search', search);
+    if (streakStatus !== 'all') next.set('streakStatus', streakStatus);
+    if (sort !== 'active_desc') next.set('sort', sort);
     next.set('page', String(nextPage));
     setSearchParams(next);
   };
@@ -213,6 +219,16 @@ export default function AdminStudentMonitoringPage() {
           )}
           <button type="submit" className="admin-quiet-button monitoring-search-submit">Tìm kiếm</button>
         </form>
+        <label className="monitoring-select-label">Streak
+          <select value={streakStatus} onChange={(event) => { const next = new URLSearchParams(searchParams); next.set('streakStatus', event.target.value); next.set('page', '1'); setSearchParams(next); }}>
+            <option value="all">Tất cả</option><option value="completed">Đã hoàn thành hôm nay</option><option value="in_progress">Đang học hôm nay</option><option value="not_started">Chưa bắt đầu hôm nay</option><option value="broken">Đã gián đoạn</option>
+          </select>
+        </label>
+        <label className="monitoring-select-label">Sắp xếp
+          <select value={sort} onChange={(event) => { const next = new URLSearchParams(searchParams); next.set('sort', event.target.value); next.set('page', '1'); setSearchParams(next); }}>
+            <option value="active_desc">Hoạt động gần nhất</option><option value="streak_desc">Chuỗi hiện tại</option><option value="longest_streak_desc">Kỷ lục streak</option><option value="time_desc">Thời gian học</option>
+          </select>
+        </label>
         <UiButton variant="outline" size="sm" onClick={() => loadStudents()}>
           Làm mới
         </UiButton>
@@ -228,7 +244,7 @@ export default function AdminStudentMonitoringPage() {
         ) : (
           <table className="monitoring-table monitoring-student-list-table">
             <thead>
-              <tr><th>Học viên</th><th>Hoạt động hiện tại</th><th>Thời gian học tập</th><th className="monitoring-action-heading">Thao tác</th></tr>
+              <tr><th>Học viên</th><th>Learning Streak</th><th>Hoạt động hiện tại</th><th>Thời gian học tập</th><th className="monitoring-action-heading">Thao tác</th></tr>
             </thead>
             <tbody>
               {students.map((student) => (
@@ -242,6 +258,13 @@ export default function AdminStudentMonitoringPage() {
                         <strong>{student.fullName || 'Chưa đặt tên'}</strong>
                         <span>{student.email}</span>
                       </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="streak-monitoring-cell">
+                      <strong>{student.currentStreak || 0} ngày</strong>
+                      <span>Kỷ lục {student.longestStreak || 0} ngày</span>
+                      <small className={`streak-status-label is-${String(student.streakStatus || 'not_started').replace('_', '-')}`}>{student.dailyGoalStatus === 'COMPLETED' ? 'Đã đủ 15 phút' : student.todayValidStudySeconds ? `${formatDuration(student.todayValidStudySeconds)} / 15 phút` : 'Chưa học hôm nay'}</small>
                     </div>
                   </td>
                   <td>

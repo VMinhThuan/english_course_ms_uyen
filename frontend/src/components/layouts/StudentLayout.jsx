@@ -5,6 +5,7 @@ import { assessmentApi } from '../../api/assessmentApi.js';
 import PracticeSidebarMenu from './PracticeSidebarMenu.jsx';
 import { acquireDocumentScrollLock } from '../../utils/documentScrollLock.js';
 import useStudentActivityTracker from '../../hooks/useStudentActivityTracker.js';
+import useLearningActivitySession from '../../hooks/useLearningActivitySession.js';
 import './StudentLayout.css';
 
 export default function StudentLayout() {
@@ -13,6 +14,7 @@ export default function StudentLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   useStudentActivityTracker(user, location.pathname);
+  useLearningActivitySession(location.pathname, user?.role === 'student');
   const locationPathRef = useRef(location.pathname);
   locationPathRef.current = location.pathname;
   const isActiveAssessmentRoute = location.pathname.startsWith('/student/tests/');
