@@ -20,6 +20,7 @@ import DailyLearningProgress from '../src/models/DailyLearningProgress.js';
 import LearningStreak from '../src/models/LearningStreak.js';
 import LearningProgress from '../src/models/LearningProgress.js';
 import LearningActivity from '../src/models/LearningActivity.js';
+import StudentDailyStudy from '../src/models/StudentDailyStudy.js';
 import { creditValidatedInterval, getDateKeyInTimezone, shiftDateKey, refreshLearningStreak } from '../src/services/learningStreakService.js';
 
 const dbName = `learning_streak_${randomUUID().replaceAll('-', '')}`;
@@ -116,6 +117,7 @@ beforeEach(async () => {
   await Promise.all([
     DailyLearningProgress.deleteMany({}), LearningStreak.deleteMany({}), LearningSession.deleteMany({}),
     LearningSessionHeartbeat.deleteMany({}), LearningProgress.deleteMany({}), LearningActivity.deleteMany({}),
+    StudentDailyStudy.deleteMany({}),
   ]);
 });
 
@@ -245,9 +247,22 @@ test('student and admin read the same completed daily progress', async () => {
   assert.equal(adminView.response.status, 200);
   assert.equal(studentView.json.data.today.validStudySeconds, 900);
   assert.equal(adminView.json.data.today.validStudySeconds, 900);
+  assert.equal(studentView.json.data.totalValidStudySeconds, 900);
+  assert.equal(adminView.json.data.totalValidStudySeconds, studentView.json.data.totalValidStudySeconds);
   assert.equal(studentView.json.data.streak.currentStreak, adminView.json.data.streak.currentStreak);
   const forbidden = await request(`/api/v1/admin/learning/students/${student._id}/streak`, { token: secondStudentToken });
   assert.equal(forbidden.response.status, 403);
+});
+
+test('admin detail total valid time cannot be lower than today and uses the student streak source', async () => {
+  await seedDaily(student._id, shiftDateKey(todayKey(), -1), 900, true);
+  await seedDaily(student._id, todayKey(), 1350, true);
+  const response = await request(`/api/v1/admin/learning/students/${student._id}`, { token: adminToken });
+  assert.equal(response.response.status, 200);
+  const overview = response.json.data.learningOverview;
+  assert.equal(overview.studyTodaySeconds, 1350);
+  assert.equal(overview.totalValidStudySeconds, 2250);
+  assert.ok(overview.totalValidStudySeconds >= overview.studyTodaySeconds);
 });
 
 test('student calendar exposes session count and activity details without marking missing history as missed', async () => {

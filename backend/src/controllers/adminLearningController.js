@@ -322,7 +322,6 @@ export const getLearningStudents = async (req, res, next) => {
     const filteredStudentIds = candidateStudents.map((s) => s._id);
     const now = new Date();
     const todayKey = getHoChiMinhDateKey(now);
-    const firstStudyDateKey = getHoChiMinhDateKeyOffset(STUDY_REPORT_DAYS - 1, now);
 
     // Aggregate LearningProgress for these students
     const progressDocs = await LearningProgress.find({
@@ -337,7 +336,7 @@ export const getLearningStudents = async (req, res, next) => {
     });
 
     // Aggregate LearningSession active seconds for these students
-    const [sessionTimeByStudent, presenceDocs, dailyStudyAgg, streakDocs, streakDailyRows] = await Promise.all([
+    const [sessionTimeByStudent, presenceDocs, streakDocs, streakDailyRows, validStudyAgg] = await Promise.all([
       LearningSession.aggregate([
         { $match: { student: { $in: filteredStudentIds } } },
         {
@@ -349,34 +348,19 @@ export const getLearningStudents = async (req, res, next) => {
         },
       ]),
       StudentPresence.find({ _id: { $in: filteredStudentIds } }).select('_id lastSeenAt lastActiveAt').lean(),
-      StudentDailyStudy.aggregate([
-        {
-          $match: {
-            student: { $in: filteredStudentIds },
-            dateKey: { $gte: firstStudyDateKey, $lte: todayKey },
-            activeSeconds: { $gt: 0 },
-          },
-        },
-        {
-          $group: {
-            _id: '$student',
-            totalSeconds: { $sum: '$activeSeconds' },
-            studyDays: { $sum: 1 },
-            todayStudySeconds: {
-              $sum: { $cond: [{ $eq: ['$dateKey', todayKey] }, '$activeSeconds', 0] },
-            },
-          },
-        },
-      ]),
       LearningStreak.find({ student: { $in: filteredStudentIds } }).lean(),
       DailyLearningProgress.find({ student: { $in: filteredStudentIds }, localDate: { $gte: shiftDateKey(todayKey, -(STUDY_REPORT_DAYS + 1)), $lte: shiftDateKey(todayKey, 1) } })
         .select('student localDate validStudySeconds completed')
         .lean(),
+      DailyLearningProgress.aggregate([
+        { $match: { student: { $in: filteredStudentIds } } },
+        { $group: { _id: '$student', totalValidStudySeconds: { $sum: '$validStudySeconds' } } },
+      ]),
     ]);
     const sessionMap = new Map(sessionTimeByStudent.map((s) => [String(s._id), s]));
     const presenceMap = new Map(presenceDocs.map((presence) => [String(presence._id), presence]));
-    const dailyStudyMap = new Map(dailyStudyAgg.map((entry) => [String(entry._id), entry]));
     const streakMap = new Map(streakDocs.map((entry) => [String(entry.student), entry]));
+    const validStudyMap = new Map(validStudyAgg.map((entry) => [String(entry._id), entry.totalValidStudySeconds || 0]));
     const streakDailyMap = new Map();
     streakDailyRows.forEach((entry) => {
       const key = String(entry.student);
@@ -391,12 +375,14 @@ export const getLearningStudents = async (req, res, next) => {
       const userProgress = progressByStudent.get(sId) || [];
       const userSession = sessionMap.get(sId);
       const presence = presenceMap.get(sId);
-      const dailyStudy = dailyStudyMap.get(sId);
       const streak = streakMap.get(sId);
       const dailyProgressByDate = streakDailyMap.get(sId) || new Map();
       const timezone = getUserTimezone(student);
       const studentTodayKey = getDateKeyInTimezone(now, timezone);
       const todayProgress = dailyProgressByDate.get(studentTodayKey);
+      const recentCanonicalRows = [...dailyProgressByDate.entries()]
+        .filter(([dateKey, row]) => dateKey >= shiftDateKey(studentTodayKey, -29) && dateKey <= studentTodayKey && (row.validStudySeconds || 0) > 0)
+        .map(([, row]) => row);
       const yesterdayKey = shiftDateKey(studentTodayKey, -1);
       const lastCompletedDate = streak?.lastCompletedDate || null;
       const activeStreak = lastCompletedDate === studentTodayKey || lastCompletedDate === yesterdayKey
@@ -474,11 +460,12 @@ export const getLearningStudents = async (req, res, next) => {
           ? 'completed'
           : lastCompletedDate && lastCompletedDate < yesterdayKey ? 'broken'
           : todayProgress?.validStudySeconds > 0 ? 'in_progress' : 'not_started',
-        averageDailyStudySeconds: dailyStudy?.studyDays
-          ? Math.round(dailyStudy.totalSeconds / dailyStudy.studyDays)
+        averageDailyStudySeconds: recentCanonicalRows.length
+          ? Math.round(recentCanonicalRows.reduce((sum, row) => sum + (row.validStudySeconds || 0), 0) / recentCanonicalRows.length)
           : 0,
-        studyDaysInLast30Days: dailyStudy?.studyDays || 0,
+        studyDaysInLast30Days: recentCanonicalRows.length,
         totalLearningSeconds,
+        totalValidStudySeconds: validStudyMap.get(sId) || 0,
         completedLessons,
         totalLessons,
         progressPercentage,
@@ -640,9 +627,7 @@ export const getLearningStudentDetail = async (req, res, next) => {
 
     // Total learning time from sessions
     const now = new Date();
-    const todayKey = getHoChiMinhDateKey(now);
-    const firstStudyDateKey = getHoChiMinhDateKeyOffset(STUDY_REPORT_DAYS - 1, now);
-    const [sessionTimeAgg, presence, dailyStudyRows] = await Promise.all([
+    const [sessionTimeAgg, presence] = await Promise.all([
       LearningSession.aggregate([
         { $match: { student: studentId } },
         {
@@ -654,10 +639,6 @@ export const getLearningStudentDetail = async (req, res, next) => {
         },
       ]),
       StudentPresence.findById(studentId).select('lastSeenAt lastActiveAt currentRoute').lean(),
-      StudentDailyStudy.find({
-        student: studentId,
-        dateKey: { $gte: firstStudyDateKey, $lte: todayKey },
-      }).sort({ dateKey: -1 }).lean(),
     ]);
     const sessionTotalSeconds = sessionTimeAgg[0]?.totalSeconds || 0;
     if (sessionTimeAgg[0]?.lastHeartbeat && (!lastActivityTime || new Date(sessionTimeAgg[0].lastHeartbeat) > lastActivityTime)) {
@@ -665,9 +646,6 @@ export const getLearningStudentDetail = async (req, res, next) => {
     }
 
     const totalLearningSeconds = Math.max(sessionTotalSeconds, progressTotalSeconds);
-    const studyTotalSeconds = dailyStudyRows.reduce((total, row) => total + (row.activeSeconds || 0), 0);
-    const studyDays = dailyStudyRows.filter((row) => row.activeSeconds > 0).length;
-    const todayStudySeconds = dailyStudyRows.find((row) => row.dateKey === todayKey)?.activeSeconds || 0;
     if (presence?.lastActiveAt && (!lastActivityTime || new Date(presence.lastActiveAt) > lastActivityTime)) {
       lastActivityTime = new Date(presence.lastActiveAt);
     }
@@ -676,6 +654,14 @@ export const getLearningStudentDetail = async (req, res, next) => {
       ? 'ACTIVE'
       : 'INACTIVE';
     const streakOverview = await getLearningStreakOverview(studentId, getUserTimezone(student));
+    const canonicalTodayKey = getDateKeyInTimezone(now, streakOverview.timezone);
+    const canonicalStudyRows = streakOverview.calendar.filter((row) => (
+      row.dateKey >= shiftDateKey(canonicalTodayKey, -29)
+      && row.dateKey <= canonicalTodayKey
+      && row.validStudySeconds > 0
+    ));
+    const canonicalStudyDays = canonicalStudyRows.length;
+    const canonicalStudyTotalSeconds = canonicalStudyRows.reduce((total, row) => total + row.validStudySeconds, 0);
 
     return res.json({
       status: 'success',
@@ -698,9 +684,12 @@ export const getLearningStudentDetail = async (req, res, next) => {
         lastLearningActivity: lastActivityTime,
         learningOverview: {
           totalLearningSeconds,
-          studyTodaySeconds: todayStudySeconds,
-          averageDailyStudySeconds: studyDays ? Math.round(studyTotalSeconds / studyDays) : 0,
-          studyDaysInLast30Days: studyDays,
+          // Learning Streak's canonical total. Keep totalLearningSeconds above
+          // for compatibility with legacy course-progress consumers.
+          totalValidStudySeconds: streakOverview.totalValidStudySeconds,
+          studyTodaySeconds: streakOverview.today.validStudySeconds,
+          averageDailyStudySeconds: canonicalStudyDays ? Math.round(canonicalStudyTotalSeconds / canonicalStudyDays) : 0,
+          studyDaysInLast30Days: canonicalStudyDays,
           studyPeriodDays: STUDY_REPORT_DAYS,
           completedLessons,
           inProgressLessons,
@@ -709,7 +698,6 @@ export const getLearningStudentDetail = async (req, res, next) => {
           totalLessons,
           streak: streakOverview.streak,
           dailyGoal: streakOverview.today,
-          totalValidStudySeconds: streakOverview.totalValidStudySeconds,
           currentFlameTier: streakOverview.streak.currentTier,
           nextMilestone: streakOverview.streak.nextMilestone,
         },

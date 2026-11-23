@@ -24,9 +24,11 @@ let baseUrl;
 let student;
 let secondStudent;
 let teacher;
+let admin;
 let studentToken;
 let secondStudentToken;
 let teacherToken;
+let adminToken;
 
 const request = async (path, { token, method = 'GET', body, timezone = 'Asia/Ho_Chi_Minh' } = {}) => {
   const response = await fetch(`${baseUrl}${path}`, {
@@ -52,10 +54,11 @@ before(async () => {
     VocabularyQuestProgress.init(), VocabularyQuestAttempt.init(), GamificationAchievement.init(), GamificationConfig.init(),
   ]);
 
-  [student, secondStudent, teacher] = await User.create([
+  [student, secondStudent, teacher, admin] = await User.create([
     { email: `game-student-${unique}@test.local`, password: 'student-password', role: 'student', status: 'active' },
     { email: `game-student-two-${unique}@test.local`, password: 'student-password', role: 'student', status: 'active' },
     { email: `game-teacher-${unique}@test.local`, password: 'teacher-password', role: 'teacher', status: 'active' },
+    { email: `game-admin-${unique}@test.local`, password: 'admin-password', role: 'admin', status: 'active' },
   ]);
   await Vocabulary.insertMany(Array.from({ length: 40 }, (_, index) => ({
     word: `audit-word-${unique}-${index}`,
@@ -67,6 +70,7 @@ before(async () => {
   studentToken = jwt.sign({ userId: student._id }, process.env.JWT_SECRET);
   secondStudentToken = jwt.sign({ userId: secondStudent._id }, process.env.JWT_SECRET);
   teacherToken = jwt.sign({ userId: teacher._id }, process.env.JWT_SECRET);
+  adminToken = jwt.sign({ userId: admin._id }, process.env.JWT_SECRET);
 
   const app = express();
   app.use(express.json());
@@ -94,7 +98,9 @@ test('gamification production invariants hold across API, persistence, replay an
     const initial = await request('/api/v1/admin/gamification/config', { token: teacherToken });
     assert.equal(initial.status, 200, JSON.stringify(initial.payload));
     assert.equal(initial.payload.data.configs.find((config) => config.game === 'streak').dailyWordCount, 20);
-    const updated = await request('/api/v1/admin/gamification/config/quest', { token: teacherToken, method: 'PATCH', body: { enabled: true, timeLimitSeconds: 180 } });
+    const teacherUpdate = await request('/api/v1/admin/gamification/config/quest', { token: teacherToken, method: 'PATCH', body: { enabled: true, timeLimitSeconds: 180 } });
+    assert.equal(teacherUpdate.status, 403, 'Teacher must not update global gamification configuration.');
+    const updated = await request('/api/v1/admin/gamification/config/quest', { token: adminToken, method: 'PATCH', body: { enabled: true, timeLimitSeconds: 180 } });
     assert.equal(updated.status, 200);
     assert.equal(updated.payload.data.config.timeLimitSeconds, 180);
     assert.equal((await GamificationConfig.findOne({ game: 'quest' })).timeLimitSeconds, 180);

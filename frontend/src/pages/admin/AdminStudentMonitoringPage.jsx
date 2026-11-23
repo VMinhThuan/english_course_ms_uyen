@@ -287,7 +287,7 @@ export default function AdminStudentMonitoringPage() {
                       <div className="study-time-metrics">
                         <div><span>Hôm nay</span><strong>{formatDuration(student.studyTodaySeconds)}</strong></div>
                         <div><span>TB / ngày học</span><strong>{formatDuration(student.averageDailyStudySeconds)}</strong></div>
-                        <div><span>Tổng tích lũy</span><strong>{formatDuration(student.totalLearningSeconds)}</strong></div>
+                        <div><span>Tổng hợp lệ</span><strong>{formatDuration(student.totalValidStudySeconds ?? student.totalLearningSeconds)}</strong></div>
                       </div>
                       <div className="study-time-last-active">
                         <span>Lần hoạt động gần nhất</span>

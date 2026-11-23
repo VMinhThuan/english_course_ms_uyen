@@ -19,11 +19,12 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '../../.env') });
 
 const EXPECTED_DATABASE = 'english_course';
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
 const TARGET_SECONDS = 900;
 const email = String(process.env.STREAK_TEST_EMAIL || 'streak.qa@msuyen.local').trim().toLowerCase();
 const username = String(process.env.STREAK_TEST_USERNAME || 'streak_qa').trim().toLowerCase();
-const password = String(process.env.STREAK_TEST_PASSWORD || 'Streak@2026!');
+const password = String(process.env.STREAK_TEST_PASSWORD || '');
 const completedDays = Math.max(1, Math.min(100, Number(process.env.STREAK_TEST_DAYS || 14)));
 
 const assertSafeTarget = (mongoUri) => {
@@ -33,7 +34,19 @@ const assertSafeTarget = (mongoUri) => {
   if (databaseName !== EXPECTED_DATABASE) {
     throw new Error(`Refusing to seed database "${databaseName || '(default)'}". Use /${EXPECTED_DATABASE} in MONGODB_URI.`);
   }
-}
+  if (!LOCAL_HOSTS.has(parsed.hostname)) {
+    throw new Error('Refusing to seed a remote database with the legacy local fixture script. Use the staging fixture with a dedicated staging target.');
+  }
+  if (['staging', 'production'].includes(String(process.env.APP_ENV || '').toLowerCase())) {
+    throw new Error('Refusing to seed a staging/production environment with the legacy local fixture script.');
+  }
+  if (String(process.env.ALLOW_LOCAL_LEARNING_STREAK_FIXTURE).toLowerCase() !== 'true') {
+    throw new Error('Set ALLOW_LOCAL_LEARNING_STREAK_FIXTURE=true explicitly. No database changes were made.');
+  }
+  if (password.length < 12) {
+    throw new Error('Set STREAK_TEST_PASSWORD to a password of at least 12 characters.');
+  }
+};
 
 const run = async () => {
   const mongoUri = process.env.MONGODB_URI;
@@ -109,7 +122,7 @@ const run = async () => {
 
   console.log(JSON.stringify({
     database: mongoose.connection.name,
-    account: { email, username, password },
+    account: { email, username, passwordConfigured: true },
     studentId: String(student._id),
     seededDateRange: { from: dateKeys[0], to: dateKeys.at(-1), completedDays: dateKeys.length },
     streak: stored || streak,

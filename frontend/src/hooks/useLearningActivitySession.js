@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import learningApi from '../api/learningApi.js';
+import { resolveApiBaseUrl } from '../api/apiBaseUrl.js';
 
 const HEARTBEAT_INTERVAL_MS = 15_000;
 const IDLE_TIMEOUT_MS = 60_000;
@@ -78,6 +79,28 @@ export default function useLearningActivitySession(pathname, enabled = true) {
       }
       finally { sending = false; }
     }, HEARTBEAT_INTERVAL_MS);
+    const finalizeWithKeepalive = () => {
+      const current = sessionIdRef.current;
+      if (!current) return;
+      const url = `${resolveApiBaseUrl(import.meta.env)}/learning/sessions/end`;
+      const payload = JSON.stringify({ sessionId: current, activeSeconds: Math.min(45, bufferRef.current) });
+      try {
+        const token = localStorage.getItem('accessToken');
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: 'include',
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      } catch { /* ignored while the document is leaving */ }
+      sessionIdRef.current = null;
+      bufferRef.current = 0;
+    };
+
     const cleanup = () => {
       const current = sessionIdRef.current;
       if (current) learningApi.endSession(current, Math.min(45, bufferRef.current)).catch(() => {});
@@ -85,12 +108,17 @@ export default function useLearningActivitySession(pathname, enabled = true) {
       bufferRef.current = 0;
     };
 
+    window.addEventListener('beforeunload', finalizeWithKeepalive);
+    window.addEventListener('pagehide', finalizeWithKeepalive);
+
     return () => {
       disposed = true;
       window.clearInterval(tick);
       window.clearInterval(heartbeat);
       events.forEach((event) => window.removeEventListener(event, touch));
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', finalizeWithKeepalive);
+      window.removeEventListener('pagehide', finalizeWithKeepalive);
       cleanup();
     };
   }, [pathname, enabled]);

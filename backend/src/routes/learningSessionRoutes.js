@@ -7,15 +7,16 @@ import {
   pauseSession,
 } from '../controllers/learningSessionController.js';
 import { verifyToken, requireActiveStudent } from '../middlewares/auth.js';
+import { heartbeatRateLimiter, sessionRateLimiter } from '../middlewares/rateLimit.js';
 
 const router = express.Router();
 
 router.use(verifyToken, requireActiveStudent);
 
-router.post('/start', startSession);
-router.post('/heartbeat', sendHeartbeat);
-router.post('/activity-heartbeat', sendStudentActivityHeartbeat);
-router.post('/end', endSession);
-router.post('/pause', pauseSession);
+router.post('/start', sessionRateLimiter, startSession);
+router.post('/heartbeat', heartbeatRateLimiter, sendHeartbeat);
+router.post('/activity-heartbeat', heartbeatRateLimiter, sendStudentActivityHeartbeat);
+router.post('/end', sessionRateLimiter, endSession);
+router.post('/pause', sessionRateLimiter, pauseSession);
 
 export default router;

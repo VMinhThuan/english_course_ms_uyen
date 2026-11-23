@@ -60,8 +60,8 @@ const installMocks = async (context, role, completedToday = false) => {
     if (pathname.endsWith('/learning/sessions/heartbeat')) return response(route, { addedSeconds: 0 });
     if (pathname.endsWith('/learning/sessions/end') || pathname.endsWith('/learning/sessions/activity-heartbeat')) return response(route, { addedSeconds: 0 });
     if (pathname.endsWith('/admin/learning/overview')) return response(route, { totalStudents: 1, currentlyActiveStudents: 0, currentlyInactiveStudents: 1, averageDailyStudySeconds: 480, weeklyLeaderboard: [] });
-    if (pathname.endsWith('/admin/learning/students')) return response(route, { students: [{ _id: 'browser-student', fullName: 'Browser Student', email: 'student@test', currentStreak: 12, longestStreak: 18, todayValidStudySeconds: 480, dailyGoalStatus: 'IN_PROGRESS', streakStatus: 'in_progress', activityStatus: 'INACTIVE', totalLearningSeconds: 1200 }], pagination: { page: 1, limit: 20, total: 1, pages: 1 } });
-    if (pathname.endsWith('/admin/learning/students/browser-student')) return response(route, { student: { _id: 'browser-student', fullName: 'Browser Student', email: 'student@test', status: 'active' }, learningOverview: { totalLearningSeconds: 1200, studyTodaySeconds: responseStreakData.today.validStudySeconds, overallCompletionPercentage: 0, totalLessons: 0, streak: responseStreakData.streak, dailyGoal: responseStreakData.today }, lastLearningActivity: null });
+    if (pathname.endsWith('/admin/learning/students')) return response(route, { students: [{ _id: 'browser-student', fullName: 'Browser Student', email: 'student@test', currentStreak: 12, longestStreak: 18, todayValidStudySeconds: 480, dailyGoalStatus: 'IN_PROGRESS', streakStatus: 'in_progress', activityStatus: 'INACTIVE', totalLearningSeconds: 1200, totalValidStudySeconds: 21600 }], pagination: { page: 1, limit: 20, total: 1, pages: 1 } });
+    if (pathname.endsWith('/admin/learning/students/browser-student')) return response(route, { student: { _id: 'browser-student', fullName: 'Browser Student', email: 'student@test', status: 'active' }, learningOverview: { totalLearningSeconds: 1200, totalValidStudySeconds: 21600, studyTodaySeconds: responseStreakData.today.validStudySeconds, overallCompletionPercentage: 0, totalLessons: 0, streak: responseStreakData.streak, dailyGoal: responseStreakData.today }, lastLearningActivity: null });
     if (pathname.endsWith('/admin/learning/students/browser-student/streak')) return response(route, responseStreakData);
     if (pathname.endsWith('/admin/learning/students/browser-student/streak/activity')) return response(route, { rows: streakData.calendar.slice(-30).map((row) => ({ localDate: row.dateKey, validStudySeconds: row.validStudySeconds })) });
     if (pathname.endsWith('/gamification/overview')) return response(route, { today: { challenge: null }, streak: { current: 1, longest: 1 }, stats: {} });
@@ -127,6 +127,10 @@ try {
         assert.equal(await page.locator('.admin-streak-day').count(), 35, 'student detail should keep the 35-day streak history');
         const streakCalendarColumns = await page.locator('.admin-streak-calendar').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
         assert.equal(streakCalendarColumns, 7, 'student streak calendar should use a readable seven-column grid');
+        assert.equal(await page.locator('.admin-streak-chart-bar').count(), 30, 'student detail chart should render a stable 30-day window');
+        assert.equal(await page.locator('.admin-streak-chart-target').count(), 1, 'student detail chart should show the 15-minute target');
+        await page.locator('.admin-streak-day').last().click();
+        assert.equal(await page.locator('.admin-streak-day-detail').count(), 1, 'admin should be able to inspect a selected day without another request');
       }
       if (role === 'student' && pathname === '/student/streak-challenge' && viewport.width === 375) {
         await page.locator('.mobile-hamburger-btn').click();

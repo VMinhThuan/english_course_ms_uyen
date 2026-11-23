@@ -49,6 +49,7 @@ import vocabularyRoutes from './routes/vocabularyRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import instructorRoutes from './routes/instructorRoutes.js';
 import gamificationRoutes from './routes/gamificationRoutes.js';
+import { assertRateLimitConfiguration } from './middlewares/rateLimit.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -56,7 +57,18 @@ const __dirname = dirname(__filename);
 // Load .env if present (local dev)
 dotenv.config({ path: join(__dirname, '../.env') });
 
+// Staging/production must fail startup rather than silently using a
+// per-instance memory limiter. Tests and local development use the in-memory
+// implementation; multi-instance deployments require Upstash Redis.
+assertRateLimitConfiguration();
+
 const app = express();
+
+const trustedProxyHops = process.env.TRUST_PROXY_HOPS ? Number(process.env.TRUST_PROXY_HOPS) : 0;
+if (!Number.isInteger(trustedProxyHops) || trustedProxyHops < 0) {
+    throw new Error('TRUST_PROXY_HOPS must be a non-negative integer.');
+}
+app.set('trust proxy', trustedProxyHops);
 
 // Vocabulary Catalog routers still enforce their own trusted-principal checks.
 // These adapters bind that contract to the application's JWT-backed User model.

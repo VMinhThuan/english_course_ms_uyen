@@ -110,6 +110,7 @@ export default function AdminStudentLearningDetailPage() {
   const [exerciseError, setExerciseError] = useState('');
   const [streakDetail, setStreakDetail] = useState(null);
   const [streakActivity, setStreakActivity] = useState(null);
+  const [selectedStreakDate, setSelectedStreakDate] = useState(null);
 
   // 1. Load Student Detail & Learning Overview
   useEffect(() => {
@@ -248,7 +249,20 @@ export default function AdminStudentLearningDetailPage() {
   const adminToday = streakDetail?.today || learningOverview.dailyGoal || {};
   const streakCalendar = streakDetail?.calendar || [];
   const activityRows = streakActivity?.rows || [];
-  const maxActivitySeconds = Math.max(900, ...activityRows.map((row) => Number(row.validStudySeconds) || 0));
+  const activityByDate = new Map(activityRows.map((row) => [row.localDate, row]));
+  const chartRows = (streakCalendar.length ? streakCalendar.slice(-30) : activityRows.slice(-30)).map((day) => {
+    const dateKey = day.dateKey || day.localDate;
+    const activity = activityByDate.get(dateKey);
+    const validStudySeconds = Number(activity?.validStudySeconds ?? day.validStudySeconds) || 0;
+    const status = day.status || (validStudySeconds > 0 ? 'incomplete' : 'no_data');
+    return { ...day, dateKey, validStudySeconds, status, hasData: !['no_data', 'future'].includes(status) };
+  });
+  const maxActivitySeconds = Math.max(900, ...chartRows.map((row) => row.validStudySeconds));
+  const selectedStreakDay = selectedStreakDate
+    ? streakCalendar.find((day) => day.dateKey === selectedStreakDate) || chartRows.find((day) => day.dateKey === selectedStreakDate)
+    : null;
+  const selectedStreakActivities = Object.entries(selectedStreakDay?.activitySeconds || {})
+    .filter(([, value]) => Number(value) > 0);
   const weeklyStudyDays = createWeeklyStudyDays(dailyStudy);
   const maxWeeklyStudySeconds = Math.max(1, ...weeklyStudyDays.map((day) => day.activeSeconds));
   const exerciseSummary = exerciseSubmissions.reduce((summary, submission) => ({
@@ -305,9 +319,9 @@ export default function AdminStudentLearningDetailPage() {
         <div className="kpi-card">
           <span className="kpi-card-label">Tổng thời gian học</span>
           <strong className="kpi-card-value kpi-card-value--duration">
-            {formatDuration(learningOverview.totalLearningSeconds)}
+            {formatDuration(learningOverview.totalValidStudySeconds ?? learningOverview.totalLearningSeconds)}
           </strong>
-          <span className="kpi-card-sub">Thời gian tích lũy thực</span>
+          <span className="kpi-card-sub">Tổng thời gian hợp lệ của Learning Streak</span>
         </div>
 
         <div className="kpi-card">
@@ -351,8 +365,58 @@ export default function AdminStudentLearningDetailPage() {
         </div>
         <div className="admin-streak-detail-stats"><div><span>Kỷ lục dài nhất</span><strong>{adminStreak.longestStreak || 0} ngày</strong></div><div><span>Ngày đã hoàn thành</span><strong>{adminStreak.totalCompletedDays || 0}</strong></div><div><span>Cấp ngọn lửa</span><strong>{adminStreak.tierName || `Tier ${adminStreak.currentTier || 0}`}</strong></div><div><span>Mục tiêu hôm nay</span><strong>{Math.floor((adminToday.validStudySeconds || 0) / 60)} / 15 phút</strong></div></div>
         <div className="admin-streak-progress" role="progressbar" aria-valuemin="0" aria-valuemax="900" aria-valuenow={Math.min(900, adminToday.validStudySeconds || 0)}><span style={{ width: `${Math.min(100, Math.round(((adminToday.validStudySeconds || 0) / 900) * 100))}%` }} /></div>
-        <div className="admin-streak-calendar" aria-label="Lịch learning streak 35 ngày">{streakCalendar.map((day) => <div key={day.dateKey} className={`admin-streak-day is-${day.status}`} title={`${day.dateKey}: ${day.validStudySeconds || 0} giây`}><span>{day.dateKey.slice(5)}</span><i /></div>)}</div>
-        <div className="admin-streak-chart-wrap"><div className="admin-streak-chart-heading"><h3>Thời lượng học hợp lệ</h3><span>30 ngày gần nhất · đường mục tiêu 15 phút</span></div><div className="admin-streak-chart" role="img" aria-label="Biểu đồ thời lượng học hợp lệ 30 ngày">{activityRows.map((row) => <div className="admin-streak-chart-bar" key={row.localDate} title={`${row.localDate}: ${Math.floor((row.validStudySeconds || 0) / 60)} phút`}><span style={{ height: `${Math.max(3, Math.round(((row.validStudySeconds || 0) / maxActivitySeconds) * 100))}%` }} /><small>{row.localDate.slice(8)}</small></div>)}</div></div>
+        <div className="admin-streak-calendar" aria-label="Lịch learning streak 35 ngày">
+          {streakCalendar.map((day) => (
+            <button
+              type="button"
+              key={day.dateKey}
+              className={`admin-streak-day is-${day.status} ${selectedStreakDate === day.dateKey ? 'is-selected' : ''}`}
+              title={`${day.dateKey}: ${day.validStudySeconds || 0} giây`}
+              aria-label={`${day.dateKey}: ${day.validStudySeconds || 0} giây`}
+              aria-pressed={selectedStreakDate === day.dateKey}
+              onClick={() => setSelectedStreakDate(day.dateKey)}
+            >
+              <span>{day.dateKey.slice(5)}</span><i />
+            </button>
+          ))}
+        </div>
+        {selectedStreakDay && (
+          <div className="admin-streak-day-detail" aria-label={`Chi tiết ngày ${selectedStreakDay.dateKey}`}>
+            <div>
+              <span className="kpi-card-label">NGÀY ĐÃ CHỌN</span>
+              <strong>{selectedStreakDay.dateKey}</strong>
+            </div>
+            <div><span>Thời gian hợp lệ</span><strong>{formatDuration(selectedStreakDay.validStudySeconds)}</strong></div>
+            <div><span>Mục tiêu</span><strong>{formatDuration(selectedStreakDay.targetSeconds || 900)}</strong></div>
+            <div><span>Trạng thái</span><strong>{selectedStreakDay.status || 'no_data'}</strong></div>
+            <div><span>Số phiên</span><strong>{selectedStreakDay.sessionCount ?? '—'}</strong></div>
+            {selectedStreakActivities.length > 0 && (
+              <div className="admin-streak-day-detail__activities">
+                <span>Phân bổ hoạt động</span>
+                <strong>{selectedStreakActivities.map(([type, seconds]) => `${type}: ${formatDuration(seconds)}`).join(' · ')}</strong>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="admin-streak-chart-wrap">
+          <div className="admin-streak-chart-heading"><h3>Thời lượng học hợp lệ</h3><span>30 ngày gần nhất · đường mục tiêu 15 phút</span></div>
+          <div className="admin-streak-chart" role="img" aria-label="Biểu đồ thời lượng học hợp lệ 30 ngày">
+            <span className="admin-streak-chart-target" style={{ bottom: `${Math.min(100, Math.round((900 / maxActivitySeconds) * 100))}%` }} aria-hidden="true"><b>15 phút</b></span>
+            {chartRows.map((row) => (
+              <button
+                type="button"
+                className={`admin-streak-chart-bar ${row.hasData ? 'is-data' : 'is-no-data'} ${selectedStreakDate === row.dateKey ? 'is-selected' : ''}`}
+                key={row.dateKey}
+                title={`${row.dateKey}: ${row.hasData ? `${Math.floor(row.validStudySeconds / 60)} phút` : 'chưa có dữ liệu'}`}
+                aria-label={`${row.dateKey}: ${row.hasData ? formatDuration(row.validStudySeconds) : 'chưa có dữ liệu'}`}
+                onClick={() => setSelectedStreakDate(row.dateKey)}
+              >
+                <span style={{ height: row.hasData ? `${Math.max(3, Math.round((row.validStudySeconds / maxActivitySeconds) * 100))}%` : '0%' }} />
+                <small>{row.dateKey.slice(8)}</small>
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       {activeTab === 'learning-progress' && (

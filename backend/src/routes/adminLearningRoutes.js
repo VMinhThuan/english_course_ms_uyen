@@ -15,11 +15,13 @@ import {
   getAdminStudentStreakActivity,
 } from '../controllers/learningStreakController.js';
 import { verifyToken, checkRole } from '../middlewares/auth.js';
+import { adminLearningRateLimiter } from '../middlewares/rateLimit.js';
 
 const router = express.Router();
 
 // Require authenticated Admin or Teacher token for all admin learning routes
 router.use(verifyToken, checkRole('admin', 'teacher'));
+router.use(adminLearningRateLimiter);
 
 router.get('/overview', getLearningOverview);
 router.get('/students', getLearningStudents);
