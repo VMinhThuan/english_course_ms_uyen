@@ -19,6 +19,7 @@ const origin = `http://127.0.0.1:${port}`;
 const viewports = [
   { width: 375, height: 812 },
   { width: 390, height: 844 },
+  { width: 768, height: 1024 },
   { width: 1280, height: 800 },
   { width: 1440, height: 900 },
 ];
@@ -74,9 +75,9 @@ try {
   await waitForVite(vite);
   browser = await chromium.launch({ headless: true });
   for (const viewport of viewports) {
-    for (const [role, pathname] of [['student', '/student/streak-challenge'], ['admin', '/admin/learning-progress'], ['admin', '/admin/learning-progress/students/browser-student']]) {
+    for (const [role, pathname] of [['student', '/student/streak-challenge'], ['student', '/student/learning-streak'], ['admin', '/admin/learning-progress'], ['admin', '/admin/learning-progress/students/browser-student']]) {
       const context = await browser.newContext({ viewport });
-      const celebrationScenario = role === 'student' && pathname === '/student/streak-challenge' && viewport.width === 375;
+      const celebrationScenario = role === 'student' && pathname === '/student/learning-streak' && viewport.width === 375;
       await installMocks(context, role, celebrationScenario);
       const page = await context.newPage();
       const pageErrors = [];
@@ -86,16 +87,49 @@ try {
       const layout = await page.evaluate(() => ({ width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
       assert.deepEqual(pageErrors, [], `${role} ${pathname} browser errors at ${viewport.width}px`);
       assert.ok(layout.scrollWidth - layout.width <= 1, `${role} ${pathname} horizontal overflow at ${viewport.width}px`);
+      if (role === 'student' && pathname === '/student/streak-challenge') {
+        assert.equal(await page.locator('.learning-streak-page').count(), 0, 'vocabulary challenge must not render Learning Streak UI');
+        assert.equal(await page.locator('.game-hero--streak').count(), 1, 'vocabulary challenge route should keep its own challenge header');
+      }
+      if (role === 'student' && pathname === '/student/learning-streak') {
+        assert.equal(await page.locator('.learning-streak-page').count(), 1, 'Learning Streak route should render its own page');
+        assert.equal(await page.locator('.game-hero--streak').count(), 0, 'Learning Streak route must not render vocabulary challenge header');
+        const firstCalendarDay = page.locator('.learning-streak-day').first();
+        await firstCalendarDay.click();
+        assert.equal(await page.locator('.learning-streak-day-detail').count(), 1, 'calendar day should open its detail panel');
+        if (viewport.width === 1280) {
+          await page.locator('a[href="/student/streak-challenge"]').click();
+          await page.waitForTimeout(150);
+          assert.equal(new URL(page.url()).pathname, '/student/streak-challenge', 'sidebar should navigate to vocabulary challenge');
+          await page.goBack({ waitUntil: 'domcontentloaded' });
+          assert.equal(new URL(page.url()).pathname, '/student/learning-streak', 'browser back should restore Learning Streak');
+          await page.goForward({ waitUntil: 'domcontentloaded' });
+          assert.equal(new URL(page.url()).pathname, '/student/streak-challenge', 'browser forward should restore vocabulary challenge');
+        }
+      }
+      if (role === 'student' && pathname === '/student/streak-challenge' && viewport.width === 375) {
+        await page.locator('.mobile-hamburger-btn').click();
+        const practiceMenu = page.locator('.practice-sidebar-menu');
+        const practiceToggle = practiceMenu.locator('.practice-sidebar-toggle');
+        await practiceToggle.click();
+        assert.equal(await practiceToggle.getAttribute('aria-expanded'), 'true', 'practice dropdown should open on mobile');
+        assert.equal(await practiceMenu.locator('.practice-sidebar-children').getAttribute('aria-hidden'), 'false', 'practice dropdown should expose its items');
+        const grammarToggle = practiceMenu.locator('.practice-sidebar-group-toggle');
+        await grammarToggle.click();
+        assert.equal(await grammarToggle.getAttribute('aria-expanded'), 'true', 'grammar dropdown should open on mobile');
+        assert.equal(await practiceMenu.locator('.practice-sidebar-nested').getAttribute('aria-hidden'), 'false', 'grammar dropdown should expose its items');
+      }
       if (celebrationScenario) {
         assert.equal(await page.locator('.learning-streak-celebration').count(), 1, 'celebration should appear once after completion');
         await page.reload({ waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(250);
         assert.equal(await page.locator('.learning-streak-celebration').count(), 0, 'celebration should not replay after refresh');
       }
+      assert.deepEqual(pageErrors, [], `${role} ${pathname} browser errors after interaction at ${viewport.width}px`);
       await context.close();
     }
   }
-  console.log('Learning Streak browser audit passed at 375, 390, 1280 and 1440px.');
+  console.log('Learning Streak browser audit passed at 375, 390, 768, 1280 and 1440px.');
 } finally {
   await browser?.close();
   vite.kill('SIGTERM');

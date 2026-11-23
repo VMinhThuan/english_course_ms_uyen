@@ -47,6 +47,16 @@ export default function PracticeSidebarMenu({ variant = 'student', showPart1 = t
   }, [isGrammarActive]);
 
   const submenuId = `practice-sidebar-submenu-${variant}`;
+  const togglePracticeMenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsExpanded((expanded) => !expanded);
+  };
+  const toggleGrammarMenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsGrammarExpanded((expanded) => !expanded);
+  };
   return (
     <section className={`practice-sidebar-menu practice-sidebar-menu--${variant} ${isChildActive ? 'is-active' : ''}`}>
       <button
@@ -54,7 +64,7 @@ export default function PracticeSidebarMenu({ variant = 'student', showPart1 = t
         className="practice-sidebar-toggle"
         aria-expanded={isExpanded}
         aria-controls={submenuId}
-        onClick={() => setIsExpanded((expanded) => !expanded)}
+        onClick={togglePracticeMenu}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M9 11l3 3L22 4" />
@@ -65,23 +75,23 @@ export default function PracticeSidebarMenu({ variant = 'student', showPart1 = t
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
-      <nav id={submenuId} className="practice-sidebar-children" aria-label="Các mục bài tập" hidden={!isExpanded}>
-        {links.map(({ label, to, children }) => children ? (
+      <nav id={submenuId} className={`practice-sidebar-children ${isExpanded ? 'is-open' : ''}`} aria-label="Các mục bài tập" aria-hidden={!isExpanded}>
+        {isExpanded && links.map(({ label, to, children }) => children ? (
           <div className="practice-sidebar-group" key={label}>
             <button
               type="button"
               className={`practice-sidebar-child practice-sidebar-group-toggle ${children.some(isActive) ? 'active' : ''}`}
               aria-expanded={isGrammarExpanded}
               aria-controls={`${submenuId}-grammar`}
-              onClick={() => setIsGrammarExpanded((expanded) => !expanded)}
+              onClick={toggleGrammarMenu}
             >
               <span>{label}</span>
               <svg className="practice-sidebar-group-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
-            <nav id={`${submenuId}-grammar`} className="practice-sidebar-nested" aria-label="Bài tập ngữ pháp" hidden={!isGrammarExpanded}>
-              {children.map((child) => (
+            <nav id={`${submenuId}-grammar`} className={`practice-sidebar-nested ${isGrammarExpanded ? 'is-open' : ''}`} aria-label="Bài tập ngữ pháp" aria-hidden={!isGrammarExpanded}>
+              {isGrammarExpanded && children.map((child) => (
                 <NavLink
                   key={child.to}
                   to={child.to}

@@ -250,6 +250,40 @@ test('student and admin read the same completed daily progress', async () => {
   assert.equal(forbidden.response.status, 403);
 });
 
+test('student calendar exposes session count and activity details without marking missing history as missed', async () => {
+  const today = todayKey();
+  await DailyLearningProgress.create({
+    _id: `${student._id}:${today}`,
+    student: student._id,
+    localDate: today,
+    timezone: 'Asia/Ho_Chi_Minh',
+    validStudySeconds: 900,
+    targetSeconds: 900,
+    completed: true,
+    completedAt: new Date(),
+    activitySeconds: { lesson: 600, vocabulary: 300 },
+  });
+  await LearningSession.create({
+    student: student._id,
+    activityType: 'lesson',
+    startedAt: new Date(),
+    lastHeartbeatAt: new Date(),
+    endedAt: new Date(),
+    accumulatedActiveSeconds: 900,
+    status: 'completed',
+  });
+
+  const calendar = await request('/api/v1/learning/streak/calendar', { token: studentToken });
+  assert.equal(calendar.response.status, 200);
+  const todayRow = calendar.json.data.calendar.find((row) => row.dateKey === today);
+  const noDataRow = calendar.json.data.calendar.find((row) => row.dateKey < today && row.status === 'no_data');
+  assert.equal(todayRow.validStudySeconds, 900);
+  assert.equal(todayRow.sessionCount, 1);
+  assert.deepEqual(todayRow.activitySeconds, { lesson: 600, vocabulary: 300 });
+  assert.equal(todayRow.status, 'completed');
+  assert.equal(noDataRow.status, 'no_data');
+});
+
 test('admin streak sort, filter, and pagination use the same daily source', async () => {
   const today = todayKey();
   await seedDaily(student._id, today, 900, true);

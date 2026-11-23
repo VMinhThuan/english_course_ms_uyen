@@ -41,6 +41,7 @@ import RoadToPart7Page from '../features/road-to-part-7/RoadToPart7Page.jsx';
 import FlashcardPage from '../pages/FlashcardPage.jsx';
 import StudentVocabularyCatalogPage from '../features/vocabulary-catalog/StudentVocabularyCatalogPage.jsx';
 import VocabularyStreakChallengePage from '../pages/VocabularyStreakChallengePage.jsx';
+import LearningStreakPage from '../pages/LearningStreakPage.jsx';
 import VocabularyQuestPage from '../pages/VocabularyQuestPage.jsx';
 import VocabularyCatalogWorkspace from '../features/vocabulary-catalog/VocabularyCatalogWorkspace.jsx';
 import AdminVocabularyQuickPage from '../features/vocabulary-catalog/AdminVocabularyQuickPage.jsx';
@@ -168,6 +169,7 @@ function AppRoutes() {
         <Route path="vocabulary" element={<StudentVocabularyPage />} />
         <Route path="vocabulary-catalog" element={<StudentVocabularyCatalogPage />} />
         <Route path="streak-challenge" element={<VocabularyStreakChallengePage />} />
+        <Route path="learning-streak" element={<LearningStreakPage />} />
         <Route path="vocabulary-quest" element={<VocabularyQuestPage />} />
         <Route path="flashcards" element={<FlashcardPage />} />
         <Route path="courses/:courseId/lessons/:lessonId" element={<LessonPage />} />

@@ -19,6 +19,8 @@
   font-weight: 750;
   text-align: left;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
 
@@ -44,6 +46,11 @@
   margin-left: 23px;
   padding-left: 10px;
   border-left: 1px solid var(--brand-border);
+}
+
+.practice-sidebar-children:not(.is-open),
+.practice-sidebar-nested:not(.is-open) {
+  display: none;
 }
 
 .practice-sidebar-child {
@@ -87,6 +94,8 @@
   font-weight: 700;
   text-align: left;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .practice-sidebar-group-toggle.active {

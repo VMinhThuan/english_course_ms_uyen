@@ -1,5 +1,6 @@
 import DailyLearningProgress from '../models/DailyLearningProgress.js';
 import LearningStreak from '../models/LearningStreak.js';
+import LearningSession from '../models/LearningSession.js';
 import StudentDailyStudy from '../models/StudentDailyStudy.js';
 
 export const DAILY_TARGET_SECONDS = 15 * 60;
@@ -251,16 +252,40 @@ export const getLearningStreakOverview = async (studentId, timezone = DEFAULT_TI
     .select('localDate validStudySeconds targetSeconds completed completedAt activitySeconds')
     .sort({ localDate: 1 })
     .lean();
+  const sessionCounts = await LearningSession.aggregate([
+    { $match: { student: studentId } },
+    {
+      $project: {
+        localDate: { $dateToString: { format: '%Y-%m-%d', date: '$startedAt', timezone: timezone || DEFAULT_TIMEZONE } },
+      },
+    },
+    { $match: { localDate: { $gte: firstKey, $lte: todayKey } } },
+    { $group: { _id: '$localDate', sessionCount: { $sum: 1 } } },
+  ]);
   const rowMap = new Map(rows.map((row) => [row.localDate, row]));
+  const sessionCountMap = new Map(sessionCounts.map((row) => [row._id, row.sessionCount]));
   const calendar = Array.from({ length: 35 }, (_, index) => {
     const localDate = shiftDateKey(firstKey, index);
     const row = rowMap.get(localDate);
+    const status = localDate > todayKey
+      ? 'future'
+      : localDate === todayKey
+        ? row?.completed ? 'completed' : row ? 'incomplete' : 'no_data'
+        : row?.completed
+          ? 'completed'
+          : row?.validStudySeconds > 0
+            ? 'incomplete'
+            : row
+              ? 'missed'
+              : 'no_data';
     return {
       dateKey: localDate,
       validStudySeconds: row?.validStudySeconds || 0,
       completed: Boolean(row?.completed),
-      status: localDate > todayKey ? 'future' : row?.completed ? 'completed' : row ? 'incomplete' : 'no_data',
+      status,
       completedAt: row?.completedAt || null,
+      sessionCount: sessionCountMap.get(localDate) || 0,
+      activitySeconds: row?.activitySeconds || {},
     };
   });
   const totalStudy = await DailyLearningProgress.aggregate([
