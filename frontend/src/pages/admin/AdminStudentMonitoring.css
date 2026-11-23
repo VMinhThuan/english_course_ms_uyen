@@ -678,18 +678,20 @@
 }
 
 .monitoring-student-list-table {
-  min-width: 1040px;
+  min-width: 1180px;
   table-layout: fixed;
 }
 
 .monitoring-student-list-table th:nth-child(1),
-.monitoring-student-list-table td:nth-child(1) { width: 27%; }
+.monitoring-student-list-table td:nth-child(1) { width: 24%; }
 .monitoring-student-list-table th:nth-child(2),
-.monitoring-student-list-table td:nth-child(2) { width: 19%; }
+.monitoring-student-list-table td:nth-child(2) { width: 18%; }
 .monitoring-student-list-table th:nth-child(3),
-.monitoring-student-list-table td:nth-child(3) { width: 39%; }
+.monitoring-student-list-table td:nth-child(3) { width: 23%; }
 .monitoring-student-list-table th:nth-child(4),
-.monitoring-student-list-table td:nth-child(4) { width: 15%; }
+.monitoring-student-list-table td:nth-child(4) { width: 25%; }
+.monitoring-student-list-table th:nth-child(5),
+.monitoring-student-list-table td:nth-child(5) { width: 10%; }
 
 .monitoring-student-column,
 .monitoring-student-list-table .student-user-cell,
@@ -744,11 +746,17 @@
 }
 
 .study-time-last-active {
-  grid-template-columns: auto 1fr;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
   align-items: baseline;
   gap: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--brand-border-light);
+}
+
+.study-time-last-active time {
+  min-width: 0;
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .monitoring-action-cell,
@@ -1030,7 +1038,7 @@
 
 @media (max-width: 900px) {
   .monitoring-student-list-table {
-    min-width: 900px;
+    min-width: 1100px;
   }
 
   .study-time-metrics {

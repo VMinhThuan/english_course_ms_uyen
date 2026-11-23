@@ -107,6 +107,21 @@ try {
           assert.equal(new URL(page.url()).pathname, '/student/streak-challenge', 'browser forward should restore vocabulary challenge');
         }
       }
+      if (role === 'admin' && pathname === '/admin/learning-progress') {
+        const monitoringTable = page.locator('.monitoring-student-list-table');
+        await monitoringTable.waitFor();
+        const tableLayout = await monitoringTable.evaluate((table) => ({
+          tableWidth: table.getBoundingClientRect().width,
+          headerWidths: [...table.querySelectorAll('thead th')].map((cell) => Math.round(cell.getBoundingClientRect().width)),
+          rowHeight: table.querySelector('tbody tr')?.getBoundingClientRect().height || 0,
+          timeText: table.querySelector('tbody tr td:nth-child(4)')?.innerText || '',
+        }));
+        assert.equal(tableLayout.headerWidths.length, 5, 'student monitoring table should keep all five columns');
+        assert.ok(tableLayout.headerWidths[4] >= 90, `action column should remain usable: ${JSON.stringify(tableLayout)}`);
+        assert.ok(tableLayout.headerWidths[3] >= 220, `study time column should not collapse: ${JSON.stringify(tableLayout)}`);
+        assert.ok(tableLayout.rowHeight < 260, `monitoring row should not become vertically stretched: ${JSON.stringify(tableLayout)}`);
+        assert.match(tableLayout.timeText, /Hôm nay/);
+      }
       if (role === 'student' && pathname === '/student/streak-challenge' && viewport.width === 375) {
         await page.locator('.mobile-hamburger-btn').click();
         await page.waitForTimeout(350);
