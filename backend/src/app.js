@@ -25,6 +25,8 @@ import exerciseImportRoutes from './routes/exerciseImportRoutes.js';
 import { adminToeicRoutes, studentToeicRoutes } from './routes/toeicRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
 import { createBlobUploadTicket, completeBlobUpload } from './controllers/blobUploadController.js';
+import { getRateLimitIndexStatus } from './middlewares/rateLimit.js';
+import { previewRuntimeDiagnostic } from './middlewares/previewRuntimeDiagnostic.js';
 import { adminPart1DictationRoutes, studentPart1DictationRoutes } from './routes/part1DictationRoutes.js';
 import { adminPart2ChallengeRoutes, studentPart2ChallengeRoutes } from './routes/part2ChallengeRoutes.js';
 import { adminGrammarExerciseRoutes, studentGrammarExerciseRoutes } from './routes/grammarExerciseRoutes.js';
@@ -49,18 +51,12 @@ import vocabularyRoutes from './routes/vocabularyRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import instructorRoutes from './routes/instructorRoutes.js';
 import gamificationRoutes from './routes/gamificationRoutes.js';
-import { assertRateLimitConfiguration } from './middlewares/rateLimit.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load .env if present (local dev)
 dotenv.config({ path: join(__dirname, '../.env') });
-
-// Staging/production must fail startup rather than silently using a
-// per-instance memory limiter. Tests and local development use the in-memory
-// implementation; multi-instance deployments require Upstash Redis.
-assertRateLimitConfiguration();
 
 const app = express();
 
@@ -158,6 +154,15 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Temporary Round 2 Preview-only diagnostic. It is token-protected and must
+// be removed before any release build; it is intentionally outside /api so it
+// can inspect proxy metadata without authentication business logic.
+app.get('/__round2/runtime-diagnostic', previewRuntimeDiagnostic);
+// Same handler for a Preview-only frontend rewrite target. The checked-in
+// production frontend rewrite must not be pointed here until its destination
+// is changed away from the legacy customer backend in a separate release.
+app.get('/api/v1/__round2/runtime-diagnostic', previewRuntimeDiagnostic);
+
 // Readiness is separate from liveness: a process can be healthy enough to
 // receive diagnostics while all database-backed API routes consistently 503.
 app.get('/ready', async (req, res) => {
@@ -165,6 +170,17 @@ app.get('/ready', async (req, res) => {
         // A readiness probe also makes a recovery attempt after an outage;
         // it never runs an application query.
         if (!isDatabaseReady()) await connectDB();
+        const rateLimitIndexes = await getRateLimitIndexStatus();
+        if (!rateLimitIndexes.ready) {
+            res.set('Retry-After', '5');
+            return res.status(503).json({
+                status: 'error',
+                code: 'RATE_LIMIT_INDEXES_UNAVAILABLE',
+                message: 'MongoDB rate-limit indexes are not ready.',
+                missingIndexes: rateLimitIndexes.missingIndexes,
+                operatorAction: 'Run `npm --prefix backend run rate-limit:index` to check, then run the approved `--apply` migration before retrying.',
+            });
+        }
         return res.json({ status: 'success', database: 'ready' });
     } catch (error) {
         console.error('Database is unavailable for readiness probe', JSON.stringify(getDatabaseErrorDiagnostic(error)));

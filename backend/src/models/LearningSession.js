@@ -8,6 +8,14 @@ const learningSessionSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    // Authentication session that created this learning session. It is used
+    // as an additional write fence when strict student session enforcement is
+    // enabled; legacy rows remain readable for migration/monitoring.
+    authSessionId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     // Backward-compatible alias for userId
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -104,6 +112,13 @@ learningSessionSchema.index({ student: 1, startedAt: -1 });
 learningSessionSchema.index({ course: 1, student: 1 });
 learningSessionSchema.index({ lesson: 1, startedAt: -1 });
 learningSessionSchema.index({ student: 1, status: 1, startedAt: -1 });
+// The production migration script creates the partial unique equivalent after
+// checking existing duplicates. Keeping the schema declaration here lets
+// development/test databases build it automatically when autoIndex is enabled.
+learningSessionSchema.index(
+  { student: 1, status: 1 },
+  { name: 'learning_session_one_active_per_student', unique: true, partialFilterExpression: { status: 'active' } },
+);
 
 const LearningSession = mongoose.model('LearningSession', learningSessionSchema);
 

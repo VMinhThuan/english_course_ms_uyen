@@ -1,5 +1,10 @@
 import { create } from 'zustand';
 import { authApi } from '../api/authApi.js';
+import {
+  AUTH_EVENT_TYPES,
+  getCurrentAccessTokenSessionId,
+  publishAuthEvent,
+} from '../utils/authEvents.js';
 
 const clearLocalAccessToken = () => localStorage.removeItem('accessToken');
 
@@ -10,6 +15,8 @@ const useAuthStore = create((set) => ({
   isAuthenticated: false,
   isLoading: false,
   hasInitializedAuth: false,
+  sessionReplacement: null,
+  authSessionId: null,
 
   login: async (credentials) => {
     set({ isLoading: true });
@@ -19,7 +26,10 @@ const useAuthStore = create((set) => ({
         user: response.data.user,
         isAuthenticated: true,
         isLoading: false,
+        sessionReplacement: null,
+        authSessionId: getCurrentAccessTokenSessionId(),
       });
+      publishAuthEvent({ type: AUTH_EVENT_TYPES.LOGIN_COMMITTED, sessionId: getCurrentAccessTokenSessionId() });
       return { success: true, user: response.data.user };
     } catch (error) {
       set({ isLoading: false });
@@ -49,6 +59,7 @@ const useAuthStore = create((set) => ({
   },
 
   logout: async () => {
+    const sessionId = getCurrentAccessTokenSessionId();
     try {
       await authApi.logout();
     } catch (error) {
@@ -59,8 +70,39 @@ const useAuthStore = create((set) => ({
         user: null,
         isAuthenticated: false,
         hasInitializedAuth: true,
+        sessionReplacement: null,
+        authSessionId: null,
       });
+      publishAuthEvent({ type: AUTH_EVENT_TYPES.LOGOUT_COMMITTED, sessionId });
     }
+  },
+
+  handleSessionReplaced: (event) => {
+    const currentSessionId = getCurrentAccessTokenSessionId();
+    const knownSessionId = currentSessionId || useAuthStore.getState().authSessionId;
+    if (!event?.sessionId || knownSessionId !== event.sessionId) return;
+    clearLocalAccessToken();
+    set({
+      user: null,
+      isAuthenticated: false,
+      hasInitializedAuth: true,
+      sessionReplacement: { eventId: event.eventId, sessionId: event.sessionId },
+      authSessionId: null,
+    });
+  },
+
+  clearSessionReplacement: () => set({ sessionReplacement: null }),
+
+  handleExternalLogout: (event) => {
+    const knownSessionId = getCurrentAccessTokenSessionId() || useAuthStore.getState().authSessionId;
+    if (event?.sessionId && event.sessionId !== knownSessionId) return;
+    clearLocalAccessToken();
+    set({ user: null, isAuthenticated: false, hasInitializedAuth: true, sessionReplacement: null, authSessionId: null });
+  },
+
+  syncExternalLogin: async (event) => {
+    if (!event?.sessionId || event.sessionId === useAuthStore.getState().authSessionId) return;
+    return useAuthStore.getState().restoreSession();
   },
 
   initializeAuth: async () => {
@@ -84,6 +126,8 @@ const useAuthStore = create((set) => ({
           isAuthenticated: true,
           isLoading: false,
           hasInitializedAuth: true,
+          sessionReplacement: null,
+          authSessionId: getCurrentAccessTokenSessionId(),
         });
         return { success: true };
       }
@@ -96,6 +140,8 @@ const useAuthStore = create((set) => ({
         isAuthenticated: true,
         isLoading: false,
         hasInitializedAuth: true,
+        sessionReplacement: null,
+        authSessionId: getCurrentAccessTokenSessionId(),
       });
       return { success: true };
     } catch (error) {
@@ -104,7 +150,7 @@ const useAuthStore = create((set) => ({
       // current authenticated state remains until the API can be reached again.
       if (isAuthFailure(error)) {
         clearLocalAccessToken();
-        set({ user: null, isAuthenticated: false });
+        set({ user: null, isAuthenticated: false, authSessionId: null });
       }
       set({ isLoading: false, hasInitializedAuth: true });
       return { success: false, reason: isAuthFailure(error) ? 'unauthenticated' : 'unavailable' };
@@ -125,6 +171,8 @@ const useAuthStore = create((set) => ({
         isAuthenticated: true,
         isLoading: false,
         hasInitializedAuth: true,
+        sessionReplacement: null,
+        authSessionId: getCurrentAccessTokenSessionId(),
       });
     } catch (error) {
       if (isAuthFailure(error)) {

@@ -1,6 +1,17 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+const authSessionSchema = new mongoose.Schema({
+    sessionId: { type: String, trim: true, maxlength: 80 },
+    createdAt: { type: Date },
+    lastSeenAt: { type: Date },
+    refreshJti: { type: String, trim: true, maxlength: 100 },
+    refreshTokenHash: { type: String, trim: true, maxlength: 128 },
+    previousRefreshJti: { type: String, trim: true, maxlength: 100, default: null },
+    previousRefreshTokenHash: { type: String, trim: true, maxlength: 128, default: null },
+    previousRefreshValidUntil: { type: Date, default: null },
+}, { _id: false, select: false });
+
 const userSchema = new mongoose.Schema({
     email: {
         type: String,
@@ -90,6 +101,13 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     },
+    // Authentication session authority. This is deliberately hidden from the
+    // default User projection and is never returned by the public user shape.
+    authSession: {
+        type: authSessionSchema,
+        default: null,
+        select: false,
+    },
 }, {
     timestamps: true,
 });
@@ -113,6 +131,7 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 userSchema.methods.toJSON = function() {
     const obj = this.toObject();
     delete obj.password;
+    delete obj.authSession;
     return obj;
 };
 

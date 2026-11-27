@@ -333,7 +333,10 @@ test('Phase 3 isolated MongoDB/API integration', { skip: setupError ? `BLOCKED: 
     assert.equal(legacyAfter.score, 2);
 
     const limitedStandard = await Assessment.create({
-      title: 'Phase 2 limited Standard', type: 'exam', examFormat: 'standard', status: 'published', attemptLimit: 1,
+      // Standard student start is an exercise assessment. Keep the fixture
+      // aligned with the route contract so this assertion reaches the
+      // attempt-limit policy instead of the resource-type 404 guard.
+      title: 'Phase 2 limited Standard', type: 'exercise', examFormat: 'standard', status: 'published', attemptLimit: 1,
       durationMinutes: 60, questions: [{ question: standardQuestion._id, score: 2 }],
     });
     const limitedToeic = await Assessment.create({
@@ -353,7 +356,7 @@ test('Phase 3 isolated MongoDB/API integration', { skip: setupError ? `BLOCKED: 
       assert.equal(deniedStart.json.code, 'ATTEMPT_LIMIT_REACHED');
     }
     const unlimitedStandard = await Assessment.create({
-      title: 'Phase 2 unlimited Standard', type: 'exam', examFormat: 'standard', status: 'published', attemptLimit: 0,
+      title: 'Phase 2 unlimited Standard', type: 'exercise', examFormat: 'standard', status: 'published', attemptLimit: 0,
       durationMinutes: 60, questions: [{ question: standardQuestion._id, score: 2 }],
     });
     const unlimitedToeic = await Assessment.create({

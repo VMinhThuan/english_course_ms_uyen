@@ -3,9 +3,15 @@ import { jwtConfig } from '../configs/jwt.js';
 import User from '../models/User.js';
 import {
   getRevokedSessionError,
+  getSessionReplacedError,
   getStudentStatusError,
   isTokenIssuedBeforeSuspension,
 } from '../security/accountAccessPolicy.js';
+import {
+  getSessionIdFromDecodedToken,
+  getTokenType,
+  isStudentSessionEnforcementEnabled,
+} from '../security/authSession.js';
 
 const sendFailure = (res, failure) => res.status(failure.statusCode).json({
   status: 'error',
@@ -45,41 +51,70 @@ export const authenticateRequest = async (req) => {
     return { error: { statusCode: 401, message: 'No token provided' } };
   }
 
+  let decoded;
   try {
-    const decoded = jwt.verify(authHeader.substring(7), jwtConfig.secret);
-    const user = await User.findById(decoded.userId).select('-password');
-    if (!user) return { error: { statusCode: 401, message: 'User not found or inactive' } };
-
-    const studentStatusError = getStudentStatusError(user);
-    if (studentStatusError) return { error: studentStatusError, user, decoded };
-
-    if (!user.isActive) {
-      return { error: { statusCode: 401, message: 'User not found or inactive' }, user, decoded };
-    }
-
-    if (isTokenIssuedBeforeSuspension(user, decoded.iat)) {
-      return { error: getRevokedSessionError(), user, decoded };
-    }
-
-    return { user, decoded };
+    decoded = jwt.verify(authHeader.substring(7), jwtConfig.secret, {
+      ...(jwtConfig.issuer ? { issuer: jwtConfig.issuer } : {}),
+      ...(jwtConfig.audience ? { audience: jwtConfig.audience } : {}),
+    });
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
       return { error: { statusCode: 401, message: 'Token expired' } };
     }
     return { error: { statusCode: 401, message: 'Invalid token' } };
   }
+
+  const tokenType = getTokenType(decoded);
+  if (tokenType && tokenType !== 'access') {
+    return { error: { statusCode: 401, code: 'INVALID_TOKEN_TYPE', message: 'Invalid token type' }, decoded };
+  }
+  const user = await User.findById(decoded.userId).select('-password +authSession');
+  if (!user) return { error: { statusCode: 401, message: 'User not found or inactive' } };
+
+  const studentStatusError = getStudentStatusError(user);
+  if (studentStatusError) return { error: studentStatusError, user, decoded };
+
+  if (!user.isActive) {
+    return { error: { statusCode: 401, message: 'User not found or inactive' }, user, decoded };
+  }
+
+  if (isTokenIssuedBeforeSuspension(user, decoded.iat)) {
+    return { error: getRevokedSessionError(), user, decoded };
+  }
+
+  if (user.role === 'student' && isStudentSessionEnforcementEnabled()) {
+    const sessionId = getSessionIdFromDecodedToken(decoded);
+    if (tokenType !== 'access' || !sessionId || sessionId !== user.authSession?.sessionId) {
+      return { error: getSessionReplacedError(), user, decoded };
+    }
+  }
+
+  return { user, decoded, authSessionId: getSessionIdFromDecodedToken(decoded) };
 };
 
 // Account state is re-read from MongoDB for every protected request, so suspension takes effect
 // for already-issued access tokens without touching attempts or learner data.
 export const verifyToken = async (req, res, next) => {
-  const result = await authenticateRequest(req);
-  if (result.error) {
-    if (result.error.code?.startsWith('ACCOUNT_')) clearRefreshTokenCookie(res);
-    return sendFailure(res, result.error);
+  try {
+    const result = await authenticateRequest(req);
+    if (result.error) {
+      if (result.error.code?.startsWith('ACCOUNT_') || result.error.code === 'SESSION_REPLACED') clearRefreshTokenCookie(res);
+      return sendFailure(res, result.error);
+    }
+    req.user = result.user;
+    req.authSessionId = result.authSessionId || null;
+    return next();
+  } catch (error) {
+    console.error('Authentication lookup failed closed', {
+      errorName: error?.name || 'Error',
+      errorCode: typeof error?.code === 'string' ? error.code : undefined,
+    });
+    return res.status(503).json({
+      status: 'error',
+      code: 'AUTHENTICATION_UNAVAILABLE',
+      message: 'Dịch vụ xác thực hiện chưa sẵn sàng. Vui lòng thử lại sau.',
+    });
   }
-  req.user = result.user;
-  return next();
 };
 
 // Optional auth keeps anonymous public discovery working, but a recognized suspended/revoked
@@ -88,17 +123,30 @@ export const optionalAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return next();
 
-  const result = await authenticateRequest(req);
-  if (result.error) {
-    if (result.error.code?.startsWith('ACCOUNT_') || result.error.code === 'SESSION_REVOKED') {
-      if (result.error.code?.startsWith('ACCOUNT_')) clearRefreshTokenCookie(res);
-      return sendFailure(res, result.error);
+  try {
+    const result = await authenticateRequest(req);
+    if (result.error) {
+      if (result.error.code?.startsWith('ACCOUNT_') || result.error.code === 'SESSION_REVOKED' || result.error.code === 'SESSION_REPLACED') {
+        if (result.error.code?.startsWith('ACCOUNT_') || result.error.code === 'SESSION_REPLACED') clearRefreshTokenCookie(res);
+        return sendFailure(res, result.error);
+      }
+      return next();
     }
-    return next();
-  }
 
-  req.user = result.user;
-  return next();
+    req.user = result.user;
+    req.authSessionId = result.authSessionId || null;
+    return next();
+  } catch (error) {
+    console.error('Optional authentication lookup failed closed', {
+      errorName: error?.name || 'Error',
+      errorCode: typeof error?.code === 'string' ? error.code : undefined,
+    });
+    return res.status(503).json({
+      status: 'error',
+      code: 'AUTHENTICATION_UNAVAILABLE',
+      message: 'Dịch vụ xác thực hiện chưa sẵn sàng. Vui lòng thử lại sau.',
+    });
+  }
 };
 
 // Check role middleware

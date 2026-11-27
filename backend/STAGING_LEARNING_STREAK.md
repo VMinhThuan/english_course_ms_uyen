@@ -30,9 +30,23 @@ english_course_staging
 
 Không dùng URI đang có trong `backend/.env` cho staging. Tạo database user riêng, chỉ có quyền `readWrite` trên `english_course_staging`; không cấp quyền trên database production, không dùng tài khoản Atlas owner.
 
-Copy `backend/.env.staging.example` thành file môi trường staging secret-managed. Dùng `APP_ENV=staging` và giữ `NODE_ENV=production` để runtime Node/Express dùng production behavior. Cần cấu hình cả Upstash Redis staging vì rate limiting phải dùng shared store khi chạy nhiều instance. Các biến cần có: `MONGODB_URI`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_NAMESPACE`, `RATE_LIMIT_REDIS_TIMEOUT_MS`, `TRUST_PROXY_HOPS`, `FRONTEND_URL`, `FRONTEND_ORIGINS`.
+Copy `backend/.env.staging.example` thành file môi trường staging secret-managed. Dùng `APP_ENV=staging` và giữ `NODE_ENV=production` để runtime Node/Express dùng production behavior. MongoDB là shared authority cho authentication, learning sessions và rate limiting khi chạy nhiều instance. Các biến cần có: `MONGODB_URI`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `RATE_LIMIT_NAMESPACE`, `TRUST_PROXY_HOPS`, `FRONTEND_URL`, `FRONTEND_ORIGINS`.
 
 `RATE_LIMIT_NAMESPACE` phải khác production. `TRUST_PROXY_HOPS` chỉ tăng từ `0` sau khi đã xác minh số reverse-proxy hop; không tin `X-Forwarded-For` mặc định.
+
+Kiểm tra index rate limiting mà không ghi database:
+
+```bash
+APP_ENV=staging npm --prefix backend run rate-limit:index
+```
+
+Sau khi backup và review trạng thái index, apply trong staging:
+
+```bash
+APP_ENV=staging npm --prefix backend run rate-limit:index -- --apply
+```
+
+Rate-limit bucket tự reset theo `expiresAt`; TTL index chỉ dọn dữ liệu cũ và không được dùng làm cơ chế reset chính.
 
 Kiểm tra target mà không kết nối:
 

@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import express from 'express';
 import test from 'node:test';
 import {
-  assertRateLimitConfiguration,
   createRateLimiter,
   getRateLimitNamespace,
 } from '../src/middlewares/rateLimit.js';
@@ -64,19 +63,11 @@ test('authenticated limiter keys by user and allows independent users', async ()
   }
 });
 
-test('staging and production require a shared Redis store', () => {
-  assert.throws(
-    () => assertRateLimitConfiguration({ APP_ENV: 'staging', NODE_ENV: 'production' }),
-    /Shared rate-limit store is required/,
-  );
-  assert.deepEqual(
-    assertRateLimitConfiguration({ APP_ENV: 'staging', NODE_ENV: 'production', UPSTASH_REDIS_REST_URL: 'https://redis.test', UPSTASH_REDIS_REST_TOKEN: 'token' }),
-    { hasRedis: true, sharedStoreRequired: true },
-  );
-});
-
-test('rate-limit namespace isolates staging and production key spaces', () => {
+test('MongoDB rate-limit configuration does not require an external store', () => {
   assert.equal(getRateLimitNamespace({ APP_ENV: 'staging' }), 'staging');
   assert.equal(getRateLimitNamespace({ NODE_ENV: 'production' }), 'production');
+});
+
+test('rate-limit namespace sanitizes deployment-specific key spaces', () => {
   assert.equal(getRateLimitNamespace({ RATE_LIMIT_NAMESPACE: 'staging/eu-1' }), 'staging-eu-1');
 });

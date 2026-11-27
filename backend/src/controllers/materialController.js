@@ -487,10 +487,11 @@ export const getStudentMaterialsByLesson = async (req, res, next) => {
 
 const getAuthorizedMaterialFile = async (req, res, { preview = false } = {}) => {
   const material = await loadMaterialWithParents(req.params.id);
-    if (!material || !material.lesson) {
-      sendError(res, 404, 'MATERIAL_NOT_FOUND', 'Material not found.');
-      return null;
-    }
+
+  if (!material || !material.lesson) {
+    sendError(res, 404, 'MATERIAL_NOT_FOUND', 'Material not found.');
+    return null;
+  }
 
     const course = material.lesson.course || material.course;
     const decision = evaluateMaterialAccess({
@@ -505,10 +506,12 @@ const getAuthorizedMaterialFile = async (req, res, { preview = false } = {}) => 
       return null;
     }
 
-    const externalUrl = isSafeExternalMaterialUrl(material.fileUrl) ? material.fileUrl : null;
-    const blobPath = getPrivateBlobPathname(material.fileUrl);
-    const filePath = materialFilePath(material);
-    if (!filePath && !blobPath) {
+  const externalUrl = isSafeExternalMaterialUrl(material.fileUrl) ? material.fileUrl : null;
+  const blobPath = isPrivateBlobUrl(material.fileUrl)
+    ? getPrivateBlobPathname(material.fileUrl)
+    : null;
+  const filePath = materialFilePath(material);
+  if (!filePath && !blobPath) {
       if (externalUrl && !preview) {
         res.set('Cache-Control', 'private, no-store');
         res.redirect(302, externalUrl);

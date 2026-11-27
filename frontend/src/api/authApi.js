@@ -1,4 +1,5 @@
 import axiosInstance from './axiosConfig.js';
+import { AUTH_EVENT_TYPES, getCurrentAccessTokenSessionId, publishAuthEvent } from '../utils/authEvents.js';
 
 export const authApi = {
   register: async (userData) => {
@@ -43,6 +44,11 @@ export const authApi = {
 
   changePassword: async (passwordData) => {
     const response = await axiosInstance.put('/auth/change-password', passwordData);
+    if (response.data.reauthRequired) {
+      const sessionId = getCurrentAccessTokenSessionId();
+      publishAuthEvent({ type: AUTH_EVENT_TYPES.LOGOUT_COMMITTED, sessionId });
+      localStorage.removeItem('accessToken');
+    }
     return response.data;
   },
 };

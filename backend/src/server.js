@@ -10,6 +10,7 @@ dotenv.config({ path: join(__dirname, '../.env') });
 
 import app from './app.js';
 import connectDB, { getDatabaseErrorDiagnostic } from './configs/database.js';
+import { getRateLimitIndexStatus } from './middlewares/rateLimit.js';
 
 // Validate required environment variables in local dev
 if (!process.env.MONGODB_URI) {
@@ -27,6 +28,15 @@ const PORT = process.env.PORT || 3000;
 // explicit 503 instead of leaving clients with a connection-refused error.
 connectDB()
     .then(() => {
+        getRateLimitIndexStatus()
+            .then((status) => {
+                if (!status.ready) {
+                    console.error('MongoDB rate-limit indexes are not ready; rate-limited requests will fail closed until migration runs.', JSON.stringify(status));
+                }
+            })
+            .catch((error) => {
+                console.error('MongoDB rate-limit index readiness check failed; rate-limited requests will fail closed.', error?.name || 'Error');
+            });
         app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);

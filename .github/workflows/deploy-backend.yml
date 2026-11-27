@@ -57,6 +57,11 @@ jobs:
       - name: Run offline security regression tests
         run: npm run test:phase1
 
+      - name: Run MongoDB-backed rate-limit regression tests
+        run: |
+          NODE_ENV=test npm run test:rate-limiter
+          NODE_ENV=test npm run test:rate-limiter-mongo
+
   authorize:
     name: Authorize read-only preflight and production upload
     needs: verify

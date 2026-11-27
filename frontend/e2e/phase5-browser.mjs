@@ -431,6 +431,11 @@ async function main() {
   process.env.NODE_ENV = 'test';
   process.env.FRONTEND_URL = 'http://127.0.0.1';
   process.env.VERCEL = '';
+  // Prevent app-level model imports from starting background collection
+  // creation while the disposable fixture is being seeded. Explicit model
+  // initialization below must own collection/index setup on this local
+  // standalone MongoDB instance.
+  mongoose.set('autoCreate', false);
 
   const [{ default: connectDB }, { default: app }] = await Promise.all([
     import(pathToFileURL(path.join(backendRoot, 'src/configs/database.js'))),

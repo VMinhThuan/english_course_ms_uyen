@@ -8,10 +8,31 @@ import {
 } from '../middlewares/auth.js';
 import {
     getRevokedSessionError,
+    getRefreshReuseError,
+    getRefreshTokenExpiredError,
+    getSessionReplacedError,
     getStudentStatusError,
     isTokenIssuedBeforeSuspension,
 } from '../security/accountAccessPolicy.js';
+import {
+    createAuthSessionState,
+    createRefreshJti,
+    createSessionId,
+    createTokenJti,
+    getSessionIdFromDecodedToken,
+    getTokenJti,
+    getTokenType,
+    hashRefreshToken,
+    isLegacyJwtMigrationEnabled,
+    isRefreshRotationEnabled,
+    isStudentSessionEnforcementEnabled,
+} from '../security/authSession.js';
 import { isValidStudentGroupName, normalizeStudentGroupName } from '../utils/studentGroupName.js';
+
+const findUserWithAuthSession = async (userId) => {
+    const query = User.findById(userId);
+    return typeof query?.select === 'function' ? query.select('+authSession') : query;
+};
 
 // @desc    Register new user
 // @route   POST /api/v1/auth/register
@@ -168,9 +189,52 @@ export const login = async(req, res, next) => {
             });
         }
 
-        // Generate tokens
-        const accessToken = generateAccessToken(user._id);
-        const refreshToken = generateRefreshToken(user._id);
+        // Only students participate in the single-active-session policy. The
+        // session is committed atomically before the token pair is returned.
+        const isStudent = user.role === 'student';
+        const sessionId = isStudent ? createSessionId() : null;
+        const refreshJti = isStudent ? createRefreshJti() : null;
+        const accessJti = isStudent ? createTokenJti() : null;
+        const accessToken = generateAccessToken(user._id, {
+            ...(sessionId ? { sessionId, jti: accessJti } : {}),
+        });
+        const refreshToken = generateRefreshToken(user._id, {
+            ...(sessionId ? { sessionId, jti: refreshJti } : {}),
+        });
+
+        if (sessionId) {
+            const now = new Date();
+            const committedUser = await User.findOneAndUpdate(
+                {
+                    _id: user._id,
+                    isActive: true,
+                    ...(isStudent ? { status: 'active' } : {}),
+                },
+                {
+                    $set: {
+                        authSession: createAuthSessionState({
+                            sessionId,
+                            refreshJti,
+                            refreshTokenHash: hashRefreshToken(refreshToken),
+                            now,
+                        }),
+                    },
+                },
+                { new: true, runValidators: true },
+            );
+            if (!committedUser) {
+                const latestUser = await User.findById(user._id);
+                const latestStatusError = getStudentStatusError(latestUser);
+                if (latestStatusError) {
+                    return res.status(latestStatusError.statusCode).json({
+                        status: 'error',
+                        code: latestStatusError.code,
+                        message: latestStatusError.message,
+                    });
+                }
+                return res.status(401).json({ status: 'error', message: 'Account is deactivated' });
+            }
+        }
 
         // Remove cookies from both the current and legacy paths before setting
         // the canonical cookie, preventing an older token from shadowing it.
@@ -202,7 +266,7 @@ export const login = async(req, res, next) => {
 // @access  Public
 export const refreshToken = async(req, res, next) => {
     try {
-        const refreshToken = req.cookies.refreshToken;
+        const refreshToken = req.cookies?.refreshToken;
 
         if (!refreshToken) {
             clearRefreshTokenCookie(res);
@@ -212,8 +276,11 @@ export const refreshToken = async(req, res, next) => {
             });
         }
 
-        const decoded = jwt.verify(refreshToken, jwtConfig.refreshSecret);
-        const user = await User.findById(decoded.userId);
+        const decoded = jwt.verify(refreshToken, jwtConfig.refreshSecret, {
+            ...(jwtConfig.issuer ? { issuer: jwtConfig.issuer } : {}),
+            ...(jwtConfig.audience ? { audience: jwtConfig.audience } : {}),
+        });
+        const user = await findUserWithAuthSession(decoded.userId);
 
         if (!user) {
             clearRefreshTokenCookie(res);
@@ -251,8 +318,132 @@ export const refreshToken = async(req, res, next) => {
             });
         }
 
-        const newAccessToken = generateAccessToken(user._id);
+        const isStudent = user.role === 'student';
+        const sessionEnforcement = isStudent && isStudentSessionEnforcementEnabled();
+        const rotationEnabled = isStudent && isRefreshRotationEnabled();
+        const legacyMigrationEnabled = isLegacyJwtMigrationEnabled();
+        const sessionId = getSessionIdFromDecodedToken(decoded);
+        const tokenType = getTokenType(decoded);
 
+        if (isStudent && sessionEnforcement) {
+            if (
+                tokenType !== 'refresh'
+                || !sessionId
+                || sessionId !== user.authSession?.sessionId
+            ) {
+                clearRefreshTokenCookie(res);
+                const replacedError = getSessionReplacedError();
+                return res.status(replacedError.statusCode).json({
+                    status: 'error',
+                    code: replacedError.code,
+                    message: replacedError.message,
+                });
+            }
+        } else if (isStudent && !sessionId && !legacyMigrationEnabled) {
+            clearRefreshTokenCookie(res);
+            const replacedError = getSessionReplacedError();
+            return res.status(replacedError.statusCode).json({ status: 'error', code: replacedError.code, message: replacedError.message });
+        } else if (tokenType && tokenType !== 'refresh') {
+            clearRefreshTokenCookie(res);
+            return res.status(401).json({ status: 'error', code: 'INVALID_TOKEN_TYPE', message: 'Invalid token type' });
+        }
+
+        let nextRefreshToken = null;
+        // A legacy token remains on the compatibility path until strict
+        // enforcement is enabled; session-bound tokens use rotation even if
+        // the two rollout flags are enabled in separate steps.
+        if (rotationEnabled && sessionId && tokenType === 'refresh') {
+            const currentHash = hashRefreshToken(refreshToken);
+            const nextJti = createRefreshJti();
+            nextRefreshToken = generateRefreshToken(user._id, { sessionId, jti: nextJti });
+            const nextHash = hashRefreshToken(nextRefreshToken);
+            const now = new Date();
+            const previousValidUntil = new Date(now.getTime() + 15 * 1000);
+            const currentFilter = {
+                _id: user._id,
+                'authSession.sessionId': sessionId,
+                'authSession.refreshJti': getTokenJti(decoded),
+                'authSession.refreshTokenHash': currentHash,
+            };
+            let rotatedUser = await User.findOneAndUpdate(
+                currentFilter,
+                {
+                    $set: {
+                        'authSession.lastSeenAt': now,
+                        'authSession.previousRefreshJti': getTokenJti(decoded),
+                        'authSession.previousRefreshTokenHash': currentHash,
+                        'authSession.previousRefreshValidUntil': previousValidUntil,
+                        'authSession.refreshJti': nextJti,
+                        'authSession.refreshTokenHash': nextHash,
+                    },
+                },
+                { new: true },
+            );
+
+            // A second legitimate tab may present the token that the first
+            // refresh just moved to the short grace slot. Accept it without
+            // revoking the session, then issue another current token. This is
+            // the server-side recovery path for concurrent browser refreshes.
+            if (!rotatedUser) {
+                const activeDuringGrace = await findUserWithAuthSession(user._id);
+                rotatedUser = await User.findOneAndUpdate(
+                    {
+                        _id: user._id,
+                        'authSession.sessionId': sessionId,
+                        'authSession.previousRefreshJti': getTokenJti(decoded),
+                        'authSession.previousRefreshTokenHash': currentHash,
+                        'authSession.previousRefreshValidUntil': { $gt: now },
+                        'authSession.refreshJti': activeDuringGrace?.authSession?.refreshJti,
+                        'authSession.refreshTokenHash': activeDuringGrace?.authSession?.refreshTokenHash,
+                    },
+                    {
+                        $set: {
+                            'authSession.lastSeenAt': now,
+                            // Preserve the token returned by the first
+                            // concurrent refresh as the new grace token. This
+                            // prevents response-order races from turning a
+                            // legitimate stale Set-Cookie into replay.
+                            'authSession.previousRefreshJti': activeDuringGrace?.authSession?.refreshJti,
+                            'authSession.previousRefreshTokenHash': activeDuringGrace?.authSession?.refreshTokenHash,
+                            'authSession.previousRefreshValidUntil': previousValidUntil,
+                            'authSession.refreshJti': nextJti,
+                            'authSession.refreshTokenHash': nextHash,
+                        },
+                    },
+                    { new: true },
+                );
+            }
+
+            if (!rotatedUser) {
+                const activeUser = await findUserWithAuthSession(user._id);
+                if (activeUser?.authSession?.sessionId !== sessionId) {
+                    clearRefreshTokenCookie(res);
+                    const replacedError = getSessionReplacedError();
+                    return res.status(replacedError.statusCode).json({
+                        status: 'error',
+                        code: replacedError.code,
+                        message: replacedError.message,
+                    });
+                }
+                await User.updateOne(
+                    { _id: user._id, 'authSession.sessionId': sessionId },
+                    { $set: { authSession: null } },
+                );
+                clearRefreshTokenCookie(res);
+                const reuseError = getRefreshReuseError();
+                return res.status(reuseError.statusCode).json({
+                    status: 'error',
+                    code: reuseError.code,
+                    message: reuseError.message,
+                });
+            }
+        }
+
+        const newAccessToken = generateAccessToken(user._id, {
+            ...(sessionId ? { sessionId, jti: createTokenJti() } : {}),
+        });
+
+        if (nextRefreshToken) setRefreshTokenCookie(res, nextRefreshToken);
         res.json({
             status: 'success',
             message: 'Token refreshed',
@@ -261,17 +452,23 @@ export const refreshToken = async(req, res, next) => {
             },
         });
     } catch (error) {
-        const invalidRefreshToken = [
-            'JsonWebTokenError',
-            'TokenExpiredError',
-            'NotBeforeError',
-        ].includes(error.name);
+        const invalidRefreshToken = ['JsonWebTokenError', 'NotBeforeError'].includes(error.name);
 
+        if (error.name === 'TokenExpiredError') {
+            clearRefreshTokenCookie(res);
+            const expiredError = getRefreshTokenExpiredError();
+            return res.status(expiredError.statusCode).json({
+                status: 'error',
+                code: expiredError.code,
+                message: expiredError.message,
+            });
+        }
         if (!invalidRefreshToken) return next(error);
 
         clearRefreshTokenCookie(res);
         return res.status(401).json({
             status: 'error',
+            code: 'INVALID_REFRESH_TOKEN',
             message: 'Invalid refresh token',
         });
     }
@@ -280,7 +477,42 @@ export const refreshToken = async(req, res, next) => {
 // @desc    Logout user
 // @route   POST /api/v1/auth/logout
 // @access  Private
-export const logout = async(req, res) => {
+export const logout = async(req, res, next) => {
+    try {
+        let claims = null;
+        const authHeader = req.headers.authorization;
+        if (authHeader?.startsWith('Bearer ')) {
+            try {
+                claims = jwt.verify(authHeader.substring(7), jwtConfig.secret, {
+                    ignoreExpiration: true,
+                    ...(jwtConfig.issuer ? { issuer: jwtConfig.issuer } : {}),
+                    ...(jwtConfig.audience ? { audience: jwtConfig.audience } : {}),
+                });
+            } catch {
+                claims = null;
+            }
+        }
+        if (!claims && req.cookies?.refreshToken) {
+            try {
+                claims = jwt.verify(req.cookies.refreshToken, jwtConfig.refreshSecret, {
+                    ignoreExpiration: true,
+                    ...(jwtConfig.issuer ? { issuer: jwtConfig.issuer } : {}),
+                    ...(jwtConfig.audience ? { audience: jwtConfig.audience } : {}),
+                });
+            } catch {
+                claims = null;
+            }
+        }
+        const sessionId = getSessionIdFromDecodedToken(claims);
+        if (claims?.userId && sessionId) {
+            await User.updateOne(
+                { _id: claims.userId, 'authSession.sessionId': sessionId },
+                { $set: { authSession: null } },
+            );
+        }
+    } catch (error) {
+        return next(error);
+    }
     clearRefreshTokenCookie(res);
     res.json({
         status: 'success',
@@ -306,7 +538,7 @@ export const getMe = async(req, res) => {
 export const updateProfile = async (req, res, next) => {
     try {
         const { fullName, phoneNumber, groupName } = req.body;
-        const user = await User.findById(req.user.id);
+        const user = await findUserWithAuthSession(req.user.id);
 
         if (!user) {
             return res.status(404).json({
@@ -415,10 +647,16 @@ export const changePassword = async (req, res, next) => {
         }
 
         user.password = newPassword;
+        // Password changes invalidate every existing login. The current
+        // browser receives a clean re-authentication requirement as well.
+        user.authSession = null;
         await user.save();
+        clearRefreshTokenCookie(res);
 
         res.json({
             status: 'success',
+            code: 'SESSION_REAUTH_REQUIRED',
+            reauthRequired: true,
             message: 'Đổi mật khẩu thành công',
         });
     } catch (error) {

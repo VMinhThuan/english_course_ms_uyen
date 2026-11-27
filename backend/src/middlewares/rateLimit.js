@@ -1,10 +1,4 @@
-import { Redis } from '@upstash/redis';
-
-const isSharedStoreRequired = (env) => {
-  const appEnv = String(env.APP_ENV || '').toLowerCase();
-  const nodeEnv = String(env.NODE_ENV || '').toLowerCase();
-  return nodeEnv === 'production' || appEnv === 'production' || appEnv === 'staging';
-};
+import RateLimitBucket from '../models/RateLimitBucket.js';
 
 const normalizeNamespace = (value) => String(value || 'default')
   .toLowerCase()
@@ -15,71 +9,138 @@ export const getRateLimitNamespace = (env = process.env) => normalizeNamespace(
   env.RATE_LIMIT_NAMESPACE || env.APP_ENV || env.NODE_ENV,
 );
 
-const getRedisTimeoutMs = (env) => {
-  const timeoutMs = Number(env.RATE_LIMIT_REDIS_TIMEOUT_MS || 1500);
-  if (!Number.isInteger(timeoutMs) || timeoutMs < 100) throw new Error('RATE_LIMIT_REDIS_TIMEOUT_MS must be an integer of at least 100ms.');
-  return timeoutMs;
-};
+const requiredRateLimitIndexes = Object.freeze({
+  uniqueKey: 'rate_limit_bucket_key_unique',
+  ttlExpiry: 'rate_limit_bucket_expires_ttl',
+});
 
-export const assertRateLimitConfiguration = (env = process.env) => {
-  const hasRedis = Boolean(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
-  if (isSharedStoreRequired(env) && !hasRedis) {
-    throw new Error(
-      'Shared rate-limit store is required for staging/production. Configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.',
-    );
-  }
-  return { hasRedis, sharedStoreRequired: isSharedStoreRequired(env) };
-};
+const sameKey = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 
-class MemoryRateLimitStore {
-  constructor(now = () => Date.now()) {
-    this.now = now;
-    this.entries = new Map();
-  }
-
-  async increment(key, windowMs) {
-    const now = this.now();
-    const current = this.entries.get(key);
-    if (!current || current.resetAt <= now) {
-      const next = { count: 1, resetAt: now + windowMs };
-      this.entries.set(key, next);
-      return next;
+export const getRateLimitIndexStatus = async ({ model = RateLimitBucket } = {}) => {
+  let indexes;
+  try {
+    indexes = await model.collection.listIndexes().toArray();
+  } catch (error) {
+    if (error?.codeName === 'NamespaceNotFound' || error?.code === 26) {
+      indexes = [];
+    } else {
+      throw error;
     }
-    current.count += 1;
-    return current;
   }
-}
 
-class UpstashRateLimitStore {
-  constructor(env = process.env) {
-    this.namespace = getRateLimitNamespace(env);
-    this.timeoutMs = getRedisTimeoutMs(env);
-    this.redis = new Redis({
-      url: env.UPSTASH_REDIS_REST_URL,
-      token: env.UPSTASH_REDIS_REST_TOKEN,
-      retry: { retries: 0 },
-      signal: () => AbortSignal.timeout(this.timeoutMs),
-    });
+  const uniqueKey = indexes.find((index) => (
+    sameKey(index.key, { key: 1 })
+    && index.unique === true
+  ));
+  const ttlExpiry = indexes.find((index) => (
+    sameKey(index.key, { expiresAt: 1 })
+    && Number(index.expireAfterSeconds) === 0
+  ));
+
+  return {
+    ready: Boolean(uniqueKey && ttlExpiry),
+    collectionPresent: indexes.length > 0,
+    uniqueKeyIndexPresent: Boolean(uniqueKey),
+    ttlIndexPresent: Boolean(ttlExpiry),
+    missingIndexes: [
+      ...(uniqueKey ? [] : [requiredRateLimitIndexes.uniqueKey]),
+      ...(ttlExpiry ? [] : [requiredRateLimitIndexes.ttlExpiry]),
+    ],
+  };
+};
+
+export const createRateLimitIndexesUnavailableError = (status) => {
+  const error = new Error('Required MongoDB rate-limit indexes are not ready.');
+  error.code = 'RATE_LIMIT_INDEXES_UNAVAILABLE';
+  error.statusCode = 503;
+  error.rateLimitIndexStatus = status;
+  error.operatorAction = 'Run `npm --prefix backend run rate-limit:index` to check, then run the approved `--apply` migration before retrying.';
+  return error;
+};
+
+export const assertRateLimitIndexesReady = async (options = {}) => {
+  const status = await getRateLimitIndexStatus(options);
+  if (!status.ready) throw createRateLimitIndexesUnavailableError(status);
+  return status;
+};
+
+// A MongoDB bucket is one document per limiter identity and fixed window.
+// The update pipeline resets expired buckets and increments live buckets in
+// one atomic single-document operation. TTL deletion is only storage hygiene;
+// correctness comes from the expiresAt comparison in the pipeline.
+const buildBucketPipeline = ({ scope, now, resetAt }) => {
+  const expired = {
+    $or: [
+      { $eq: [{ $type: '$expiresAt' }, 'missing'] },
+      { $eq: [{ $type: '$expiresAt' }, 'null'] },
+      { $lte: ['$expiresAt', now] },
+    ],
+  };
+
+  return [{
+    $set: {
+      scope: { $literal: scope },
+      count: {
+        $cond: [
+          expired,
+          1,
+          { $add: [{ $ifNull: ['$count', 0] }, 1] },
+        ],
+      },
+      windowStart: {
+        $cond: [expired, now, { $ifNull: ['$windowStart', now] }],
+      },
+      expiresAt: {
+        $cond: [expired, resetAt, '$expiresAt'],
+      },
+    },
+  }];
+};
+
+const isDuplicateKeyError = (error) => Number(error?.code) === 11000;
+
+export class MongoRateLimitStore {
+  constructor({ model = RateLimitBucket, namespace = getRateLimitNamespace() } = {}) {
+    this.model = model;
+    this.namespace = normalizeNamespace(namespace);
   }
 
   async increment(key, windowMs) {
-    const redisKey = `rate-limit:${this.namespace}:${key}`;
-    const count = await this.redis.incr(redisKey);
-    // A fixed-window counter is sufficient here and keeps the operation
-    // atomic across serverless instances. Refreshing TTL on every request
-    // would turn it into a sliding lock, so only the first request sets it.
-    if (count === 1) await this.redis.expire(redisKey, Math.ceil(windowMs / 1000));
-    const ttlSeconds = Math.max(1, Number(await this.redis.ttl(redisKey)) || Math.ceil(windowMs / 1000));
-    return { count, resetAt: Date.now() + ttlSeconds * 1000 };
+    const now = new Date();
+    const resetAt = new Date(now.getTime() + windowMs);
+    const pipeline = buildBucketPipeline({
+      scope: this.namespace,
+      now,
+      resetAt,
+    });
+    const identityKey = `rate-limit:${this.namespace}:${String(key).slice(0, 460)}`;
+
+    // An upsert can encounter a unique-key race when two instances create the
+    // same first bucket concurrently. Retry the same atomic pipeline against
+    // the now-existing document; no read-modify-write window exists here.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const bucket = await this.model.findOneAndUpdate(
+          { key: identityKey },
+          pipeline,
+          { upsert: true, new: true, returnDocument: 'after' },
+        );
+        return {
+          count: bucket.count,
+          resetAt: new Date(bucket.expiresAt).getTime(),
+        };
+      } catch (error) {
+        if (!isDuplicateKeyError(error) || attempt === 1) throw error;
+      }
+    }
+
+    throw new Error('Rate-limit bucket update did not complete.');
   }
 }
 
 let sharedStore;
 export const getRateLimitStore = () => {
-  if (!sharedStore) {
-    const config = assertRateLimitConfiguration();
-    sharedStore = config.hasRedis ? new UpstashRateLimitStore() : new MemoryRateLimitStore();
-  }
+  if (!sharedStore) sharedStore = new MongoRateLimitStore();
   return sharedStore;
 };
 
@@ -90,8 +151,8 @@ export const resetRateLimitStoreForTests = () => {
 const userIdentity = (req) => req.user?._id || req.user?.id || null;
 
 // Express only derives req.ip from X-Forwarded-For when trust proxy is enabled.
-// The app configures that explicitly with TRUST_PROXY_HOPS; without it, req.ip
-// remains the direct socket address and client-supplied forwarding headers are ignored.
+// The app configures that explicitly with TRUST_PROXY_HOPS; without it, client
+// supplied forwarding headers do not change the direct socket identity.
 export const getRateLimitIdentity = (req, scope = 'ip') => {
   const userId = userIdentity(req);
   if (scope === 'user' && userId) return `user:${String(userId)}`;
@@ -114,10 +175,18 @@ export const createRateLimiter = ({
 
   return async (req, res, next) => {
     try {
+      // Test doubles may be injected by unit tests. Every real Mongo-backed
+      // limiter must prove the unique and TTL indexes exist before it can
+      // mutate a bucket; otherwise a first-write race could create unsafe
+      // duplicate identities across instances.
+      const activeStore = store || getRateLimitStore();
+      if (activeStore instanceof MongoRateLimitStore) {
+        await assertRateLimitIndexesReady({ model: activeStore.model });
+      }
       const baseKey = getRateLimitIdentity(req, identity);
       const suffix = typeof keySuffix === 'function' ? keySuffix(req) : keySuffix;
       const key = `${name}:${baseKey}${suffix ? `:${suffix}` : ''}`;
-      const result = await (store || getRateLimitStore()).increment(key, windowMs);
+      const result = await activeStore.increment(key, windowMs);
       const remaining = Math.max(0, limit - result.count);
       const retryAfter = Math.max(1, Math.ceil((result.resetAt - Date.now()) / 1000));
       res.set({
@@ -140,8 +209,18 @@ export const createRateLimiter = ({
       res.set('Retry-After', '5');
       return res.status(503).json({
         status: 'error',
-        code: 'RATE_LIMIT_STORE_UNAVAILABLE',
-        message: 'Dịch vụ giới hạn truy cập hiện chưa sẵn sàng. Vui lòng thử lại sau.',
+        code: error?.code === 'RATE_LIMIT_INDEXES_UNAVAILABLE'
+          ? error.code
+          : 'RATE_LIMIT_STORE_UNAVAILABLE',
+        message: error?.code === 'RATE_LIMIT_INDEXES_UNAVAILABLE'
+          ? 'Rate limiting chưa sẵn sàng vì MongoDB indexes bắt buộc chưa tồn tại.'
+          : 'Dịch vụ giới hạn truy cập hiện chưa sẵn sàng. Vui lòng thử lại sau.',
+        ...(error?.code === 'RATE_LIMIT_INDEXES_UNAVAILABLE'
+          ? {
+            missingIndexes: error.rateLimitIndexStatus?.missingIndexes || [],
+            operatorAction: error.operatorAction,
+          }
+          : {}),
       });
     }
   };

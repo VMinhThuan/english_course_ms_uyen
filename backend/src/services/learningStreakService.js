@@ -94,9 +94,10 @@ const calculateRuns = (dateKeys) => {
 
 export const calculateStreakRuns = (dateKeys) => calculateRuns([...new Set(dateKeys)].sort());
 
-export const refreshLearningStreak = async (studentId, timezone = DEFAULT_TIMEZONE) => {
+export const refreshLearningStreak = async (studentId, timezone = DEFAULT_TIMEZONE, mongoSession = null) => {
   const completedRows = await DailyLearningProgress.find({ student: studentId, completed: true })
     .select('localDate completedAt')
+    .session(mongoSession)
     .sort({ localDate: 1 })
     .lean();
   const dateKeys = [...new Set(completedRows.map((row) => row.localDate))];
@@ -107,7 +108,7 @@ export const refreshLearningStreak = async (studentId, timezone = DEFAULT_TIMEZO
   const currentStreak = runs.lastCompletedDate === todayKey || runs.lastCompletedDate === yesterdayKey
     ? runs.latestRun
     : 0;
-  const previous = await LearningStreak.findOne({ student: studentId }).lean();
+  const previous = await LearningStreak.findOne({ student: studentId }).session(mongoSession).lean();
   const previousMilestones = new Map((previous?.milestones || []).map((item) => [item.days, item.unlockedAt]));
   const milestones = STREAK_MILESTONES
     .filter((days) => (previousMilestones.has(days) || currentStreak >= days))
@@ -129,7 +130,7 @@ export const refreshLearningStreak = async (studentId, timezone = DEFAULT_TIMEZO
       },
       $setOnInsert: { student: studentId },
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
+    { upsert: true, new: true, setDefaultsOnInsert: true, session: mongoSession },
   ).lean();
   return {
     currentStreak,
@@ -143,7 +144,7 @@ export const refreshLearningStreak = async (studentId, timezone = DEFAULT_TIMEZO
   };
 };
 
-const incrementLegacyDailyStudy = async ({ studentId, dateKey, seconds, at }) => {
+const incrementLegacyDailyStudy = async ({ studentId, dateKey, seconds, at, mongoSession = null }) => {
   if (!seconds) return;
   await StudentDailyStudy.updateOne(
     { _id: `${studentId}:${dateKey}` },
@@ -152,7 +153,7 @@ const incrementLegacyDailyStudy = async ({ studentId, dateKey, seconds, at }) =>
       $set: { lastActiveAt: at },
       $setOnInsert: { student: studentId, dateKey },
     },
-    { upsert: true },
+    { upsert: true, session: mongoSession },
   );
 };
 
@@ -163,6 +164,7 @@ export const creditValidatedInterval = async ({
   intervalStart,
   intervalEnd,
   timezone = DEFAULT_TIMEZONE,
+  mongoSession = null,
 }) => {
   const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
   if (!totalSeconds) return { addedSeconds: 0, completedToday: false, streak: null };
@@ -206,30 +208,31 @@ export const creditValidatedInterval = async ({
           completed: false,
         },
       },
-      { upsert: true },
+      { upsert: true, session: mongoSession },
     );
 
     const daily = await DailyLearningProgress.findOneAndUpdate(
       { _id: id, completed: false, validStudySeconds: { $gte: DAILY_TARGET_SECONDS } },
       { $set: { completed: true, completedAt: new Date() } },
-      { new: true },
+      { new: true, session: mongoSession },
     ).lean();
     if (daily) {
       completedToday = true;
-      streak = await refreshLearningStreak(studentId, timezone);
+      streak = await refreshLearningStreak(studentId, timezone, mongoSession);
     }
     await incrementLegacyDailyStudy({
       studentId,
       dateKey: bucket.dateKey,
       seconds: bucket.seconds,
       at: effectiveEnd,
+      mongoSession,
     });
   }
   return { addedSeconds: totalSeconds, completedToday, streak };
 };
 
-export const getDailyProgress = async (studentId, dateKey, timezone = DEFAULT_TIMEZONE) => {
-  const row = await DailyLearningProgress.findOne({ _id: `${studentId}:${dateKey}` }).lean();
+export const getDailyProgress = async (studentId, dateKey, timezone = DEFAULT_TIMEZONE, mongoSession = null) => {
+  const row = await DailyLearningProgress.findOne({ _id: `${studentId}:${dateKey}` }).session(mongoSession).lean();
   const validStudySeconds = row?.validStudySeconds || 0;
   return {
     dateKey,

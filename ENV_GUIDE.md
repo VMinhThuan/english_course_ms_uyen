@@ -70,6 +70,17 @@ JWT_REFRESH_EXPIRE=7d
 - Format: `7d` (7 ngày), `30d` (30 ngày)
 - Mặc định: `7d`
 
+#### 8. **Single Active Session flags**
+```env
+AUTH_SESSION_ENFORCEMENT_STUDENTS=false
+AUTH_REFRESH_ROTATION=false
+AUTH_LEGACY_JWT_MIGRATION=true
+```
+- Giữ `false` trong giai đoạn additive/migration.
+- Chỉ bật `AUTH_SESSION_ENFORCEMENT_STUDENTS=true` sau khi staging đã xác minh index, transaction và các luồng old-device/new-device.
+- Bật `AUTH_REFRESH_ROTATION=true` cùng rollout refresh rotation; cả hai flag đều mặc định an toàn là `false` nếu không khai báo.
+- `AUTH_LEGACY_JWT_MIGRATION` mặc định `true` để giữ compatibility trước strict rollout; khi enforcement bật, JWT legacy vẫn bị từ chối bất kể flag này.
+
 #### 8. **FRONTEND_URL** (CORS Origin)
 ```env
 FRONTEND_URL=http://localhost:5173
@@ -198,6 +209,24 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 - Truy cập: https://generate-secret.vercel.app/32
 
 ---
+
+## 🚦 Rate limiting
+
+Rate limiting dùng MongoDB collection `rate_limit_buckets`, shared giữa các backend instances. Không cần cache hoặc thêm service bên ngoài.
+
+Các biến tùy chọn:
+
+```env
+RATE_LIMIT_NAMESPACE=production
+TRUST_PROXY_HOPS=0
+```
+
+`RATE_LIMIT_NAMESPACE` tách bucket giữa các môi trường. `TRUST_PROXY_HOPS` chỉ tăng sau khi xác minh reverse-proxy chain để tránh tin `X-Forwarded-For` giả mạo. Trước khi chạy nhiều instance, kiểm tra và apply unique/TTL indexes bằng:
+
+```bash
+npm --prefix backend run rate-limit:index
+npm --prefix backend run rate-limit:index -- --apply
+```
 
 ## 📝 Checklist
 

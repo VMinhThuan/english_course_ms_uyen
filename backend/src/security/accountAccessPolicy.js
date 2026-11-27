@@ -48,3 +48,21 @@ export const getRevokedSessionError = () => ({
   code: 'SESSION_REVOKED',
   message: 'Phiên đăng nhập đã hết hiệu lực. Vui lòng đăng nhập lại.',
 });
+
+export const getSessionReplacedError = () => ({
+  statusCode: 401,
+  code: 'SESSION_REPLACED',
+  message: 'Phiên đăng nhập đã được thay thế trên thiết bị khác. Vui lòng đăng nhập lại.',
+});
+
+export const getRefreshReuseError = () => ({
+  statusCode: 401,
+  code: 'REFRESH_REUSE',
+  message: 'Refresh token đã được sử dụng lại. Vui lòng đăng nhập lại.',
+});
+
+export const getRefreshTokenExpiredError = () => ({
+  statusCode: 401,
+  code: 'TOKEN_EXPIRED',
+  message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+});

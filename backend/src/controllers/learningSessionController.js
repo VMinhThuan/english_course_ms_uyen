@@ -12,6 +12,7 @@ import {
   getDateKeyInTimezone,
   getUserTimezone,
 } from '../services/learningStreakService.js';
+import { isStudentSessionEnforcementEnabled } from '../security/authSession.js';
 
 const isObjectId = (value) => typeof value === 'string' && /^[\da-f]{24}$/i.test(value);
 const toObjectId = (value) => new mongoose.Types.ObjectId(value);
@@ -33,6 +34,42 @@ const ACTIVITY_PATH_PREFIXES = {
 const isApprovedActivityPath = (activityType, activityId) => {
   const path = String(activityId || '').trim();
   return Boolean(path && ACTIVITY_PATH_PREFIXES[activityType]?.some((prefix) => path === prefix || path.startsWith(prefix)));
+};
+
+const getLearningSessionScope = (req) => (
+  req.user?.role === 'student' && isStudentSessionEnforcementEnabled()
+    ? { authSessionId: req.authSessionId || '__missing_auth_session__' }
+    : {}
+);
+
+const isTransactionUnavailable = (error) => (
+  [20, 251, 263, 303].includes(Number(error?.code))
+  || /transaction.*(not supported|replica set|mongos)/i.test(String(error?.message || ''))
+);
+
+const runLearningTransaction = async (work) => {
+  const topologyType = mongoose.connection?.getClient?.()?.topology?.description?.type;
+  // Existing unit/integration suites intentionally use standalone
+  // MongoMemoryServer. Keep those local tests usable, while production and
+  // staging remain fail-closed unless MongoDB transactions are available.
+  if (process.env.NODE_ENV === 'test' && topologyType === 'Single') return work(null);
+  const mongoSession = await mongoose.startSession();
+  try {
+    let result;
+    await mongoSession.withTransaction(async () => {
+      result = await work(mongoSession);
+    });
+    return result;
+  } catch (error) {
+    if (isTransactionUnavailable(error)) {
+      error.statusCode = 503;
+      error.code = 'LEARNING_SESSION_UNAVAILABLE';
+      error.message = 'Tính năng ghi nhận thời gian học cần MongoDB replica set hoặc MongoDB Atlas.';
+    }
+    throw error;
+  } finally {
+    await mongoSession.endSession();
+  }
 };
 
 /**
@@ -119,82 +156,79 @@ export const startSession = async (req, res, next) => {
     const lessonObjectId = activityType === 'lesson' ? toObjectId(String(targetLessonId)) : null;
     const courseObjectId = activityType === 'lesson' ? lessonDoc.course : null;
 
-    // 1. Update or create LearningProgress
-    let progress = null;
-    const isFirstAccess = activityType === 'lesson'
-      ? !(progress = await LearningProgress.findOne({ student: studentId, lesson: lessonObjectId })) || progress.visitCount === 0
-      : false;
+    const { session, progress } = await runLearningTransaction(async (mongoSession) => {
+      // Progress, active-session fencing, the new session, and the activity
+      // event commit together. The unique partial index is the final guard
+      // against two concurrent starts for one student.
+      let transactionProgress = null;
+      const isFirstAccess = activityType === 'lesson'
+        ? !(transactionProgress = await LearningProgress.findOne({ student: studentId, lesson: lessonObjectId }).session(mongoSession))
+          || transactionProgress.visitCount === 0
+        : false;
 
-    if (activityType === 'lesson' && progress) {
-      progress.visitCount = (progress.visitCount || 0) + 1;
-      progress.lastAccessedAt = new Date();
-      if (progress.status === 'not_started') {
-        progress.status = 'in_progress';
-        if (!progress.startedAt) progress.startedAt = new Date();
-      }
-      await progress.save();
-    } else if (activityType === 'lesson') {
-      progress = await LearningProgress.create({
-        student: studentId,
-        lesson: lessonObjectId,
-        course: courseObjectId,
-        status: 'in_progress',
-        progress: 0,
-        startedAt: new Date(),
-        lastAccessedAt: new Date(),
-        visitCount: 1,
-        totalActiveSeconds: 0,
-      });
-    }
-
-    // 2. Close any stale previous active sessions for this student on any lesson
-    const now = new Date();
-    await LearningSession.updateMany(
-      {
-        student: studentId,
-        status: 'active',
-      },
-      {
-        $set: {
-          status: 'completed',
-          endedAt: now,
-        },
-      }
-    );
-
-    // 3. Create fresh active session
-    const session = await LearningSession.create({
-      student: studentId,
-      course: courseObjectId,
-      lesson: lessonObjectId,
-      activityType,
-      activityId: typeof rawActivityId === 'string' ? rawActivityId.trim().slice(0, 160) || null : null,
-      timezone: getUserTimezone(req.user),
-      startedAt: now,
-      lastHeartbeatAt: now,
-      accumulatedActiveSeconds: 0,
-      status: 'active',
-    });
-
-    // 4. Record user-visible activity event (debounced)
-    if (activityType === 'lesson') {
-      const eventType = isFirstAccess ? 'started_lesson' : 'resumed_lesson';
-      const recentActivity = await LearningActivity.findOne({
-        student: studentId,
-        lesson: lessonObjectId,
-        eventType,
-        createdAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) },
-      }).lean();
-      if (!recentActivity) {
-        await LearningActivity.create({
+      const now = new Date();
+      if (activityType === 'lesson' && transactionProgress) {
+        transactionProgress.visitCount = (transactionProgress.visitCount || 0) + 1;
+        transactionProgress.lastAccessedAt = now;
+        if (transactionProgress.status === 'not_started') {
+          transactionProgress.status = 'in_progress';
+          if (!transactionProgress.startedAt) transactionProgress.startedAt = now;
+        }
+        await transactionProgress.save({ session: mongoSession });
+      } else if (activityType === 'lesson') {
+        [transactionProgress] = await LearningProgress.create([{
           student: studentId,
+          lesson: lessonObjectId,
           course: courseObjectId,
+          status: 'in_progress',
+          progress: 0,
+          startedAt: now,
+          lastAccessedAt: now,
+          visitCount: 1,
+          totalActiveSeconds: 0,
+        }], { session: mongoSession });
+      }
+
+      await LearningSession.updateMany(
+        { student: studentId, status: 'active' },
+        { $set: { status: 'completed', endedAt: now } },
+        { session: mongoSession },
+      );
+
+      const [transactionSession] = await LearningSession.create([{
+        student: studentId,
+        authSessionId: req.authSessionId || null,
+        course: courseObjectId,
+        lesson: lessonObjectId,
+        activityType,
+        activityId: typeof rawActivityId === 'string' ? rawActivityId.trim().slice(0, 160) || null : null,
+        timezone: getUserTimezone(req.user),
+        startedAt: now,
+        lastHeartbeatAt: now,
+        accumulatedActiveSeconds: 0,
+        status: 'active',
+      }], { session: mongoSession });
+
+      if (activityType === 'lesson') {
+        const eventType = isFirstAccess ? 'started_lesson' : 'resumed_lesson';
+        const recentActivity = await LearningActivity.findOne({
+          student: studentId,
           lesson: lessonObjectId,
           eventType,
-          metadata: { lessonTitle: lessonDoc.title, chapter: lessonDoc.chapter || lessonDoc.topic || '' },
-        });
+          createdAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) },
+        }).session(mongoSession).lean();
+        if (!recentActivity) {
+          await LearningActivity.create([{
+            student: studentId,
+            course: courseObjectId,
+            lesson: lessonObjectId,
+            eventType,
+            metadata: { lessonTitle: lessonDoc.title, chapter: lessonDoc.chapter || lessonDoc.topic || '' },
+          }], { session: mongoSession });
+        }
       }
-    }
+      return { session: transactionSession, progress: transactionProgress };
+    });
 
     return res.status(201).json({
       status: 'success',
@@ -227,7 +261,7 @@ export const startSession = async (req, res, next) => {
  * @route   POST /api/v1/learning/sessions/heartbeat
  * @access  Private (Active Student / Admin / Teacher)
  */
-export const sendHeartbeat = async (req, res, next) => {
+const sendHeartbeatLegacy = async (req, res, next) => {
   try {
     const studentId = req.user._id;
     const { sessionId: rawSessionId, activeSeconds: rawActiveSeconds } = req.body || {};
@@ -359,12 +393,102 @@ export const sendHeartbeat = async (req, res, next) => {
   }
 };
 
+// Transactional heartbeat implementation. The legacy implementation above is
+// intentionally retained temporarily as a readable migration reference; this
+// export is the route handler used by the application.
+export const sendHeartbeat = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+    const { sessionId: rawSessionId, activeSeconds: rawActiveSeconds } = req.body || {};
+    if (!rawSessionId || !isObjectId(String(rawSessionId))) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_SESSION_ID', message: 'Mã phiên học không hợp lệ.' });
+    }
+    const idempotencyKey = String(req.get('Idempotency-Key') || req.body?.heartbeatId || randomUUID()).trim().slice(0, 160);
+    const result = await runLearningTransaction(async (mongoSession) => {
+      const session = await LearningSession.findOne({
+        _id: toObjectId(String(rawSessionId)),
+        student: studentId,
+        status: 'active',
+        ...getLearningSessionScope(req),
+      }).session(mongoSession);
+      if (!session) {
+        const existing = await LearningSession.findOne({ _id: toObjectId(String(rawSessionId)), student: studentId }).session(mongoSession).lean();
+        return { kind: existing ? 'inactive' : 'missing' };
+      }
+
+      const now = Date.now();
+      const lastHeartbeatMs = new Date(session.lastHeartbeatAt).getTime();
+      const wallElapsedSec = Math.max(0, Math.round((now - lastHeartbeatMs) / 1000));
+      if (wallElapsedSec > MAX_IDLE_SECONDS) {
+        session.status = 'completed';
+        session.endedAt = new Date(lastHeartbeatMs + 60000);
+        await session.save({ session: mongoSession });
+        return { kind: 'expired' };
+      }
+      if (session.startupCreditGranted && wallElapsedSec < 1) {
+        return { kind: 'success', sessionId: session._id, accumulatedActiveSeconds: session.accumulatedActiveSeconds || 0, addedSeconds: 0, rateLimited: true };
+      }
+
+      const duplicate = await LearningSessionHeartbeat.findOne({ session: session._id, idempotencyKey }).session(mongoSession).lean();
+      if (duplicate) return { kind: 'success', sessionId: session._id, accumulatedActiveSeconds: session.accumulatedActiveSeconds || 0, addedSeconds: 0, duplicate: true };
+      await LearningSessionHeartbeat.create([{ session: session._id, idempotencyKey }], { session: mongoSession });
+
+      const claimedSeconds = Number(rawActiveSeconds);
+      const safeClaimed = Number.isFinite(claimedSeconds) && claimedSeconds > 0 ? claimedSeconds : 0;
+      const maxAllowedSeconds = Math.min(MAX_HEARTBEAT_SECONDS, wallElapsedSec + (session.startupCreditGranted ? 0 : 5));
+      const addedSeconds = Math.round(Math.min(safeClaimed, maxAllowedSeconds));
+      const previousHeartbeatAt = session.lastHeartbeatAt;
+      const nextHeartbeatAt = new Date();
+      const updatedSession = await LearningSession.findOneAndUpdate(
+        { _id: session._id, student: studentId, status: 'active', lastHeartbeatAt: previousHeartbeatAt, ...getLearningSessionScope(req) },
+        { $inc: { accumulatedActiveSeconds: addedSeconds }, $set: { lastHeartbeatAt: nextHeartbeatAt, startupCreditGranted: true } },
+        { new: true, session: mongoSession },
+      );
+      if (!updatedSession) return { kind: 'success', sessionId: session._id, accumulatedActiveSeconds: session.accumulatedActiveSeconds || 0, addedSeconds: 0, concurrent: true };
+
+      let streakResult = null;
+      let dailyProgress = null;
+      if (addedSeconds > 0) {
+        await LearningProgress.updateOne(
+          { student: studentId, lesson: session.lesson },
+          { $inc: { totalActiveSeconds: addedSeconds }, $set: { lastAccessedAt: nextHeartbeatAt } },
+          { session: mongoSession },
+        );
+        streakResult = await creditValidatedInterval({ studentId, activityType: session.activityType, seconds: addedSeconds, intervalStart: previousHeartbeatAt, intervalEnd: nextHeartbeatAt, timezone: session.timezone || getUserTimezone(req.user), mongoSession });
+        dailyProgress = await getDailyProgress(studentId, getDateKeyInTimezone(new Date(), session.timezone || getUserTimezone(req.user)), session.timezone || getUserTimezone(req.user), mongoSession);
+      }
+      return { kind: 'success', sessionId: session._id, accumulatedActiveSeconds: updatedSession.accumulatedActiveSeconds, addedSeconds, dailyProgress, streak: streakResult?.streak || null };
+    });
+
+    if (result.kind === 'missing') return res.status(404).json({ status: 'error', code: 'SESSION_NOT_FOUND', message: 'Không tìm thấy phiên học.' });
+    if (result.kind === 'inactive') return res.status(400).json({ status: 'error', code: 'SESSION_NOT_ACTIVE', message: 'Phiên học không còn ở trạng thái hoạt động.' });
+    if (result.kind === 'expired') return res.status(400).json({ status: 'error', code: 'SESSION_EXPIRED', message: 'Phiên học đã tạm dừng do không có hoạt động trong thời gian dài.' });
+    return res.json({ status: 'success', data: {
+      sessionId: result.sessionId,
+      accumulatedActiveSeconds: result.accumulatedActiveSeconds,
+      addedSeconds: result.addedSeconds,
+      ...(result.rateLimited ? { rateLimited: true } : {}),
+      ...(result.duplicate ? { duplicate: true } : {}),
+      ...(result.concurrent ? { concurrent: true } : {}),
+      dailyProgress: result.dailyProgress,
+      streak: result.streak,
+    } });
+  } catch (error) {
+    if (error?.code === 11000) {
+      const sessionId = toObjectId(String(req.body.sessionId));
+      const current = await LearningSession.findById(sessionId).select('accumulatedActiveSeconds').lean();
+      return res.json({ status: 'success', data: { sessionId, accumulatedActiveSeconds: current?.accumulatedActiveSeconds || 0, addedSeconds: 0, duplicate: true } });
+    }
+    return next(error);
+  }
+};
+
 /**
  * @desc    End learning session
  * @route   POST /api/v1/learning/sessions/end
  * @access  Private (Active Student / Admin / Teacher)
  */
-export const endSession = async (req, res, next) => {
+const endSessionLegacy = async (req, res, next) => {
   try {
     const studentId = req.user._id;
     const { sessionId: rawSessionId, activeSeconds: rawActiveSeconds } = req.body || {};
@@ -473,6 +597,57 @@ export const endSession = async (req, res, next) => {
   }
 };
 
+export const endSession = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+    const { sessionId: rawSessionId, activeSeconds: rawActiveSeconds } = req.body || {};
+    if (!rawSessionId || !isObjectId(String(rawSessionId))) {
+      return res.status(400).json({ status: 'error', code: 'INVALID_SESSION_ID', message: 'Mã phiên học không hợp lệ.' });
+    }
+    const result = await runLearningTransaction(async (mongoSession) => {
+      const session = await LearningSession.findOne({ _id: toObjectId(String(rawSessionId)), student: studentId, ...getLearningSessionScope(req) }).session(mongoSession);
+      if (!session) return { kind: 'missing' };
+      if (session.status !== 'active') return { kind: 'success', accumulatedActiveSeconds: session.accumulatedActiveSeconds || 0, duplicate: true };
+
+      const now = Date.now();
+      const lastHeartbeatMs = new Date(session.lastHeartbeatAt).getTime();
+      const wallElapsedSec = Math.max(0, Math.round((now - lastHeartbeatMs) / 1000));
+      if (wallElapsedSec > MAX_IDLE_SECONDS) {
+        session.status = 'completed';
+        session.endedAt = new Date(lastHeartbeatMs + 60000);
+        await session.save({ session: mongoSession });
+        return { kind: 'success', accumulatedActiveSeconds: session.accumulatedActiveSeconds || 0, expired: true };
+      }
+
+      const claimedSeconds = Number(rawActiveSeconds);
+      const safeClaimed = Number.isFinite(claimedSeconds) && claimedSeconds > 0 ? claimedSeconds : 0;
+      const addedSeconds = Math.round(Math.min(safeClaimed, Math.min(MAX_HEARTBEAT_SECONDS, wallElapsedSec + (session.startupCreditGranted ? 0 : 5))));
+      const previousHeartbeatAt = session.lastHeartbeatAt;
+      const nextHeartbeatAt = new Date();
+      const closedSession = await LearningSession.findOneAndUpdate(
+        { _id: session._id, student: studentId, status: 'active', lastHeartbeatAt: previousHeartbeatAt, ...getLearningSessionScope(req) },
+        { $inc: { accumulatedActiveSeconds: addedSeconds }, $set: { lastHeartbeatAt: nextHeartbeatAt, startupCreditGranted: true, status: 'completed', endedAt: nextHeartbeatAt } },
+        { new: true, session: mongoSession },
+      );
+      if (!closedSession) return { kind: 'success', accumulatedActiveSeconds: session.accumulatedActiveSeconds || 0, duplicate: true };
+
+      if (addedSeconds > 0) {
+        await LearningProgress.updateOne(
+          { student: studentId, lesson: session.lesson },
+          { $inc: { totalActiveSeconds: addedSeconds }, $set: { lastAccessedAt: nextHeartbeatAt } },
+          { session: mongoSession },
+        );
+        await creditValidatedInterval({ studentId, activityType: session.activityType, seconds: addedSeconds, intervalStart: previousHeartbeatAt, intervalEnd: nextHeartbeatAt, timezone: session.timezone || getUserTimezone(req.user), mongoSession });
+      }
+      return { kind: 'success', accumulatedActiveSeconds: closedSession.accumulatedActiveSeconds || 0 };
+    });
+    if (result.kind === 'missing') return res.status(404).json({ status: 'error', code: 'SESSION_NOT_FOUND', message: 'Không tìm thấy phiên học.' });
+    return res.json({ status: 'success', message: result.expired ? 'Phiên học đã hết hạn an toàn sau thời gian không hoạt động.' : 'Phiên học đã kết thúc thành công.', data: { accumulatedActiveSeconds: result.accumulatedActiveSeconds, ...(result.expired ? { expired: true } : {}), ...(result.duplicate ? { duplicate: true } : {}) } });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 /** Pause without deleting the accumulated session. A later start request creates
  * a fresh validated interval, which prevents hidden/background time from leaking in. */
 export const pauseSession = async (req, res, next) => {
@@ -482,7 +657,7 @@ export const pauseSession = async (req, res, next) => {
       return res.status(400).json({ status: 'error', code: 'INVALID_SESSION_ID', message: 'Mã phiên học không hợp lệ.' });
     }
     const session = await LearningSession.findOneAndUpdate(
-      { _id: toObjectId(String(rawSessionId)), student: req.user._id, status: 'active' },
+      { _id: toObjectId(String(rawSessionId)), student: req.user._id, status: 'active', ...getLearningSessionScope(req) },
       { $set: { status: 'paused' } },
       { new: true },
     );

@@ -16,7 +16,7 @@ export const learningApi = {
       sessionId,
       activeSeconds,
       heartbeatId,
-    });
+    }, heartbeatId ? { headers: { 'Idempotency-Key': heartbeatId } } : undefined);
     return response.data;
   },
 

@@ -75,7 +75,7 @@ const sendProtectedFile = async (req, res, next, reference, url, {
 
   const auth = await authenticate(req);
   if (auth.error) {
-    if (auth.error.code === 'ACCOUNT_SUSPENDED') clearRefreshTokenCookie(res);
+    if (auth.error.code === 'ACCOUNT_SUSPENDED' || auth.error.code === 'SESSION_REPLACED') clearRefreshTokenCookie(res);
     return sendPolicyDenial(res, auth.error);
   }
 

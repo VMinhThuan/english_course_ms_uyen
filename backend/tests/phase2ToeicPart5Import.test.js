@@ -296,7 +296,9 @@ test('Phase 2 TOEIC Part 5 XLSX import engine', {
     });
     const assessment = await Assessment.create({
       title: `Existing assessment ${unique}`,
-      type: 'exam',
+      // Standard student start accepts exercise assessments; this fixture is
+      // testing the import flow, not the resource-type 404 guard.
+      type: 'exercise',
       examFormat: 'standard',
       status: 'published',
       durationMinutes: 30,

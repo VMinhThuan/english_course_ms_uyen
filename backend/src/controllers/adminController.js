@@ -333,6 +333,9 @@ export const suspendStudent = async (req, res, next) => {
 
     student.status = 'suspended';
     student.isActive = false;
+    // Suspension is a hard auth-session revocation. Reactivation must not
+    // revive any token that was issued before the suspension.
+    student.authSession = null;
     student.suspendedAt = new Date();
     student.suspendedBy = req.user._id;
     await student.save();

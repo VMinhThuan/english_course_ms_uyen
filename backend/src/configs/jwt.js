@@ -12,4 +12,10 @@ export const jwtConfig = {
     get refreshExpiresIn() {
         return process.env.JWT_REFRESH_EXPIRE || '7d';
     },
+    get issuer() {
+        return process.env.JWT_ISSUER || undefined;
+    },
+    get audience() {
+        return process.env.JWT_AUDIENCE || undefined;
+    },
 };

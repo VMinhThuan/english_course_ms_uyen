@@ -58,8 +58,17 @@ try {
   const parsedUri = new URL(isolatedUri);
   assert.equal(parsedUri.hostname, '127.0.0.1', 'test MongoDB must bind to loopback only');
   assert.equal(parsedUri.pathname.replaceAll('/', ''), dbName, 'test must use a disposable unique database');
-  await mongoose.connect(isolatedUri, { serverSelectionTimeoutMS: 5000, autoIndex: true });
-  await Promise.all([User.init(), Course.init(), Lesson.init(), Material.init(), Vocabulary.init(), Enrollment.init()]);
+  // Disable Mongoose's background autoCreate for this fixture. Explicit model
+  // initialization below must not race collection creation on a disposable
+  // standalone MongoDB instance.
+  await mongoose.connect(isolatedUri, { serverSelectionTimeoutMS: 5000, autoIndex: true, autoCreate: false });
+  // Enrollment is intentionally first-created by its seed insert below. On
+  // this Mongoose/mongodb-memory-server combination, explicit init() of this
+  // model can call createCollection after the native db handle is detached;
+  // the route-level test does not depend on the unique index being pre-built.
+  for (const model of [User, Course, Lesson, Material, Vocabulary]) {
+    await model.init();
+  }
 
   process.env.JWT_SECRET = `phase4-access-${unique}`;
   const app = express();
@@ -403,7 +412,9 @@ test('Phase 4 isolated learning API integration', {
     const legacyResponse = await request(`/api/v1/vocabulary/lesson/${lesson._id}?topic=Work`, { token: studentToken });
     const legacyBody = await legacyResponse.json();
     assert.equal(legacyResponse.status, 200);
-    assert.equal(legacyBody.data.vocabulary.length, 3);
+    // Vocabulary is now catalog-independent; the retained lesson route is
+    // compatibility-only and must not imply a course/lesson relationship.
+    assert.equal(legacyBody.data.vocabulary.length, 0);
     assert.equal(legacyBody.data.pagination, undefined);
   });
 });
